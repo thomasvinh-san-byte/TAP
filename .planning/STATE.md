@@ -1,3 +1,18 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: planning
+stopped_at: Phase 1 context gathered (mode autonome)
+last_updated: "2026-05-06T11:20:59.665Z"
+last_activity: 2026-05-06 — Lot 0 livré (commit `f68b1d2`), ingest + roadmap initiale créés
+progress:
+  total_phases: 14
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+---
+
 # Project State
 
 ## Project Reference
@@ -19,6 +34,7 @@ Progress: [█░░░░░░░░░] 7 % (Phase 0 complète sur 14 phases 
 ## Performance Metrics
 
 **Velocity:**
+
 - Total plans completed: 0 (Lot 0 livré avant introduction du planning par phase)
 - Average duration: n/a
 - Total execution time: n/a
@@ -30,6 +46,7 @@ Progress: [█░░░░░░░░░] 7 % (Phase 0 complète sur 14 phases 
 | 0. Fondations Lot 0 | n/a | n/a | n/a (livré hors GSD) |
 
 **Recent Trend:**
+
 - Pas encore de données de vélocité GSD (Phase 0 livrée hors workflow `/gsd-plan-phase`)
 - Trend: à mesurer dès la Phase 1
 
@@ -42,6 +59,7 @@ Progress: [█░░░░░░░░░] 7 % (Phase 0 complète sur 14 phases 
 16 décisions verrouillées dans PROJECT.md (DEC-001 à DEC-016) — 2 ADRs formels + 14 décisions élevées par autorité du propriétaire projet sur CLAUDE.md.
 
 Décisions affectant le travail courant :
+
 - Phase 0 : DEC-001 (monorepo Turborepo), DEC-002 (RLS multi-tenant), DEC-012 (GitHub Flow)
 - Phase 1 : DEC-007 (chiffrement AES-256-GCM du NIR), DEC-010 (audit_logs), DEC-015 (recherche fuzzy 2 caractères)
 - Phase 2 : DEC-005 (saisie < 30 s), DEC-015 (`Cmd/Ctrl+N`, brouillons, multi-saisies)
@@ -64,6 +82,6 @@ Aucun pour l'instant.
 
 ## Session Continuity
 
-Last session: 2026-05-06
-Stopped at: Création des artefacts de planification GSD (PROJECT, REQUIREMENTS, ROADMAP, STATE) après ingest des 5 documents sources
-Resume file: None — prochaine étape `/gsd-plan-phase 1` (Référentiel patients)
+Last session: 2026-05-06T11:20:59.651Z
+Stopped at: Phase 1 context gathered (mode autonome)
+Resume file: .planning/phases/01-referentiel-patients/01-CONTEXT.md
