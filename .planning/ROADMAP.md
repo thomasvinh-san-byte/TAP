@@ -19,24 +19,24 @@ une capture pour une page d'accueil produit.
 - Phases entières (0, 1, 2…) : milestones planifiés.
 - Phases décimales (2.1, 2.2…) : insertions urgentes (marquées INSERTED).
 
-- [x] **Phase 0 : Fondations Lot 0** - Monorepo, RLS multi-tenant, migrations, CI/CD (livré commit `f68b1d2`)
-- [ ] **Phase 1 : Référentiel patients** - Fiche patient avec NIR chiffré, recherche fuzzy, préférences
-- [ ] **Phase 2 : Saisie express course** - Saisie < 30 s, raccourci `Cmd/Ctrl+N`, brouillons, multi-saisies
-- [ ] **Phase 3 : Moteur tarification CGSS** - `packages/pricing` versionné, 100 % branches couvert
-- [ ] **Phase 4 : Moteur récurrences** - `packages/recurrence`, exceptions jours fériés 974, 100 % branches
-- [ ] **Phase 5 : Cockpit régulatrice temps réel** - Écran d'accueil, blocs courses + alertes, TTI < 2 s
-- [ ] **Phase 6 : Planning Gantt drag-and-drop** - Vue par chauffeur et par jour, réaffectation visuelle
-- [ ] **Phase 7 : Gestion des imprévus** - Workflows panne, patient absent, réaffectation temps réel
-- [ ] **Phase 8 : Communication SMS patient** - `packages/sms`, consentement actif, templates, delivery
-- [ ] **Phase 9 : PWA chauffeur** - `apps/mobile` complète : terrain, hors-ligne, vocal, mode soleil
-- [ ] **Phase 10 : Optimisation des tournées** - Microservice Python OR-Tools + client TS
-- [ ] **Phase 11 : Routing GPS OSRM** - OSRM auto-hébergé, MapLibre + tuiles OSM
-- [ ] **Phase 12 : Caisse et paiements directs** - Encaissements cash / CB / chèque, rapprochement
-- [ ] **Phase 13 : Mode dégradé** - Continuité de service en panne réseau / Supabase / tiers
+- [x] **Phase 0: Fondations Lot 0** - Monorepo, RLS multi-tenant, migrations, CI/CD (livré commit `f68b1d2`)
+- [ ] **Phase 1: Référentiel patients** - Fiche patient avec NIR chiffré, recherche fuzzy, préférences
+- [ ] **Phase 2: Saisie express course** - Saisie < 30 s, raccourci `Cmd/Ctrl+N`, brouillons, multi-saisies
+- [ ] **Phase 3: Moteur tarification CGSS** - `packages/pricing` versionné, 100 % branches couvert
+- [ ] **Phase 4: Moteur récurrences** - `packages/recurrence`, exceptions jours fériés 974, 100 % branches
+- [ ] **Phase 5: Cockpit régulatrice temps réel** - Écran d'accueil, blocs courses + alertes, TTI < 2 s
+- [ ] **Phase 6: Planning Gantt drag-and-drop** - Vue par chauffeur et par jour, réaffectation visuelle
+- [ ] **Phase 7: Gestion des imprévus** - Workflows panne, patient absent, réaffectation temps réel
+- [ ] **Phase 8: Communication SMS patient** - `packages/sms`, consentement actif, templates, delivery
+- [ ] **Phase 9: PWA chauffeur** - `apps/mobile` complète : terrain, hors-ligne, vocal, mode soleil
+- [ ] **Phase 10: Optimisation des tournées** - Microservice Python OR-Tools + client TS
+- [ ] **Phase 11: Routing GPS OSRM** - OSRM auto-hébergé, MapLibre + tuiles OSM
+- [ ] **Phase 12: Caisse et paiements directs** - Encaissements cash / CB / chèque, rapprochement
+- [ ] **Phase 13: Mode dégradé** - Continuité de service en panne réseau / Supabase / tiers
 
 ## Phase Details
 
-### Phase 0 : Fondations Lot 0
+### Phase 0: Fondations Lot 0
 **Goal**: Disposer d'un monorepo Turborepo + Supabase multi-tenant prêt à recevoir la valeur métier, avec CI/CD verte et tests RLS automatisés.
 **Depends on**: Nothing (first phase)
 **Requirements**: FOND-01, FOND-02, FOND-03, FOND-04, FOND-05, FOND-06, FOND-07, FOND-08
@@ -49,7 +49,7 @@ une capture pour une page d'accueil produit.
 **Plans**: livré (commit `f68b1d2`)
 **Status**: Complete (2026-05-06)
 
-### Phase 1 : Référentiel patients
+### Phase 1: Référentiel patients
 **Goal**: La régulatrice peut créer, consulter, rechercher et annoter une fiche patient avec un NIR chiffré et des préférences exploitables par les autres modules.
 **Depends on**: Phase 0
 **Requirements**: PAT-01, PAT-02, PAT-03, PAT-04, PAT-05, PAT-06, PAT-07
@@ -62,7 +62,7 @@ une capture pour une page d'accueil produit.
 **Plans**: TBD
 **UI hint**: yes
 
-### Phase 2 : Saisie express course
+### Phase 2: Saisie express course
 **Goal**: La régulatrice peut saisir une course en mode express en moins de 30 secondes, avec brouillons en file d'attente et multi-saisies parallèles, sans jamais être bloquée par un appel entrant.
 **Depends on**: Phase 1
 **Requirements**: SAIS-01, SAIS-02, SAIS-03, SAIS-04, SAIS-05, SAIS-06
@@ -75,7 +75,7 @@ une capture pour une page d'accueil produit.
 **Plans**: TBD
 **UI hint**: yes
 
-### Phase 3 : Moteur tarification CGSS
+### Phase 3: Moteur tarification CGSS
 **Goal**: Toute course créée dispose d'un calcul tarifaire CGSS exact, déterministe, versionné et 100 % couvert par les tests, isolé dans `packages/pricing`.
 **Depends on**: Phase 2
 **Requirements**: PRIC-01, PRIC-02, PRIC-03, PRIC-04
@@ -86,7 +86,7 @@ une capture pour une page d'accueil produit.
   4. Aucun calcul tarifaire n'existe ailleurs que dans `packages/pricing` (audit grep en CI)
   5. Toute modification de paramètre tarifaire écrit une ligne dans `audit_logs`
 
-### Phase 4 : Moteur récurrences
+### Phase 4: Moteur récurrences
 **Goal**: La régulatrice peut configurer un schéma de récurrence (dialyse 3×/sem, chimio) et obtenir des occurrences générées automatiquement avec exceptions jours fériés 974, 100 % couvert par les tests, isolé dans `packages/recurrence`.
 **Depends on**: Phase 3
 **Requirements**: RECU-01, RECU-02, RECU-03, RECU-04, RECU-05, RECU-06
@@ -98,7 +98,7 @@ une capture pour une page d'accueil produit.
   5. La couverture de tests `packages/recurrence` atteint 100 % de branches en CI
 **Plans**: TBD
 
-### Phase 5 : Cockpit régulatrice temps réel
+### Phase 5: Cockpit régulatrice temps réel
 **Goal**: À la connexion, la régulatrice ouvre par défaut un cockpit temps réel qui charge en moins de 2 secondes et reflète instantanément les changements (nouvelles courses, statuts chauffeur, alertes) sans flash ni reload.
 **Depends on**: Phase 4
 **Requirements**: COCK-01, COCK-02, COCK-03, COCK-04, COCK-05, COCK-06
@@ -111,7 +111,7 @@ une capture pour une page d'accueil produit.
 **Plans**: TBD
 **UI hint**: yes
 
-### Phase 6 : Planning Gantt drag-and-drop
+### Phase 6: Planning Gantt drag-and-drop
 **Goal**: La régulatrice dispose d'une vue planning Gantt par chauffeur et par jour, et peut réaffecter une course d'un chauffeur à un autre par simple drag-and-drop, avec mutualisation visible.
 **Depends on**: Phase 5
 **Requirements**: PLAN-01, PLAN-02, PLAN-03, PLAN-04
@@ -123,7 +123,7 @@ une capture pour une page d'accueil produit.
 **Plans**: TBD
 **UI hint**: yes
 
-### Phase 7 : Gestion des imprévus
+### Phase 7: Gestion des imprévus
 **Goal**: Les workflows critiques de la vie réelle (patient absent, panne véhicule, réaffectation course) sont traités de bout en bout en temps réel entre régulatrice et chauffeur, avec décisions tracées.
 **Depends on**: Phase 6
 **Requirements**: IMPV-01, IMPV-02, IMPV-03, IMPV-04
@@ -135,7 +135,7 @@ une capture pour une page d'accueil produit.
 **Plans**: TBD
 **UI hint**: yes
 
-### Phase 8 : Communication SMS patient
+### Phase 8: Communication SMS patient
 **Goal**: La régulatrice peut envoyer des SMS patients (rappel veille, retard, annulation) uniquement aux patients ayant donné consentement actif, via templates personnalisables, avec statut delivery archivé.
 **Depends on**: Phase 7
 **Requirements**: SMS-01, SMS-02, SMS-03, SMS-04, SMS-05, SMS-06, SMS-07
@@ -149,7 +149,7 @@ une capture pour une page d'accueil produit.
 **Plans**: TBD
 **UI hint**: yes
 
-### Phase 9 : PWA chauffeur
+### Phase 9: PWA chauffeur
 **Goal**: Le chauffeur dispose d'une PWA mobile utilisable au volant ou en tournée, hors-ligne, vocale au démarrage de course, lisible au soleil, avec maximum 3 informations à l'écran et confirmations par swipe.
 **Depends on**: Phase 8
 **Requirements**: CHAUF-01, CHAUF-02, CHAUF-03, CHAUF-04, CHAUF-05, CHAUF-06, CHAUF-07, CHAUF-08, CHAUF-09, CHAUF-10, CHAUF-11, CHAUF-12
@@ -163,7 +163,7 @@ une capture pour une page d'accueil produit.
 **Plans**: TBD
 **UI hint**: yes
 
-### Phase 10 : Optimisation des tournées
+### Phase 10: Optimisation des tournées
 **Goal**: Le microservice Python OR-Tools propose des tournées optimisées et des opportunités de mutualisation (spatiale ou temporelle) à la régulatrice, exposé via un client TS typé.
 **Depends on**: Phase 9
 **Requirements**: OPTI-01, OPTI-02, OPTI-03, OPTI-04, OPTI-05
@@ -173,7 +173,7 @@ une capture pour une page d'accueil produit.
   3. La régulatrice voit dans le cockpit ou le planning des suggestions de mutualisation (gain estimé en km / temps)
   4. Les tests pytest du service couvrent les cas critiques (mutualisation impossible, contraintes TPMR, fenêtres horaires)
 
-### Phase 11 : Routing GPS OSRM
+### Phase 11: Routing GPS OSRM
 **Goal**: Tous les calculs d'itinéraires (durée, distance, géométrie) reposent sur un OSRM auto-hébergé, exposé aux apps via MapLibre et tuiles OSM, sans dépendance à un service tiers payant.
 **Depends on**: Phase 10
 **Requirements**: ROUT-01, ROUT-02, ROUT-03
@@ -184,7 +184,7 @@ une capture pour une page d'accueil produit.
 **Plans**: TBD
 **UI hint**: yes
 
-### Phase 12 : Caisse et paiements directs
+### Phase 12: Caisse et paiements directs
 **Goal**: La régulatrice et la dirigeante peuvent enregistrer les encaissements directs (cash, CB, chèque) rattachés à une course ou un patient, et faire un rapprochement de fin de journée.
 **Depends on**: Phase 11
 **Requirements**: CAIS-01, CAIS-02, CAIS-03
@@ -195,7 +195,7 @@ une capture pour une page d'accueil produit.
 **Plans**: TBD
 **UI hint**: yes
 
-### Phase 13 : Mode dégradé
+### Phase 13: Mode dégradé
 **Goal**: Si Supabase Realtime, la connexion réseau ou un service tiers tombe, l'outil reste utilisable pour les actions critiques (consultation planning régulateur, clôture course chauffeur) avec indicateur explicite à l'utilisateur.
 **Depends on**: Phase 12
 **Requirements**: DEGR-01, DEGR-02, DEGR-03
