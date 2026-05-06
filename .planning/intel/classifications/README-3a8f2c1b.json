@@ -1,0 +1,13 @@
+{
+  "source_path": "/home/user/TAP/docs/adr/README.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": true,
+  "title": "Architecture Decision Records (ADR)",
+  "summary": "Index and template guide for the project's ADR collection, defining the Nygard-inspired format, conventions, and listing existing ADRs.",
+  "scope": ["ADR format", "ADR conventions", "ADR index"],
+  "cross_refs": ["./ADR-001-monorepo-turborepo.md", "./ADR-002-supabase-rls-multitenant.md"],
+  "locked": false,
+  "precedence": null,
+  "notes": "Manifest declared this as DOC; content confirms it is an index/template rather than an ADR itself."
+}

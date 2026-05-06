@@ -1,0 +1,12 @@
+{
+  "source_path": "/home/user/TAP/docs/adr/ADR-002-supabase-rls-multitenant.md",
+  "type": "ADR",
+  "confidence": "high",
+  "manifest_override": true,
+  "title": "ADR-002 — Multi-tenant via Supabase RLS et organization_id",
+  "summary": "Décide d'implémenter le multi-tenant via tables partagées avec colonne organization_id et Row Level Security forcée sur Supabase Postgres.",
+  "scope": ["multi-tenant", "Supabase", "Postgres", "Row Level Security", "organization_id", "isolation tenant", "pgTAP", "service_role", "HDS"],
+  "cross_refs": ["CLAUDE.md"],
+  "locked": true,
+  "precedence": null
+}

@@ -1,0 +1,274 @@
+# Requirements : SaaS TAP Réunion
+
+**Defined:** 2026-05-06
+**Core Value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
+
+> Note : les requirements ci-dessous proviennent de l'ingest des 2 ADRs et de
+> CLAUDE.md. Le **CDC v2** (`docs/cahier_des_charges_saas_tap_v2.docx`)
+> contient 24 modules fonctionnels — 9 modules critiques sont couverts en V1
+> ci-dessous. Les **15 modules secondaires** restent à ingérer comme PRD une
+> fois le `.docx` converti en `.md`.
+
+---
+
+## v1 Requirements
+
+Requirements pour la première release commerciale (livrée incrémentalement aux
+design partners). Chaque requirement mappe vers exactement une phase.
+
+### Fondations (FOND) — livrée Lot 0
+
+- [x] **FOND-01** : Monorepo Turborepo + pnpm workspaces opérationnel (build, cache, parallélisation)
+- [x] **FOND-02** : Multi-tenant via RLS forcée + `organization_id` sur toute table métier
+- [x] **FOND-03** : Migrations Supabase 001 (foundations) et 002 (rls_foundations) appliquées
+- [x] **FOND-04** : Tests pgTAP RLS automatisés en CI (PR bloquée si red)
+- [x] **FOND-05** : Packages `database` (types Supabase) et `shared` (utils, validators zod) initialisés
+- [x] **FOND-06** : ADRs versionnés (ADR-001 monorepo, ADR-002 RLS multi-tenant)
+- [x] **FOND-07** : CI/CD GitHub Actions (lint, typecheck, tests, migrations validées)
+- [x] **FOND-08** : Comptes de démo seedés (dirigeant, régulateur, chauffeur)
+
+### Référentiel patients (PAT)
+
+- [ ] **PAT-01** : Régulatrice peut créer une fiche patient avec coordonnées, NIR, date de naissance, genre
+- [ ] **PAT-02** : NIR chiffré applicativement (AES-256-GCM), clé hors Supabase, jamais loggué
+- [ ] **PAT-03** : Régulatrice peut consulter une fiche patient en < 1 clic depuis la recherche
+- [ ] **PAT-04** : Recherche patient fuzzy à partir de 2 caractères (nom, prénom, téléphone)
+- [ ] **PAT-05** : Régulatrice peut renseigner préférences patient (SMS / appel / aucun, contraintes)
+- [ ] **PAT-06** : Régulatrice peut ajouter une note opérationnelle libre (codes, particularités)
+- [ ] **PAT-07** : Modifications fiche patient journalisées dans `audit_logs`
+
+### Saisie express course (SAIS)
+
+- [ ] **SAIS-01** : Saisie complète d'une course en mode express **< 30 s** (mesuré E2E Playwright)
+- [ ] **SAIS-02** : Saisie express déclenchable par raccourci clavier global `Cmd/Ctrl+N`
+- [ ] **SAIS-03** : Recherche patient instantanée à 2 caractères dans le formulaire
+- [ ] **SAIS-04** : Régulatrice peut mettre une saisie en pause et y revenir (file d'attente brouillons)
+- [ ] **SAIS-05** : Multi-saisies en parallèle (plusieurs brouillons ouverts simultanément, jamais bloquant)
+- [ ] **SAIS-06** : Création de course écrit dans `audit_logs` (cf. DEC-010)
+
+### Tarification CGSS (PRIC)
+
+- [ ] **PRIC-01** : Calcul tarif CGSS d'une course (base, suppléments, mutualisation, à vide) — uniquement dans `packages/pricing`
+- [ ] **PRIC-02** : Versionnement des grilles tarifaires (`tariff_grid`) avec date d'effet
+- [ ] **PRIC-03** : Couverture tests `packages/pricing` à **100 % branches** (cf. DEC-013)
+- [ ] **PRIC-04** : Modifications de paramètres tarifaires journalisées dans `audit_logs`
+
+### Récurrences (RECU)
+
+- [ ] **RECU-01** : Modèle `ride_recurrence` (dialyse 3×/sem, chimio, etc.) configurable par régulatrice
+- [ ] **RECU-02** : Génération des prochaines occurrences avec exceptions **jours fériés 974** (La Réunion)
+- [ ] **RECU-03** : Gestion d'exceptions par occurrence (`ride_recurrence_exception`)
+- [ ] **RECU-04** : Décrément automatique du bon de transport (`prescription`) lors de la génération
+- [ ] **RECU-05** : Couverture tests `packages/recurrence` à **100 % branches** (cf. DEC-013)
+- [ ] **RECU-06** : Génération et modification de récurrences journalisées dans `audit_logs`
+
+### Cockpit régulatrice (COCK)
+
+- [ ] **COCK-01** : Cockpit temps réel = écran d'accueil par défaut à la connexion régulatrice
+- [ ] **COCK-02** : Time to Interactive cockpit **< 2 secondes** (mesuré Playwright)
+- [ ] **COCK-03** : Mises à jour temps réel via Supabase Realtime, fade-in subtil (jamais de flash ni reload)
+- [ ] **COCK-04** : Bloc « courses du jour » avec statut chauffeur, patient, statut course
+- [ ] **COCK-05** : Bloc « alertes » (retards, imprévus, SMS échoués) en temps réel
+- [ ] **COCK-06** : Tests d'intégration sur composant critique (cf. DEC-013)
+
+### Planning Gantt (PLAN)
+
+- [ ] **PLAN-01** : Vue planning Gantt par chauffeur et par jour
+- [ ] **PLAN-02** : Drag-and-drop d'une course d'un chauffeur à un autre (réaffectation)
+- [ ] **PLAN-03** : Visualisation des courses mutualisées et des temps morts
+- [ ] **PLAN-04** : Réaffectations journalisées dans `audit_logs`
+
+### Imprévus (IMPV)
+
+- [ ] **IMPV-01** : Workflow « patient absent » (signalement chauffeur → décision régulatrice)
+- [ ] **IMPV-02** : Workflow « panne véhicule » (réaffectation course en cours, notification patient)
+- [ ] **IMPV-03** : Workflow « réaffectation course » à un autre chauffeur, propagation temps réel
+- [ ] **IMPV-04** : Tests E2E Playwright sur les 3 workflows imprévus (cf. DEC-013)
+
+### Communication SMS patient (SMS)
+
+- [ ] **SMS-01** : Envoi SMS sortant uniquement si consentement patient actif et horodaté (cf. DEC-008)
+- [ ] **SMS-02** : Templates personnalisables (rappel veille, retard, annulation), personnalisation par patient
+- [ ] **SMS-03** : Numéro expéditeur = numéro pro de la société
+- [ ] **SMS-04** : Envoi via Twilio ou OVH SMS Pro (cf. DEC-003), via `packages/sms` uniquement
+- [ ] **SMS-05** : Statut delivery + réponse patient archivés dans la fiche patient
+- [ ] **SMS-06** : Préférence patient (SMS / appel / aucun) respectée systématiquement
+- [ ] **SMS-07** : Envois SMS journalisés dans `audit_logs`
+
+### PWA chauffeur (CHAUF)
+
+- [ ] **CHAUF-01** : Boutons d'action principale ≥ 56 px de hauteur, texte ≥ 18 px (cf. DEC-014)
+- [ ] **CHAUF-02** : Une action principale unique par écran, en bas, accessible au pouce
+- [ ] **CHAUF-03** : Maximum 3 informations simultanées sur l'écran « course en cours »
+- [ ] **CHAUF-04** : Confirmations critiques par swipe (évite clics accidentels)
+- [ ] **CHAUF-05** : Mode hors-ligne fonctionnel : tournée, démarrage / clôture course, scan BT (sync différée)
+- [ ] **CHAUF-06** : Indicateur explicite « hors-ligne » + nombre d'éléments en attente de sync
+- [ ] **CHAUF-07** : Lecture vocale (TTS) du nom patient et adresse au démarrage de course
+- [ ] **CHAUF-08** : Mode contraste élevé activable, police agrandie (+20 %)
+- [ ] **CHAUF-09** : Confirmation d'action **< 1 s même en 3G** (cf. DEC-005)
+- [ ] **CHAUF-10** : Indicateur batterie + connexion réseau visibles en permanence
+- [ ] **CHAUF-11** : Géolocalisation capturée uniquement pendant le service (cf. DEC-009)
+- [ ] **CHAUF-12** : Chauffeur ne voit QUE ses propres tournées (`driver_id = auth.uid()`)
+
+### Optimisation des tournées (OPTI)
+
+- [ ] **OPTI-01** : Microservice Python OR-Tools (`services/optimizer`) calculant les tournées optimales
+- [ ] **OPTI-02** : Client TS `packages/optimizer-client` typé, isolé du calcul
+- [ ] **OPTI-03** : Suggestion de mutualisation de courses (plusieurs patients dans le même véhicule)
+- [ ] **OPTI-04** : Suggestion de mutualisation temporelle (courses intercalées dans temps d'attente)
+- [ ] **OPTI-05** : Couverture tests pytest sur le service Python (cf. DEC-013)
+
+### Routing GPS (ROUT)
+
+- [ ] **ROUT-01** : OSRM auto-hébergé (`services/osrm`) pour calcul d'itinéraires
+- [ ] **ROUT-02** : Cartes via MapLibre + tuiles OSM (cf. DEC-003)
+- [ ] **ROUT-03** : Pas de dépendance à un service de routing tiers payant en V1
+
+### Caisse et paiements directs (CAIS)
+
+- [ ] **CAIS-01** : Encaissement direct (cash, CB, chèque) rattaché à une course ou un patient
+- [ ] **CAIS-02** : Rapprochement caisse de fin de journée
+- [ ] **CAIS-03** : Encaissements journalisés dans `audit_logs` (cf. DEC-010)
+
+### Mode dégradé (DEGR)
+
+- [ ] **DEGR-01** : Régulatrice peut continuer à consulter le planning si Supabase Realtime tombe
+- [ ] **DEGR-02** : Chauffeur peut clore une course en cours hors-ligne, sync au retour réseau
+- [ ] **DEGR-03** : Indicateur explicite « mode dégradé actif » à l'utilisateur
+
+---
+
+## v2 Requirements
+
+Reportés à une release ultérieure. Trackés mais non dans le roadmap V1.
+
+### Portail B2B (B2B)
+
+- **B2B-01** : Donneur d'ordres (hôpital, clinique, EHPAD) peut créer une demande de transport
+- **B2B-02** : Grilles tarifaires B2B (`b2b_tariff_grid`) versionnées par client
+- **B2B-03** : Facturation B2B mensuelle automatisée
+
+### Litiges CGSS (LIT)
+
+- **LIT-01** : Suivi des litiges (`ride_dispute`) avec statut, motif, pièces jointes
+- **LIT-02** : Export du dossier de litige (PDF / CSV) pour la CGSS
+
+### 15 modules secondaires CDC v2
+
+À détailler après ingest du `.docx` converti en `.md`. Pointeurs dans le CDC v2 — modules non encore extraits dans le repo intel.
+
+---
+
+## Out of Scope
+
+Exclus explicitement. Documenté pour éviter le scope creep.
+
+| Feature | Raison |
+|---------|--------|
+| Application native iOS / Android chauffeur | PWA suffit ; native uniquement si limites techniques bloquantes prouvées |
+| Multi-langue (anglais, créole, etc.) | Cible 974, FR uniquement à court terme |
+| Analyse vidéo / dashcam intégrée | Hors périmètre métier |
+| Module comptabilité complet | Caisse couvre les paiements directs ; compta = outil tiers |
+| Outils marketing intégrés | Focus 100 % opérationnel |
+| Application B2C patient (booking direct) | Non aligné avec le modèle conventionné CGSS |
+| OAuth (Google, Apple, etc.) | Supabase Auth e-mail + 2FA optionnel suffit |
+| Real-time chat patient ↔ chauffeur | SMS unidirectionnels (consentement) suffit |
+| Stockage vidéo / photos sensibles | Tant que l'hébergement HDS n'est pas en place commercial |
+
+---
+
+## Traceability
+
+Mapping requirement → phase. Mis à jour lors de la création du roadmap.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| FOND-01 | Phase 0 | Complete |
+| FOND-02 | Phase 0 | Complete |
+| FOND-03 | Phase 0 | Complete |
+| FOND-04 | Phase 0 | Complete |
+| FOND-05 | Phase 0 | Complete |
+| FOND-06 | Phase 0 | Complete |
+| FOND-07 | Phase 0 | Complete |
+| FOND-08 | Phase 0 | Complete |
+| PAT-01 | Phase 1 | Pending |
+| PAT-02 | Phase 1 | Pending |
+| PAT-03 | Phase 1 | Pending |
+| PAT-04 | Phase 1 | Pending |
+| PAT-05 | Phase 1 | Pending |
+| PAT-06 | Phase 1 | Pending |
+| PAT-07 | Phase 1 | Pending |
+| SAIS-01 | Phase 2 | Pending |
+| SAIS-02 | Phase 2 | Pending |
+| SAIS-03 | Phase 2 | Pending |
+| SAIS-04 | Phase 2 | Pending |
+| SAIS-05 | Phase 2 | Pending |
+| SAIS-06 | Phase 2 | Pending |
+| PRIC-01 | Phase 3 | Pending |
+| PRIC-02 | Phase 3 | Pending |
+| PRIC-03 | Phase 3 | Pending |
+| PRIC-04 | Phase 3 | Pending |
+| RECU-01 | Phase 4 | Pending |
+| RECU-02 | Phase 4 | Pending |
+| RECU-03 | Phase 4 | Pending |
+| RECU-04 | Phase 4 | Pending |
+| RECU-05 | Phase 4 | Pending |
+| RECU-06 | Phase 4 | Pending |
+| COCK-01 | Phase 5 | Pending |
+| COCK-02 | Phase 5 | Pending |
+| COCK-03 | Phase 5 | Pending |
+| COCK-04 | Phase 5 | Pending |
+| COCK-05 | Phase 5 | Pending |
+| COCK-06 | Phase 5 | Pending |
+| PLAN-01 | Phase 6 | Pending |
+| PLAN-02 | Phase 6 | Pending |
+| PLAN-03 | Phase 6 | Pending |
+| PLAN-04 | Phase 6 | Pending |
+| IMPV-01 | Phase 7 | Pending |
+| IMPV-02 | Phase 7 | Pending |
+| IMPV-03 | Phase 7 | Pending |
+| IMPV-04 | Phase 7 | Pending |
+| SMS-01 | Phase 8 | Pending |
+| SMS-02 | Phase 8 | Pending |
+| SMS-03 | Phase 8 | Pending |
+| SMS-04 | Phase 8 | Pending |
+| SMS-05 | Phase 8 | Pending |
+| SMS-06 | Phase 8 | Pending |
+| SMS-07 | Phase 8 | Pending |
+| CHAUF-01 | Phase 9 | Pending |
+| CHAUF-02 | Phase 9 | Pending |
+| CHAUF-03 | Phase 9 | Pending |
+| CHAUF-04 | Phase 9 | Pending |
+| CHAUF-05 | Phase 9 | Pending |
+| CHAUF-06 | Phase 9 | Pending |
+| CHAUF-07 | Phase 9 | Pending |
+| CHAUF-08 | Phase 9 | Pending |
+| CHAUF-09 | Phase 9 | Pending |
+| CHAUF-10 | Phase 9 | Pending |
+| CHAUF-11 | Phase 9 | Pending |
+| CHAUF-12 | Phase 9 | Pending |
+| OPTI-01 | Phase 10 | Pending |
+| OPTI-02 | Phase 10 | Pending |
+| OPTI-03 | Phase 10 | Pending |
+| OPTI-04 | Phase 10 | Pending |
+| OPTI-05 | Phase 10 | Pending |
+| ROUT-01 | Phase 11 | Pending |
+| ROUT-02 | Phase 11 | Pending |
+| ROUT-03 | Phase 11 | Pending |
+| CAIS-01 | Phase 12 | Pending |
+| CAIS-02 | Phase 12 | Pending |
+| CAIS-03 | Phase 12 | Pending |
+| DEGR-01 | Phase 13 | Pending |
+| DEGR-02 | Phase 13 | Pending |
+| DEGR-03 | Phase 13 | Pending |
+
+**Couverture :**
+- Requirements V1 (hors fondations) : 67
+- Fondations livrées : 8
+- Total V1 : 75
+- Mappés à des phases : 75
+- Non mappés : 0 ✓
+
+---
+*Requirements définis : 2026-05-06*
+*Dernière mise à jour : 2026-05-06 après ingest et création du roadmap initial*

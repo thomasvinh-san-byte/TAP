@@ -1,0 +1,25 @@
+{
+  "source_path": "/home/user/TAP/README.md",
+  "type": "DOC",
+  "confidence": "high",
+  "manifest_override": true,
+  "title": "SaaS TAP Réunion",
+  "summary": "Project README presenting the SaaS TAP Réunion stack, repo architecture pointer, local startup commands, demo seed credentials, Git workflow and security note.",
+  "scope": [
+    "stack technique",
+    "architecture monorepo",
+    "démarrage local",
+    "comptes de démo",
+    "workflow Git",
+    "sécurité"
+  ],
+  "cross_refs": [
+    "./CLAUDE.md",
+    "docs/cahier_des_charges_saas_tap_v2.docx",
+    "./CLAUDE.md#4-architecture-du-repo",
+    "./docs/adr/ADR-001-monorepo-turborepo.md",
+    "./CLAUDE.md#6-règles-de-sécurité-non-négociables"
+  ],
+  "locked": false,
+  "precedence": null
+}
