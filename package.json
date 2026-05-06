@@ -1,0 +1,37 @@
+{
+  "name": "saas-tap",
+  "version": "0.0.0",
+  "private": true,
+  "description": "SaaS TAP Réunion — régulation, optimisation, communication patient",
+  "packageManager": "pnpm@9.12.0",
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "clean": "turbo run clean && rm -rf node_modules .turbo",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:diff": "supabase db diff",
+    "db:test": "supabase test db",
+    "db:types": "supabase gen types typescript --local > packages/database/src/types.gen.ts",
+    "db:push": "supabase db push",
+    "prepare": "husky || true"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "prettier": "^3.3.3",
+    "prettier-plugin-tailwindcss": "^0.6.6",
+    "turbo": "^2.1.0",
+    "typescript": "^5.5.4"
+  }
+}

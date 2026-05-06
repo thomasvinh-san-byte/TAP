@@ -1,0 +1,37 @@
+name: Sync Supabase types
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Tous les jours à 3h UTC (7h Réunion)
+    - cron: '0 3 * * *'
+
+jobs:
+  sync:
+    name: Régénérer types.gen.ts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Générer les types depuis le projet distant
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase gen types typescript \
+            --project-id ${{ secrets.SUPABASE_PROJECT_REF }} \
+            > packages/database/src/types.gen.ts
+      - name: Créer une PR si diff
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: chore/sync-supabase-types
+          base: main
+          commit-message: 'chore(database): sync types Supabase'
+          title: 'chore(database): sync types Supabase'
+          body: |
+            Régénération automatique de `packages/database/src/types.gen.ts` depuis le projet Supabase de production.
+          delete-branch: true
