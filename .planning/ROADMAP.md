@@ -59,7 +59,13 @@ une capture pour une page d'accueil produit.
   3. Une recherche à 2 caractères (nom, prénom, ou téléphone) retourne instantanément les patients correspondants en fuzzy
   4. La régulatrice peut renseigner les préférences patient (SMS / appel / aucun) et une note opérationnelle libre
   5. Toute création ou modification de fiche patient apparaît dans `audit_logs` avec utilisateur, horodatage et delta
-**Plans**: TBD
+**Plans**: 5 plans
+Plans:
+- [ ] plans/PLAN-1.md — Wave 0 : tests scaffolds (pgTAP, Deno, Playwright, Vitest) en RED
+- [ ] plans/PLAN-2.md — Wave 1 : migration 003 patients + validators étendus + types regen + schema push
+- [ ] plans/PLAN-3.md — Wave 1 : Edge Function NIR (encrypt/decrypt/hash) + tests Deno GREEN
+- [ ] plans/PLAN-4.md — Wave 2 : bootstrap apps/web (Next.js 14, Tailwind, shadcn/ui, middleware Supabase Auth, /login)
+- [ ] plans/PLAN-5.md — Wave 3 : UI patient (liste + drawer 400px + détail + edit) + E2E GREEN
 **UI hint**: yes
 
 ### Phase 2: Saisie express course

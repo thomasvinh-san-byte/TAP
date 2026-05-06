@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Phase 1 context gathered (mode autonome)
-last_updated: "2026-05-06T11:20:59.665Z"
+stopped_at: Phase 1 plans validated (PASS, 5 plans across 4 waves)
+last_updated: "2026-05-06T12:23:06.250Z"
 last_activity: 2026-05-06 — Lot 0 livré (commit `f68b1d2`), ingest + roadmap initiale créés
 progress:
   total_phases: 14
@@ -82,6 +82,6 @@ Aucun pour l'instant.
 
 ## Session Continuity
 
-Last session: 2026-05-06T11:20:59.651Z
-Stopped at: Phase 1 context gathered (mode autonome)
-Resume file: .planning/phases/01-referentiel-patients/01-CONTEXT.md
+Last session: 2026-05-06T12:23:06.235Z
+Stopped at: Phase 1 plans validated (PASS, 5 plans across 4 waves)
+Resume file: .planning/phases/01-referentiel-patients/plans/PLAN-1.md
