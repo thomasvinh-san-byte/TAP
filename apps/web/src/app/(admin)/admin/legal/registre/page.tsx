@@ -1,7 +1,8 @@
+import { Plus } from 'lucide-react';
 import Link from 'next/link';
-import { Plus, FileDown } from 'lucide-react';
 import { createClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/button';
+import { ExportPdfButton } from './_components/export-pdf-button.client';
 import { RegistreList } from './_components/registre-list.client';
 
 export const metadata = { title: 'Registre des traitements — TAP Admin' };
@@ -43,12 +44,7 @@ export default async function RegistrePage() {
           </p>
         </div>
         <div className="flex gap-12">
-          <Button variant="outline" asChild>
-            <Link href="/api/admin/legal/registre/pdf" target="_blank">
-              <FileDown className="mr-8 h-16 w-16" aria-hidden />
-              Exporter PDF
-            </Link>
-          </Button>
+          <ExportPdfButton />
           <Button asChild>
             <Link href="#nouveau">
               <Plus className="mr-8 h-16 w-16" aria-hidden />
