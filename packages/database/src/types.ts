@@ -1,10 +1,19 @@
 /**
- * Types domaine miroir des tables Supabase fondations.
+ * Types domaine miroir des tables Supabase.
  *
- * Ce fichier décrit la forme attendue côté TS. La source de vérité reste
- * `types.gen.ts` (généré via `pnpm db:types`). Quand le fichier généré
- * existe, importer plutôt depuis lui.
+ * La source de vérité du type `Database` est `./types.gen.ts`, régénéré
+ * via `pnpm db:types` après chaque migration. Le re-export ci-dessous est
+ * la voie unique pour les consommateurs (`@tap/database`).
+ *
+ * Les interfaces locales `Organization`, `Profile`, `AuditLog` et `UserRole`
+ * sont conservées comme types domaine lisibles à utiliser directement dans
+ * la logique métier (ex : `function archive(org: Organization)`). Elles
+ * restent alignées sur les types générés mais ne sont plus utilisées par
+ * le `Database` type — celui-ci provient désormais exclusivement de
+ * `types.gen.ts`.
  */
+
+export type { Database, Json } from './types.gen';
 
 export type UserRole = 'dirigeant' | 'regulateur' | 'chauffeur';
 
@@ -48,36 +57,4 @@ export interface AuditLog {
   entity_id: string | null;
   metadata: Record<string, unknown>;
   created_at: string;
-}
-
-/**
- * Forme minimale du schéma Database pour @supabase/supabase-js.
- * Sera remplacée par le type généré dès la première exécution de
- * `pnpm db:types`.
- */
-export interface Database {
-  public: {
-    Tables: {
-      organizations: {
-        Row: Organization;
-        Insert: Omit<Organization, 'id' | 'created_at' | 'updated_at' | 'date_creation'> &
-          Partial<Pick<Organization, 'id' | 'date_creation'>>;
-        Update: Partial<Omit<Organization, 'id' | 'created_at' | 'updated_at'>>;
-      };
-      profiles: {
-        Row: Profile;
-        Insert: Omit<Profile, 'created_at' | 'updated_at'> &
-          Partial<Pick<Profile, 'actif'>>;
-        Update: Partial<Omit<Profile, 'id' | 'created_at' | 'updated_at'>>;
-      };
-      audit_logs: {
-        Row: AuditLog;
-        Insert: Omit<AuditLog, 'id' | 'created_at'> & Partial<Pick<AuditLog, 'id'>>;
-        Update: never;
-      };
-    };
-    Enums: {
-      user_role: UserRole;
-    };
-  };
 }
