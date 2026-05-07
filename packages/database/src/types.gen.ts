@@ -18,6 +18,13 @@
 //   - 4 nouvelles fonctions RPC : check_breach_deadlines,
 //     purge_legal_request_attempts, rgpd_anonymize_patient,
 //     nir_match_patient_for_legal_request
+//
+// Phase 2 (Plan 02-02) ajoute :
+//   - 2 tables : rides (saisie express V1) + ride_draft (brouillons RGPD)
+//   - 3 enums : ride_transport_mode (4) + ride_urgency (3) + ride_status (8)
+//   - Régénération CI cloud bloquée (Docker registry public.ecr.aws —
+//     dette tracée CLAUDE.md § 14). Types ajoutés manuellement en miroir
+//     de la migration 20260509000001_rides.sql, à confirmer par CI cloud.
 // =============================================================================
 
 export type Json =
@@ -717,6 +724,128 @@ export interface Database {
         Update: never;
         Relationships: [];
       };
+      rides: {
+        Row: {
+          id: string;
+          organization_id: string;
+          patient_id: string;
+          scheduled_at: string;
+          pickup_address: string;
+          pickup_postal_code: string | null;
+          pickup_city: string | null;
+          dropoff_address: string;
+          dropoff_postal_code: string | null;
+          dropoff_city: string | null;
+          transport_mode: Database['public']['Enums']['ride_transport_mode'];
+          urgency: Database['public']['Enums']['ride_urgency'];
+          status: Database['public']['Enums']['ride_status'];
+          notes_regulateur: string | null;
+          archive: boolean;
+          created_at: string;
+          updated_at: string;
+          created_by: string;
+          updated_by: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          patient_id: string;
+          scheduled_at: string;
+          pickup_address: string;
+          pickup_postal_code?: string | null;
+          pickup_city?: string | null;
+          dropoff_address: string;
+          dropoff_postal_code?: string | null;
+          dropoff_city?: string | null;
+          transport_mode?: Database['public']['Enums']['ride_transport_mode'];
+          urgency?: Database['public']['Enums']['ride_urgency'];
+          status?: Database['public']['Enums']['ride_status'];
+          notes_regulateur?: string | null;
+          archive?: boolean;
+          created_at?: string;
+          updated_at?: string;
+          created_by: string;
+          updated_by: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          patient_id?: string;
+          scheduled_at?: string;
+          pickup_address?: string;
+          pickup_postal_code?: string | null;
+          pickup_city?: string | null;
+          dropoff_address?: string;
+          dropoff_postal_code?: string | null;
+          dropoff_city?: string | null;
+          transport_mode?: Database['public']['Enums']['ride_transport_mode'];
+          urgency?: Database['public']['Enums']['ride_urgency'];
+          status?: Database['public']['Enums']['ride_status'];
+          notes_regulateur?: string | null;
+          archive?: boolean;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string;
+          updated_by?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'rides_organization_id_fkey';
+            columns: ['organization_id'];
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'rides_patient_id_fkey';
+            columns: ['patient_id'];
+            referencedRelation: 'patients';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      ride_draft: {
+        Row: {
+          id: string;
+          organization_id: string;
+          author_id: string;
+          patient_id: string | null;
+          payload: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          author_id: string;
+          patient_id?: string | null;
+          payload: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          author_id?: string;
+          patient_id?: string | null;
+          payload?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'ride_draft_organization_id_fkey';
+            columns: ['organization_id'];
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'ride_draft_patient_id_fkey';
+            columns: ['patient_id'];
+            referencedRelation: 'patients';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: {
       patients_safe: {
@@ -811,6 +940,17 @@ export interface Database {
         | 'accompagnement_obligatoire'
         | 'autre';
       canal_contact_prefere: 'sms' | 'appel' | 'aucun';
+      ride_transport_mode: 'taxi_conventionne' | 'tpmr' | 'vsl' | 'ambulance';
+      ride_urgency: 'programmee' | 'urgente' | 'immediate';
+      ride_status:
+        | 'brouillon'
+        | 'validee'
+        | 'assignee'
+        | 'en_cours'
+        | 'terminee'
+        | 'annulee_regulateur'
+        | 'annulee_patient'
+        | 'annulee_chauffeur';
     };
     CompositeTypes: Record<string, never>;
   };
