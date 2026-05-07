@@ -35,19 +35,26 @@ préfère son cahier papier, le produit a échoué.
 
 <!-- Scope en cours. Référentiel détaillé dans REQUIREMENTS.md. -->
 
-- [ ] **REQ-patient-referentiel** : fiche patient complète avec NIR chiffré et préférences
+- [x] **REQ-patient-referentiel** : fiche patient complète avec NIR chiffré et préférences (Phase 1 livrée — 2026-05-06)
+- [ ] **REQ-rgpd-compliance** : registre traitements + DPA + DPIA + portail droits patient *(Phase 1.5 — bloque first design partner)*
 - [ ] **REQ-saisie-express-course** : saisie d'une course en mode express < 30 s
 - [ ] **REQ-moteur-tarification-cgss** : moteur tarifaire CGSS dans `packages/pricing`
 - [ ] **REQ-courses-recurrentes** : génération de récurrences avec exceptions jours fériés 974
+- [ ] **REQ-osrm-bootstrap** : `services/osrm` Docker + tuiles 974 + RPC distance/eta *(Phase 4.5 — débloque downstream)*
 - [ ] **REQ-cockpit-regulateur** : cockpit temps réel par défaut, TTI < 2 s
 - [ ] **REQ-planning-gantt** : planning drag-and-drop par chauffeur et par jour
 - [ ] **REQ-gestion-imprevus** : workflows panne, patient absent, réaffectation
 - [ ] **REQ-communication-sms-patient** : SMS sortants avec consentement actif
 - [ ] **REQ-pwa-chauffeur** : PWA chauffeur terrain (hors-ligne, vocal, mode soleil)
+- [ ] **REQ-geolocalisation-temps-reel** : capture position service uniquement + streaming cockpit + rétention 90j *(Phase 9.5)*
 - [ ] **REQ-optimisation-tournees** : microservice Python OR-Tools + client TS
-- [ ] **REQ-routing-gps** : OSRM auto-hébergé pour calcul d'itinéraires
+- [ ] **REQ-routing-gps-advanced** : geocoding inverse, alternatives, isochrones (Phase 11 — bootstrap déjà en Phase 4.5)
 - [ ] **REQ-caisse-paiements-directs** : encaissements cash / CB / chèque rapprochés
 - [ ] **REQ-mode-degrade** : continuité de service en panne réseau / Supabase / tiers
+- [ ] **REQ-kpis-dirigeant** : CA, marge, mutualisation, productivité chauffeur *(Phase 14)*
+- [ ] **REQ-conformite-reglementaire** : alertes 90/60/30j carte pro, CT, visite médicale, agrément ARS/CPAM *(Phase 15 — bloque mise en production commerciale)*
+- [ ] **REQ-exports-comptables** : FEC annuel DGFiP, Lomaco CSV mensuel, PDF récap mensuel *(Phase 16)*
+- [ ] **REQ-beta-terrain-chauffeur** : validation Hauts Réunion 35°C/3G dégradé/2-3 design partners *(Phase 17 — V1.5)*
 
 ### Out of Scope (v1)
 

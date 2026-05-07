@@ -21,18 +21,25 @@ une capture pour une page d'accueil produit.
 
 - [x] **Phase 0: Fondations Lot 0** - Monorepo, RLS multi-tenant, migrations, CI/CD (livré commit `f68b1d2`)
 - [x] **Phase 1: Référentiel patients** - Fiche patient avec NIR chiffré, recherche fuzzy, préférences (livré 16 commits, 5/5 SC + 7/7 PAT delivered, runtime CI human_needed)
+- [ ] **Phase 1.5: DPA + RGPD compliance** - Registre traitements, DPA Supabase, DPIA santé, portail droits patient (Infra/légal — bloque first design partner)
 - [ ] **Phase 2: Saisie express course** - Saisie < 30 s, raccourci `Cmd/Ctrl+N`, brouillons, multi-saisies
 - [ ] **Phase 3: Moteur tarification CGSS** - `packages/pricing` versionné, 100 % branches couvert
 - [ ] **Phase 4: Moteur récurrences** - `packages/recurrence`, exceptions jours fériés 974, 100 % branches
+- [ ] **Phase 4.5: Bootstrap OSRM** - `services/osrm` Docker + tuiles OSM 974 + RPC distance/eta (parallélise Lot 1, débloque Phases 9, 10, 12)
 - [ ] **Phase 5: Cockpit régulatrice temps réel** - Écran d'accueil, blocs courses + alertes, TTI < 2 s
 - [ ] **Phase 6: Planning Gantt drag-and-drop** - Vue par chauffeur et par jour, réaffectation visuelle
 - [ ] **Phase 7: Gestion des imprévus** - Workflows panne, patient absent, réaffectation temps réel
 - [ ] **Phase 8: Communication SMS patient** - `packages/sms`, consentement actif, templates, delivery
 - [ ] **Phase 9: PWA chauffeur** - `apps/mobile` complète : terrain, hors-ligne, vocal, mode soleil
+- [ ] **Phase 9.5: Géolocalisation temps réel** - Capture position chauffeur + streaming Realtime cockpit + rétention 90j
 - [ ] **Phase 10: Optimisation des tournées** - Microservice Python OR-Tools + client TS
-- [ ] **Phase 11: Routing GPS OSRM** - OSRM auto-hébergé, MapLibre + tuiles OSM
+- [ ] **Phase 11: Routing GPS OSRM (advanced)** - Geocoding inverse, alternatives, isochrones (Phase 4.5 a déjà livré OSRM bootstrap)
 - [ ] **Phase 12: Caisse et paiements directs** - Encaissements cash / CB / chèque, rapprochement
-- [ ] **Phase 13: Mode dégradé** - Continuité de service en panne réseau / Supabase / tiers
+- [ ] **Phase 13: Mode dégradé** - Continuité de service en panne réseau / Supabase / tiers (transverse)
+- [ ] **Phase 14: KPIs dirigeant** - CA, marge, mutualisation, productivité chauffeur, drill-down + comparatifs M-1/M-12
+- [ ] **Phase 15: Conformité réglementaire** - Alertes 90/60/30j carte pro, CT véhicule, visite médicale, agrément ARS/CPAM
+- [ ] **Phase 16: Exports comptables et intégrations** - FEC annuel DGFiP, Lomaco CSV mensuel, PDF récap mensuel, B2B mensuel
+- [ ] **Phase 17: Beta terrain chauffeur** *(V1.5)* - Validation Hauts Réunion (35°C cockpit, 3G dégradé, 2-3 design partners)
 
 ## Phase Details
 
@@ -69,6 +76,20 @@ Plans:
 - [ ] plans/PLAN-5.md — Wave 3 : UI patient (liste + drawer 400px + détail + edit) + E2E GREEN
 **UI hint**: yes
 
+### Phase 1.5: DPA + RGPD compliance
+**Goal**: Le SaaS dispose d'un cadre RGPD complet (registre des traitements, DPA Supabase signé, DPIA santé, portail droits patient) avant toute mise en service avec un design partner réel. Sans cette phase, l'usage par un patient réel = non-conforme RGPD niveau santé.
+**Depends on**: Phase 1 (les patients existent — sinon pas de droits à exercer)
+**Requirements**: DPA-01, DPA-02, DPA-03, DPA-04, DPA-05, DPA-06, DPA-07, DPA-08
+**Success Criteria** (what must be TRUE):
+  1. Le registre des traitements (art. 30 RGPD) est accessible en UI admin et exportable PDF
+  2. Le DPA Supabase est signé et tracké en base avec date d'effet et version
+  3. La DPIA (analyse d'impact santé) est documentée et révisable
+  4. Un patient peut exercer ses droits (accès, rectification, effacement, portabilité) via un portail dédié
+  5. Le DPO contact est publié + procédure de violation 72h documentée
+**Plans**: TBD
+**Tag**: Infra/légal — bloque la mise en service avec un design partner réel
+**UI hint**: yes (UI admin légère + portail patient)
+
 ### Phase 2: Saisie express course
 **Goal**: La régulatrice peut saisir une course en mode express en moins de 30 secondes, avec brouillons en file d'attente et multi-saisies parallèles, sans jamais être bloquée par un appel entrant.
 **Depends on**: Phase 1
@@ -104,6 +125,18 @@ Plans:
   4. Chaque occurrence générée décrémente le bon de transport associé (`prescription`)
   5. La couverture de tests `packages/recurrence` atteint 100 % de branches en CI
 **Plans**: TBD
+
+### Phase 4.5: Bootstrap OSRM
+**Goal**: Avoir un service `osrm` auto-hébergé opérationnel (Docker + tuiles OSM 974) accessible via RPC interne pour le calcul de distances et ETA, débloquant Phases 9 (PWA), 10 (optimizer) et 12 (caisse — calcul facturation au km). Bootstrap minimal volontairement court (~1 jour de dev), les features avancées (geocoding inverse, isochrones) restent en Phase 11.
+**Depends on**: Phase 0 (infra Docker dispo) — peut tourner en parallèle avec Phases 3 et 4
+**Requirements**: OSRM-bootstrap-01, OSRM-bootstrap-02, OSRM-bootstrap-03
+**Success Criteria** (what must be TRUE):
+  1. `docker compose up osrm` démarre le service localement et en CI
+  2. Les tuiles OSM Réunion (974) sont préparées et chargées au démarrage
+  3. Une RPC `route(origin, destination)` retourne distance + ETA en < 50 ms en moyenne (mesuré CI)
+  4. La consommation depuis `apps/web` ou microservices passe par un wrapper typé `packages/osrm-client`
+**Plans**: TBD
+**Tag**: Infra/légal — débloque downstream
 
 ### Phase 5: Cockpit régulatrice temps réel
 **Goal**: À la connexion, la régulatrice ouvre par défaut un cockpit temps réel qui charge en moins de 2 secondes et reflète instantanément les changements (nouvelles courses, statuts chauffeur, alertes) sans flash ni reload.
@@ -170,6 +203,18 @@ Plans:
 **Plans**: TBD
 **UI hint**: yes
 
+### Phase 9.5: Géolocalisation temps réel
+**Goal**: La position du chauffeur est capturée pendant le service uniquement, streamée en temps réel au cockpit régulatrice via Supabase Realtime, et conservée 90 jours en base chaude avant agrégation et purge automatique. Couche transverse consommée par cockpit (Phase 5), planning Gantt (Phase 6), KPIs (Phase 14).
+**Depends on**: Phase 9 (PWA chauffeur capture la position) ET Phase 5 (cockpit existe pour afficher le tracker)
+**Requirements**: GEO-01, GEO-02, GEO-03, GEO-04
+**Success Criteria** (what must be TRUE):
+  1. Le chauffeur capture sa position uniquement quand il est en service (DEC-009 — toggle ON par défaut au login, OFF déconnexion)
+  2. Le cockpit régulatrice affiche un tracker live (carte MapLibre + dot + heading) avec rafraîchissement < 5 s
+  3. Les positions sont retenues 90 jours en base chaude (`driver_location`), agrégées au-delà puis purgées automatiquement
+  4. Un indicateur explicite « tracking actif » est visible dans la PWA chauffeur en permanence
+**Plans**: TBD
+**UI hint**: yes
+
 ### Phase 10: Optimisation des tournées
 **Goal**: Le microservice Python OR-Tools propose des tournées optimisées et des opportunités de mutualisation (spatiale ou temporelle) à la régulatrice, exposé via un client TS typé.
 **Depends on**: Phase 9
@@ -180,14 +225,15 @@ Plans:
   3. La régulatrice voit dans le cockpit ou le planning des suggestions de mutualisation (gain estimé en km / temps)
   4. Les tests pytest du service couvrent les cas critiques (mutualisation impossible, contraintes TPMR, fenêtres horaires)
 
-### Phase 11: Routing GPS OSRM
-**Goal**: Tous les calculs d'itinéraires (durée, distance, géométrie) reposent sur un OSRM auto-hébergé, exposé aux apps via MapLibre et tuiles OSM, sans dépendance à un service tiers payant.
-**Depends on**: Phase 10
+### Phase 11: Routing GPS OSRM (advanced features)
+**Goal**: Compléter Phase 4.5 (OSRM bootstrap) avec les features avancées : geocoding inverse (lat/lng → adresse postale formatée), itinéraires alternatifs (3 propositions classées par durée), isochrones (zones atteignables en X minutes pour optimisation tournées). Sans dépendance à un service tiers payant.
+**Depends on**: Phase 4.5 (OSRM service tourne déjà), Phase 10 (optimizer consomme isochrones)
 **Requirements**: ROUT-01, ROUT-02, ROUT-03
 **Success Criteria** (what must be TRUE):
-  1. Le service `services/osrm` est opérationnel avec données OSM 974 chargées
-  2. Les apps web et mobile affichent des itinéraires via MapLibre, sans dépendance à Google Maps ou Mapbox
-  3. Le calcul de durée / distance d'une course repose exclusivement sur OSRM (audit grep en CI sur dépendances payantes interdites)
+  1. Geocoding inverse opérationnel via Nominatim ou équivalent auto-hébergé
+  2. Itinéraires alternatifs renvoyés par OSRM (3 propositions classées) consommés par PWA chauffeur
+  3. Isochrones consommés par l'optimizer pour mutualisation temporelle
+  4. Aucune dépendance à Google Maps ou Mapbox (audit grep en CI)
 **Plans**: TBD
 **UI hint**: yes
 
@@ -212,6 +258,60 @@ Plans:
   3. Aucune action critique ne se solde par une erreur technique brute affichée à l'utilisateur ; tout est reformulé en français
 **Plans**: TBD
 **UI hint**: yes
+
+### Phase 14: KPIs dirigeant
+**Goal**: Le dirigeant dispose d'un tableau de bord exécutif avec CA mensuel, marge brute, taux de mutualisation, productivité chauffeur (km/h, courses/jour), drill-down par chauffeur / véhicule / donneur d'ordres, et comparatifs M-1 et M-12. Les données proviennent de `ride`, `ride_billing`, `ride_execution`, `ride_payment` (Phases 3, 7, 12) — donc dépend de leur livraison.
+**Depends on**: Phase 12 (données financières) ET Phase 9.5 (géolocalisation pour productivité km/h)
+**Requirements**: KPI-01, KPI-02, KPI-03, KPI-04, KPI-05, KPI-06
+**Success Criteria** (what must be TRUE):
+  1. Le dashboard exécutif affiche CA mensuel par société et par donneur d'ordres avec comparatif M-1 et M-12
+  2. La marge brute estimée (recettes - coûts directs : essence/km, salaire chauffeur estimé, péages éventuels) est calculée par course
+  3. Le taux de mutualisation (% courses mutualisées / total courses) est mesuré et exposé au dashboard
+  4. La productivité chauffeur (km parcourus, nombre de courses, ratio temps roulé / temps service) est calculée par chauffeur
+  5. Un drill-down permet de filtrer par chauffeur, par véhicule, par donneur d'ordres et de remonter à la course individuelle
+  6. Un export PDF mensuel est généré automatiquement et envoyé au dirigeant
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 15: Conformité réglementaire
+**Goal**: Le système suit les dates d'expiration des credentials métier (carte pro chauffeur, certificat de capacité professionnelle, contrôle technique véhicule, visite médicale chauffeur, agrément ARS pour VSL, convention CPAM/CGSS pour taxi conventionné) et déclenche des alertes anticipées (90j, 60j, 30j) à la régulatrice et au dirigeant. L'assignation d'une course est automatiquement bloquée si une credential critique est expirée.
+**Depends on**: Phase 5 (cockpit existant pour afficher alertes), Phase 8 (SMS pour alertes critiques)
+**Requirements**: CONF-01, CONF-02, CONF-03, CONF-04, CONF-05, CONF-06
+**Success Criteria** (what must be TRUE):
+  1. Les credentials chauffeur (carte pro, CCP, visite médicale) et véhicule (CT, agrément ARS, assurance) sont saisissables avec date d'expiration
+  2. Des alertes 90j / 60j / 30j sont affichées au cockpit régulateur ET envoyées par email au dirigeant
+  3. L'assignation d'une course à un chauffeur dont la carte pro est expirée est bloquée automatiquement avec message clair
+  4. Le contrôle technique annuel obligatoire pour TAP/VSL (rappel : 1 an pour TAP/VSL vs 2 ans pour véhicule particulier) est tracké séparément
+  5. Une UI admin permet la mise à jour idempotente des credentials avec audit log
+  6. Tests E2E couvrent le flow alerte → renouvellement → débloquage assignation
+**Plans**: TBD
+**Tag**: Infra/légal — bloque la mise en production commerciale
+**UI hint**: yes
+
+### Phase 16: Exports comptables et intégrations
+**Goal**: Le SaaS produit les exports comptables réglementaires (FEC obligatoire DGFiP) et d'interopérabilité avec les outils du marché (Lomaco CSV pour cabinet expert-comptable transport sanitaire, PDF récapitulatif mensuel pour dirigeant et donneurs d'ordres B2B). Schedule mensuel automatique avec envoi email au DPO et à l'expert-comptable.
+**Depends on**: Phase 12 (données financières complètes), Phase 14 (calculs comptables consolidés)
+**Requirements**: EXP-01, EXP-02, EXP-03, EXP-04, EXP-05
+**Success Criteria** (what must be TRUE):
+  1. L'export FEC annuel est généré au format DGFiP (.txt pipe-separated, ordre chronologique, colonnes imposées Livre des Procédures Fiscales) et passe la validation FEC officielle
+  2. L'export Lomaco CSV mensuel est généré dans le format attendu par Lomaco (logiciel propriétaire transport sanitaire) et est testé en intégration avec un cabinet expert-comptable design partner
+  3. Un PDF récapitulatif mensuel par société et par donneur d'ordres est généré
+  4. Le schedule mensuel envoie automatiquement les exports au DPO et à l'expert-comptable par email avec accusé de réception
+  5. Les exports sont signés (hash SHA-256 + horodatage) pour traçabilité légale
+**Plans**: TBD
+
+### Phase 17: Beta terrain chauffeur (V1.5)
+**Goal**: Valider la PWA chauffeur en conditions terrain réelles dans les Hauts de La Réunion (35°C cockpit véhicule, 3G dégradé, batterie en chute libre) avec 2-3 chauffeurs design partners (Plaine des Cafres, Cilaos ou Salazie). Itérer directement sur Phase 9 selon les retours mesurés. Cette phase est moins du code et plus de la validation produit (~2-3 semaines).
+**Depends on**: Phase 9 (PWA chauffeur livrée), Phase 9.5 (géolocalisation), Phase 13 (mode dégradé fonctionnel pour 3G dégradé)
+**Requirements**: BETA-01, BETA-02, BETA-03, BETA-04, BETA-05
+**Success Criteria** (what must be TRUE):
+  1. 2-3 chauffeurs design partners installés dans les Hauts (Plaine des Cafres, Cilaos, Salazie) utilisent la PWA quotidiennement pendant ≥ 2 semaines
+  2. Le mode soleil (contraste élevé) est testé en cockpit véhicule par 35°C : taux d'erreur tactile mesuré et < 5 %
+  3. La sync différée 3G dégradé est testée sur les routes des Hauts : taux de drops sync mesuré et < 1 % avec recovery automatique
+  4. La consommation batterie d'une tournée 8h est mesurée et < 30 % d'une charge full (smartphone milieu de gamme)
+  5. Au moins 5 itérations PWA Phase 9 sont livrées suite aux retours terrain (V1.5.1, V1.5.2, ...)
+**Plans**: TBD
+**Tag**: Terrain / beta — validation produit avant scale-up
 
 ## Progress
 

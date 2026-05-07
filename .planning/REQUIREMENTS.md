@@ -136,6 +136,64 @@ design partners). Chaque requirement mappe vers exactement une phase.
 - [ ] **DEGR-02** : Chauffeur peut clore une course en cours hors-ligne, sync au retour réseau
 - [ ] **DEGR-03** : Indicateur explicite « mode dégradé actif » à l'utilisateur
 
+### DPA + RGPD compliance (DPA) — Phase 1.5 (Infra/légal)
+
+- [ ] **DPA-01** : Registre des traitements (art. 30 RGPD) — table `data_processing_register` + UI admin avec export PDF
+- [ ] **DPA-02** : DPA Supabase (Data Processing Agreement, art. 28 RGPD) signé et tracké en base avec date d'effet, version, auteur
+- [ ] **DPA-03** : DPIA / PIA (Analyse d'Impact Protection des Données) pour traitement données santé documentée et révisable
+- [ ] **DPA-04** : Portail patient — droits art. 15 (accès), art. 16 (rectification), art. 17 (effacement), art. 20 (portabilité) accessibles depuis lien email patient
+- [ ] **DPA-05** : DPO contact publié + procédure violation 72h CNIL documentée + tracker incidents
+- [ ] **DPA-06** : Mention CGU / CGV opposables + bandeau cookies conforme CNIL (consent par finalité)
+- [ ] **DPA-07** : Politique de confidentialité publique versionnée
+- [ ] **DPA-08** : Tests d'export complet d'un patient au format JSON (portabilité art. 20)
+
+### Bootstrap OSRM (OSRM-bootstrap) — Phase 4.5 (Infra)
+
+- [ ] **OSRM-bootstrap-01** : `services/osrm` Docker container démarrable en local et en CI
+- [ ] **OSRM-bootstrap-02** : Tuiles OSM Réunion (974) préparées et chargées au démarrage
+- [ ] **OSRM-bootstrap-03** : Wrapper TS typé `packages/osrm-client` exposant `route(origin, destination)` retournant distance + ETA en < 50 ms (mesuré CI)
+
+### Géolocalisation temps réel (GEO) — Phase 9.5
+
+- [ ] **GEO-01** : Capture position chauffeur via PWA pendant le service uniquement (DEC-009 — toggle ON au login, OFF déconnexion)
+- [ ] **GEO-02** : Streaming Realtime Supabase de `driver_location` au cockpit avec rafraîchissement < 5 s
+- [ ] **GEO-03** : Rétention 90 jours en base chaude (`driver_location`), agrégation puis purge automatique au-delà
+- [ ] **GEO-04** : Indicateur explicite « tracking actif » dans l'UI chauffeur en permanence
+
+### KPIs dirigeant (KPI) — Phase 14
+
+- [ ] **KPI-01** : CA mensuel par société et par donneur d'ordres avec comparatif M-1 et M-12
+- [ ] **KPI-02** : Marge brute estimée par course (recettes − coûts directs : essence/km, salaire chauffeur estimé, péages)
+- [ ] **KPI-03** : Taux de mutualisation (% courses mutualisées / total courses) calculé et affiché
+- [ ] **KPI-04** : Productivité chauffeur (km parcourus, courses/jour, ratio temps roulé / temps service) par chauffeur
+- [ ] **KPI-05** : Drill-down filtre par chauffeur, véhicule, donneur d'ordres avec remontée à la course individuelle
+- [ ] **KPI-06** : Export PDF mensuel généré automatiquement et envoyé au dirigeant
+
+### Conformité réglementaire (CONF) — Phase 15 (Infra/légal)
+
+- [ ] **CONF-01** : Tables `driver_credential` + `vehicle_credential` avec colonne `expires_at` indexée
+- [ ] **CONF-02** : Suivi credentials chauffeur (carte pro, certificat de capacité professionnelle, visite médicale) et véhicule (CT annuel pour TAP/VSL, agrément ARS pour VSL, convention CPAM pour taxi conventionné, assurance, RC pro)
+- [ ] **CONF-03** : Alertes anticipées 90 jours / 60 jours / 30 jours par email + notification cockpit régulateur
+- [ ] **CONF-04** : Blocage automatique de l'assignation course si carte pro chauffeur ou CT véhicule expiré (message clair en français)
+- [ ] **CONF-05** : UI admin pour saisie / mise à jour idempotente des credentials avec entrée audit_logs
+- [ ] **CONF-06** : Tests E2E couvrant le flow alerte 90j → renouvellement → débloquage assignation
+
+### Exports comptables et intégrations (EXP) — Phase 16
+
+- [ ] **EXP-01** : Export FEC (Fichier des Écritures Comptables) annuel au format DGFiP — .txt pipe-separated, ordre chronologique, colonnes imposées Livre des Procédures Fiscales — passe la validation FEC officielle (test-comptes.dgfip.finances.gouv.fr)
+- [ ] **EXP-02** : Export Lomaco CSV mensuel au format propriétaire Lomaco (logiciel transport sanitaire) — testé en intégration avec un cabinet expert-comptable design partner
+- [ ] **EXP-03** : PDF récapitulatif mensuel par société et par donneur d'ordres B2B
+- [ ] **EXP-04** : Schedule mensuel automatique avec envoi email au DPO et à l'expert-comptable + accusé de réception
+- [ ] **EXP-05** : Exports signés (hash SHA-256 + horodatage) pour traçabilité légale
+
+### Beta terrain chauffeur (BETA) — Phase 17 (V1.5)
+
+- [ ] **BETA-01** : 2-3 chauffeurs design partners recrutés dans les Hauts (Plaine des Cafres, Cilaos, Salazie) utilisant la PWA quotidiennement pendant ≥ 2 semaines
+- [ ] **BETA-02** : Tests mode soleil (contraste élevé) en cockpit véhicule par 35 °C : taux d'erreur tactile mesuré et < 5 %
+- [ ] **BETA-03** : Tests sync différée 3G dégradé sur les routes des Hauts : taux de drops sync mesuré et < 1 % avec recovery automatique
+- [ ] **BETA-04** : Consommation batterie d'une tournée 8 h mesurée et < 30 % d'une charge full sur smartphone milieu de gamme
+- [ ] **BETA-05** : Au moins 5 itérations PWA Phase 9 livrées suite aux retours terrain (V1.5.1, V1.5.2, ...)
+
 ---
 
 ## v2 Requirements
