@@ -20,7 +20,7 @@ une capture pour une page d'accueil produit.
 - Phases décimales (2.1, 2.2…) : insertions urgentes (marquées INSERTED).
 
 - [x] **Phase 0: Fondations Lot 0** - Monorepo, RLS multi-tenant, migrations, CI/CD (livré commit `f68b1d2`)
-- [ ] **Phase 1: Référentiel patients** - Fiche patient avec NIR chiffré, recherche fuzzy, préférences
+- [x] **Phase 1: Référentiel patients** - Fiche patient avec NIR chiffré, recherche fuzzy, préférences (livré 16 commits, 5/5 SC + 7/7 PAT delivered, runtime CI human_needed)
 - [ ] **Phase 2: Saisie express course** - Saisie < 30 s, raccourci `Cmd/Ctrl+N`, brouillons, multi-saisies
 - [ ] **Phase 3: Moteur tarification CGSS** - `packages/pricing` versionné, 100 % branches couvert
 - [ ] **Phase 4: Moteur récurrences** - `packages/recurrence`, exceptions jours fériés 974, 100 % branches
@@ -59,7 +59,8 @@ une capture pour une page d'accueil produit.
   3. Une recherche à 2 caractères (nom, prénom, ou téléphone) retourne instantanément les patients correspondants en fuzzy
   4. La régulatrice peut renseigner les préférences patient (SMS / appel / aucun) et une note opérationnelle libre
   5. Toute création ou modification de fiche patient apparaît dans `audit_logs` avec utilisateur, horodatage et delta
-**Plans**: 5 plans
+**Plans**: 5 plans (livrés en 16 commits, 4 vagues — 5/5 SC + 7/7 PAT-* delivered)
+**Status**: Code complete (2026-05-06) — runtime CI verification human_needed
 Plans:
 - [ ] plans/PLAN-1.md — Wave 0 : tests scaffolds (pgTAP, Deno, Playwright, Vitest) en RED
 - [ ] plans/PLAN-2.md — Wave 1 : migration 003 patients + validators étendus + types regen + schema push
