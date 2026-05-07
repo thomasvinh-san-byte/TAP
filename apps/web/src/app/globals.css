@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Mode jour (CLAUDE.md § 1 pilier 2). HSL components, sans hsl(). */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+
+    --primary: 217 92% 32%;            /* bleu profond confiant */
+    --primary-foreground: 0 0% 100%;
+    --accent: 14 78% 55%;              /* terracotta — clin d'œil 974 */
+    --accent-foreground: 0 0% 100%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 217 92% 32%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 71% 35%;
+    --warning: 32 95% 50%;
+    --info: 217 91% 60%;
+
+    --radius: 8px;
+  }
+
+  [data-theme='dark'] {
+    /* Mode nuit — traité à parité, pas une simple inversion. */
+    --background: 222 47% 8%;
+    --foreground: 210 40% 96%;
+
+    --primary: 217 91% 60%;            /* atténué pour fond sombre */
+    --primary-foreground: 222 47% 11%;
+    --accent: 14 78% 60%;
+    --accent-foreground: 222 47% 8%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --border: 217 33% 22%;
+    --input: 217 33% 22%;
+    --ring: 217 91% 60%;
+
+    --destructive: 0 63% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 71% 45%;
+    --warning: 32 95% 55%;
+    --info: 217 91% 70%;
+  }
+
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  html {
+    /* Chiffres tabulaires obligatoires (CLAUDE.md § 1). */
+    font-feature-settings: 'tnum';
+  }
+
+  body {
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Accessibilité : respecter prefers-reduced-motion (CLAUDE.md § 1 pilier 2). */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
