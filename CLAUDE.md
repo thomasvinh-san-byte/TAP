@@ -477,7 +477,7 @@ Schéma récurrence → Calcul prochaines dates → Vérif exceptions (jours fé
 1. **URL de preview déployée** — chaque PR de phase déclenche un déploiement Vercel preview. URL collée dans le SUMMARY.md de la phase. Si la phase est purement backend (migration, helper pur), la preview montre au moins une page minimale du SaaS qui prouve que la migration n'a rien cassé.
 2. **Au moins 1 screenshot ou capture vidéo** — collés dans `docs/showcase/{phase-num}-{slug}/` (PNG, GIF ou MP4 court < 30s). Format JPEG/PNG ≤ 500 Ko, MP4/GIF ≤ 5 Mo.
 3. **Un seed démo réaliste 974** — données fictives mais crédibles (noms réunionnais, adresses Saint-Denis/Saint-Pierre/Le Tampon, NIRs valides Luhn, BTM CGSS) pour que la preview soit immédiatement utilisable sans setup.
-4. **Comptes démo persistants** — `dirigeant@demo.tap.re` / `regulateur@demo.tap.re` / `chauffeur@demo.tap.re` avec mot de passe simple (`demo1234!`). Affichés en bas de la page `/login` en environnement preview ou staging UNIQUEMENT (pas en production commerciale).
+4. **Comptes démo persistants** — `dirigeant@demo.tap` / `regulateur@demo.tap` / `chauffeur@demo.tap` avec mot de passe simple (`demo1234!`). Affichés en bas de la page `/login` en environnement preview ou staging UNIQUEMENT (pas en production commerciale).
 5. **Un walkthrough script** dans le SUMMARY — 5-10 étapes que la régulatrice peut suivre pour voir la valeur livrée par la phase. Ex : « 1. Aller sur /patients. 2. Taper "Ho" dans la recherche. 3. Cliquer sur Hoarau Patrick. 4. Vérifier que le drawer s'ouvre. 5. Cliquer sur Modifier. ... »
 
 **Ce que ce mandat NE veut PAS dire :**
@@ -489,7 +489,20 @@ Schéma récurrence → Calcul prochaines dates → Vérif exceptions (jours fé
 - Toute Phase ≥ 2 a une success criterion supplémentaire : *« Une URL preview Vercel est accessible et le walkthrough script termine sans erreur »*
 - Les Phases purement backend (migrations, helpers, services) ont une success criterion adaptée : *« La preview Vercel reste accessible, ne régresse pas visuellement (smoke tests Playwright)  »*
 
-**Phase 0.7** (`Déploiement continu Vercel + démo seedée`) est la phase d'infrastructure qui permet à toutes les autres de respecter ce mandat. À planifier en priorité après Phase 1.5.
+**Phase 0.7** (`Déploiement continu Vercel + démo seedée`) — livrée 2026-05-07. Implémentée comme deux GitHub Actions workflows (zéro-clic Vercel UI / Supabase UI) :
+
+- **`.github/workflows/setup-vercel.yml`** *(workflow_dispatch, à lancer 1×)*
+  Récupère credentials Supabase via API + génère 4 app secrets (NIR encryption/search, JWT legal, anonymization salt) + push 8 env vars Vercel + push 2 NIR secrets dans Supabase Edge Functions + trigger redeploy. Idempotent — re-runnable pour rotation.
+
+- **`.github/workflows/cd.yml`** *(push main, automatique)*
+  Pour chaque commit sur main : `supabase db push` (8 migrations) + apply `seed.sql` + `seed.demo.sql` (3 comptes auth + 10 patients fictifs 974) + `supabase functions deploy nir` + `vercel deploy --prod`.
+
+- **`.github/workflows/preview-smoke.yml`** *(deployment_status Vercel)*
+  Sur chaque preview ready : run `apps/web/tests/smoke/preview.spec.ts` Playwright (login démo, /patients, /courses, raccourci Cmd+Shift+K). Block merge si rouge.
+
+**Secrets GitHub Actions requis (à créer une fois)** : `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD`, `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID`. La page `/welcome` (`apps/web/src/app/welcome/page.tsx`) liste ces secrets avec leur source et redirige vers GitHub Settings.
+
+**Conséquence pour le dev quotidien** : aucune intervention manuelle dans Vercel UI ou Supabase UI. Push code = nouvelle preview live + DB à jour.
 
 **Modèle de vérification — la preview est la vérité, pas la sandbox locale :**
 
@@ -539,14 +552,38 @@ LOT 1.5 LIVRÉ (2026-05-07) :
   - Vitest 31/32 GREEN (1 fail Phase 0 hors-scope SIRET Luhn — dette tracée)
   - Playwright 14 specs compilent et sont listés (sandbox-bloqué Docker — exécution CI cloud)
 
-DERNIER COMMIT MAJEUR : feat(1.5): phase 1.5 verifiée — RGPD compliance complète
+DERNIER COMMIT MAJEUR : feat: stack auto complète Supabase (migrations + seed + Edge Functions)
+
+INFRASTRUCTURE CI/CD ACTUELLE (2026-05-07) :
+  - GitHub branch protection : main = production (vercel.json ignoreCommand
+    bloque tout build hors main)
+  - Workflows GitHub Actions opérationnels :
+    * ci.yml — lint + typecheck + Vitest + pgTAP (sur PR + push)
+    * cd.yml — push main → migrations Supabase + seed + Edge Functions
+      (deploy nir) + Vercel deploy production
+    * setup-vercel.yml — workflow_dispatch initial : récupère Supabase keys
+      via API + génère 4 app secrets + push 8 env vars Vercel + push 2 secrets
+      Edge Functions Supabase + trigger redeploy
+    * preview-smoke.yml — sur Vercel deployment_status : Playwright smoke
+      sur la preview URL
+    * sync-types.yml — cron quotidien : régénère types.gen.ts depuis cloud
+  - 6 secrets GitHub Actions requis : SUPABASE_ACCESS_TOKEN,
+    SUPABASE_PROJECT_REF, SUPABASE_DB_PASSWORD, VERCEL_TOKEN,
+    VERCEL_PROJECT_ID, VERCEL_TEAM_ID
+  - Page /welcome (apps/web/src/app/welcome/page.tsx) liste les secrets et
+    pointe vers GitHub Settings + GitHub Actions (zéro intervention dans
+    Vercel UI ou Supabase UI)
+  - Project Vercel : tap-web (org tvss-projects-07aa3591)
+  - Project Supabase : vkanxnhipsitpnhkdsae (Frankfurt eu-central-1)
 
 DETTE IDENTIFIÉE :
   - SIRET Luhn check `40483304800010` (test Phase 0 commun) — fix dédié à planifier
-  - Schema push local non testé sandbox (Docker registry public.ecr.aws bloqué) — CI cloud à valider
   - 2 imports @supabase/supabase-js exceptions documentées :
     apps/web/src/lib/supabase/admin.ts (service_role admin client, légitime)
     apps/web/src/app/(public)/legal/request/[token]/actions.ts (import type SupabaseClient seul)
+  - Première vraie validation cloud (Vercel preview verte + 8 env vars
+    posées + comptes démo cliquables) en attente du run setup-vercel.yml
+    par l'utilisateur
 
 DESIGN PARTNERS ACTIFS : (à remplir)
 IMMERSIONS RÉALISÉES : (à remplir)

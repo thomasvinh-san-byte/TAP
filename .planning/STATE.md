@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 2 livrée (22 commits, 6/6 plans)
-last_updated: "2026-05-07T11:04:16.772Z"
+stopped_at: Phase 0.7 documentée — stack auto-config (setup-vercel.yml + cd.yml étendu + welcome). En attente première run user.
+last_updated: "2026-05-07T12:19:18.209Z"
 last_activity: 2026-05-07 -- Phase 2 execution started
 progress:
   total_phases: 22
@@ -83,6 +83,6 @@ Aucun pour l'instant.
 
 ## Session Continuity
 
-Last session: 2026-05-07T11:04:16.754Z
-Stopped at: Phase 2 livrée (22 commits, 6/6 plans)
-Resume file: .planning/phases/02-saisie-express-course/02-SUMMARY.md
+Last session: 2026-05-07T12:19:18.188Z
+Stopped at: Phase 0.7 documentée — stack auto-config (setup-vercel.yml + cd.yml étendu + welcome). En attente première run user.
+Resume file: .planning/phases/00.7-deploiement-vercel/0.7-SUMMARY.md

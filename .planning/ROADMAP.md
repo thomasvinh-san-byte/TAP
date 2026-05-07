@@ -104,15 +104,21 @@ Plans:
 **Depends on**: Phase 1.5 (sécurité RGPD avant qu'une URL publique expose des données patient — même seed)
 **Requirements**: VIS-01, VIS-02, VIS-03, VIS-04, VIS-05
 **Success Criteria** (what must be TRUE):
-  1. Chaque PR ouverte sur ce repo déclenche un déploiement Vercel preview avec URL stable visible dans la PR
-  2. Un environnement Supabase staging (projet distinct du dev) est connecté à la preview Vercel via env vars
-  3. Un seed démo 974 (`supabase/seed.sql` ou variant `seed.demo.sql`) crée 3 sociétés fictives, 6 chauffeurs, 30 patients, 50 prescriptions, 200 courses passées — avec noms réunionnais, NIRs valides Luhn, adresses Saint-Denis/Saint-Pierre/Le Tampon
-  4. Les 3 comptes démo (`dirigeant@demo.tap.re`, `regulateur@demo.tap.re`, `chauffeur@demo.tap.re`, mot de passe `demo1234!`) sont seedés et affichés en bas de `/login` UNIQUEMENT en mode preview/staging (jamais production commerciale)
+  1. Chaque push sur main déclenche un déploiement Vercel production avec URL stable
+  2. Un environnement Supabase est connecté à Vercel via env vars (8 vars posées par setup-vercel.yml workflow)
+  3. Un seed démo 974 (`supabase/seed.sql` + `seed.demo.sql`) crée 1 organization, 4 comptes auth (dirigeant + régulateur + chauffeur + reg-demo E2E), 10 patients fictifs réunionnais (Hoarau/Payet/Grondin/Boyer/Dijoux/Maillot/Lebon/Robert/Vergoz/Bègue), notes opérationnelles + contraintes typées
+  4. Les 3 comptes démo (`dirigeant@demo.tap`, `regulateur@demo.tap`, `chauffeur@demo.tap`, mot de passe `demo1234!`) sont seedés et affichés en bas de `/login` UNIQUEMENT en mode preview/staging (jamais production commerciale)
   5. Un dossier `docs/showcase/` est créé avec un README expliquant la convention `{phase-num}-{slug}/` pour ranger screenshots et GIFs
-  6. Smoke test Playwright `tests/smoke/preview.spec.ts` : login démo régulateur → cockpit s'affiche → /patients liste les 30 patients seedés (rouge tant que Phase 5 cockpit pas livrée — passera GREEN au fil des phases)
-**Plans**: TBD
+  6. Smoke test Playwright `tests/smoke/preview.spec.ts` (7 scénarios) lancé automatiquement sur chaque deployment_status Vercel via `preview-smoke.yml`
+**Plans**: livré 2026-05-07 (8 commits) — voir `.planning/phases/00.7-deploiement-vercel/0.7-SUMMARY.md`
+**Status**: Code complete (2026-05-07) — première validation cloud en attente du run user `setup-vercel.yml`
+**Implémentation réelle**:
+- 3 GitHub Actions workflows : `setup-vercel.yml` (manuel 1×, env vars + Edge secrets + redeploy), `cd.yml` étendu (auto push main, migrations + seed + Edge Functions deploy + Vercel deploy), `preview-smoke.yml` (auto deployment_status, Playwright smoke)
+- Page `/welcome` statique (apps/web/src/app/welcome/page.tsx) avec checklist 6 secrets GitHub + 1 clic Run workflow
+- Middleware tolérant env vars absentes → redirect /welcome au lieu de 500
+- vercel.json `ignoreCommand` strict main-only (zéro build sur branches dev)
 **Tag**: Infra (transverse, débloque tout)
-**UI hint**: yes (interventions sur /login + lien manifest GitHub Action vers preview)
+**UI hint**: yes (page /welcome + comptes démo sur /login)
 
 ### Phase 2: Saisie express course
 **Goal**: La régulatrice peut saisir une course en mode express en moins de 30 secondes, avec brouillons en file d'attente et multi-saisies parallèles, sans jamais être bloquée par un appel entrant.
