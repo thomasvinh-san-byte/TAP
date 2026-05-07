@@ -1,64 +1,28 @@
 /**
  * Welcome — page de fallback affichée quand les env vars Supabase manquent.
  *
- * Au lieu d'envoyer l'utilisateur fouiller dans Vercel UI + Supabase UI,
- * deux workflows GitHub Actions automatisent tout :
- *   1. setup-vercel.yml (manuel, 1 fois) — config Vercel env vars + Supabase
- *      Edge Function secrets + redeploy
- *   2. cd.yml (auto sur push main) — applique migrations + seed démo +
- *      déploie Edge Functions Supabase
+ * Approche minimale : 2 actions, pas de configuration GitHub Actions.
  *
- * L'utilisateur fait 2 actions une seule fois :
- *   1. Ajouter 6 secrets dans GitHub Actions (1 page, copier-coller)
- *   2. Cliquer Run workflow sur setup-vercel.yml (1 clic)
+ * Étape 1 — Coller le SQL dans Supabase Studio (peuple la DB)
+ * Étape 2 — Installer l'integration Vercel-Supabase (pose les env vars + redeploy)
  *
- * Tout le reste tourne automatiquement à chaque push sur main.
+ * Total : 2 copier-coller de liens, 5 minutes.
  *
- * Page statique pure (pas d'import Supabase, pas d'auth, pas de DB) pour que
- * la preview Vercel s'affiche même sans config.
+ * Page statique pure (pas d'import Supabase, pas d'auth, pas de DB).
  */
 
 const REPO = 'thomasvinh-san-byte/tap';
-const SECRETS_URL = `https://github.com/${REPO}/settings/secrets/actions/new`;
-const WORKFLOW_URL = `https://github.com/${REPO}/actions/workflows/setup-vercel.yml`;
+const SUPABASE_PROJECT_REF = 'vkanxnhipsitpnhkdsae';
 
-const SECRETS = [
-  {
-    name: 'SUPABASE_ACCESS_TOKEN',
-    where: 'https://supabase.com/dashboard/account/tokens',
-    hint: 'Generate new token → name "tap-deploy"',
-  },
-  {
-    name: 'SUPABASE_PROJECT_REF',
-    where: 'URL Supabase du projet',
-    hint: 'La partie XXX dans https://XXX.supabase.co',
-  },
-  {
-    name: 'SUPABASE_DB_PASSWORD',
-    where: 'Le mot de passe DB choisi à la création du projet Supabase',
-    hint: "Si oublié : Supabase → Settings → Database → Reset database password",
-  },
-  {
-    name: 'VERCEL_TOKEN',
-    where: 'https://vercel.com/account/tokens',
-    hint: 'Create Token → scope Full Account, expire 30+ jours',
-  },
-  {
-    name: 'VERCEL_PROJECT_ID',
-    where: 'Vercel → tap-web → Settings → General',
-    hint: 'Section "Project ID" en bas (commence par prj_)',
-  },
-  {
-    name: 'VERCEL_TEAM_ID',
-    where: 'Vercel → Team Settings → General',
-    hint: 'Section "Team ID" (commence par team_)',
-  },
-] as const;
+const SETUP_SQL_URL = `https://github.com/${REPO}/blob/main/supabase/setup-all.sql`;
+const SETUP_SQL_RAW = `https://raw.githubusercontent.com/${REPO}/main/supabase/setup-all.sql`;
+const SUPABASE_SQL_EDITOR = `https://supabase.com/dashboard/project/${SUPABASE_PROJECT_REF}/sql/new`;
+const VERCEL_MARKETPLACE = 'https://vercel.com/marketplace/supabase';
 
 export default function WelcomePage() {
   return (
     <main className="min-h-screen flex items-start justify-center px-24 py-48 bg-background">
-      <div className="w-full max-w-[760px] space-y-32">
+      <div className="w-full max-w-[680px] space-y-32">
         <header className="space-y-8">
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">
             TAP Régulation
@@ -69,59 +33,58 @@ export default function WelcomePage() {
         </header>
 
         <section className="rounded-md border border-amber-500/40 bg-amber-500/5 p-24 space-y-8">
-          <p className="font-medium text-foreground">Setup automatisé en 2 étapes</p>
+          <p className="font-medium text-foreground">2 étapes pour démarrer (5 minutes)</p>
           <p className="text-sm text-muted-foreground">
-            Deux workflows GitHub Actions configurent Vercel + Supabase
-            (env vars, migrations, seed démo, Edge Functions, redeploy) sans
-            cliquer dans aucune UI Vercel ou Supabase.
+            Aucun fichier à modifier. Aucun secret à créer. Juste 2 onglets à
+            ouvrir.
           </p>
         </section>
 
         <ol className="space-y-16">
-          <li className="rounded-md border border-border bg-card p-24 space-y-16">
+          <li className="rounded-md border border-border bg-card p-24 space-y-12">
             <div className="flex items-start gap-12">
               <span className="flex-none flex items-center justify-center h-32 w-32 rounded-full bg-primary/10 text-primary text-sm font-semibold tabular-nums">
                 1
               </span>
               <div className="flex-1 space-y-12">
                 <h2 className="text-base font-medium text-foreground">
-                  Ajouter 6 secrets GitHub Actions
+                  Peupler la base Supabase
                 </h2>
-                <p className="text-sm text-muted-foreground">
-                  Ouvrir le lien ci-dessous, cliquer <em>New repository secret</em>{' '}
-                  pour chaque ligne, copier-coller la valeur.
+                <ol className="text-sm text-muted-foreground space-y-4 list-decimal list-inside marker:text-muted-foreground/50">
+                  <li>
+                    Ouvrir{' '}
+                    <a
+                      href={SETUP_SQL_RAW}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary underline underline-offset-4 hover:no-underline"
+                    >
+                      le fichier SQL complet
+                    </a>{' '}
+                    sur GitHub
+                  </li>
+                  <li>Sélectionner tout le contenu (Cmd/Ctrl+A) puis copier (Cmd/Ctrl+C)</li>
+                  <li>
+                    Ouvrir{' '}
+                    <a
+                      href={SUPABASE_SQL_EDITOR}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary underline underline-offset-4 hover:no-underline"
+                    >
+                      Supabase SQL Editor
+                    </a>{' '}
+                    (nouvelle requête)
+                  </li>
+                  <li>Coller le SQL (Cmd/Ctrl+V)</li>
+                  <li>
+                    Cliquer le bouton vert <em>Run</em> en bas à droite
+                  </li>
+                </ol>
+                <p className="text-xs text-muted-foreground">
+                  Crée toutes les tables, le compte régulatrice démo, et 10 patients fictifs
+                  réunionnais. Idempotent — sans risque de casser quoi que ce soit.
                 </p>
-                <div className="overflow-hidden rounded border border-border">
-                  <table className="w-full text-xs">
-                    <thead className="bg-muted/50">
-                      <tr>
-                        <th className="text-left p-8 font-medium text-foreground">Name</th>
-                        <th className="text-left p-8 font-medium text-foreground">Where to find</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                      {SECRETS.map((s) => (
-                        <tr key={s.name}>
-                          <td className="p-8 font-mono text-foreground align-top whitespace-nowrap">
-                            {s.name}
-                          </td>
-                          <td className="p-8 text-muted-foreground space-y-4">
-                            <div>{s.where}</div>
-                            <div className="text-foreground/60">{s.hint}</div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <a
-                  href={SECRETS_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-4 text-sm text-primary underline underline-offset-4 hover:no-underline"
-                >
-                  Open GitHub → New repository secret →
-                </a>
               </div>
             </div>
           </li>
@@ -133,59 +96,92 @@ export default function WelcomePage() {
               </span>
               <div className="flex-1 space-y-12">
                 <h2 className="text-base font-medium text-foreground">
-                  Lancer &laquo; Setup Vercel + Supabase &raquo;
+                  Connecter Vercel à Supabase
                 </h2>
-                <ul className="text-sm text-muted-foreground space-y-4 list-disc list-inside marker:text-muted-foreground/50">
-                  <li>Sur la page workflow, cliquer <em>Run workflow</em> en haut à droite</li>
-                  <li>Laisser <em>Use workflow from: main</em></li>
-                  <li>Laisser <em>regenerate_app_secrets: false</em></li>
-                  <li>Cliquer le bouton vert <em>Run workflow</em></li>
-                </ul>
+                <ol className="text-sm text-muted-foreground space-y-4 list-decimal list-inside marker:text-muted-foreground/50">
+                  <li>
+                    Ouvrir{' '}
+                    <a
+                      href={VERCEL_MARKETPLACE}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary underline underline-offset-4 hover:no-underline"
+                    >
+                      Vercel Marketplace — Supabase
+                    </a>
+                  </li>
+                  <li>
+                    Cliquer <em>Add Integration</em>
+                  </li>
+                  <li>Sélectionner le projet Vercel <strong>tap-web</strong></li>
+                  <li>
+                    Sélectionner le projet Supabase{' '}
+                    <code className="font-mono text-foreground">{SUPABASE_PROJECT_REF}</code>
+                  </li>
+                  <li>
+                    Cliquer <em>Add Integration</em> pour terminer
+                  </li>
+                </ol>
                 <p className="text-xs text-muted-foreground">
-                  Le workflow met ~30 sec : récupère Supabase keys, génère 4
-                  app secrets (NIR/JWT/salt), push 8 env vars dans Vercel,
-                  push 2 secrets dans Supabase Edge Functions, déclenche
-                  redeploy Vercel.
+                  Vercel pose automatiquement les clés Supabase et redéploie l&apos;app.
+                  Aucun copier-coller de clés à faire.
                 </p>
-                <a
-                  href={WORKFLOW_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-4 text-sm text-primary underline underline-offset-4 hover:no-underline"
-                >
-                  Open GitHub Actions → Setup Vercel + Supabase →
-                </a>
               </div>
             </div>
           </li>
         </ol>
 
-        <section className="rounded-md border border-border bg-muted/20 p-24 space-y-8">
-          <p className="text-sm font-medium text-foreground">
-            Et le code Supabase (migrations, seed, Edge Functions) ?
+        <section className="rounded-md border border-emerald-500/40 bg-emerald-500/5 p-24 space-y-8">
+          <p className="font-medium text-foreground">Après ces 2 étapes</p>
+          <p className="text-sm text-muted-foreground">
+            Attendre ~2 minutes que Vercel finisse de redéployer. La page se
+            transforme en formulaire de connexion. Login avec :
           </p>
-          <p className="text-xs text-muted-foreground">
-            Tout passe par <code className="font-mono">cd.yml</code> qui se
-            déclenche automatiquement sur chaque push sur la branche{' '}
-            <code className="font-mono">main</code> :
-          </p>
-          <ul className="text-xs text-muted-foreground space-y-2 list-disc list-inside">
-            <li>Applique les 8 migrations Supabase</li>
-            <li>Applique le seed (3 comptes démo + 10 patients fictifs réunionnais)</li>
-            <li>Déploie l&apos;Edge Function <code className="font-mono">nir</code> (chiffrement)</li>
-            <li>Build et déploie le front Next.js sur Vercel production</li>
+          <ul className="text-sm text-muted-foreground font-mono space-y-2 list-disc list-inside">
+            <li>
+              <strong>regulateur@demo.tap</strong> / <strong>demo1234!</strong>
+            </li>
           </ul>
-          <p className="text-xs text-muted-foreground">
-            Aucun clic supplémentaire. Push code = tout se met à jour.
+          <p className="text-sm text-muted-foreground">
+            Tu verras la liste des 10 patients seedés. Cmd+Shift+K ouvre le modal
+            de saisie express.
           </p>
         </section>
 
+        <details className="rounded-md border border-border bg-muted/20 p-16 text-sm">
+          <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+            Configuration avancée (rotation secrets, app secrets NIR/JWT)
+          </summary>
+          <div className="pt-12 space-y-8 text-xs text-muted-foreground">
+            <p>
+              Pour les features qui nécessitent du chiffrement (NIR patient, JWT
+              portail RGPD) :{' '}
+              <a
+                href={`https://github.com/${REPO}/actions/workflows/setup-vercel.yml`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-4 hover:text-foreground"
+              >
+                workflow GitHub Actions
+              </a>{' '}
+              dédié — à lancer une fois quand on testera ces parcours.
+            </p>
+            <p>
+              Pour la rotation des secrets :{' '}
+              <a
+                href={`https://github.com/${REPO}/blob/main/.planning/phases/00.7-deploiement-vercel/0.7-SUMMARY.md`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-4 hover:text-foreground"
+              >
+                doc Phase 0.7
+              </a>
+              .
+            </p>
+          </div>
+        </details>
+
         <footer className="space-y-8 text-xs text-muted-foreground">
-          <p>
-            Une fois les 2 étapes faites, attendre ~2 min que Vercel finisse
-            le redeploy. Cette page disparaîtra automatiquement au profit de
-            l&apos;écran de connexion.
-          </p>
           <p>
             <a
               href={`https://github.com/${REPO}`}
