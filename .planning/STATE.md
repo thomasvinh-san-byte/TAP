@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 1.5 plans validated (PASS after 3 blockers + 1 warning fixed)
-last_updated: "2026-05-07T06:54:36.364Z"
-last_activity: 2026-05-07 -- Phase 01 execution started
+stopped_at: Phase 1.5 code complete (28 commits, 8/8 DPA delivered, runtime CI human_needed)
+last_updated: "2026-05-07T08:22:06.419Z"
+last_activity: 2026-05-07 -- Phase 1.5 execution started
 progress:
   total_phases: 21
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 12
-  completed_plans: 5
-  percent: 42
+  completed_plans: 12
+  percent: 100
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 01 — Référentiel patients
+**Current focus:** Phase 1.5 — DPA + RGPD compliance
 
 ## Current Position
 
-Phase: 01 (Référentiel patients) — EXECUTING
-Plan: 1 of 5
-Status: Executing Phase 01
-Last activity: 2026-05-07 -- Phase 01 execution started
+Phase: 1.5 (DPA + RGPD compliance) — EXECUTING
+Plan: 1 of 7
+Status: Executing Phase 1.5
+Last activity: 2026-05-07 -- Phase 1.5 execution started
 
 Progress: [█░░░░░░░░░] 7 % (Phase 0 complète sur 14 phases totales)
 
@@ -83,6 +83,6 @@ Aucun pour l'instant.
 
 ## Session Continuity
 
-Last session: 2026-05-07T06:54:36.346Z
-Stopped at: Phase 1.5 plans validated (PASS after 3 blockers + 1 warning fixed)
-Resume file: .planning/phases/01.5-dpa-rgpd-compliance/1.5-01-PLAN.md
+Last session: 2026-05-07T08:22:06.401Z
+Stopped at: Phase 1.5 code complete (28 commits, 8/8 DPA delivered, runtime CI human_needed)
+Resume file: .planning/phases/01.5-dpa-rgpd-compliance/1.5-VERIFICATION.md
