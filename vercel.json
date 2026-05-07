@@ -3,6 +3,6 @@
   "framework": "nextjs",
   "buildCommand": "pnpm turbo run build --filter=@tap/web",
   "installCommand": "pnpm install --frozen-lockfile",
-  "outputDirectory": "apps/web/.next",
+  "outputDirectory": ".next",
   "regions": ["cdg1"]
 }
