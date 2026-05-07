@@ -448,10 +448,37 @@ Schéma récurrence → Calcul prochaines dates → Vérif exceptions (jours fé
 ## 14. État d'avancement
 
 ```
-LOT EN COURS : Lot 1 — Référentiels patients + saisie express
-LOT 0 : Fondations multi-tenant, RLS, migrations, CI/CD — TERMINÉ
-DERNIER COMMIT MAJEUR : chore(lot-0): fondations monorepo + multi-tenant Supabase
-DETTE IDENTIFIÉE : (à remplir)
+LOT EN COURS : Phase 2 — Saisie express course (à démarrer)
+PHASES LIVRÉES :
+  - Phase 0 (Lot 0) — Fondations monorepo + multi-tenant Supabase + RLS + CI/CD
+  - Phase 1 — Référentiel patients + recherche fuzzy + NIR chiffré (Edge Function)
+  - Phase 1.5 — DPA + RGPD compliance (livrée 2026-05-07)
+
+LOT 1.5 LIVRÉ (2026-05-07) :
+  - 5 migrations RGPD (legal_compliance + additional + breach_72h_alert + dpo_fields + anonymize_rpc)
+  - 8 tables : data_processing_register, dpa_record, dpia_record, data_breach_incident,
+    patient_data_request, cgu_acceptance, cookie_consent_log, legal_request_attempts
+  - RPC SECURITY DEFINER : rgpd_anonymize_patient (art. 17), nir_match_patient_for_legal_request
+  - Watchdog pg_cron breach 72h + purge legal_request_attempts
+  - 7 fichiers pgTAP (5 RLS + watchdog + anonymize)
+  - Helpers TS @tap/shared : legal-token (HS256), patient-data-export, patient-anonymize, validators/legal
+  - 5 pages SSG /legal/* (cgu, cgv, confidentialite, cookies, dpo) sans auth requise
+  - Portail patient JWT-gated /legal/request/[token] + /access + /erasure (rate-limit 5/h)
+  - Bandeau cookies CNIL-conforme (3 boutons symétriques, pas de pré-coché)
+  - 6 routes admin RGPD : registre (PDF), dpa, dpia, breaches (compteur 72h temps réel), requests, dpo
+  - Banner CGU acceptance non-bloquant
+  - Vitest 31/32 GREEN (1 fail Phase 0 hors-scope SIRET Luhn — dette tracée)
+  - Playwright 14 specs compilent et sont listés (sandbox-bloqué Docker — exécution CI cloud)
+
+DERNIER COMMIT MAJEUR : feat(1.5): phase 1.5 verifiée — RGPD compliance complète
+
+DETTE IDENTIFIÉE :
+  - SIRET Luhn check `40483304800010` (test Phase 0 commun) — fix dédié à planifier
+  - Schema push local non testé sandbox (Docker registry public.ecr.aws bloqué) — CI cloud à valider
+  - 2 imports @supabase/supabase-js exceptions documentées :
+    apps/web/src/lib/supabase/admin.ts (service_role admin client, légitime)
+    apps/web/src/app/(public)/legal/request/[token]/actions.ts (import type SupabaseClient seul)
+
 DESIGN PARTNERS ACTIFS : (à remplir)
 IMMERSIONS RÉALISÉES : (à remplir)
 ```
