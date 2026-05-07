@@ -1,4 +1,5 @@
 import { LoginForm } from './login-form.client';
+import { DemoCredentials } from '@/components/demo-credentials';
 
 export const metadata = {
   title: 'Connexion — TAP Régulation',
@@ -21,6 +22,7 @@ export default function LoginPage({
           </p>
         </header>
         <LoginForm next={searchParams.next} />
+        <DemoCredentials />
       </div>
     </div>
   );

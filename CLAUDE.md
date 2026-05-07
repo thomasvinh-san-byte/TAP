@@ -496,6 +496,8 @@ PHASES LIVRÉES :
   - Phase 0 (Lot 0) — Fondations monorepo + multi-tenant Supabase + RLS + CI/CD
   - Phase 1 — Référentiel patients + recherche fuzzy + NIR chiffré (Edge Function)
   - Phase 1.5 — DPA + RGPD compliance (livrée 2026-05-07)
+  - Phase 0.7 — Déploiement continu Vercel + démo seedée (livrée 2026-05-07,
+    Visible Progress Mandate § 13.5 actif)
 
 LOT 1.5 LIVRÉ (2026-05-07) :
   - 5 migrations RGPD (legal_compliance + additional + breach_72h_alert + dpo_fields + anonymize_rpc)

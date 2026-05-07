@@ -1,0 +1,40 @@
+name: Smoke test preview Vercel
+
+# Déclenché quand Vercel a fini de déployer une preview (event GitHub Deployment).
+# Récupère l'URL de la preview depuis l'event et lance le smoke test Playwright dessus.
+# Fait partie du Visible Progress Mandate (CLAUDE.md § 13.5).
+
+on:
+  deployment_status:
+
+env:
+  NODE_VERSION: 20
+  PNPM_VERSION: 9
+
+jobs:
+  smoke:
+    name: Playwright smoke sur preview
+    runs-on: ubuntu-latest
+    if: ${{ github.event.deployment_status.state == 'success' && contains(github.event.deployment.environment, 'Preview') }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Smoke test sur la preview
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ github.event.deployment_status.target_url }}
+          NEXT_PUBLIC_SHOW_DEMO_CREDENTIALS: 'true'
+        run: pnpm -C apps/web exec playwright test tests/smoke/preview.spec.ts
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-preview-report
+          path: apps/web/playwright-report
+          retention-days: 7

@@ -1,0 +1,7 @@
+# Phase 1.5 livrée mais captures pas encore prises (preview Vercel non encore déployée)
+# À remplir une fois la première preview Phase 0.7 vivante :
+# - 01-bandeau-cookies-cnil.png (3 boutons strictement équivalents)
+# - 02-portail-patient-accces.png (verify identity → access JSON)
+# - 03-admin-registre-traitements.png (CRUD registre + filtre)
+# - 04-pdf-registre-export.png (PDF généré via @react-pdf/renderer)
+# - 05-breach-72h-countdown.png (compteur temps réel couleur)

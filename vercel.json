@@ -1,0 +1,15 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "pnpm -C apps/web build",
+  "devCommand": "pnpm -C apps/web dev",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "outputDirectory": "apps/web/.next",
+  "framework": "nextjs",
+  "regions": ["cdg1"],
+  "git": {
+    "deploymentEnabled": {
+      "main": true,
+      "claude/setup-project-docs-ATeRo": true
+    }
+  }
+}
