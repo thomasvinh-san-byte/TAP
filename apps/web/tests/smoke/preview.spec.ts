@@ -7,14 +7,29 @@
  *   3. /patients redirige vers /login pour un utilisateur non-authentifié
  *   4. Login régulateur démo → /patients liste les patients seedés (≥ 10 si seed.demo.sql appliqué)
  *
+ * Phase 2 — extensions (Wave 5) :
+ *   5. /courses accessible après login régulatrice (heading « Courses »)
+ *   6. Bouton « Nouvelle course » (header global) visible depuis /patients
+ *   7. Raccourci Cmd/Ctrl+Shift+K déclenche le dialog modal
+ *
  * Ce test doit passer GREEN sur CHAQUE preview Vercel et CHAQUE run CI cloud.
  * S'il échoue : la preview est cassée → bloque le merge.
  */
 
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
 const REG_DEMO_EMAIL = 'regulateur@demo.tap';
 const REG_DEMO_PASSWORD = 'demo1234!';
+
+async function loginRegulateur(page: Page): Promise<void> {
+  await page.goto('/login');
+  await page.getByLabel(/email/i).fill(REG_DEMO_EMAIL);
+  await page.getByLabel(/mot de passe/i).fill(REG_DEMO_PASSWORD);
+  await page.getByRole('button', { name: /se connecter/i }).click();
+  await page.waitForURL((url) => !url.pathname.includes('/login'), {
+    timeout: 10_000,
+  });
+}
 
 test.describe('Smoke preview Vercel — Visible Progress Mandate', () => {
   test('login page accessible et fonctionnelle', async ({ page }) => {
@@ -44,12 +59,37 @@ test.describe('Smoke preview Vercel — Visible Progress Mandate', () => {
   });
 
   test('login démo régulateur → /patients accessible', async ({ page }) => {
-    await page.goto('/login');
-    await page.getByLabel(/email/i).fill(REG_DEMO_EMAIL);
-    await page.getByLabel(/mot de passe/i).fill(REG_DEMO_PASSWORD);
-    await page.getByRole('button', { name: /se connecter/i }).click();
-    await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 10_000 });
+    await loginRegulateur(page);
     // Une fois Phase 5 livrée, attendre /cockpit ; pour l'instant /patients suffit
     expect(page.url()).toMatch(/\/(patients|cockpit|$)/);
+  });
+
+  test('Phase 2 — route /courses accessible après login régulatrice', async ({
+    page,
+  }) => {
+    await loginRegulateur(page);
+    await page.goto('/courses');
+    await expect(
+      page.getByRole('heading', { name: /^Courses$/, level: 1 }),
+    ).toBeVisible();
+  });
+
+  test('Phase 2 — bouton « Nouvelle course » visible dans header global', async ({
+    page,
+  }) => {
+    await loginRegulateur(page);
+    await page.goto('/patients');
+    await expect(
+      page.getByRole('button', { name: /Nouvelle course/i }),
+    ).toBeVisible();
+  });
+
+  test('Phase 2 — raccourci Cmd/Ctrl+Shift+K déclenche le modal global', async ({
+    page,
+  }) => {
+    await loginRegulateur(page);
+    await page.goto('/patients');
+    await page.keyboard.press('Control+Shift+K');
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 2000 });
   });
 });
