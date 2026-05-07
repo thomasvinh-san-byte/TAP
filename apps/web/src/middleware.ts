@@ -21,8 +21,14 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   const isAuthRoute = pathname.startsWith('/login');
+  // D-21 : pages /legal/* publiques (SSG) — pas de redirect login.
+  // Strict startsWith('/legal') — `/legalX` (sans slash) reste protégé.
+  const isPublicLegal =
+    pathname === '/legal' || pathname.startsWith('/legal/');
+  // Route API consent cookies : POST anonyme avant authentification.
+  const isLegalApi = pathname.startsWith('/api/legal/cookie-consent');
 
-  if (!user && !isAuthRoute) {
+  if (!user && !isAuthRoute && !isPublicLegal && !isLegalApi) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = '/login';
     if (pathname !== '/') {
