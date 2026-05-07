@@ -86,7 +86,15 @@ Plans:
   3. La DPIA (analyse d'impact santé) est documentée et révisable
   4. Un patient peut exercer ses droits (accès, rectification, effacement, portabilité) via un portail dédié
   5. Le DPO contact est publié + procédure de violation 72h documentée
-**Plans**: TBD
+**Plans**: 7 plans (5 vagues, parallélisme Wave 1 et Wave 3)
+Plans:
+- [ ] 1.5-01-PLAN.md — Wave 0 : scaffold tests RGPD (16 fichiers) + 4 deps justifiées (@react-pdf/renderer, jose, next-mdx-remote, gray-matter)
+- [ ] 1.5-02-PLAN.md — Wave 1 : migration RGPD (5 tables + 3 additionnelles + RLS + audit triggers + watchdog 72h pg_cron + RPC anonymize)
+- [ ] 1.5-03-PLAN.md — Wave 1 : helpers purs (legal-token JWT jose, patient-data-export, patient-anonymize, validators legal zod)
+- [ ] 1.5-04-PLAN.md — Wave 2 : middleware /legal/* public + layouts (public)/(admin) + bandeau cookies CNIL-conforme
+- [ ] 1.5-05-PLAN.md — Wave 3 : pages SSG /legal/* + portail patient (verify token, identity, access, erasure)
+- [ ] 1.5-06-PLAN.md — Wave 3 : UI admin /admin/legal/* (registre/dpa/dpia/breaches/requests/dpo) + export PDF + compteur 72h temps réel
+- [ ] 1.5-07-PLAN.md — Wave 4 : schema push BLOCKING + verification gate (pgTAP + Vitest + Playwright + no-leak audit)
 **Tag**: Infra/légal — bloque la mise en service avec un design partner réel
 **UI hint**: yes (UI admin légère + portail patient)
 
