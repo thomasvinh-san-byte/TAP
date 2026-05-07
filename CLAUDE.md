@@ -333,19 +333,40 @@ Le cahier des charges V2 contient **24 modules fonctionnels**. Avant tout dével
 
 ## 9. Tests
 
-### Couverture exigée
-- `packages/pricing` : **100 % branches**
-- `packages/recurrence` : **100 % branches**
-- `packages/domain` : ≥ 80 %
-- Composants UI critiques (saisie express, cockpit, course en cours) : tests d'intégration
-- Workflow imprévus (panne, patient absent, réaffectation) : tests E2E
-- RLS : tests systématiques
+### Politique pragmatique — stade MVP (révision : 2026-05-07)
+
+**Principe** : on n'est pas une banque assurance ni un produit critique aérospatial. Le coût de tester chaque coin > la valeur livrable. **Trop de tests = perte de temps**. La preuve canonique = la preview Vercel + le smoke test cloud (CLAUDE.md § 13.5).
+
+**On teste impérativement (non négociable) :**
+- `packages/pricing` : **100 % branches** — c'est l'argent CGSS, un bug coûte 10€/course × 200 courses/jour = catastrophe (DEC-013 LOCKED)
+- `packages/recurrence` : **100 % branches** — c'est la dialyse, un bug = patient pas transporté (DEC-013 LOCKED)
+- **RLS** : tests pgTAP systématiques — un bypass = leak données santé France = sanction CNIL + perte clients
+- **Smoke test preview cloud** par phase : 1 test Playwright qui prouve que la preview ne casse pas
+- **1-3 E2E sur le golden path** de chaque phase : démontre la valeur livrée à un design partner
+
+**On NE teste PAS V1 (relax volontaire) :**
+- Tests unitaires sur composants React (Vitest sur .client.tsx) — smoke + visual review suffisent
+- Tests d'intégration UI-API au-delà du golden path — over-engineering pour l'étape
+- Scaffolds RED systématiques (Wave 0 dédiée) — directement Wave 1 avec tests minimaux à la livraison
+- Tests E2E exhaustifs couvrant chaque critère du SC — 1 happy path + 1 edge critique suffit
+- Tests de mock complexes — ça révise constamment
+
+**Quand on met un test, ce test PROUVE quelque chose qu'un design partner verrait.**
+
+**Re-évaluation prévue** : à V1.0 commerciale (premier client payant). Si on a 0 incident sécurité et 0 incident facturation, on tient la stratégie. Si on a un incident, on resserre la couverture sur la zone qui a failli.
 
 ### Outils
-- Vitest pour TS / packages
-- Playwright pour les tests E2E
-- pgTAP pour RLS
-- pytest pour le service Python OR-Tools
+- Vitest pour `packages/pricing` + `packages/recurrence` (100 % branches obligatoire)
+- Playwright pour le smoke preview + 1-3 E2E par phase (golden path)
+- pgTAP pour RLS (toute table métier)
+- pytest pour le service Python OR-Tools (Phase 10+)
+
+### Anti-patterns tests (interdits)
+- ❌ Créer un fichier `.test.ts` qui teste juste qu'un composant rend (`expect(render).toBeTruthy()`)
+- ❌ Mock chaîné > 3 niveaux pour tester un wrapper d'un wrapper
+- ❌ Réécrire le code de prod sous forme de test (« le state passe à 'submitted' quand on submit »)
+- ❌ Test E2E qui tape la même chose que le smoke (duplicata)
+- ❌ Test de validation zod qui re-teste les règles zod elles-mêmes (`expect(z.string().parse('foo')).toBe('foo')`)
 
 ---
 
