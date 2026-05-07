@@ -15,7 +15,12 @@
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
-  testDir: './e2e',
+  // Phase 1.5 : ouvrir le testDir à la fois pour les tests historiques
+  // (e2e/ — Phase 1) et les tests RGPD (tests/admin/, tests/public/,
+  // tests/portail/ — Phase 1.5). Le glob par défaut **/*.spec.ts est
+  // automatiquement appliqué à toutes les arborescences.
+  testDir: '.',
+  testMatch: ['e2e/**/*.spec.ts', 'tests/**/*.spec.ts'],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
