@@ -1,0 +1,15 @@
+# Next.js
+.next/
+out/
+build/
+
+# Tests
+/test-results/
+/playwright-report/
+/playwright/.cache/
+
+# TypeScript
+*.tsbuildinfo
+
+# Env
+.env*.local
