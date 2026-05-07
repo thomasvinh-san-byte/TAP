@@ -23,7 +23,7 @@ une capture pour une page d'accueil produit.
 - [x] **Phase 1: Référentiel patients** - Fiche patient avec NIR chiffré, recherche fuzzy, préférences (livré 16 commits, 5/5 SC + 7/7 PAT delivered, runtime CI human_needed)
 - [x] **Phase 1.5: DPA + RGPD compliance** - Registre traitements, DPA Supabase, DPIA santé, portail droits patient (livré 28 commits, 8/8 DPA delivered, runtime CI human_needed)
 - [x] **Phase 0.7: Déploiement continu Vercel + démo seedée** - Visible Progress Mandate (Vercel preview + seed démo 974 + showcase/ + smoke test cloud) — livrée 2026-05-07
-- [ ] **Phase 2: Saisie express course** - Saisie < 30 s, raccourci `Cmd/Ctrl+Shift+K`, brouillons, multi-saisies
+- [x] **Phase 2: Saisie express course** - Saisie < 30 s, raccourci `Cmd/Ctrl+Shift+K`, brouillons, multi-saisies (livré 22 commits, 6/6 SAIS delivered, 2026-05-07)
 - [ ] **Phase 3: Moteur tarification CGSS** - `packages/pricing` versionné, 100 % branches couvert
 - [ ] **Phase 4: Moteur récurrences** - `packages/recurrence`, exceptions jours fériés 974, 100 % branches
 - [ ] **Phase 4.5: Bootstrap OSRM** - `services/osrm` Docker + tuiles OSM 974 + RPC distance/eta (parallélise Lot 1, débloque Phases 9, 10, 12)
