@@ -19,6 +19,11 @@ export type LegalFrontmatter = {
   effective_at: string;
 };
 
+function toIsoDate(value: unknown): string {
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  return String(value ?? '');
+}
+
 export async function loadLegalDoc(slug: LegalSlug) {
   const filePath = path.join(
     process.cwd(),
@@ -27,7 +32,14 @@ export async function loadLegalDoc(slug: LegalSlug) {
   );
   const raw = await fs.readFile(filePath, 'utf-8');
   const { data, content } = matter(raw);
-  const frontmatter = data as LegalFrontmatter;
+  // YAML coerce automatiquement `version: 2026-05-08` en Date — on
+  // re-stringify pour rester cohérent avec le type LegalFrontmatter et
+  // éviter une erreur React « Objects are not valid as a child ».
+  const frontmatter: LegalFrontmatter = {
+    title: String(data.title ?? ''),
+    version: toIsoDate(data.version),
+    effective_at: toIsoDate(data.effective_at),
+  };
   const { content: rendered } = await compileMDX({
     source: content,
     components: { LastUpdated },

@@ -9,6 +9,8 @@ import {
   anonymizePatient,
   nirFormatSchema,
 } from '@tap/shared';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '@tap/database';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { checkRateLimit, markAttemptSuccess } from './_lib/rate-limit';
 
@@ -21,12 +23,20 @@ import { checkRateLimit, markAttemptSuccess } from './_lib/rate-limit';
  *  - NIR clair présent uniquement dans la mémoire de l'action — jamais persisté
  *    côté apps/web. Le hash de recherche (HMAC-SHA256) est calculé localement
  *    avec la clé `APP_NIR_SEARCH_KEY` (mêmes secrets que l'Edge Function NIR
- *    Phase 1) pour interroger la RPC SECURITY DEFINER `nir_match_patient_for_legal_request`.
+ *    Phase 1) pour interroger la RPC SECURITY DEFINER.
  *  - Erasure passe EXCLUSIVEMENT par `anonymizePatient` (RPC UPDATE only).
  *  - Aucun message technique au client (CLAUDE.md § 1).
  */
 
 export type ActionState = { error?: string };
+
+type DataRequestRow = {
+  id: string;
+  patient_id: string | null;
+  request_type?: string;
+  organization_id: string;
+  status: string;
+};
 
 const identitySchema = z.object({
   nir: nirFormatSchema,
@@ -36,29 +46,29 @@ const identitySchema = z.object({
   }),
 });
 
-function getNirSearchKey(): Buffer {
+function computeNirSearchHash(nir: string): Buffer {
   const raw = process.env.APP_NIR_SEARCH_KEY;
-  if (!raw) {
-    throw new Error('Configuration NIR manquante.');
-  }
+  if (!raw) throw new Error('Configuration NIR manquante.');
   const key = Buffer.from(raw, 'base64');
-  if (key.length !== 32) {
-    throw new Error('Configuration NIR invalide.');
-  }
-  return key;
+  if (key.length !== 32) throw new Error('Configuration NIR invalide.');
+  const normalized = nir.replace(/\s+/g, '').toUpperCase();
+  return crypto.createHmac('sha256', key).update(normalized).digest();
 }
 
-/**
- * Calcule le hash HMAC-SHA256 du NIR normalisé. Strictement équivalent au
- * `hashNir()` de l'Edge Function NIR (même algo, même clé). Bytes bruts —
- * compatibles avec le paramètre `bytea` de `nir_match_patient_for_legal_request`.
- */
-function computeNirSearchHash(nir: string): Buffer {
-  const normalized = nir.replace(/\s+/g, '').toUpperCase();
-  return crypto
-    .createHmac('sha256', getNirSearchKey())
-    .update(normalized)
-    .digest();
+async function loadRequest(
+  sb: SupabaseClient<Database>,
+  requestId: string,
+  withType = false,
+): Promise<DataRequestRow | null> {
+  const cols = withType
+    ? 'id, patient_id, request_type, organization_id, status'
+    : 'id, patient_id, organization_id, status';
+  const { data } = await sb
+    .from('patient_data_request')
+    .select(cols)
+    .eq('id', requestId)
+    .single();
+  return (data as DataRequestRow | null) ?? null;
 }
 
 export async function verifyIdentityAction(
@@ -70,40 +80,22 @@ export async function verifyIdentityAction(
   try {
     await checkRateLimit(token);
     const claims = await verifyRequestToken(token);
-
     const parsed = identitySchema.safeParse({
       nir: formData.get('nir'),
       nom: formData.get('nom'),
       date_naissance: formData.get('date_naissance'),
     });
     if (!parsed.success) {
-      return {
-        error: parsed.error.errors[0]?.message ?? 'Saisie invalide.',
-      };
+      return { error: parsed.error.errors[0]?.message ?? 'Saisie invalide.' };
     }
-
     const sb = createAdminClient();
-    const requestRes = await sb
-      .from('patient_data_request')
-      .select('id, patient_id, request_type, organization_id, status')
-      .eq('id', claims.sub)
-      .single();
-    const request = requestRes.data as
-      | {
-          id: string;
-          patient_id: string | null;
-          request_type: string;
-          organization_id: string;
-          status: string;
-        }
-      | null;
+    const request = await loadRequest(sb, claims.sub, true);
     if (
       !request ||
       (request.status !== 'recue' && request.status !== 'en_cours')
     ) {
       return { error: 'Identité non vérifiée.' };
     }
-
     const searchHash = computeNirSearchHash(parsed.data.nir);
     const { data: matchedId, error: matchError } = await sb.rpc(
       'nir_match_patient_for_legal_request',
@@ -119,7 +111,6 @@ export async function verifyIdentityAction(
     if (matchError || !matchedId) {
       return { error: 'Identité non vérifiée.' };
     }
-
     await sb
       .from('patient_data_request')
       .update({
@@ -128,16 +119,11 @@ export async function verifyIdentityAction(
       })
       .eq('id', request.id);
     await markAttemptSuccess(token);
-
     dest = request.request_type === 'effacement' ? 'erasure' : 'access';
   } catch (e) {
-    return {
-      error: e instanceof Error ? e.message : 'Erreur inattendue.',
-    };
+    return { error: e instanceof Error ? e.message : 'Erreur inattendue.' };
   }
-  if (dest) {
-    redirect(`/legal/request/${token}/${dest}`);
-  }
+  if (dest) redirect(`/legal/request/${token}/${dest}`);
   return {};
 }
 
@@ -147,19 +133,7 @@ export async function fulfillAccessAction(
   try {
     const claims = await verifyRequestToken(token);
     const sb = createAdminClient();
-    const requestRes = await sb
-      .from('patient_data_request')
-      .select('id, patient_id, organization_id, status')
-      .eq('id', claims.sub)
-      .single();
-    const request = requestRes.data as
-      | {
-          id: string;
-          patient_id: string | null;
-          organization_id: string;
-          status: string;
-        }
-      | null;
+    const request = await loadRequest(sb, claims.sub);
     if (!request || !request.patient_id) {
       return { error: 'Demande introuvable.' };
     }
@@ -178,16 +152,11 @@ export async function fulfillAccessAction(
     });
     await sb
       .from('patient_data_request')
-      .update({
-        status: 'satisfaite',
-        response_at: new Date().toISOString(),
-      })
+      .update({ status: 'satisfaite', response_at: new Date().toISOString() })
       .eq('id', request.id);
     return { data };
   } catch (e) {
-    return {
-      error: e instanceof Error ? e.message : 'Erreur inattendue.',
-    };
+    return { error: e instanceof Error ? e.message : 'Erreur inattendue.' };
   }
 }
 
@@ -197,19 +166,7 @@ export async function fulfillErasureAction(
   try {
     const claims = await verifyRequestToken(token);
     const sb = createAdminClient();
-    const requestRes = await sb
-      .from('patient_data_request')
-      .select('id, patient_id, organization_id, status')
-      .eq('id', claims.sub)
-      .single();
-    const request = requestRes.data as
-      | {
-          id: string;
-          patient_id: string | null;
-          organization_id: string;
-          status: string;
-        }
-      | null;
+    const request = await loadRequest(sb, claims.sub);
     if (!request || !request.patient_id) {
       return { error: 'Demande introuvable.' };
     }
@@ -228,8 +185,6 @@ export async function fulfillErasureAction(
       .eq('id', request.id);
     return { ok: true };
   } catch (e) {
-    return {
-      error: e instanceof Error ? e.message : 'Erreur inattendue.',
-    };
+    return { error: e instanceof Error ? e.message : 'Erreur inattendue.' };
   }
 }
