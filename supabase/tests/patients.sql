@@ -255,6 +255,13 @@ select lives_ok(
 -- -----------------------------------------------------------------------------
 -- 20. EXPLAIN sur recherche fuzzy utilise l'index GIN (Pitfall 3 RESEARCH)
 -- -----------------------------------------------------------------------------
+-- Avec si peu de lignes en fixture, le planner Postgres préfère un Seq Scan
+-- (coût plus bas que la lecture d'index GIN). On force enable_seqscan = off
+-- pour vérifier que l'index *peut* être utilisé. C'est le pattern pgTAP
+-- standard pour valider la présence d'un plan d'exécution sur des fixtures
+-- de petite taille (cf. RESEARCH Pitfall 3).
+set local enable_seqscan = off;
+
 -- Wrapper SQL pour capturer le plan en texte (cf. RESEARCH §Pitfall 3)
 create or replace function pg_temp.explain_text(q text) returns text
 language plpgsql as $$
@@ -266,7 +273,7 @@ begin
   return result;
 end; $$;
 
-select like(
+select alike(
   pg_temp.explain_text(
     $q$ select id from public.patients where search_text % 'ho' $q$
   ),
