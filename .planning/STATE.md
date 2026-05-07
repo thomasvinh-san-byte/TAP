@@ -4,8 +4,8 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 2 plans validated PASS (6 plans, 6 vagues, 2 warnings non-bloquants)
-last_updated: "2026-05-07T10:04:38.618Z"
-last_activity: 2026-05-07 -- Phase 1.5 execution started
+last_updated: "2026-05-07T10:05:52.812Z"
+last_activity: 2026-05-07 -- Phase 2 execution started
 progress:
   total_phases: 22
   completed_phases: 2
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 1.5 — DPA + RGPD compliance
+**Current focus:** Phase 2 — Saisie express course
 
 ## Current Position
 
-Phase: 1.5 (DPA + RGPD compliance) — EXECUTING
-Plan: 1 of 7
-Status: Executing Phase 1.5
-Last activity: 2026-05-07 -- Phase 1.5 execution started
+Phase: 2 (Saisie express course) — EXECUTING
+Plan: 1 of 6
+Status: Executing Phase 2
+Last activity: 2026-05-07 -- Phase 2 execution started
 
 Progress: [█░░░░░░░░░] 7 % (Phase 0 complète sur 14 phases totales)
 
