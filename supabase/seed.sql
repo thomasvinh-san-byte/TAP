@@ -92,3 +92,31 @@ begin
   on conflict (id) do nothing;
 end
 $$;
+
+-- -----------------------------------------------------------------------------
+-- Compte E2E (PLAN-1 helper loginAsRegulateur attend reg-demo@tap.test)
+-- -----------------------------------------------------------------------------
+do $$
+declare
+  org_id uuid := '00000000-0000-0000-0000-000000000001';
+  e2e_id uuid := 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
+  hashed text := crypt('demo1234!', gen_salt('bf'));
+begin
+  insert into auth.users (
+    id, instance_id, aud, role, email, encrypted_password,
+    email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data
+  )
+  values (
+    e2e_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+    'reg-demo@tap.test', hashed,
+    now(), now(), now(),
+    jsonb_build_object('provider', 'email', 'providers', jsonb_build_array('email')),
+    jsonb_build_object('prenom', 'E2E', 'nom', 'Régulatrice')
+  )
+  on conflict (id) do nothing;
+
+  insert into public.profiles (id, organization_id, role, prenom, nom, email)
+  values (e2e_id, org_id, 'regulateur', 'E2E', 'Régulatrice', 'reg-demo@tap.test')
+  on conflict (id) do nothing;
+end
+$$;
