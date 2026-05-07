@@ -28,6 +28,25 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: supabase db push --linked
+      - name: Appliquer le seed (auth + démo)
+        # Idempotent : tous les INSERT utilisent ON CONFLICT DO NOTHING.
+        # seed.sql crée 3 comptes démo + 1 organization.
+        # seed.demo.sql ajoute 10 patients fictifs réunionnais (preview/staging).
+        env:
+          PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: |
+          PROJECT_REF="${{ secrets.SUPABASE_PROJECT_REF }}"
+          # Connection pooler (port 5432, IPv4) — disponible sur tous les plans
+          PGHOST="aws-0-eu-central-1.pooler.supabase.com"
+          PGPORT=5432
+          PGDATABASE=postgres
+          PGUSER="postgres.${PROJECT_REF}"
+          export PGHOST PGPORT PGDATABASE PGUSER PGPASSWORD
+          echo "→ Application supabase/seed.sql"
+          psql -v ON_ERROR_STOP=1 -f supabase/seed.sql
+          echo "→ Application supabase/seed.demo.sql"
+          psql -v ON_ERROR_STOP=1 -f supabase/seed.demo.sql
+          echo "✓ Seed appliqué"
 
   deploy-vercel:
     name: Déploiement Vercel (production)
