@@ -1,69 +1,55 @@
 /**
  * Welcome — page de fallback affichée quand les env vars Supabase manquent.
  *
+ * Au lieu d'envoyer l'utilisateur fouiller dans Vercel UI (4-5 écrans à
+ * naviguer), un workflow GitHub Actions automatise tout :
+ *   1. User ajoute 5 secrets dans GitHub Settings (1 page, copier-coller)
+ *   2. User déclenche le workflow "Setup Vercel" (1 clic)
+ *   3. Workflow récupère les credentials Supabase, génère les secrets app,
+ *      pousse les 8 env vars dans Vercel, et trigger un redeploy.
+ *
+ * Total clics utilisateur : ~6 (5 secrets + 1 trigger).
+ *
  * Page statique pure (pas d'import Supabase, pas d'auth, pas de DB) pour que
- * la preview Vercel affiche QUELQUE CHOSE même si la config est incomplète,
- * au lieu d'un 500 MIDDLEWARE_INVOCATION_FAILED brutal.
- *
- * Affiche le pas-à-pas exact pour finaliser la configuration côté Vercel.
- * Les noms des écrans/boutons sont les noms réels en anglais (Vercel UI 2026)
- * pour que l'utilisateur les retrouve sans ambiguïté.
- *
- * Une fois NEXT_PUBLIC_SUPABASE_URL + NEXT_PUBLIC_SUPABASE_ANON_KEY posées
- * dans Vercel, le middleware ne redirige plus vers cette page — elle reste
- * accessible directement via /welcome.
+ * la preview Vercel s'affiche même sans config.
  */
 
-const VERCEL_PROJECT = 'tap-web';
-const VERCEL_TEAM = 'tvss-projects-07aa3591';
-const PROJECT_BASE = `https://vercel.com/${VERCEL_TEAM}/${VERCEL_PROJECT}`;
+const REPO = 'thomasvinh-san-byte/tap';
+const SECRETS_URL = `https://github.com/${REPO}/settings/secrets/actions/new`;
+const WORKFLOW_URL = `https://github.com/${REPO}/actions/workflows/setup-vercel.yml`;
 
-const STEPS = [
+const SECRETS = [
   {
-    n: 1,
-    title: 'Connect Supabase via Marketplace',
-    href: 'https://vercel.com/marketplace/supabase',
-    instructions: [
-      'Ouvrir le lien ci-dessous',
-      'Cliquer Add Integration en haut à droite',
-      'Sélectionner le Vercel team contenant tap-web',
-      'Sélectionner le Vercel project tap-web',
-      'Sélectionner le Supabase project (vkanxnhipsitpnhkdsae)',
-      'Cliquer Add Integration pour finaliser',
-    ],
-    cta: 'Open Marketplace → Supabase',
+    name: 'SUPABASE_ACCESS_TOKEN',
+    where: 'https://supabase.com/dashboard/account/tokens',
+    hint: 'Generate new token → name "tap-vercel-setup"',
   },
   {
-    n: 2,
-    title: 'Verify Environment Variables',
-    href: `${PROJECT_BASE}/settings/environment-variables`,
-    instructions: [
-      "Sur l'écran Environment Variables, vérifier la présence de :",
-      '• NEXT_PUBLIC_SUPABASE_URL',
-      '• NEXT_PUBLIC_SUPABASE_ANON_KEY',
-      "Si absentes : retourner étape 1 (l'integration n'a pas été finalisée)",
-    ],
-    cta: 'Open Settings → Environment Variables',
+    name: 'SUPABASE_PROJECT_REF',
+    where: 'URL Supabase Dashboard du projet',
+    hint: 'La partie XXX dans https://XXX.supabase.co (ex: vkanxnhipsitpnhkdsae)',
   },
   {
-    n: 3,
-    title: 'Trigger a Redeployment',
-    href: `${PROJECT_BASE}/deployments`,
-    instructions: [
-      'Repérer le deployment le plus récent (en haut de la liste)',
-      'Cliquer le bouton ⋯ (More options) à droite de la ligne',
-      'Cliquer Redeploy',
-      'Dans le dialog : décocher Use existing Build Cache',
-      'Cliquer le bouton Redeploy bleu',
-    ],
-    cta: 'Open Deployments',
+    name: 'VERCEL_TOKEN',
+    where: 'https://vercel.com/account/tokens',
+    hint: 'Create Token → scope Full Account, expire 30 jours',
+  },
+  {
+    name: 'VERCEL_PROJECT_ID',
+    where: 'Vercel → tap-web → Settings → General',
+    hint: 'Section "Project ID" en bas (commence par prj_)',
+  },
+  {
+    name: 'VERCEL_TEAM_ID',
+    where: 'Vercel → Team Settings → General',
+    hint: 'Section "Team ID" (commence par team_)',
   },
 ] as const;
 
 export default function WelcomePage() {
   return (
     <main className="min-h-screen flex items-start justify-center px-24 py-48 bg-background">
-      <div className="w-full max-w-[680px] space-y-32">
+      <div className="w-full max-w-[720px] space-y-32">
         <header className="space-y-8">
           <h1 className="text-3xl font-semibold tracking-tight text-foreground">
             TAP Régulation
@@ -74,56 +60,104 @@ export default function WelcomePage() {
         </header>
 
         <section className="rounded-md border border-amber-500/40 bg-amber-500/5 p-24 space-y-8">
-          <p className="font-medium text-foreground">Setup required</p>
+          <p className="font-medium text-foreground">Setup automatisé en 2 étapes</p>
           <p className="text-sm text-muted-foreground">
-            Les variables Supabase ne sont pas encore disponibles sur ce déploiement.
-            3 étapes côté Vercel pour finaliser. Les noms de menu/boutons ci-dessous
-            sont ceux de l&apos;UI Vercel en anglais.
+            Plutôt que de cliquer dans 4 écrans Vercel, ce projet utilise un workflow
+            GitHub Actions qui configure tout automatiquement. Total clics : ~6.
           </p>
         </section>
 
         <ol className="space-y-16">
-          {STEPS.map((step) => (
-            <li
-              key={step.n}
-              className="rounded-md border border-border bg-card p-24 space-y-12"
-            >
-              <div className="flex items-start gap-12">
-                <span className="flex-none flex items-center justify-center h-32 w-32 rounded-full bg-primary/10 text-primary text-sm font-semibold tabular-nums">
-                  {step.n}
-                </span>
-                <div className="flex-1 space-y-12">
-                  <h2 className="text-base font-medium text-foreground">
-                    {step.title}
-                  </h2>
-                  <ul className="text-sm text-muted-foreground space-y-4 list-disc list-inside marker:text-muted-foreground/50">
-                    {step.instructions.map((line) => (
-                      <li key={line}>{line}</li>
-                    ))}
-                  </ul>
-                  <a
-                    href={step.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-4 text-sm text-primary underline underline-offset-4 hover:no-underline"
-                  >
-                    {step.cta} →
-                  </a>
+          <li className="rounded-md border border-border bg-card p-24 space-y-16">
+            <div className="flex items-start gap-12">
+              <span className="flex-none flex items-center justify-center h-32 w-32 rounded-full bg-primary/10 text-primary text-sm font-semibold tabular-nums">
+                1
+              </span>
+              <div className="flex-1 space-y-12">
+                <h2 className="text-base font-medium text-foreground">
+                  Ajouter 5 secrets GitHub Actions
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  Ouvrir le lien ci-dessous, cliquer <em>New repository secret</em>{' '}
+                  pour chaque ligne, copier-coller la valeur récupérée à la source
+                  indiquée.
+                </p>
+                <div className="overflow-hidden rounded border border-border">
+                  <table className="w-full text-xs">
+                    <thead className="bg-muted/50">
+                      <tr>
+                        <th className="text-left p-8 font-medium text-foreground">Name</th>
+                        <th className="text-left p-8 font-medium text-foreground">Where to find</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {SECRETS.map((s) => (
+                        <tr key={s.name}>
+                          <td className="p-8 font-mono text-foreground align-top whitespace-nowrap">
+                            {s.name}
+                          </td>
+                          <td className="p-8 text-muted-foreground space-y-4">
+                            <div>{s.where}</div>
+                            <div className="text-foreground/60">{s.hint}</div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
+                <a
+                  href={SECRETS_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-4 text-sm text-primary underline underline-offset-4 hover:no-underline"
+                >
+                  Open GitHub → New repository secret →
+                </a>
               </div>
-            </li>
-          ))}
+            </div>
+          </li>
+
+          <li className="rounded-md border border-border bg-card p-24 space-y-12">
+            <div className="flex items-start gap-12">
+              <span className="flex-none flex items-center justify-center h-32 w-32 rounded-full bg-primary/10 text-primary text-sm font-semibold tabular-nums">
+                2
+              </span>
+              <div className="flex-1 space-y-12">
+                <h2 className="text-base font-medium text-foreground">
+                  Lancer le workflow &laquo; Setup Vercel &raquo;
+                </h2>
+                <ul className="text-sm text-muted-foreground space-y-4 list-disc list-inside marker:text-muted-foreground/50">
+                  <li>Sur la page workflow ci-dessous, cliquer <em>Run workflow</em> en haut à droite</li>
+                  <li>Laisser <em>Use workflow from: main</em></li>
+                  <li>Laisser <em>regenerate_app_secrets: false</em></li>
+                  <li>Cliquer le bouton vert <em>Run workflow</em></li>
+                </ul>
+                <p className="text-xs text-muted-foreground">
+                  Le workflow met ~30 sec : récupère les Supabase keys via API, génère
+                  les 4 secrets app (NIR, JWT legal, anonymization), pousse les 8 env
+                  vars dans Vercel, déclenche un redeploy.
+                </p>
+                <a
+                  href={WORKFLOW_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-4 text-sm text-primary underline underline-offset-4 hover:no-underline"
+                >
+                  Open GitHub Actions → Setup Vercel →
+                </a>
+              </div>
+            </div>
+          </li>
         </ol>
 
         <footer className="space-y-8 text-xs text-muted-foreground">
           <p>
-            Une fois les 3 étapes faites, cette page disparaîtra automatiquement
-            au profit de l&apos;écran de connexion (le middleware détecte les variables
-            au prochain déploiement).
+            Une fois le workflow vert, attendre ~2 min que Vercel finisse le redeploy.
+            Cette page disparaîtra automatiquement au profit de l&apos;écran de connexion.
           </p>
           <p>
             <a
-              href="https://github.com/thomasvinh-san-byte/tap"
+              href={`https://github.com/${REPO}`}
               target="_blank"
               rel="noopener noreferrer"
               className="underline underline-offset-4 hover:text-foreground"

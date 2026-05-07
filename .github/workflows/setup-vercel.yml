@@ -1,0 +1,222 @@
+name: Setup Vercel — Configuration initiale
+
+# Workflow manuel (workflow_dispatch) qui :
+# 1. Récupère les credentials Supabase depuis l'API Supabase
+# 2. Génère 4 secrets applicatifs (NIR, JWT legal, anonymization)
+# 3. Pousse les 8 env vars dans Vercel via API
+# 4. Trigger un redeploy Vercel
+#
+# À lancer UNE fois après création des secrets GitHub Actions ci-dessous.
+# Idempotent : peut être relancé pour rotation de secrets ou changement
+# de projet Supabase staging/prod.
+#
+# Secrets GitHub requis (Settings → Secrets and variables → Actions) :
+#   - SUPABASE_ACCESS_TOKEN     (Supabase Personal Access Token)
+#   - SUPABASE_PROJECT_REF      (ex: vkanxnhipsitpnhkdsae)
+#   - VERCEL_TOKEN              (Vercel Account Token)
+#   - VERCEL_PROJECT_ID         (ex: prj_rBzZI9dIp970HTfDxlmNYUAkbYtZ)
+#   - VERCEL_TEAM_ID            (ex: team_YsbSuMxKjI4van0QgANNdAZ5)
+
+on:
+  workflow_dispatch:
+    inputs:
+      regenerate_app_secrets:
+        description: "Régénérer les 4 app secrets (NIR/JWT/salt) ? Si false, conserve ceux existants."
+        type: boolean
+        default: false
+
+jobs:
+  setup:
+    name: Configurer Vercel depuis Supabase
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Vérifier secrets requis
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+        run: |
+          set -e
+          missing=()
+          for s in SUPABASE_ACCESS_TOKEN SUPABASE_PROJECT_REF VERCEL_TOKEN VERCEL_PROJECT_ID VERCEL_TEAM_ID; do
+            if [ -z "${!s}" ]; then missing+=("$s"); fi
+          done
+          if [ ${#missing[@]} -ne 0 ]; then
+            echo "❌ Secrets GitHub manquants : ${missing[*]}"
+            echo "→ Ajouter sur https://github.com/${{ github.repository }}/settings/secrets/actions"
+            exit 1
+          fi
+          echo "✓ Tous les secrets requis sont présents"
+
+      - name: Récupérer credentials Supabase
+        id: supabase
+        env:
+          TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          set -e
+          response=$(curl -fsSL \
+            -H "Authorization: Bearer $TOKEN" \
+            "https://api.supabase.com/v1/projects/$REF/api-keys")
+          anon=$(echo "$response" | jq -r '.[] | select(.name=="anon") | .api_key')
+          service_role=$(echo "$response" | jq -r '.[] | select(.name=="service_role") | .api_key')
+          if [ -z "$anon" ] || [ "$anon" = "null" ]; then
+            echo "❌ anon key Supabase introuvable. SUPABASE_PROJECT_REF correct ?"
+            exit 1
+          fi
+          # Outputs masqués (mark as secret in logs)
+          echo "::add-mask::$anon"
+          echo "::add-mask::$service_role"
+          echo "anon=$anon" >> $GITHUB_OUTPUT
+          echo "service_role=$service_role" >> $GITHUB_OUTPUT
+          echo "url=https://${REF}.supabase.co" >> $GITHUB_OUTPUT
+          echo "✓ Credentials Supabase récupérés"
+
+      - name: Générer ou réutiliser app secrets
+        id: app_secrets
+        env:
+          REGENERATE: ${{ inputs.regenerate_app_secrets }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+        run: |
+          set -e
+          if [ "$REGENERATE" = "true" ]; then
+            echo "→ Régénération forcée des 4 app secrets"
+            for k in nir_encryption nir_search legal_token anonymization_salt; do
+              v=$(openssl rand -base64 32)
+              echo "::add-mask::$v"
+              echo "${k}=${v}" >> $GITHUB_OUTPUT
+            done
+            echo "regenerated=true" >> $GITHUB_OUTPUT
+          else
+            # Récupérer les secrets existants depuis Vercel pour ne pas casser l'app
+            existing=$(curl -fsSL \
+              -H "Authorization: Bearer $VERCEL_TOKEN" \
+              "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/env?teamId=$VERCEL_TEAM_ID&decrypt=true")
+
+            for v in APP_NIR_ENCRYPTION_KEY APP_NIR_SEARCH_KEY APP_LEGAL_TOKEN_SECRET APP_ANONYMIZATION_SALT; do
+              val=$(echo "$existing" | jq -r --arg k "$v" '.envs[]? | select(.key == $k) | .value' | head -1)
+              if [ -z "$val" ] || [ "$val" = "null" ]; then
+                # Pas trouvé, on génère
+                val=$(openssl rand -base64 32)
+              fi
+              echo "::add-mask::$val"
+              key_lower=$(echo "$v" | sed 's/APP_//; s/_KEY//; s/_SECRET//' | tr '[:upper:]' '[:lower:]')
+              echo "${key_lower}=${val}" >> $GITHUB_OUTPUT
+            done
+            echo "regenerated=false" >> $GITHUB_OUTPUT
+          fi
+          echo "✓ App secrets prêts"
+
+      - name: Pousser les env vars dans Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+          SB_URL: ${{ steps.supabase.outputs.url }}
+          SB_ANON: ${{ steps.supabase.outputs.anon }}
+          SB_SERVICE: ${{ steps.supabase.outputs.service_role }}
+          NIR_ENC: ${{ steps.app_secrets.outputs.nir_encryption }}
+          NIR_SEARCH: ${{ steps.app_secrets.outputs.nir_search }}
+          LEGAL: ${{ steps.app_secrets.outputs.legal_token }}
+          SALT: ${{ steps.app_secrets.outputs.anonymization_salt }}
+        run: |
+          set -e
+
+          upsert_env() {
+            local key="$1"
+            local value="$2"
+            local target_json="$3"  # JSON array ex: '["production","preview"]'
+
+            # Cherche si la variable existe déjà
+            existing=$(curl -fsSL \
+              -H "Authorization: Bearer $VERCEL_TOKEN" \
+              "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/env?teamId=$VERCEL_TEAM_ID")
+            id=$(echo "$existing" | jq -r --arg k "$key" --argjson t "$target_json" \
+              '.envs[]? | select(.key == $k and (.target | sort) == ($t | sort)) | .id' | head -1)
+
+            payload=$(jq -n --arg v "$value" --argjson t "$target_json" \
+              '{value: $v, target: $t, type: "encrypted"}')
+
+            if [ -n "$id" ] && [ "$id" != "null" ]; then
+              curl -fsSL -X PATCH \
+                -H "Authorization: Bearer $VERCEL_TOKEN" \
+                -H "Content-Type: application/json" \
+                "https://api.vercel.com/v9/projects/$VERCEL_PROJECT_ID/env/$id?teamId=$VERCEL_TEAM_ID" \
+                -d "$payload" > /dev/null
+              echo "  ↻ $key (mis à jour)"
+            else
+              create_payload=$(jq -n --arg k "$key" --arg v "$value" --argjson t "$target_json" \
+                '{key: $k, value: $v, target: $t, type: "encrypted"}')
+              curl -fsSL -X POST \
+                -H "Authorization: Bearer $VERCEL_TOKEN" \
+                -H "Content-Type: application/json" \
+                "https://api.vercel.com/v10/projects/$VERCEL_PROJECT_ID/env?teamId=$VERCEL_TEAM_ID" \
+                -d "$create_payload" > /dev/null
+              echo "  + $key (créé)"
+            fi
+          }
+
+          ALL='["production","preview"]'
+          PREVIEW='["preview"]'
+
+          echo "→ Variables Supabase (Production + Preview)"
+          upsert_env "NEXT_PUBLIC_SUPABASE_URL" "$SB_URL" "$ALL"
+          upsert_env "NEXT_PUBLIC_SUPABASE_ANON_KEY" "$SB_ANON" "$ALL"
+          upsert_env "SUPABASE_SERVICE_ROLE_KEY" "$SB_SERVICE" "$ALL"
+
+          echo "→ App secrets (Production + Preview)"
+          upsert_env "APP_NIR_ENCRYPTION_KEY" "$NIR_ENC" "$ALL"
+          upsert_env "APP_NIR_SEARCH_KEY" "$NIR_SEARCH" "$ALL"
+          upsert_env "APP_LEGAL_TOKEN_SECRET" "$LEGAL" "$ALL"
+          upsert_env "APP_ANONYMIZATION_SALT" "$SALT" "$ALL"
+
+          echo "→ Demo credentials flag (Preview only)"
+          upsert_env "NEXT_PUBLIC_SHOW_DEMO_CREDENTIALS" "true" "$PREVIEW"
+
+          echo ""
+          echo "✅ 8 env vars configurées sur Vercel"
+
+      - name: Trigger redeploy Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          VERCEL_TEAM_ID: ${{ secrets.VERCEL_TEAM_ID }}
+        run: |
+          set -e
+          # Récupère le dernier deployment Production pour redeploy
+          latest=$(curl -fsSL \
+            -H "Authorization: Bearer $VERCEL_TOKEN" \
+            "https://api.vercel.com/v6/deployments?projectId=$VERCEL_PROJECT_ID&teamId=$VERCEL_TEAM_ID&target=production&limit=1")
+          deployment_id=$(echo "$latest" | jq -r '.deployments[0].uid')
+
+          if [ -z "$deployment_id" ] || [ "$deployment_id" = "null" ]; then
+            echo "⚠ Aucun deployment production existant — push un commit pour déclencher le premier build"
+          else
+            curl -fsSL -X POST \
+              -H "Authorization: Bearer $VERCEL_TOKEN" \
+              -H "Content-Type: application/json" \
+              "https://api.vercel.com/v13/deployments?teamId=$VERCEL_TEAM_ID&forceNew=1" \
+              -d "$(jq -n --arg id "$deployment_id" --arg pid "$VERCEL_PROJECT_ID" \
+                '{deploymentId: $id, name: "tap-web", target: "production"}')" > /dev/null
+            echo "✓ Redeploy déclenché. Vérifier sur Vercel Dashboard dans 2-3 min."
+          fi
+
+      - name: Récap
+        run: |
+          echo ""
+          echo "=========================================="
+          echo "✅ Setup Vercel terminé"
+          echo "=========================================="
+          echo ""
+          echo "Vérifier dans 2-3 min :"
+          echo "→ Vercel Deployments : https://vercel.com/${{ secrets.VERCEL_TEAM_ID }}/tap-web/deployments"
+          echo "→ Production URL    : https://tap-web.vercel.app"
+          echo ""
+          echo "Si app vivante → comptes démo affichés sur /login en preview."
+          echo "Sinon → re-vérifier les logs ci-dessus pour identifier la step en échec."
