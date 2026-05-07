@@ -47,7 +47,7 @@ values
    '12 rue Pasteur', '97400', 'Saint-Denis', 'sms',
    decode('cafebabecafebabecafebabe', 'hex'),
    decode('feedfacefeedfacefeedfacefeedface', 'hex'),
-   '7823', '+262692123456');
+   '78 23', '+262692123456');
 
 -- Insertion d'une patient_data_request liée
 insert into public.patient_data_request
