@@ -44,7 +44,7 @@ export const courseExpressSchema = z
     (data) => Boolean(data.patient_id) !== Boolean(data.patient_nouveau),
     {
       message:
-        'Renseigner soit un patient existant, soit les infos d''un nouveau patient.',
+        "Renseigner soit un patient existant, soit les infos d'un nouveau patient.",
       path: ['patient_id'],
     },
   )
