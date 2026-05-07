@@ -129,7 +129,7 @@ ultérieurement (conversion `.docx` → `.md` requise pour parsing).
 | **DEC-012** GitHub Flow adapté (`main` + `staging` + `feat/*`) | README.md | LOCKED | Migrations validées par CI avant merge |
 | **DEC-013** Couverture tests (pricing 100 %, recurrence 100 %, domain ≥ 80 %) | CLAUDE.md § 9 | LOCKED | Vitest + Playwright + pgTAP + pytest |
 | **DEC-014** Ergonomie chauffeur (boutons ≥ 56 px, 1 action / écran, swipe) | CLAUDE.md § 5 | LOCKED | Mode hors-ligne fonctionnel obligatoire |
-| **DEC-015** Ergonomie régulatrice (cockpit accueil, `Cmd/Ctrl+N`, fuzzy 2 car) | CLAUDE.md § 5 | LOCKED | File d'attente brouillons + multi-saisies parallèles |
+| **DEC-015** Ergonomie régulatrice (cockpit accueil, `Cmd/Ctrl+Shift+K`, fuzzy 2 car) | CLAUDE.md § 5 | LOCKED | File d'attente brouillons + multi-saisies parallèles |
 | **DEC-016** Localisation des règles métier en packages dédiés | CLAUDE.md § 11 | LOCKED | Tarification → `pricing`, récurrence → `recurrence`, SMS → `sms` |
 
 </decisions>

@@ -40,7 +40,7 @@ design partners). Chaque requirement mappe vers exactement une phase.
 ### Saisie express course (SAIS)
 
 - [ ] **SAIS-01** : Saisie complète d'une course en mode express **< 30 s** (mesuré E2E Playwright)
-- [ ] **SAIS-02** : Saisie express déclenchable par raccourci clavier global `Cmd/Ctrl+N`
+- [ ] **SAIS-02** : Saisie express déclenchable par raccourci clavier global `Cmd/Ctrl+Shift+K`
 - [ ] **SAIS-03** : Recherche patient instantanée à 2 caractères dans le formulaire
 - [ ] **SAIS-04** : Régulatrice peut mettre une saisie en pause et y revenir (file d'attente brouillons)
 - [ ] **SAIS-05** : Multi-saisies en parallèle (plusieurs brouillons ouverts simultanément, jamais bloquant)

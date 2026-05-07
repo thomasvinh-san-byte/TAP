@@ -23,7 +23,7 @@ une capture pour une page d'accueil produit.
 - [x] **Phase 1: Référentiel patients** - Fiche patient avec NIR chiffré, recherche fuzzy, préférences (livré 16 commits, 5/5 SC + 7/7 PAT delivered, runtime CI human_needed)
 - [x] **Phase 1.5: DPA + RGPD compliance** - Registre traitements, DPA Supabase, DPIA santé, portail droits patient (livré 28 commits, 8/8 DPA delivered, runtime CI human_needed)
 - [x] **Phase 0.7: Déploiement continu Vercel + démo seedée** - Visible Progress Mandate (Vercel preview + seed démo 974 + showcase/ + smoke test cloud) — livrée 2026-05-07
-- [ ] **Phase 2: Saisie express course** - Saisie < 30 s, raccourci `Cmd/Ctrl+N`, brouillons, multi-saisies
+- [ ] **Phase 2: Saisie express course** - Saisie < 30 s, raccourci `Cmd/Ctrl+Shift+K`, brouillons, multi-saisies
 - [ ] **Phase 3: Moteur tarification CGSS** - `packages/pricing` versionné, 100 % branches couvert
 - [ ] **Phase 4: Moteur récurrences** - `packages/recurrence`, exceptions jours fériés 974, 100 % branches
 - [ ] **Phase 4.5: Bootstrap OSRM** - `services/osrm` Docker + tuiles OSM 974 + RPC distance/eta (parallélise Lot 1, débloque Phases 9, 10, 12)
@@ -120,7 +120,7 @@ Plans:
 **Requirements**: SAIS-01, SAIS-02, SAIS-03, SAIS-04, SAIS-05, SAIS-06
 **Success Criteria** (what must be TRUE):
   1. Un test E2E Playwright mesure la saisie complète d'une course type en moins de 30 secondes
-  2. Le raccourci `Cmd/Ctrl+N` ouvre la saisie express depuis n'importe quel écran régulateur
+  2. Le raccourci `Cmd/Ctrl+Shift+K` ouvre la saisie express depuis n'importe quel écran régulateur
   3. La régulatrice peut mettre une saisie en pause, ouvrir une autre saisie, puis reprendre la première sans perte de données
   4. La recherche patient dans le formulaire retourne des résultats à 2 caractères en fuzzy
   5. Toute course créée écrit une ligne d'audit dans `audit_logs`

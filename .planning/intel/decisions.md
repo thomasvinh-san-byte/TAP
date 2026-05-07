@@ -272,7 +272,7 @@ figurer comme screenshot d'exemple sur une page d'accueil produit.
 
 **Énoncé** :
 - Cockpit temps réel = écran d'accueil par défaut.
-- Saisie express accessible par raccourci clavier global (`Cmd/Ctrl+N`).
+- Saisie express accessible par raccourci clavier global (`Cmd/Ctrl+Shift+K`).
 - Recherche patient instantanée à 2 caractères, fuzzy.
 - Tableaux > 20 lignes : tri, filtres, pagination obligatoires.
 - File d'attente brouillons : pause & reprise d'une saisie en cours.

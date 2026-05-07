@@ -7,7 +7,7 @@
 <domain>
 ## Phase Boundary
 
-La régulatrice peut **saisir une course en mode express** en moins de 30 secondes, depuis n'importe quel écran via le raccourci `Cmd/Ctrl+N`, avec brouillons en file d'attente locale et multi-saisies parallèles, sans jamais être bloquée par un appel téléphonique entrant.
+La régulatrice peut **saisir une course en mode express** en moins de 30 secondes, depuis n'importe quel écran via le raccourci `Cmd/Ctrl+Shift+K`, avec brouillons en file d'attente locale et multi-saisies parallèles, sans jamais être bloquée par un appel téléphonique entrant.
 
 **Scope inclus**
 - Migration 004 : table `rides` (schéma minimal V1, étendable Phase 3+) + table `ride_draft` pour brouillons + RLS forcée + audit triggers
@@ -121,7 +121,7 @@ Pas de TTL automatique V1 (V2 si on voit des brouillons abandonnés s'accumuler 
 ### Pattern d'ouverture : Modal global + cmdk (D-03)
 
 **Modal global** monté dans `(app)/layout.tsx`, visible sur toutes les routes authentifiées. Ouverture via :
-- **Raccourci clavier global `Cmd/Ctrl+N`** (overrides browser default si focus dans body)
+- **Raccourci clavier global `Cmd/Ctrl+Shift+K`** (pattern Linear/Slack/Discord — Cmd/Ctrl+N est réservé navigateur, non interceptable)
 - Bouton **« Nouvelle course »** dans le header (icône `Plus` Lucide, `text-primary`, ≥ 40 px hauteur)
 - Click sur un brouillon dans la file d'attente → réouvre le modal avec payload restauré
 

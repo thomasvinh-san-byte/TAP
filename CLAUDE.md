@@ -198,7 +198,7 @@ Le cahier des charges V2 contient **24 modules fonctionnels**. Avant tout dével
 
 ### Règles renforcées côté régulateur
 - **Cockpit temps réel** = écran d'accueil par défaut
-- **Saisie express** accessible par raccourci clavier global (Cmd/Ctrl+N)
+- **Saisie express** accessible par raccourci clavier global (Cmd/Ctrl+Shift+K)
 - **Recherche patient** instantanée à 2 caractères, fuzzy
 - Tableaux > 20 lignes : tri, filtres, pagination obligatoires
 - Possibilité de mettre une saisie en pause et y revenir (file d'attente brouillons)
