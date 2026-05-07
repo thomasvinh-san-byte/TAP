@@ -48,6 +48,31 @@ jobs:
           psql -v ON_ERROR_STOP=1 -f supabase/seed.demo.sql
           echo "✓ Seed appliqué"
 
+  deploy-edge-functions:
+    name: Déploiement Edge Functions Supabase (production)
+    needs: deploy-migrations
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Lier le projet
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+      - name: Déployer la fonction nir
+        # Edge Function chiffrement NIR (Phase 1 PLAN-3).
+        # Les secrets APP_NIR_ENCRYPTION_KEY + APP_NIR_SEARCH_KEY
+        # doivent être posés AVANT (via setup-vercel.yml workflow).
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase functions deploy nir \
+            --project-ref ${{ secrets.SUPABASE_PROJECT_REF }} \
+            --no-verify-jwt false
+
   deploy-vercel:
     name: Déploiement Vercel (production)
     needs: deploy-migrations

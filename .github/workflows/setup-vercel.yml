@@ -1,10 +1,11 @@
-name: Setup Vercel — Configuration initiale
+name: Setup Vercel + Supabase — Configuration initiale
 
 # Workflow manuel (workflow_dispatch) qui :
 # 1. Récupère les credentials Supabase depuis l'API Supabase
 # 2. Génère 4 secrets applicatifs (NIR, JWT legal, anonymization)
 # 3. Pousse les 8 env vars dans Vercel via API
-# 4. Trigger un redeploy Vercel
+# 4. Pousse les 2 NIR secrets dans Supabase Edge Functions
+# 5. Trigger un redeploy Vercel
 #
 # À lancer UNE fois après création des secrets GitHub Actions ci-dessous.
 # Idempotent : peut être relancé pour rotation de secrets ou changement
@@ -181,6 +182,30 @@ jobs:
 
           echo ""
           echo "✅ 8 env vars configurées sur Vercel"
+
+      - name: Pousser les NIR secrets dans Supabase Edge Functions
+        # L'Edge Function nir (déployée par cd.yml) a besoin de ces 2 secrets
+        # côté Supabase pour chiffrer/déchiffrer le NIR. Distincts des Vercel
+        # env vars (les Edge Functions Deno ont leur propre store de secrets).
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          NIR_ENC: ${{ steps.app_secrets.outputs.nir_encryption }}
+          NIR_SEARCH: ${{ steps.app_secrets.outputs.nir_search }}
+        run: |
+          set -e
+          echo "→ Push secrets Edge Functions Supabase"
+          curl -fsSL -X PATCH \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            -H "Content-Type: application/json" \
+            "https://api.supabase.com/v1/projects/$SUPABASE_PROJECT_REF/secrets" \
+            -d "$(jq -n --arg enc "$NIR_ENC" --arg search "$NIR_SEARCH" '[
+              {name: "APP_NIR_ENCRYPTION_KEY", value: $enc},
+              {name: "APP_NIR_SEARCH_KEY", value: $search}
+            ]')" > /dev/null
+          echo "  + APP_NIR_ENCRYPTION_KEY"
+          echo "  + APP_NIR_SEARCH_KEY"
+          echo "✓ Edge Function secrets configurés"
 
       - name: Trigger redeploy Vercel
         env:
