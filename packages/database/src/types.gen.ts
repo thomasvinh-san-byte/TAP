@@ -2,10 +2,22 @@
 // types.gen.ts — Types Supabase générés depuis le schéma local
 // =============================================================================
 // Ce fichier reproduit le format émis par `supabase gen types typescript
-// --local` pour les tables de la migration 003. Régénération impossible
-// dans la sandbox CI (Docker registry public.ecr.aws bloqué — voir le
-// SUMMARY 01-2). En production, exécuter `pnpm db:types` après chaque
-// migration appliquée pour réécrire ce fichier depuis le schéma réel.
+// --local` pour les migrations Phase 1 + Phase 1.5. Régénération impossible
+// dans la sandbox CI (Docker registry public.ecr.aws bloqué — voir SUMMARY
+// 01-2). En production, exécuter `pnpm db:types` après chaque migration
+// appliquée pour réécrire ce fichier depuis le schéma réel.
+//
+// Phase 1.5 ajoute :
+//   - 5 tables RGPD : data_processing_register, dpa_record, dpia_record,
+//     data_breach_incident, patient_data_request
+//   - 3 tables additionnelles : cgu_acceptance, cookie_consent_log,
+//     legal_request_attempts
+//   - 5 colonnes DPO sur organizations + 2 colonnes CGU sur profiles
+//   - patients : prenom/nom/date_naissance/adresse_ligne1/code_postal/ville
+//     deviennent nullable (Rule 2 — anonymisation art. 17)
+//   - 4 nouvelles fonctions RPC : check_breach_deadlines,
+//     purge_legal_request_attempts, rgpd_anonymize_patient,
+//     nir_match_patient_for_legal_request
 // =============================================================================
 
 export type Json =
@@ -34,6 +46,11 @@ export interface Database {
           date_archivage: string | null;
           created_at: string;
           updated_at: string;
+          dpo_contact_email: string | null;
+          dpo_contact_phone: string | null;
+          dpo_contact_address: string | null;
+          dpo_external: boolean;
+          dpo_updated_at: string | null;
         };
         Insert: {
           id?: string;
@@ -49,6 +66,11 @@ export interface Database {
           date_archivage?: string | null;
           created_at?: string;
           updated_at?: string;
+          dpo_contact_email?: string | null;
+          dpo_contact_phone?: string | null;
+          dpo_contact_address?: string | null;
+          dpo_external?: boolean;
+          dpo_updated_at?: string | null;
         };
         Update: {
           id?: string;
@@ -64,6 +86,11 @@ export interface Database {
           date_archivage?: string | null;
           created_at?: string;
           updated_at?: string;
+          dpo_contact_email?: string | null;
+          dpo_contact_phone?: string | null;
+          dpo_contact_address?: string | null;
+          dpo_external?: boolean;
+          dpo_updated_at?: string | null;
         };
         Relationships: [];
       };
@@ -80,6 +107,8 @@ export interface Database {
           date_archivage: string | null;
           created_at: string;
           updated_at: string;
+          cgu_version_accepted: string | null;
+          cgu_accepted_at: string | null;
         };
         Insert: {
           id: string;
@@ -93,6 +122,8 @@ export interface Database {
           date_archivage?: string | null;
           created_at?: string;
           updated_at?: string;
+          cgu_version_accepted?: string | null;
+          cgu_accepted_at?: string | null;
         };
         Update: {
           id?: string;
@@ -106,6 +137,8 @@ export interface Database {
           date_archivage?: string | null;
           created_at?: string;
           updated_at?: string;
+          cgu_version_accepted?: string | null;
+          cgu_accepted_at?: string | null;
         };
         Relationships: [
           {
@@ -146,16 +179,16 @@ export interface Database {
         Row: {
           id: string;
           organization_id: string;
-          prenom: string;
-          nom: string;
-          date_naissance: string;
+          prenom: string | null;
+          nom: string | null;
+          date_naissance: string | null;
           genre: string | null;
           telephone: string | null;
           telephone_normalized: string | null;
-          adresse_ligne1: string;
+          adresse_ligne1: string | null;
           adresse_ligne2: string | null;
-          code_postal: string;
-          ville: string;
+          code_postal: string | null;
+          ville: string | null;
           contact_urgence_nom: string | null;
           contact_urgence_telephone: string | null;
           nir_encrypted: string | null;
@@ -176,16 +209,16 @@ export interface Database {
         Insert: {
           id?: string;
           organization_id: string;
-          prenom: string;
-          nom: string;
-          date_naissance: string;
+          prenom?: string | null;
+          nom?: string | null;
+          date_naissance?: string | null;
           genre?: string | null;
           telephone?: string | null;
           telephone_normalized?: string | null;
-          adresse_ligne1: string;
+          adresse_ligne1?: string | null;
           adresse_ligne2?: string | null;
-          code_postal: string;
-          ville: string;
+          code_postal?: string | null;
+          ville?: string | null;
           contact_urgence_nom?: string | null;
           contact_urgence_telephone?: string | null;
           nir_encrypted?: string | null;
@@ -205,16 +238,16 @@ export interface Database {
         Update: {
           id?: string;
           organization_id?: string;
-          prenom?: string;
-          nom?: string;
-          date_naissance?: string;
+          prenom?: string | null;
+          nom?: string | null;
+          date_naissance?: string | null;
           genre?: string | null;
           telephone?: string | null;
           telephone_normalized?: string | null;
-          adresse_ligne1?: string;
+          adresse_ligne1?: string | null;
           adresse_ligne2?: string | null;
-          code_postal?: string;
-          ville?: string;
+          code_postal?: string | null;
+          ville?: string | null;
           contact_urgence_nom?: string | null;
           contact_urgence_telephone?: string | null;
           nir_encrypted?: string | null;
@@ -317,6 +350,373 @@ export interface Database {
           },
         ];
       };
+      data_processing_register: {
+        Row: {
+          id: string;
+          organization_id: string;
+          purpose: string;
+          legal_basis: string;
+          data_categories: string[];
+          data_subjects: string[];
+          recipients: string[];
+          retention_period_days: number;
+          security_measures: string;
+          international_transfer: boolean;
+          international_transfer_safeguards: string | null;
+          created_at: string;
+          updated_at: string;
+          created_by: string | null;
+          updated_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          purpose: string;
+          legal_basis: string;
+          data_categories: string[];
+          data_subjects: string[];
+          recipients: string[];
+          retention_period_days: number;
+          security_measures: string;
+          international_transfer?: boolean;
+          international_transfer_safeguards?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+          updated_by?: string | null;
+        };
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: 'data_processing_register_organization_id_fkey';
+            columns: ['organization_id'];
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      dpa_record: {
+        Row: {
+          id: string;
+          organization_id: string;
+          subprocessor_name: string;
+          subprocessor_role: string;
+          dpa_version: string;
+          dpa_document_url: string | null;
+          signed_at: string;
+          expires_at: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+          created_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          subprocessor_name: string;
+          subprocessor_role: string;
+          dpa_version: string;
+          dpa_document_url?: string | null;
+          signed_at: string;
+          expires_at?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          subprocessor_name?: string;
+          subprocessor_role?: string;
+          dpa_version?: string;
+          dpa_document_url?: string | null;
+          signed_at?: string;
+          expires_at?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'dpa_record_organization_id_fkey';
+            columns: ['organization_id'];
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      dpia_record: {
+        Row: {
+          id: string;
+          organization_id: string;
+          title: string;
+          scope: string;
+          data_flow_diagram: string | null;
+          risks_identified: Json;
+          mitigations: Json;
+          residual_risk_level: string | null;
+          cnil_consultation_required: boolean;
+          cnil_consultation_date: string | null;
+          reviewed_at: string;
+          next_review_at: string;
+          status: string;
+          created_at: string;
+          updated_at: string;
+          created_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          title: string;
+          scope: string;
+          data_flow_diagram?: string | null;
+          risks_identified?: Json;
+          mitigations?: Json;
+          residual_risk_level?: string | null;
+          cnil_consultation_required?: boolean;
+          cnil_consultation_date?: string | null;
+          reviewed_at: string;
+          next_review_at: string;
+          status: string;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          title?: string;
+          scope?: string;
+          data_flow_diagram?: string | null;
+          risks_identified?: Json;
+          mitigations?: Json;
+          residual_risk_level?: string | null;
+          cnil_consultation_required?: boolean;
+          cnil_consultation_date?: string | null;
+          reviewed_at?: string;
+          next_review_at?: string;
+          status?: string;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'dpia_record_organization_id_fkey';
+            columns: ['organization_id'];
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      data_breach_incident: {
+        Row: {
+          id: string;
+          organization_id: string;
+          detected_at: string;
+          severity: string;
+          nature: string;
+          affected_data_categories: string[];
+          affected_subjects_count: number | null;
+          description: string;
+          immediate_measures: string;
+          cnil_notification_required: boolean;
+          cnil_notification_at: string | null;
+          cnil_notification_reference: string | null;
+          subjects_notification_required: boolean;
+          subjects_notified_at: string | null;
+          closed_at: string | null;
+          closed_by: string | null;
+          created_at: string;
+          updated_at: string;
+          created_by: string | null;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          detected_at: string;
+          severity: string;
+          nature: string;
+          affected_data_categories: string[];
+          affected_subjects_count?: number | null;
+          description: string;
+          immediate_measures: string;
+          cnil_notification_required?: boolean;
+          cnil_notification_at?: string | null;
+          cnil_notification_reference?: string | null;
+          subjects_notification_required?: boolean;
+          subjects_notified_at?: string | null;
+          closed_at?: string | null;
+          closed_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          detected_at?: string;
+          severity?: string;
+          nature?: string;
+          affected_data_categories?: string[];
+          affected_subjects_count?: number | null;
+          description?: string;
+          immediate_measures?: string;
+          cnil_notification_required?: boolean;
+          cnil_notification_at?: string | null;
+          cnil_notification_reference?: string | null;
+          subjects_notification_required?: boolean;
+          subjects_notified_at?: string | null;
+          closed_at?: string | null;
+          closed_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          created_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'data_breach_incident_organization_id_fkey';
+            columns: ['organization_id'];
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      patient_data_request: {
+        Row: {
+          id: string;
+          organization_id: string;
+          patient_id: string | null;
+          request_type: string;
+          requested_at: string;
+          deadline_at: string;
+          status: string;
+          response: string | null;
+          response_at: string | null;
+          response_by: string | null;
+          request_token: string;
+          request_token_expires_at: string;
+          requester_email: string | null;
+          requester_proof_of_identity_url: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          organization_id: string;
+          patient_id?: string | null;
+          request_type: string;
+          requested_at?: string;
+          deadline_at?: string;
+          status: string;
+          response?: string | null;
+          response_at?: string | null;
+          response_by?: string | null;
+          request_token: string;
+          request_token_expires_at: string;
+          requester_email?: string | null;
+          requester_proof_of_identity_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          organization_id?: string;
+          patient_id?: string | null;
+          request_type?: string;
+          requested_at?: string;
+          deadline_at?: string;
+          status?: string;
+          response?: string | null;
+          response_at?: string | null;
+          response_by?: string | null;
+          request_token?: string;
+          request_token_expires_at?: string;
+          requester_email?: string | null;
+          requester_proof_of_identity_url?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'patient_data_request_organization_id_fkey';
+            columns: ['organization_id'];
+            referencedRelation: 'organizations';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'patient_data_request_patient_id_fkey';
+            columns: ['patient_id'];
+            referencedRelation: 'patients';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      cgu_acceptance: {
+        Row: {
+          id: string;
+          profile_id: string;
+          version: string;
+          document_type: string;
+          accepted_at: string;
+          ip_address: string | null;
+          user_agent: string | null;
+        };
+        Insert: {
+          id?: string;
+          profile_id: string;
+          version: string;
+          document_type: string;
+          accepted_at?: string;
+          ip_address?: string | null;
+          user_agent?: string | null;
+        };
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: 'cgu_acceptance_profile_id_fkey';
+            columns: ['profile_id'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      cookie_consent_log: {
+        Row: {
+          id: string;
+          session_token_hash: string;
+          choices: Json;
+          user_agent_hash: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          session_token_hash: string;
+          choices: Json;
+          user_agent_hash?: string | null;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      legal_request_attempts: {
+        Row: {
+          id: string;
+          token_hash: string;
+          attempted_at: string;
+          success: boolean;
+        };
+        Insert: {
+          id?: string;
+          token_hash: string;
+          attempted_at?: string;
+          success?: boolean;
+        };
+        Update: never;
+        Relationships: [];
+      };
     };
     Views: {
       patients_safe: {
@@ -372,6 +772,31 @@ export interface Database {
       unaccent_immutable: {
         Args: { input: string };
         Returns: string;
+      };
+      check_breach_deadlines: {
+        Args: Record<PropertyKey, never>;
+        Returns: void;
+      };
+      purge_legal_request_attempts: {
+        Args: Record<PropertyKey, never>;
+        Returns: void;
+      };
+      rgpd_anonymize_patient: {
+        Args: {
+          p_patient_id: string;
+          p_request_id: string;
+          p_salt: string;
+        };
+        Returns: void;
+      };
+      nir_match_patient_for_legal_request: {
+        Args: {
+          p_request_id: string;
+          p_nir_search_hash: string;
+          p_nom: string;
+          p_date_naissance: string;
+        };
+        Returns: string | null;
       };
     };
     Enums: {
