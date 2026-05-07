@@ -4,5 +4,10 @@
   "buildCommand": "pnpm turbo run build --filter=@tap/web",
   "installCommand": "pnpm install --frozen-lockfile",
   "outputDirectory": ".next",
-  "regions": ["cdg1"]
+  "regions": ["cdg1"],
+  "git": {
+    "deploymentEnabled": {
+      "main": true
+    }
+  }
 }

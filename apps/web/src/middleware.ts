@@ -7,8 +7,34 @@ import { createSupabaseMiddlewareClient } from '@tap/database';
  * Refresh la session si nécessaire et redirige vers /login si non authentifié.
  * Utilise getUser() (validation serveur) et JAMAIS getSession() (qui lit
  * uniquement le cookie sans valider auprès de Supabase Auth).
+ *
+ * Tolérance config absente : si NEXT_PUBLIC_SUPABASE_* manquent au runtime
+ * (env vars Vercel pas encore posées par exemple), on redirige vers /welcome
+ * au lieu de jeter un 500 MIDDLEWARE_INVOCATION_FAILED. Ça permet au moins
+ * d'afficher quelque chose à un visiteur qui tombe sur la preview pendant
+ * la phase de config initiale.
  */
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Pages toujours accessibles sans Supabase (statiques)
+  const isWelcome = pathname === '/welcome';
+
+  // Détection précoce env vars absentes — pas de Supabase = redirect /welcome
+  const supabaseConfigured =
+    !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseConfigured) {
+    if (isWelcome) {
+      return NextResponse.next();
+    }
+    const welcomeUrl = request.nextUrl.clone();
+    welcomeUrl.pathname = '/welcome';
+    welcomeUrl.search = '';
+    return NextResponse.redirect(welcomeUrl);
+  }
+
   const response = NextResponse.next({
     request: { headers: request.headers },
   });
@@ -19,7 +45,6 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
   const isAuthRoute = pathname.startsWith('/login');
   // D-21 : pages /legal/* publiques (SSG) — pas de redirect login.
   // Strict startsWith('/legal') — `/legalX` (sans slash) reste protégé.
@@ -28,7 +53,7 @@ export async function middleware(request: NextRequest) {
   // Route API consent cookies : POST anonyme avant authentification.
   const isLegalApi = pathname.startsWith('/api/legal/cookie-consent');
 
-  if (!user && !isAuthRoute && !isPublicLegal && !isLegalApi) {
+  if (!user && !isAuthRoute && !isPublicLegal && !isLegalApi && !isWelcome) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = '/login';
     if (pathname !== '/') {
