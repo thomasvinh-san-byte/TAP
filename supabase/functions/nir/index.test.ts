@@ -13,7 +13,7 @@
 //   5. handler 401 si Authorization absente
 //   6. handler decrypt insère audit_logs action='patient.nir.decrypt'
 //
-// Sécurité : aucun NIR clair ne doit transiter par console.log/console.error.
+// Sécurité : aucun NIR clair ne doit transiter par les méthodes de log Deno.
 // Le NIR factice utilisé (1801234567823) est un format valide arbitraire.
 // =============================================================================
 
