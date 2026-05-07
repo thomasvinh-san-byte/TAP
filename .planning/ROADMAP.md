@@ -124,7 +124,14 @@ Plans:
   3. La régulatrice peut mettre une saisie en pause, ouvrir une autre saisie, puis reprendre la première sans perte de données
   4. La recherche patient dans le formulaire retourne des résultats à 2 caractères en fuzzy
   5. Toute course créée écrit une ligne d'audit dans `audit_logs`
-**Plans**: TBD
+**Plans**: 6 plans (6 vagues, parallélisme limité — Wave 0 → Wave 5)
+Plans:
+- [ ] 02-01-PLAN.md — Wave 0 : refonte zod ride.ts + chrono-node + shadcn dialog/dropdown + scaffolds tests RED + showcase placeholder
+- [ ] 02-02-PLAN.md — Wave 1 : migration 004 rides+ride_draft + RLS forcée + audit trigger + 29 assertions pgTAP GREEN + types regen
+- [ ] 02-03-PLAN.md — Wave 2 : Server Actions (createRide + upsertDraft + deleteDraft + listDraftsAction) + queries RSC (listRides, listDrafts, listRecentPickupAddresses)
+- [ ] 02-04-PLAN.md — Wave 3 : useGlobalShortcut Cmd+Shift+K + orchestrator multi-instance + RideExpressModal Dialog Radix + auto-save + optimistic submit
+- [ ] 02-05-PLAN.md — Wave 4 : layout intégration + bouton header + DraftQueue + page /courses RSC + RidesList client
+- [ ] 02-06-PLAN.md — Wave 5 : E2E saisie-express SAIS-01..06 GREEN + smoke preview étendu + 6 captures Visible Progress + 02-SUMMARY.md
 **UI hint**: yes
 
 ### Phase 3: Moteur tarification CGSS
