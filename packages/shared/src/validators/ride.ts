@@ -1,56 +1,62 @@
 import { z } from 'zod';
-import { adresseSchema } from './common';
-
-export const typeTransportSchema = z.enum(['assis', 'tpmr']);
-export type TypeTransport = z.infer<typeof typeTransportSchema>;
+import { codePostalReunionSchema } from './common';
 
 /**
- * Saisie express d'une course (module CDC 5.8).
- * Cible : < 30 secondes pour la régulatrice, ergonomie clavier.
- *
- * Règles :
- * - patient_id OU couple (prenom, nom) + date_naissance (création à la volée)
- * - heure_souhaitee >= maintenant (validation côté serveur car timezone Réunion)
- * - type_transport par défaut "assis"
+ * Mode de transport (D-08, CDC v2 § 5.8).
+ * 4 valeurs alignées sur l'enum Postgres ride_transport_mode (Phase 2 / Wave 1).
  */
-export const courseExpressSchema = z
-  .object({
-    patient_id: z.string().uuid().optional(),
-    patient_nouveau: z
-      .object({
-        prenom: z.string().trim().min(1).max(80),
-        nom: z.string().trim().min(1).max(80),
-        date_naissance: z
-          .string()
-          .regex(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/),
-      })
-      .optional(),
-    adresse_depart: adresseSchema,
-    adresse_arrivee: adresseSchema,
-    date_course: z.string().regex(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/),
-    heure_souhaitee: z
-      .string()
-      .regex(/^[0-9]{2}:[0-9]{2}$/, 'Format attendu : HH:MM'),
-    type_transport: typeTransportSchema.default('assis'),
-    aller_retour: z.boolean().default(false),
-    heure_retour: z
-      .string()
-      .regex(/^[0-9]{2}:[0-9]{2}$/)
-      .optional(),
-    prescription_id: z.string().uuid().optional(),
-    notes: z.string().trim().max(300).optional(),
-  })
-  .refine(
-    (data) => Boolean(data.patient_id) !== Boolean(data.patient_nouveau),
-    {
-      message:
-        "Renseigner soit un patient existant, soit les infos d'un nouveau patient.",
-      path: ['patient_id'],
-    },
-  )
-  .refine((data) => !data.aller_retour || Boolean(data.heure_retour), {
-    message: 'Heure de retour requise pour un aller-retour.',
-    path: ['heure_retour'],
-  });
+export const rideTransportModeSchema = z.enum([
+  'taxi_conventionne',
+  'tpmr',
+  'vsl',
+  'ambulance',
+]);
+export type RideTransportMode = z.infer<typeof rideTransportModeSchema>;
 
-export type CourseExpressInput = z.infer<typeof courseExpressSchema>;
+/**
+ * Niveau d'urgence d'une course (D-08).
+ */
+export const rideUrgencySchema = z.enum(['programmee', 'urgente', 'immediate']);
+export type RideUrgency = z.infer<typeof rideUrgencySchema>;
+
+/**
+ * Saisie express d'une course (CDC v2 § 5.8, DEC-005, D-08).
+ * Cible : < 30 secondes pour la régulatrice (mesuré E2E SAIS-01).
+ *
+ * Aligné sur le schéma SQL public.rides (Wave 1, migration 004) :
+ *   pickup_address / dropoff_address / scheduled_at / transport_mode / urgency
+ *
+ * NB : scheduled_at est validé en ISO 8601 avec offset (TZ Indian/Reunion
+ * côté navigateur, UTC en DB — voir parseFreeformDate + Pitfall 5 RESEARCH).
+ */
+export const rideExpressInputSchema = z.object({
+  patient_id: z.string().uuid('Patient requis'),
+  scheduled_at: z
+    .string()
+    .datetime({ offset: true, message: 'Date/heure requise' }),
+  pickup_address: z
+    .string()
+    .trim()
+    .min(3, 'Adresse de prise en charge requise')
+    .max(200),
+  pickup_postal_code: codePostalReunionSchema.optional(),
+  pickup_city: z.string().trim().max(80).optional(),
+  dropoff_address: z
+    .string()
+    .trim()
+    .min(3, 'Adresse de destination requise')
+    .max(200),
+  dropoff_postal_code: codePostalReunionSchema.optional(),
+  dropoff_city: z.string().trim().max(80).optional(),
+  transport_mode: rideTransportModeSchema.default('taxi_conventionne'),
+  urgency: rideUrgencySchema.default('programmee'),
+  notes_regulateur: z.string().trim().max(500).optional(),
+});
+export type RideExpressInput = z.infer<typeof rideExpressInputSchema>;
+
+/**
+ * Brouillon de course (D-02) : tous les champs sont optionnels jusqu'au submit.
+ * Persisté côté serveur dans public.ride_draft (jsonb payload).
+ */
+export const rideDraftSchema = rideExpressInputSchema.partial();
+export type RideDraftInput = z.infer<typeof rideDraftSchema>;
