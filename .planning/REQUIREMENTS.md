@@ -147,6 +147,14 @@ design partners). Chaque requirement mappe vers exactement une phase.
 - [ ] **DPA-07** : Politique de confidentialité publique versionnée
 - [ ] **DPA-08** : Tests d'export complet d'un patient au format JSON (portabilité art. 20)
 
+### Visible Progress (VIS) — Phase 0.7 (Infra transverse, débloque tout)
+
+- [ ] **VIS-01** : Vercel project connecté au repo + chaque PR déclenche un déploiement preview avec URL stable affichée dans la PR (commentaire bot Vercel)
+- [ ] **VIS-02** : Environnement Supabase staging (projet distinct de dev) connecté à Vercel preview via env vars (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `APP_NIR_*`, `APP_LEGAL_TOKEN_SECRET`)
+- [ ] **VIS-03** : Seed démo 974 (`supabase/seed.demo.sql`) — 3 sociétés fictives, 6 chauffeurs, 30 patients (noms réunionnais, NIRs valides Luhn, adresses Saint-Denis/Saint-Pierre/Le Tampon), 50 prescriptions, 200 courses passées
+- [ ] **VIS-04** : 3 comptes démo seedés (`dirigeant@demo.tap.re`, `regulateur@demo.tap.re`, `chauffeur@demo.tap.re`, mot de passe `demo1234!`) affichés en bas de `/login` UNIQUEMENT en preview/staging (env var `NEXT_PUBLIC_SHOW_DEMO_CREDENTIALS=true`)
+- [ ] **VIS-05** : Dossier `docs/showcase/` avec convention `{phase-num}-{slug}/` + smoke test Playwright `tests/smoke/preview.spec.ts` (login démo régulateur → cockpit s'affiche → /patients liste 30 patients seedés)
+
 ### Bootstrap OSRM (OSRM-bootstrap) — Phase 4.5 (Infra)
 
 - [ ] **OSRM-bootstrap-01** : `services/osrm` Docker container démarrable en local et en CI

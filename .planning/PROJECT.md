@@ -37,6 +37,7 @@ préfère son cahier papier, le produit a échoué.
 
 - [x] **REQ-patient-referentiel** : fiche patient complète avec NIR chiffré et préférences (Phase 1 livrée — 2026-05-06)
 - [ ] **REQ-rgpd-compliance** : registre traitements + DPA + DPIA + portail droits patient *(Phase 1.5 — bloque first design partner)*
+- [ ] **REQ-visible-progress** : Vercel preview + Supabase staging + seed démo 974 + comptes démo + showcase/ *(Phase 0.7 — Visible Progress Mandate CLAUDE.md § 13.5, débloque toute phase ≥ 2)*
 - [ ] **REQ-saisie-express-course** : saisie d'une course en mode express < 30 s
 - [ ] **REQ-moteur-tarification-cgss** : moteur tarifaire CGSS dans `packages/pricing`
 - [ ] **REQ-courses-recurrentes** : génération de récurrences avec exceptions jours fériés 974

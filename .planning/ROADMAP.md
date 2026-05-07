@@ -22,6 +22,7 @@ une capture pour une page d'accueil produit.
 - [x] **Phase 0: Fondations Lot 0** - Monorepo, RLS multi-tenant, migrations, CI/CD (livré commit `f68b1d2`)
 - [x] **Phase 1: Référentiel patients** - Fiche patient avec NIR chiffré, recherche fuzzy, préférences (livré 16 commits, 5/5 SC + 7/7 PAT delivered, runtime CI human_needed)
 - [x] **Phase 1.5: DPA + RGPD compliance** - Registre traitements, DPA Supabase, DPIA santé, portail droits patient (livré 28 commits, 8/8 DPA delivered, runtime CI human_needed)
+- [ ] **Phase 0.7: Déploiement continu Vercel + démo seedée** - Visible Progress Mandate (Vercel preview + Supabase staging + seed démo 974 + showcase/) — bloque toute phase ≥ 2 pour respect mandat CLAUDE.md § 13.5
 - [ ] **Phase 2: Saisie express course** - Saisie < 30 s, raccourci `Cmd/Ctrl+N`, brouillons, multi-saisies
 - [ ] **Phase 3: Moteur tarification CGSS** - `packages/pricing` versionné, 100 % branches couvert
 - [ ] **Phase 4: Moteur récurrences** - `packages/recurrence`, exceptions jours fériés 974, 100 % branches
@@ -97,6 +98,21 @@ Plans:
 - [ ] 1.5-07-PLAN.md — Wave 4 : schema push BLOCKING + verification gate (pgTAP + Vitest + Playwright + no-leak audit)
 **Tag**: Infra/légal — bloque la mise en service avec un design partner réel
 **UI hint**: yes (UI admin légère + portail patient)
+
+### Phase 0.7: Déploiement continu Vercel + démo seedée
+**Goal**: Toute phase ≥ 2 produit une preview Vercel cliquable + un walkthrough scripté + des screenshots dans `docs/showcase/`. Sans cette infrastructure, le « Visible Progress Mandate » (CLAUDE.md § 13.5) ne peut pas être respecté. Phase d'infra purement transverse — débloque la dimension *montrable* de toutes les phases suivantes.
+**Depends on**: Phase 1.5 (sécurité RGPD avant qu'une URL publique expose des données patient — même seed)
+**Requirements**: VIS-01, VIS-02, VIS-03, VIS-04, VIS-05
+**Success Criteria** (what must be TRUE):
+  1. Chaque PR ouverte sur ce repo déclenche un déploiement Vercel preview avec URL stable visible dans la PR
+  2. Un environnement Supabase staging (projet distinct du dev) est connecté à la preview Vercel via env vars
+  3. Un seed démo 974 (`supabase/seed.sql` ou variant `seed.demo.sql`) crée 3 sociétés fictives, 6 chauffeurs, 30 patients, 50 prescriptions, 200 courses passées — avec noms réunionnais, NIRs valides Luhn, adresses Saint-Denis/Saint-Pierre/Le Tampon
+  4. Les 3 comptes démo (`dirigeant@demo.tap.re`, `regulateur@demo.tap.re`, `chauffeur@demo.tap.re`, mot de passe `demo1234!`) sont seedés et affichés en bas de `/login` UNIQUEMENT en mode preview/staging (jamais production commerciale)
+  5. Un dossier `docs/showcase/` est créé avec un README expliquant la convention `{phase-num}-{slug}/` pour ranger screenshots et GIFs
+  6. Smoke test Playwright `tests/smoke/preview.spec.ts` : login démo régulateur → cockpit s'affiche → /patients liste les 30 patients seedés (rouge tant que Phase 5 cockpit pas livrée — passera GREEN au fil des phases)
+**Plans**: TBD
+**Tag**: Infra (transverse, débloque tout)
+**UI hint**: yes (interventions sur /login + lien manifest GitHub Action vers preview)
 
 ### Phase 2: Saisie express course
 **Goal**: La régulatrice peut saisir une course en mode express en moins de 30 secondes, avec brouillons en file d'attente et multi-saisies parallèles, sans jamais être bloquée par un appel entrant.

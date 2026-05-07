@@ -445,6 +445,33 @@ Schéma récurrence → Calcul prochaines dates → Vérif exceptions (jours fé
 
 ---
 
+## 13.5. Visible Progress Mandate (impératif transverse)
+
+> **Toute phase doit produire quelque chose à montrer.** Pas un rapport. Pas un commit message. Pas un SUMMARY.md. **Une URL cliquable, un screenshot, un GIF, une démo en ligne.**
+
+**Pourquoi** : un produit invisible n'existe pas. Un design partner ne peut pas valider un PDF de plan. Le pilier UX (Pilier 1) impose que chaque incrément soit *montrable*.
+
+**Ce que chaque phase DOIT livrer (en plus du code et des tests) :**
+
+1. **URL de preview déployée** — chaque PR de phase déclenche un déploiement Vercel preview. URL collée dans le SUMMARY.md de la phase. Si la phase est purement backend (migration, helper pur), la preview montre au moins une page minimale du SaaS qui prouve que la migration n'a rien cassé.
+2. **Au moins 1 screenshot ou capture vidéo** — collés dans `docs/showcase/{phase-num}-{slug}/` (PNG, GIF ou MP4 court < 30s). Format JPEG/PNG ≤ 500 Ko, MP4/GIF ≤ 5 Mo.
+3. **Un seed démo réaliste 974** — données fictives mais crédibles (noms réunionnais, adresses Saint-Denis/Saint-Pierre/Le Tampon, NIRs valides Luhn, BTM CGSS) pour que la preview soit immédiatement utilisable sans setup.
+4. **Comptes démo persistants** — `dirigeant@demo.tap.re` / `regulateur@demo.tap.re` / `chauffeur@demo.tap.re` avec mot de passe simple (`demo1234!`). Affichés en bas de la page `/login` en environnement preview ou staging UNIQUEMENT (pas en production commerciale).
+5. **Un walkthrough script** dans le SUMMARY — 5-10 étapes que la régulatrice peut suivre pour voir la valeur livrée par la phase. Ex : « 1. Aller sur /patients. 2. Taper "Ho" dans la recherche. 3. Cliquer sur Hoarau Patrick. 4. Vérifier que le drawer s'ouvre. 5. Cliquer sur Modifier. ... »
+
+**Ce que ce mandat NE veut PAS dire :**
+- ❌ Pas de cosmétique forcée sur les phases backend (un endpoint API n'a pas besoin d'UI dédiée — juste un test de non-régression visible côté UI consommatrice)
+- ❌ Pas de Storybook séparé V1 (le SaaS lui-même est la galerie)
+- ❌ Pas de marketing pages V1 (`/about`, `/pricing`, etc. — V2)
+
+**Conséquence sur le workflow :**
+- Toute Phase ≥ 2 a une success criterion supplémentaire : *« Une URL preview Vercel est accessible et le walkthrough script termine sans erreur »*
+- Les Phases purement backend (migrations, helpers, services) ont une success criterion adaptée : *« La preview Vercel reste accessible, ne régresse pas visuellement (smoke tests Playwright)  »*
+
+**Phase 0.7** (`Déploiement continu Vercel + démo seedée`) est la phase d'infrastructure qui permet à toutes les autres de respecter ce mandat. À planifier en priorité après Phase 1.5.
+
+---
+
 ## 14. État d'avancement
 
 ```
