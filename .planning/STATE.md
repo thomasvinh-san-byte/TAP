@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 0.7 documentée — stack auto-config (setup-vercel.yml + cd.yml étendu + welcome). En attente première run user.
-last_updated: "2026-05-07T12:19:18.209Z"
+stopped_at: "Chemin critique : page fonctionnelle bloque Phase 3. Fix seed pooler (region auto). User: 6 secrets GitHub + 1 clic Run workflow."
+last_updated: "2026-05-07T12:22:54.907Z"
 last_activity: 2026-05-07 -- Phase 2 execution started
 progress:
   total_phases: 22
@@ -83,6 +83,6 @@ Aucun pour l'instant.
 
 ## Session Continuity
 
-Last session: 2026-05-07T12:19:18.188Z
-Stopped at: Phase 0.7 documentée — stack auto-config (setup-vercel.yml + cd.yml étendu + welcome). En attente première run user.
+Last session: 2026-05-07T12:22:54.884Z
+Stopped at: Chemin critique : page fonctionnelle bloque Phase 3. Fix seed pooler (region auto). User: 6 secrets GitHub + 1 clic Run workflow.
 Resume file: .planning/phases/00.7-deploiement-vercel/0.7-SUMMARY.md

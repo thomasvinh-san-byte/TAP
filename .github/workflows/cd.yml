@@ -31,21 +31,49 @@ jobs:
       - name: Appliquer le seed (auth + démo)
         # Idempotent : tous les INSERT utilisent ON CONFLICT DO NOTHING.
         # seed.sql crée 3 comptes démo + 1 organization.
-        # seed.demo.sql ajoute 10 patients fictifs réunionnais (preview/staging).
+        # seed.demo.sql ajoute 10 patients fictifs réunionnais.
+        #
+        # Connection via Supavisor pooler session mode (port 5432, IPv4) —
+        # GitHub Actions runners n'ont pas d'IPv6 → direct connection
+        # (db.<ref>.supabase.co) impossible sur Free plan sans IPv4 add-on.
+        #
+        # Le hostname pooler dépend de la région du projet (aws-0-<region>).
+        # Récupéré dynamiquement via API Supabase pour éviter le hardcode
+        # qui causait FATAL: Tenant or user not found.
         env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: |
+          set -e
           PROJECT_REF="${{ secrets.SUPABASE_PROJECT_REF }}"
-          # Connection pooler (port 5432, IPv4) — disponible sur tous les plans
-          PGHOST="aws-0-eu-central-1.pooler.supabase.com"
+
+          echo "→ Récupération région projet via Supabase API"
+          REGION=$(curl -fsSL \
+            -H "Authorization: Bearer $SUPABASE_ACCESS_TOKEN" \
+            "https://api.supabase.com/v1/projects/$PROJECT_REF" \
+            | jq -r '.region')
+
+          if [ -z "$REGION" ] || [ "$REGION" = "null" ]; then
+            echo "❌ Région introuvable. SUPABASE_PROJECT_REF correct ?"
+            exit 1
+          fi
+          echo "  region: $REGION"
+
+          PGHOST="aws-0-${REGION}.pooler.supabase.com"
           PGPORT=5432
           PGDATABASE=postgres
           PGUSER="postgres.${PROJECT_REF}"
           export PGHOST PGPORT PGDATABASE PGUSER PGPASSWORD
+
+          echo "→ Test connection (fail fast)"
+          psql -v ON_ERROR_STOP=1 -c "SELECT 'connected' AS status, current_database() AS db, current_user AS usr;"
+
           echo "→ Application supabase/seed.sql"
           psql -v ON_ERROR_STOP=1 -f supabase/seed.sql
+
           echo "→ Application supabase/seed.demo.sql"
           psql -v ON_ERROR_STOP=1 -f supabase/seed.demo.sql
+
           echo "✓ Seed appliqué"
 
   deploy-edge-functions:
