@@ -179,3 +179,32 @@ export async function listDraftsAction() {
     .limit(20);
   return data ?? [];
 }
+
+// --------------------------------------------------------------------------
+// LIST RIDES (Server Action wrapper pour useQuery — RidesList Wave 4)
+// --------------------------------------------------------------------------
+
+const listRidesParamsSchema = z.object({
+  status: z.string().optional(),
+  transport_mode: z.string().optional(),
+  urgency: z.string().optional(),
+});
+
+/**
+ * Wrapper Server Action pour useQuery côté Client Component (RidesList Wave 4).
+ * L'usage RSC pur passe par `_lib/queries.ts` (`listRides`). RLS Postgres
+ * filtre automatiquement par organization_id + role.
+ *
+ * Pour éviter d'importer `next/headers` côté client, ce wrapper réimporte
+ * la query RSC dynamiquement (Server Action ⇒ exécution serveur garantie).
+ */
+export async function listRidesAction(
+  params: z.infer<typeof listRidesParamsSchema> = {},
+) {
+  const parsed = listRidesParamsSchema.safeParse(params);
+  if (!parsed.success) return [];
+  const { listRides } = await import('./_lib/queries');
+  return listRides(
+    parsed.data as Parameters<typeof listRides>[0],
+  );
+}
