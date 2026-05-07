@@ -1,0 +1,64 @@
+import { verifyRequestToken } from '@tap/shared';
+import { checkRateLimit } from './_lib/rate-limit';
+import { IdentityForm } from './_components/identity-form.client';
+import { verifyIdentityAction } from './actions';
+
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+/**
+ * Portail patient — page d'entrée (D-10, DPA-04).
+ *
+ * Étapes :
+ *  1. checkRateLimit : 5 tentatives/h par token (D-20).
+ *  2. verifyRequestToken : JWT HS256 strict, expiry 30 jours.
+ *  3. Affichage du formulaire de vérification d'identité.
+ *
+ * En cas d'échec (rate-limit, token invalide ou expiré), un message
+ * générique en français est affiché — jamais de stack trace ni de
+ * détail technique (mitigation T-1.5-19, CLAUDE.md § 1).
+ */
+export default async function RequestTokenPage({
+  params,
+}: {
+  params: { token: string };
+}) {
+  try {
+    await checkRateLimit(params.token);
+    const claims = await verifyRequestToken(params.token);
+    return (
+      <div className="space-y-32">
+        <header>
+          <h1 className="text-2xl font-semibold tracking-tight mb-12">
+            Vérification d&apos;identité
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Pour exercer votre droit ({claims.type}) au titre du Règlement
+            Général sur la Protection des Données, nous devons vérifier
+            votre identité. Renseignez votre numéro de sécurité sociale
+            (NIR), votre nom et votre date de naissance.
+          </p>
+        </header>
+        <IdentityForm
+          token={params.token}
+          requestType={claims.type}
+          action={verifyIdentityAction}
+        />
+      </div>
+    );
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Lien invalide ou expiré.';
+    return (
+      <div className="space-y-16">
+        <h1 className="text-2xl font-semibold tracking-tight mb-12">
+          Lien invalide ou expiré
+        </h1>
+        <p className="text-sm text-muted-foreground">{message}</p>
+        <p className="text-sm">
+          Pour formuler une nouvelle demande, contactez le service client
+          de votre transporteur.
+        </p>
+      </div>
+    );
+  }
+}
