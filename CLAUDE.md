@@ -470,6 +470,22 @@ Schéma récurrence → Calcul prochaines dates → Vérif exceptions (jours fé
 
 **Phase 0.7** (`Déploiement continu Vercel + démo seedée`) est la phase d'infrastructure qui permet à toutes les autres de respecter ce mandat. À planifier en priorité après Phase 1.5.
 
+**Modèle de vérification — la preview est la vérité, pas la sandbox locale :**
+
+Une fois Phase 0.7 livrée, **la canonical CI = Vercel preview + Supabase staging + GitHub Actions cloud**. La sandbox locale (machine de Claude ou laptop dirigeant) n'est utilisée QUE pour :
+- Écrire le code (TS, SQL, MDX)
+- Lancer `pnpm typecheck` et `pnpm lint` en pré-commit
+- Stub local rapide pour itérer
+
+**Tout le reste (pgTAP, Vitest, Playwright, build, perf, smoke E2E) tourne en CI cloud sur push.** Les SUMMARY.md ne doivent JAMAIS contenir des notes du genre :
+- ❌ « sandbox-bloqué Docker public.ecr.aws — pgTAP non exécutable, command documentée pour CI »
+- ❌ « runtime CI human_needed »
+- ❌ « Playwright sandbox-limited, smoke OK structurellement »
+
+Ces notes sont fausses dès la livraison de Phase 0.7. La bonne note est : « ✅ Vercel preview verte, GitHub Action passe ses 85+ pgTAP, Playwright 14/14 GREEN sur preview ». S'il y a un blocage cloud, c'est un vrai bug à fixer (pas un sandbox-blocked à différer).
+
+**Avant Phase 0.7** (situation actuelle Phase 0/1/1.5) : on accepte les notes sandbox-blocked comme dette transitoire, mais on ne crée plus de nouvelles. Tout le code DOIT être écrit pour s'exécuter dans Vercel + Supabase Cloud sans modification.
+
 ---
 
 ## 14. État d'avancement
