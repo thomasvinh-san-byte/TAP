@@ -1,0 +1,20 @@
+{
+  "name": "@tap/web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Application web régulateur (Next.js, scaffold Phase 1)",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@playwright/test": "^1.47.0",
+    "concurrently": "^9.0.0",
+    "typescript": "^5.5.0"
+  }
+}
