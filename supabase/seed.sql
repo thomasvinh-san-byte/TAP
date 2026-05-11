@@ -81,7 +81,7 @@ begin
   on conflict (provider, provider_id) do nothing;
 
   insert into public.profiles (id, organization_id, role, prenom, nom, email)
-  values (p_user_id, p_org_id, p_role, p_prenom, p_nom, p_email)
+  values (p_user_id, p_org_id, p_role::public.user_role, p_prenom, p_nom, p_email)
   on conflict (id) do update
     set organization_id = excluded.organization_id,
         role = excluded.role,
