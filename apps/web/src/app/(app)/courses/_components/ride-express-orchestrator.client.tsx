@@ -36,7 +36,11 @@ function draftsReducer(state: DraftEntry[], a: DraftAction): DraftEntry[] {
       );
       return [
         ...minimized,
-        { tempKey: generateTempKey(), minimized: false },
+        {
+          tempKey: generateTempKey(),
+          patientId: a.patientId,
+          minimized: false,
+        },
       ];
     }
     case 'CLOSE':

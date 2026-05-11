@@ -8,6 +8,7 @@ import {
 import { searchPatients } from './queries';
 import { PatientsList } from './_components/patients-list.client';
 import { Button } from '@/components/ui/button';
+import { HeaderNewRideButton } from '../courses/_components/header-new-ride-button.client';
 
 export const metadata = { title: 'Patients — TAP Régulation' };
 
@@ -28,14 +29,17 @@ export default async function PatientsPage() {
 
   return (
     <div className="space-y-24">
-      <header className="flex items-center justify-between">
+      <header className="flex items-center justify-between gap-12">
         <h1 className="text-2xl font-semibold tracking-tight">Patients</h1>
-        <Button asChild>
-          <Link href="/patients/new">
-            <Plus className="mr-8 h-16 w-16" aria-hidden />
-            Nouveau patient
-          </Link>
-        </Button>
+        <div className="flex items-center gap-12">
+          <HeaderNewRideButton variant="outline" />
+          <Button asChild>
+            <Link href="/patients/new">
+              <Plus className="mr-8 h-16 w-16" aria-hidden />
+              Nouveau patient
+            </Link>
+          </Button>
+        </div>
       </header>
       <HydrationBoundary state={dehydrate(queryClient)}>
         <PatientsList />

@@ -19,12 +19,18 @@ import { useRideOrchestrator } from './ride-orchestrator-context.client';
  *   - `w-full md:w-auto` : pleine largeur sous le titre en mobile, taille
  *     intrinsèque à partir de 768 px.
  */
-export function HeaderNewRideButton(): JSX.Element {
+type Variant = 'default' | 'outline' | 'secondary';
+
+export function HeaderNewRideButton({
+  variant = 'default',
+}: {
+  variant?: Variant;
+} = {}): JSX.Element {
   const { dispatch } = useRideOrchestrator();
   return (
     <Button
       type="button"
-      variant="default"
+      variant={variant}
       onClick={() => dispatch({ type: 'OPEN_NEW' })}
       aria-label="Nouvelle course (Cmd/Ctrl+Shift+K)"
       className="gap-8 shrink-0 w-full md:w-auto"

@@ -20,6 +20,7 @@ import {
   PreferencesSection,
   type DrawerPatientShape,
 } from './patient-drawer-sections.client';
+import { NewRideForPatientButton } from './new-ride-for-patient-button.client';
 
 interface Props {
   patientId: string | null;
@@ -92,7 +93,8 @@ function DrawerBody({ data }: { data: DrawerPatientShape }) {
       <ConstraintsSection d={data} />
       <NoteSection d={data} />
 
-      <div className="mt-32 flex flex-col gap-8 border-t border-border pt-16">
+      <div className="mt-32 flex flex-col gap-12 border-t border-border pt-16">
+        <NewRideForPatientButton patientId={data.id} />
         <Link
           href={`/patients/${data.id}`}
           className="text-sm text-primary hover:underline"

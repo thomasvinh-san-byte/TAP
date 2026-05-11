@@ -71,6 +71,7 @@ export function RideExpressModal(props: Props): JSX.Element {
   });
   const [patientLabel, setPatientLabel] = useState<string>('');
   const [dateError, setDateError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [savingState, setSavingState] = useState<
     'idle' | 'saving' | 'saved' | 'error'
   >('idle');
@@ -131,6 +132,11 @@ export function RideExpressModal(props: Props): JSX.Element {
         scheduleSave(next);
         return next;
       });
+      setFieldErrors((prev) => {
+        if (!(key in prev)) return prev;
+        const { [key as string]: _removed, ...rest } = prev;
+        return rest;
+      });
     },
     [scheduleSave],
   );
@@ -182,9 +188,16 @@ export function RideExpressModal(props: Props): JSX.Element {
         notes_regulateur: next.notes_regulateur,
       });
       if (!validation.success) {
-        toast.error(validation.error.errors[0]?.message ?? 'Saisie invalide.');
+        const flat = validation.error.flatten().fieldErrors;
+        const collected: Record<string, string> = {};
+        for (const [k, v] of Object.entries(flat)) {
+          if (v && v[0]) collected[k] = v[0];
+        }
+        setFieldErrors(collected);
+        toast.error('Vérifiez les champs obligatoires.');
         return;
       }
+      setFieldErrors({});
       const optimisticLabel = patientLabel
         ? `Course créée pour ${patientLabel}`
         : 'Course créée';
@@ -220,6 +233,7 @@ export function RideExpressModal(props: Props): JSX.Element {
           <PatientPickerField
             selectedLabel={patientLabel}
             onSelect={handlePatientSelect}
+            error={fieldErrors.patient_id}
           />
 
           <DateFreeformField
@@ -228,7 +242,7 @@ export function RideExpressModal(props: Props): JSX.Element {
               setForm((prev) => ({ ...prev, dateInput: v }))
             }
             onParsed={(iso) => updateField('scheduled_at', iso)}
-            error={dateError}
+            error={dateError ?? fieldErrors.scheduled_at ?? null}
             onError={setDateError}
           />
 
@@ -240,6 +254,7 @@ export function RideExpressModal(props: Props): JSX.Element {
             onChange={(v) => updateField('pickup_address', v)}
             onBlur={() => void flushSave(form)}
             tabIndex={3}
+            error={fieldErrors.pickup_address}
           />
 
           <AddressField
@@ -250,6 +265,7 @@ export function RideExpressModal(props: Props): JSX.Element {
             onChange={(v) => updateField('dropoff_address', v)}
             onBlur={() => void flushSave(form)}
             tabIndex={4}
+            error={fieldErrors.dropoff_address}
           />
 
           <ModeUrgencyFields
