@@ -3,7 +3,7 @@
 **Status :** Complete
 **Delivered :** 2026-05-07
 **Commits :** 18 (de `d2b8b6d` Wave 0 à `e2f36f1` Wave 5 — voir `git log --oneline 1e1f00e..HEAD --grep="(02-"` pour la liste exhaustive)
-**Preview Vercel :** https://tap-saas.vercel.app  ← cliquable (URL preview à remplacer par la dernière deployment-url Vercel de la PR Phase 2 après merge)
+**Preview Vercel :** https://tap-web-brown.vercel.app  ← prod canonique (suffixe -brown auto-attribué par Vercel)
 
 ## Goal
 

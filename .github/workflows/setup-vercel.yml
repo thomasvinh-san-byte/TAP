@@ -177,8 +177,10 @@ jobs:
           upsert_env "APP_LEGAL_TOKEN_SECRET" "$LEGAL" "$ALL"
           upsert_env "APP_ANONYMIZATION_SALT" "$SALT" "$ALL"
 
-          echo "→ Demo credentials flag (Preview only)"
-          upsert_env "NEXT_PUBLIC_SHOW_DEMO_CREDENTIALS" "true" "$PREVIEW"
+          # V1 démo pré-commerciale : la prod EST la démo. Quand on aura un
+          # premier client payant, repasser ce flag à "$PREVIEW" uniquement.
+          echo "→ Demo credentials flag (Production + Preview)"
+          upsert_env "NEXT_PUBLIC_SHOW_DEMO_CREDENTIALS" "true" "$ALL"
 
           echo ""
           echo "✅ 8 env vars configurées sur Vercel"
@@ -241,7 +243,8 @@ jobs:
           echo ""
           echo "Vérifier dans 2-3 min :"
           echo "→ Vercel Deployments : https://vercel.com/${{ secrets.VERCEL_TEAM_ID }}/tap-web/deployments"
-          echo "→ Production URL    : https://tap-web.vercel.app"
+          echo "→ Production URL    : voir Vercel Settings → Domains (suffixe -brown si"
+          echo "                      le slug tap-web était déjà pris globalement)"
           echo ""
-          echo "Si app vivante → comptes démo affichés sur /login en preview."
+          echo "Si app vivante → comptes démo affichés sur /login (prod + preview)."
           echo "Sinon → re-vérifier les logs ci-dessus pour identifier la step en échec."

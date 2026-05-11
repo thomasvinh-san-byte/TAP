@@ -53,7 +53,7 @@ Chaque `{phase-num}-SUMMARY.md` (sous `.planning/phases/`) doit contenir une sec
 
 - `docs/showcase/01-referentiel-patients/01-cockpit-recherche-fuzzy.png` — recherche fuzzy 2 chars
 - `docs/showcase/01-referentiel-patients/02-drawer-patient-400px.png` — drawer 400 px
-- URL preview Vercel : https://tap-saas-git-claude-setup-project-docs-atero-team.vercel.app/
+- URL prod canonique : https://tap-web-brown.vercel.app/ (preview = https://tap-web-git-<branch>-tvss-projects-07aa3591.vercel.app)
 ```
 
 ## Walkthrough scripts

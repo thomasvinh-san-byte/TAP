@@ -574,6 +574,8 @@ INFRASTRUCTURE CI/CD ACTUELLE (2026-05-07) :
     pointe vers GitHub Settings + GitHub Actions (zéro intervention dans
     Vercel UI ou Supabase UI)
   - Project Vercel : tap-web (org tvss-projects-07aa3591)
+    URL prod canonique : https://tap-web-brown.vercel.app
+    (suffixe -brown auto-attribué par Vercel car slug "tap-web" déjà pris)
   - Project Supabase : vkanxnhipsitpnhkdsae (Frankfurt eu-central-1)
 
 DETTE IDENTIFIÉE :
