@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+import { getAuthContext } from '@/lib/auth/get-auth-context';
 import { NavTabs } from '@/components/nav-tabs.client';
 import { UserMenu } from '@/components/user-menu';
 import { Providers } from './providers.client';
@@ -15,8 +15,9 @@ import { DraftQueue } from './courses/_components/draft-queue.client';
  * de course se fait par Cmd+Shift+K (raccourci global, orchestrator monté
  * ici) ou via un CTA contextuel dans la page /courses (03-D).
  *
- * Guard serveur ceinture+bretelles du middleware : un Server Component
- * sans cookie valide redirige vers /login (getUser, jamais getSession).
+ * Guard serveur (defense in depth — CLAUDE.md § 6, complète RLS Postgres) :
+ *   - sans session : redirect /login
+ *   - rôle chauffeur : redirect /conduite (zone régulateur interdite)
  */
 const APP_TABS = [
   { href: '/patients', label: 'Patients' },
@@ -28,14 +29,9 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
+  const ctx = await getAuthContext();
+  if (!ctx) redirect('/login');
+  if (ctx.role === 'chauffeur') redirect('/conduite');
 
   return (
     <Providers>

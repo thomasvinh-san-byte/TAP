@@ -43,6 +43,19 @@ function draftsReducer(state: DraftEntry[], a: DraftAction): DraftEntry[] {
         },
       ];
     }
+    case 'OPEN_EDIT': {
+      const minimized = state.map((d) =>
+        d.minimized ? d : { ...d, minimized: true },
+      );
+      return [
+        ...minimized,
+        {
+          tempKey: generateTempKey(),
+          rideId: a.rideId,
+          minimized: false,
+        },
+      ];
+    }
     case 'CLOSE':
       return state.filter((d) => d.tempKey !== a.tempKey);
     case 'MINIMIZE':
@@ -108,6 +121,7 @@ export function RideExpressOrchestrator({
           tempKey={visible.tempKey}
           draftId={visible.draftId}
           initialPatientId={visible.patientId}
+          rideId={visible.rideId}
           onClose={() =>
             dispatch({ type: 'CLOSE', tempKey: visible.tempKey })
           }

@@ -1,19 +1,23 @@
 import { Calendar } from 'lucide-react';
-import { listMyRidesToday } from './_lib/queries';
+import {
+  listMyRidesUpcoming,
+  type RideForDriverWithBucket,
+} from './_lib/queries';
 import { RideCard } from './_components/ride-card.client';
 
 export const metadata = { title: 'Ma journée — TAP' };
 export const dynamic = 'force-dynamic';
 
 /**
- * Page « Ma journée » (Phase 3 / 03-E).
+ * Page « Ma journée » (Phase 3 / 03-E, élargie clôture Passe 1).
  *
- * RSC : `listMyRidesToday()` filtre RLS + applicatif (driver_id ↔ profil
- * authentifié) et borne la journée à `Indian/Reunion`. Cartes empilées
- * verticalement, vide → empty state sobre (cf. règle ton §3).
+ * RSC : `listMyRidesUpcoming()` filtre RLS + applicatif (driver_id ↔ profil
+ * authentifié) et borne sur 48 h en `Indian/Reunion`. Les courses sont
+ * regroupées en deux clusters « Aujourd'hui » / « Demain » pour donner de
+ * la prévisibilité au chauffeur sans surcharger la liste.
  */
 export default async function ConduitePage() {
-  const rides = await listMyRidesToday();
+  const rides = await listMyRidesUpcoming();
 
   if (rides.length === 0) {
     return (
@@ -25,27 +29,51 @@ export default async function ConduitePage() {
         />
         <h1 className="text-lg font-semibold">Aucune course planifiée</h1>
         <p className="max-w-[320px] text-sm text-muted-foreground">
-          Les courses du jour s'afficheront ici.
+          Les courses à venir s'afficheront ici.
         </p>
       </div>
     );
   }
 
+  const today = rides.filter((r) => r.bucket === 'today');
+  const tomorrow = rides.filter((r) => r.bucket === 'tomorrow');
+
   return (
-    <div className="space-y-16">
+    <div className="space-y-24">
       <header className="flex items-baseline justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">Ma journée</h1>
         <span className="text-sm text-muted-foreground tabular-nums">
           {rides.length} course{rides.length > 1 ? 's' : ''}
         </span>
       </header>
-      <ul className="space-y-16" aria-label="Courses du jour">
+
+      {today.length > 0 && (
+        <RideCluster label="Aujourd'hui" rides={today} />
+      )}
+      {tomorrow.length > 0 && (
+        <RideCluster label="Demain" rides={tomorrow} />
+      )}
+    </div>
+  );
+}
+
+function RideCluster({
+  label,
+  rides,
+}: {
+  label: string;
+  rides: RideForDriverWithBucket[];
+}) {
+  return (
+    <section className="space-y-12">
+      <h2 className="text-sm font-medium text-muted-foreground">{label}</h2>
+      <ul className="space-y-16" aria-label={`Courses ${label.toLowerCase()}`}>
         {rides.map((r) => (
           <li key={r.id}>
             <RideCard ride={r} />
           </li>
         ))}
       </ul>
-    </div>
+    </section>
   );
 }

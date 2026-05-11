@@ -4,6 +4,7 @@
  * Découpage interne (CLAUDE.md § 11 — ≤ 300 lignes par fichier) :
  *   - `_shared.ts`    : helpers + ActionState (sans 'use server')
  *   - `create.ts`     : createRideAction + drafts (upsert / delete / list)
+ *   - `edit.ts`       : updateRideAction (édition course validee/assignee)
  *   - `assignment.ts` : assignRideAction + unassignRideAction
  *   - `payment.ts`    : updateRidePaymentAction
  *   - `list.ts`       : wrappers `useQuery` (rides simples / enrichis /
@@ -16,6 +17,7 @@
 export type { ActionState } from './_shared';
 
 export { createRideAction, upsertRideDraft, deleteRideDraft, listDraftsAction } from './create';
+export { updateRideAction } from './edit';
 export { assignRideAction, unassignRideAction } from './assignment';
 export { updateRidePaymentAction } from './payment';
 export {

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+import { getAuthContext } from '@/lib/auth/get-auth-context';
 import { UserMenu } from '@/components/user-menu';
 
 /**
@@ -13,21 +13,18 @@ import { UserMenu } from '@/components/user-menu';
  *   - Tint chaud très subtil sur le <main> pour ancrer visuellement le
  *     contexte « mode chauffeur » sans saturer.
  *
- * Guard serveur identique au layout régulateur.
+ * Guard serveur (defense in depth — CLAUDE.md § 6, complète RLS Postgres) :
+ *   - sans session : redirect /login
+ *   - rôle non chauffeur : redirect /patients (zone chauffeur réservée)
  */
 export default async function DriverLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
+  const ctx = await getAuthContext();
+  if (!ctx) redirect('/login');
+  if (ctx.role !== 'chauffeur') redirect('/patients');
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

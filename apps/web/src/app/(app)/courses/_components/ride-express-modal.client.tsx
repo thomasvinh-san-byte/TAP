@@ -17,8 +17,13 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { parseFreeformDate, rideExpressInputSchema } from '@tap/shared';
-import { createRideAction, upsertRideDraft } from '../actions';
+import {
+  createRideAction,
+  updateRideAction,
+  upsertRideDraft,
+} from '../actions';
 import { getPatientByIdAction } from '../../patients/actions';
+import { useRidePrefill } from './use-ride-prefill.client';
 import { PatientPickerField } from './ride-patient-picker.client';
 import {
   AddressField,
@@ -59,12 +64,19 @@ interface Props {
   tempKey: string;
   draftId?: string;
   initialPatientId?: string;
+  /**
+   * Si présent : mode édition d'une course existante. Le modal pré-charge
+   * les valeurs via `getRideByIdAction`, désactive l'auto-save brouillon
+   * et appelle `updateRideAction` au lieu de `createRideAction` au submit.
+   */
+  rideId?: string;
   onClose: () => void;
   onMinimize: () => void;
   onDraftIdResolved: (id: string) => void;
 }
 
 export function RideExpressModal(props: Props): JSX.Element {
+  const isEditMode = Boolean(props.rideId);
   const [form, setForm] = useState<FormState>({
     patient_id: props.initialPatientId,
     transport_mode: 'taxi_conventionne',
@@ -81,13 +93,37 @@ export function RideExpressModal(props: Props): JSX.Element {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const draftIdRef = useRef<string | undefined>(props.draftId);
 
+  // Pré-chargement du ride en mode édition — extrait dans useRidePrefill
+  // pour respecter la limite 300 lignes/fichier (CLAUDE.md § 11).
+  useRidePrefill<FormState>(
+    props.rideId,
+    (next, label) => {
+      setForm(next);
+      if (label) setPatientLabel(label);
+    },
+    props.onClose,
+    (r) => ({
+      patient_id: r.patient_id,
+      scheduled_at: r.scheduled_at,
+      dateInput: '',
+      pickup_address: r.pickup_address,
+      dropoff_address: r.dropoff_address,
+      transport_mode: r.transport_mode as TransportMode,
+      urgency: r.urgency as Urgency,
+      notes_regulateur: r.notes_regulateur ?? undefined,
+    }),
+  );
+
   // Auto-save flush (D-05) — n'envoie que si quelque chose a été saisi.
+  // Désactivé en mode édition : on ne crée pas de brouillon, on modifie
+  // une course existante au submit explicite.
   const flushSave = useCallback(
     async (payload: FormState): Promise<void> => {
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
         debounceRef.current = null;
       }
+      if (isEditMode) return;
       if (
         !payload.patient_id &&
         !payload.pickup_address &&
@@ -115,7 +151,7 @@ export function RideExpressModal(props: Props): JSX.Element {
       setSavingState('saved');
       setLastSavedAt(Date.now());
     },
-    [props],
+    [props, isEditMode],
   );
 
   const scheduleSave = useCallback(
@@ -228,16 +264,24 @@ export function RideExpressModal(props: Props): JSX.Element {
         return;
       }
       setFieldErrors({});
-      const optimisticLabel = patientLabel
-        ? `Course créée pour ${patientLabel}`
-        : 'Course créée';
+      const optimisticLabel = isEditMode
+        ? 'Course modifiée'
+        : patientLabel
+          ? `Course créée pour ${patientLabel}`
+          : 'Course créée';
       toast.success(optimisticLabel);
       const snapshot = next;
+      const targetRideId = props.rideId;
       startTransition(async () => {
-        const res = await createRideAction({
-          input: validation.data,
-          fromDraftId: draftIdRef.current,
-        });
+        const res = targetRideId
+          ? await updateRideAction({
+              rideId: targetRideId,
+              input: validation.data,
+            })
+          : await createRideAction({
+              input: validation.data,
+              fromDraftId: draftIdRef.current,
+            });
         if (res.error) {
           toast.error(`Échec — saisie restaurée (${res.error})`);
           setForm(snapshot);
@@ -246,7 +290,7 @@ export function RideExpressModal(props: Props): JSX.Element {
         props.onClose();
       });
     },
-    [form, patientLabel, props],
+    [form, patientLabel, props, isEditMode],
   );
 
   return (
@@ -256,7 +300,9 @@ export function RideExpressModal(props: Props): JSX.Element {
         aria-label="Saisie express d'une course"
       >
         <DialogHeader>
-          <DialogTitle>Nouvelle course</DialogTitle>
+          <DialogTitle>
+            {isEditMode ? 'Modifier la course' : 'Nouvelle course'}
+          </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-16" noValidate>
@@ -309,16 +355,26 @@ export function RideExpressModal(props: Props): JSX.Element {
             onBlur={() => void flushSave(form)}
           />
 
-          <div className="text-xs text-muted-foreground min-h-[20px]">
-            <SavingIndicator state={savingState} lastSavedAt={lastSavedAt} />
-          </div>
+          {!isEditMode && (
+            <div className="text-xs text-muted-foreground min-h-[20px]">
+              <SavingIndicator state={savingState} lastSavedAt={lastSavedAt} />
+            </div>
+          )}
 
           <DialogFooter>
-            <Button type="button" variant="ghost" onClick={props.onMinimize}>
-              Mettre en pause
-            </Button>
+            {!isEditMode && (
+              <Button type="button" variant="ghost" onClick={props.onMinimize}>
+                Mettre en pause
+              </Button>
+            )}
             <Button type="submit" disabled={isPending} tabIndex={8}>
-              {isPending ? 'Création…' : 'Créer la course'}
+              {isPending
+                ? isEditMode
+                  ? 'Enregistrement…'
+                  : 'Création…'
+                : isEditMode
+                  ? 'Enregistrer les modifications'
+                  : 'Créer la course'}
             </Button>
           </DialogFooter>
         </form>

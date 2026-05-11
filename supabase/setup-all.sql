@@ -2209,17 +2209,17 @@ begin
   perform pg_temp.seed_demo_user(
     '00000000-0000-0000-0000-000000000010',
     'dirigeant@demo.tap', 'demo1234!',
-    org_id, 'dirigeant', 'Patrick', 'Hoarau'
+    org_id, 'dirigeant', 'Dirigeant', 'Démo'
   );
   perform pg_temp.seed_demo_user(
     '00000000-0000-0000-0000-000000000020',
     'regulateur@demo.tap', 'demo1234!',
-    org_id, 'regulateur', 'Sandrine', 'Payet'
+    org_id, 'regulateur', 'Régulateur', 'Démo'
   );
   perform pg_temp.seed_demo_user(
     '00000000-0000-0000-0000-000000000030',
     'chauffeur@demo.tap', 'demo1234!',
-    org_id, 'chauffeur', 'Jean-Marc', 'Técher'
+    org_id, 'chauffeur', 'Chauffeur', 'Démo'
   );
   -- Compte E2E (PLAN-1 helper loginAsRegulateur attend reg-demo@tap.test)
   perform pg_temp.seed_demo_user(
