@@ -30,8 +30,8 @@ interface MethodChoice {
 }
 
 const METHODS: MethodChoice[] = [
-  { value: 'cash', label: 'Espèces', Icon: Banknote },
-  { value: 'cb', label: 'Carte', Icon: CreditCard },
+  { value: 'cash', label: 'Cash', Icon: Banknote },
+  { value: 'cb', label: 'CB', Icon: CreditCard },
   { value: 'cheque', label: 'Chèque', Icon: FileText },
   { value: 'cgss_differe', label: 'CGSS différé', Icon: Clock },
 ];
@@ -191,27 +191,19 @@ export function EndRideModal({
           type="button"
           role="switch"
           aria-checked={encaisseNow}
+          aria-label="Encaissé maintenant"
           onClick={() => setEncaisseNow((v) => !v)}
           className={cn(
-            'flex h-14 items-center justify-between gap-12 rounded-md border border-border bg-background px-16',
-            'transition-colors duration-150 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            'flex items-center justify-between gap-12 rounded-md bg-muted px-16 py-12',
+            'transition-colors duration-150 hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
           )}
         >
-          <span className="flex flex-col items-start gap-4">
-            <span className="text-sm font-medium">
-              {encaisseNow ? 'Encaissé maintenant' : 'À encaisser plus tard'}
-            </span>
-            <span className="text-xs text-muted-foreground">
-              {encaisseNow
-                ? 'Le paiement est enregistré comme reçu.'
-                : 'Reste à encaisser, à régulariser ensuite.'}
-            </span>
-          </span>
+          <span className="text-sm font-medium">Encaissé maintenant</span>
           <span
             aria-hidden
             className={cn(
               'relative inline-flex h-24 w-48 shrink-0 items-center rounded-full transition-colors duration-150',
-              encaisseNow ? 'bg-success' : 'bg-muted',
+              encaisseNow ? 'bg-success' : 'bg-muted-foreground/40',
             )}
           >
             <span
