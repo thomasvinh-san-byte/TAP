@@ -10,21 +10,27 @@
  */
 
 import { redirect } from 'next/navigation';
-import { checkDatabaseReady } from './actions';
+import { checkDatabaseState } from './actions';
 import { InitButton } from './init-button.client';
 
 export const dynamic = 'force-dynamic';
+
+// Init DB ~30-90s sur Free plan Supabase → besoin de plus que le 10s Hobby
+// par défaut. Hobby tier supporte jusqu'à 60s en preview, Pro jusqu'à 300s.
+export const maxDuration = 60;
 
 export const metadata = {
   title: 'Initialisation — TAP Régulation',
 };
 
 export default async function SetupPage() {
-  const { ready, reason } = await checkDatabaseReady();
+  const { state, reason } = await checkDatabaseState();
 
-  if (ready) {
+  if (state === 'ready') {
     redirect('/login');
   }
+
+  const isPartial = state === 'partial';
 
   const supabaseConfigured =
     !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
@@ -47,11 +53,13 @@ export default async function SetupPage() {
         </header>
 
         <section className="rounded-md border border-amber-500/40 bg-amber-500/5 p-24 space-y-8">
-          <p className="font-medium text-foreground">Plus qu&apos;une étape</p>
+          <p className="font-medium text-foreground">
+            {isPartial ? 'Init incomplète détectée' : 'Plus qu\'une étape'}
+          </p>
           <p className="text-sm text-muted-foreground">
-            L&apos;intégration Vercel ↔ Supabase est en place. Il reste à
-            initialiser la base avec le schéma et les données démo. Un seul
-            clic.
+            {isPartial
+              ? "Les tables existent mais les comptes démo manquent (probable échec partiel d'une init précédente). Clique pour (re)créer les comptes — le seed est idempotent."
+              : "L'intégration Vercel ↔ Supabase est en place. Il reste à initialiser la base avec le schéma et les données démo. Un seul clic."}
           </p>
         </section>
 

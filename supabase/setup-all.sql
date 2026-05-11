@@ -1,15 +1,7 @@
 -- ==============================================================================
--- TAP Régulation — Setup complet en une seule fois (migrations + seed démo)
+-- TAP Régulation — Setup complet (migrations + seed démo)
 -- ==============================================================================
--- À copier-coller intégralement dans Supabase Studio → SQL Editor → Run.
 -- Fichier généré automatiquement par scripts/build-setup-sql.sh.
---
--- Contenu :
---   - 10 migrations (001 → 010)
---   - seed.sql       : 1 organization + 4 comptes auth (dirigeant/régulateur/chauffeur)
---   - seed.demo.sql  : 10 patients fictifs réunionnais + notes + contraintes
---
--- Idempotent : peut être ré-exécuté sans casser les données existantes.
 -- ==============================================================================
 
 

@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
-# Régénère supabase/setup-all.sql en concaténant migrations + seeds.
-# À lancer manuellement après ajout d'une migration ou modification du seed.
-# Le fichier généré est commit dans le repo (consommé par /welcome).
+# Régénère supabase/setup-all.sql (copier-coller manuel)
+# + apps/web/src/lib/setup-sql.ts (consommé par Server Action /setup)
+#
+# Le TS exporte 2 constantes séparées :
+#   - MIGRATIONS_SQL  : schéma (10 migrations). Non-idempotent sur 2e run.
+#   - SEED_SQL        : données démo (seed.sql + seed.demo.sql). Idempotent.
+# Permet à /setup d'appliquer migrations + seed la 1re fois, puis seul le seed
+# au retry (si une 1re tentative a planté à mi-chemin).
 
 set -e
 cd "$(dirname "$0")/.."
@@ -9,41 +14,38 @@ cd "$(dirname "$0")/.."
 OUT="supabase/setup-all.sql"
 TMP=$(mktemp)
 
+MIG_TMP=$(mktemp)
+SEED_TMP=$(mktemp)
+
+# Concat migrations
+for f in supabase/migrations/*.sql; do
+  echo "" >> "$MIG_TMP"
+  echo "-- ─── $f ─────────────────────────────────────────────────────────────" >> "$MIG_TMP"
+  echo "" >> "$MIG_TMP"
+  cat "$f" >> "$MIG_TMP"
+done
+
+# Concat seed
+echo "" >> "$SEED_TMP"
+echo "-- ─── seed.sql ────────────────────────────────────────────────────────" >> "$SEED_TMP"
+echo "" >> "$SEED_TMP"
+cat supabase/seed.sql >> "$SEED_TMP"
+echo "" >> "$SEED_TMP"
+echo "-- ─── seed.demo.sql ───────────────────────────────────────────────────" >> "$SEED_TMP"
+echo "" >> "$SEED_TMP"
+cat supabase/seed.demo.sql >> "$SEED_TMP"
+
 {
   cat <<'HEAD'
 -- ==============================================================================
--- TAP Régulation — Setup complet en une seule fois (migrations + seed démo)
+-- TAP Régulation — Setup complet (migrations + seed démo)
 -- ==============================================================================
--- À copier-coller intégralement dans Supabase Studio → SQL Editor → Run.
 -- Fichier généré automatiquement par scripts/build-setup-sql.sh.
---
--- Contenu :
---   - 10 migrations (001 → 010)
---   - seed.sql       : 1 organization + 4 comptes auth (dirigeant/régulateur/chauffeur)
---   - seed.demo.sql  : 10 patients fictifs réunionnais + notes + contraintes
---
--- Idempotent : peut être ré-exécuté sans casser les données existantes.
 -- ==============================================================================
 
 HEAD
-
-  for f in supabase/migrations/*.sql; do
-    echo ""
-    echo "-- ─── $f ─────────────────────────────────────────────────────────────"
-    echo ""
-    cat "$f"
-  done
-
-  echo ""
-  echo "-- ─── seed.sql ────────────────────────────────────────────────────────"
-  echo ""
-  cat supabase/seed.sql
-
-  echo ""
-  echo "-- ─── seed.demo.sql ───────────────────────────────────────────────────"
-  echo ""
-  cat supabase/seed.demo.sql
-
+  cat "$MIG_TMP"
+  cat "$SEED_TMP"
   echo ""
   echo "-- ─── DONE ─────────────────────────────────────────────────────────────"
   echo ""
@@ -53,8 +55,7 @@ HEAD
 mv "$TMP" "$OUT"
 echo "✓ $OUT régénéré ($(wc -l < "$OUT") lignes)"
 
-# Génère aussi apps/web/src/lib/setup-sql.ts pour que l'app puisse appliquer
-# le setup elle-même (Server Action sur clic du bouton /setup).
+# Génère apps/web/src/lib/setup-sql.ts avec 2 constantes
 TS_OUT="apps/web/src/lib/setup-sql.ts"
 {
   echo "/**"
@@ -63,8 +64,14 @@ TS_OUT="apps/web/src/lib/setup-sql.ts"
   echo " * Régénération : ./scripts/build-setup-sql.sh"
   echo " */"
   echo ""
-  echo "export const SETUP_SQL = String.raw\`"
-  cat "$OUT" | sed 's/\\/\\\\/g; s/`/\\`/g; s/\$/\\$/g'
+  echo "export const MIGRATIONS_SQL = String.raw\`"
+  cat "$MIG_TMP" | sed 's/\\/\\\\/g; s/`/\\`/g; s/\$/\\$/g'
+  echo "\`;"
+  echo ""
+  echo "export const SEED_SQL = String.raw\`"
+  cat "$SEED_TMP" | sed 's/\\/\\\\/g; s/`/\\`/g; s/\$/\\$/g'
   echo "\`;"
 } > "$TS_OUT"
 echo "✓ $TS_OUT régénéré"
+
+rm -f "$MIG_TMP" "$SEED_TMP"
