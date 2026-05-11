@@ -33,11 +33,22 @@ interface CheckResult {
 }
 
 function getConnectionString(): string | null {
-  return (
+  const raw =
     process.env.POSTGRES_URL_NON_POOLING ??
     process.env.POSTGRES_URL ??
-    null
-  );
+    null;
+  if (!raw) return null;
+
+  // Retire sslmode de l'URL pour laisser l'objet ssl du Client gagner.
+  // Sinon node-postgres valide le cert auto-signé Supabase et plante avec
+  // "self-signed certificate in certificate chain".
+  try {
+    const url = new URL(raw);
+    url.searchParams.delete('sslmode');
+    return url.toString();
+  } catch {
+    return raw;
+  }
 }
 
 function newClient(connectionString: string, timeoutMs: number) {
