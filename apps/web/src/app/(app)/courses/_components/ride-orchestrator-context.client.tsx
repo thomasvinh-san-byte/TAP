@@ -23,7 +23,10 @@ export interface DraftEntry {
 
 /**
  * Actions du reducer multi-instance (RESEARCH §C4).
- * - OPEN_NEW : Cmd+Shift+K ou bouton « + Nouvelle course » header.
+ * - OPEN_NEW : Cmd+Shift+K ou bouton « + Nouvelle course » header. Champ
+ *   optionnel `patientId` (03-G) pour ouvrir avec un patient déjà
+ *   pré-sélectionné depuis le drawer patient — la modal reçoit la valeur
+ *   via la prop `initialPatientId`.
  * - RESUME : click sur un brouillon dans la DraftQueue (Wave 4).
  * - CLOSE : modal fermé après création réussie OU bouton X.
  * - MINIMIZE : modal mis en pause (bouton « Mettre en pause »).

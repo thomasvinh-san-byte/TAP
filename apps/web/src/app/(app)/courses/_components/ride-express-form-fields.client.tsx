@@ -135,24 +135,20 @@ export function ModeUrgencyFields({
       <div className="space-y-8">
         <Label htmlFor="mode">Mode de transport</Label>
         <Select
-          id="mode"
           ariaLabel="Mode de transport"
           value={mode}
           onChange={(v) => onModeChange(v as TransportMode)}
           items={[...TRANSPORT_OPTIONS]}
-          tabIndex={5}
           triggerClassName="w-full"
         />
       </div>
       <div className="space-y-8">
         <Label htmlFor="urgency">Urgence</Label>
         <Select
-          id="urgency"
           ariaLabel="Urgence"
           value={urgency}
           onChange={(v) => onUrgencyChange(v as Urgency)}
           items={[...URGENCY_OPTIONS]}
-          tabIndex={6}
           triggerClassName="w-full"
         />
       </div>

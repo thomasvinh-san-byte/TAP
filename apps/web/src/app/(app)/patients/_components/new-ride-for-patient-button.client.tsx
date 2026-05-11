@@ -5,13 +5,16 @@ import { Button } from '@/components/ui/button';
 import { useRideOrchestrator } from '../../courses/_components/ride-orchestrator-context.client';
 
 /**
- * Bouton drawer patient : ouvre la saisie express pré-remplie pour ce
- * patient (Phase 3 / 03-G).
+ * Bouton « Créer une course pour ce patient » placé dans le footer du
+ * drawer patient (Phase 3 / 03-G).
  *
- * Dispatch `OPEN_NEW` avec `patientId` — l'orchestrator récupère la valeur
- * dans la draft entry et la passe en `initialPatientId` à la modal. Le
- * drawer reste ouvert sous la modal (pattern Radix Dialog au-dessus de
- * Sheet — focus trap empilé).
+ * Consomme `useRideOrchestrator()` exposé par `<RideExpressOrchestrator>`
+ * monté dans `(app)/layout.tsx` et dispatch `OPEN_NEW` avec `patientId`.
+ *
+ * Le drawer patient (Sheet) reste ouvert au click — la modal saisie
+ * express (Dialog) s'ouvre par-dessus avec le patient pré-sélectionné via
+ * `initialPatientId` (pattern Radix Dialog au-dessus de Sheet : focus
+ * trap empilé, Esc ferme la modal en premier).
  */
 export function NewRideForPatientButton({
   patientId,
@@ -22,11 +25,12 @@ export function NewRideForPatientButton({
   return (
     <Button
       type="button"
+      variant="default"
       onClick={() => dispatch({ type: 'OPEN_NEW', patientId })}
-      className="w-full gap-8"
+      className="w-full justify-center gap-8"
     >
       <Plus className="h-16 w-16" aria-hidden />
-      <span>Créer une course</span>
+      <span>Créer une course pour ce patient</span>
     </Button>
   );
 }
