@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select } from '@/components/ui/select';
 import { parseFreeformDate } from '@tap/shared';
 
 /**
@@ -82,6 +84,7 @@ export function AddressField({
   onChange,
   onBlur,
   tabIndex,
+  error,
 }: {
   id: string;
   label: string;
@@ -90,6 +93,7 @@ export function AddressField({
   onChange: (v: string) => void;
   onBlur: () => void;
   tabIndex: number;
+  error?: string | null;
 }): JSX.Element {
   return (
     <div className="space-y-8">
@@ -97,6 +101,8 @@ export function AddressField({
       <Input
         id={id}
         aria-label={ariaLabel}
+        aria-invalid={error ? true : undefined}
+        className={cn(error && 'border-destructive focus-visible:ring-destructive')}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
@@ -104,6 +110,11 @@ export function AddressField({
         tabIndex={tabIndex}
         required
       />
+      {error && (
+        <p className="text-xs text-destructive" role="alert">
+          {error}
+        </p>
+      )}
     </div>
   );
 }
@@ -123,37 +134,27 @@ export function ModeUrgencyFields({
     <div className="grid grid-cols-2 gap-16">
       <div className="space-y-8">
         <Label htmlFor="mode">Mode de transport</Label>
-        <select
+        <Select
           id="mode"
-          aria-label="Mode de transport"
-          className="w-full h-40 rounded-md border bg-background px-12"
+          ariaLabel="Mode de transport"
           value={mode}
-          onChange={(e) => onModeChange(e.target.value as TransportMode)}
+          onChange={(v) => onModeChange(v as TransportMode)}
+          items={[...TRANSPORT_OPTIONS]}
           tabIndex={5}
-        >
-          {TRANSPORT_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          triggerClassName="w-full"
+        />
       </div>
       <div className="space-y-8">
         <Label htmlFor="urgency">Urgence</Label>
-        <select
+        <Select
           id="urgency"
-          aria-label="Urgence"
-          className="w-full h-40 rounded-md border bg-background px-12"
+          ariaLabel="Urgence"
           value={urgency}
-          onChange={(e) => onUrgencyChange(e.target.value as Urgency)}
+          onChange={(v) => onUrgencyChange(v as Urgency)}
+          items={[...URGENCY_OPTIONS]}
           tabIndex={6}
-        >
-          {URGENCY_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          triggerClassName="w-full"
+        />
       </div>
     </div>
   );

@@ -36,6 +36,10 @@ interface SelectProps {
   ariaLabel: string;
   triggerClassName?: string;
   contentClassName?: string;
+  /** Tab order explicite — utilisé dans le modal saisie express (fields 5/6). */
+  tabIndex?: number;
+  /** Id du trigger pour `<label htmlFor>`. */
+  id?: string;
   /** Affichage personnalisé d'un item dans la liste (icône, badge…). */
   renderItem?: (item: SelectItem) => React.ReactNode;
 }
@@ -47,12 +51,16 @@ export function Select({
   ariaLabel,
   triggerClassName,
   contentClassName,
+  tabIndex,
+  id,
   renderItem,
 }: SelectProps): JSX.Element {
   const current = items.find((i) => i.value === value);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
+        id={id}
+        tabIndex={tabIndex}
         aria-label={ariaLabel}
         className={cn(
           'inline-flex h-40 items-center justify-between gap-8 rounded-md border border-input bg-background px-12 text-sm',

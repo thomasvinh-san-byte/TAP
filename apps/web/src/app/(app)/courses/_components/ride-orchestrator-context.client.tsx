@@ -30,7 +30,7 @@ export interface DraftEntry {
  * - SET_DRAFT_ID : renseigne `draftId` après le 1er upsertRideDraft.
  */
 export type DraftAction =
-  | { type: 'OPEN_NEW' }
+  | { type: 'OPEN_NEW'; patientId?: string }
   | { type: 'CLOSE'; tempKey: string }
   | { type: 'RESUME'; draftId: string; patientId?: string }
   | { type: 'MINIMIZE'; tempKey: string }
