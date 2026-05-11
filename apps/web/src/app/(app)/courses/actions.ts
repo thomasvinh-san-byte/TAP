@@ -27,6 +27,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { rideExpressInputSchema, rideDraftSchema } from '@tap/shared';
 import { createClient } from '@/lib/supabase/server';
+import { getAuthContext as getAuthContextWithRole } from '@/lib/auth/get-auth-context';
 
 export type ActionState = {
   error?: string;
@@ -207,4 +208,185 @@ export async function listRidesAction(
   return listRides(
     parsed.data as Parameters<typeof listRides>[0],
   );
+}
+
+// --------------------------------------------------------------------------
+// ASSIGNATION + PAIEMENT (régulateur + dirigeant) — Phase 3 Passe 1, 03-B
+// --------------------------------------------------------------------------
+//
+// Pattern (CLAUDE.md § 10) : zod → getAuthContext (rôle applicatif) → vérif
+// statut courant → UPDATE → revalidatePath. RLS Postgres double-checke
+// (defense in depth — DEC-005 Phase 2). Le trigger rides_audit_trigger
+// (Phase 2, inchangé) capture automatiquement les nouvelles colonnes via
+// to_jsonb(old/new) — colonnes étendues en migration 20260512000003.
+//
+// TODO(types) : packages/database/src/types.gen.ts n'a pas encore été
+// régénéré pour inclure les colonnes `driver_id`, `vehicle_id`,
+// `payment_status`, etc. — sync-types.yml (cron 3h UTC) le fera. En
+// attendant, les payloads d'UPDATE sont castés `as never` (pattern déjà
+// utilisé pour createRideAction) ; le reste du typage métier est porté
+// par zod côté serveur. À retirer dès que le PR auto de sync-types passe.
+
+const REGULATEUR_OR_DIRIGEANT = ['regulateur', 'dirigeant'] as const;
+
+const assignRideInputSchema = z.object({
+  rideId: z.string().uuid(),
+  driverId: z.string().uuid(),
+  vehicleId: z.string().uuid().optional(),
+});
+
+export async function assignRideAction(
+  args: z.infer<typeof assignRideInputSchema>,
+): Promise<ActionState> {
+  const parsed = assignRideInputSchema.safeParse(args);
+  if (!parsed.success) return { error: 'Saisie invalide.' };
+
+  const ctx = await getAuthContextWithRole();
+  if (!ctx) return { error: 'Session expirée. Reconnectez-vous.' };
+  if (!REGULATEUR_OR_DIRIGEANT.includes(ctx.role as 'regulateur' | 'dirigeant')) {
+    return { error: 'Seul un régulateur ou un dirigeant peut assigner une course.' };
+  }
+
+  // Vérif statut courant : transition validee → assignee uniquement.
+  const { data: current } = await ctx.supabase
+    .from('rides')
+    .select('status')
+    .eq('id', parsed.data.rideId)
+    .single();
+  const currentRow = current as { status: string } | null;
+  if (!currentRow) return { error: 'Course introuvable.' };
+  if (currentRow.status !== 'validee') {
+    return {
+      error:
+        'Cette course n\'est plus assignable (statut : ' +
+        currentRow.status +
+        ').',
+    };
+  }
+
+  const update = {
+    status: 'assignee',
+    driver_id: parsed.data.driverId,
+    vehicle_id: parsed.data.vehicleId ?? null,
+    updated_by: ctx.userId,
+  };
+  const { error } = await ctx.supabase
+    .from('rides')
+    .update(update as never)
+    .eq('id', parsed.data.rideId);
+  if (error) return { error: 'Assignation impossible.' };
+
+  revalidatePath('/courses');
+  return { success: true, id: parsed.data.rideId };
+}
+
+const unassignRideInputSchema = z.string().uuid();
+
+export async function unassignRideAction(rideId: string): Promise<ActionState> {
+  const parsed = unassignRideInputSchema.safeParse(rideId);
+  if (!parsed.success) return { error: 'Identifiant course invalide.' };
+
+  const ctx = await getAuthContextWithRole();
+  if (!ctx) return { error: 'Session expirée. Reconnectez-vous.' };
+  if (!REGULATEUR_OR_DIRIGEANT.includes(ctx.role as 'regulateur' | 'dirigeant')) {
+    return { error: 'Seul un régulateur ou un dirigeant peut désassigner une course.' };
+  }
+
+  const { data: current } = await ctx.supabase
+    .from('rides')
+    .select('status')
+    .eq('id', parsed.data)
+    .single();
+  const currentRow = current as { status: string } | null;
+  if (!currentRow) return { error: 'Course introuvable.' };
+  if (currentRow.status !== 'assignee') {
+    return {
+      error:
+        'Désassignation impossible : la course n\'est pas en statut assignée (statut : ' +
+        currentRow.status +
+        ').',
+    };
+  }
+
+  const update = {
+    status: 'validee',
+    driver_id: null,
+    vehicle_id: null,
+    updated_by: ctx.userId,
+  };
+  const { error } = await ctx.supabase
+    .from('rides')
+    .update(update as never)
+    .eq('id', parsed.data);
+  if (error) return { error: 'Désassignation impossible.' };
+
+  revalidatePath('/courses');
+  return { success: true, id: parsed.data };
+}
+
+// Cohérence métier zod (defense in depth vs check Postgres
+// rides_payment_encaisse_complet) : encaisse ⇒ payment_method requis.
+const paymentMethodSchema = z.enum(['cash', 'cb', 'cheque', 'cgss_differe']);
+const paymentStatusSchema = z.enum(['non_concerne', 'a_encaisser', 'encaisse']);
+const tarifSourceSchema = z.enum(['manuel', 'cgss_auto']);
+
+const updateRidePaymentInputSchema = z
+  .object({
+    rideId: z.string().uuid(),
+    tarif_amount_eur: z.number().nonnegative().optional(),
+    tarif_source: tarifSourceSchema.optional(),
+    payment_status: paymentStatusSchema,
+    payment_method: paymentMethodSchema.optional(),
+  })
+  .refine(
+    (v) => v.payment_status !== 'encaisse' || !!v.payment_method,
+    {
+      message:
+        'Une course encaissée doit indiquer le moyen de paiement (espèces, CB, chèque ou CGSS différé).',
+      path: ['payment_method'],
+    },
+  );
+
+export async function updateRidePaymentAction(
+  args: z.infer<typeof updateRidePaymentInputSchema>,
+): Promise<ActionState> {
+  const parsed = updateRidePaymentInputSchema.safeParse(args);
+  if (!parsed.success) {
+    return { error: parsed.error.errors[0]?.message ?? 'Paiement invalide.' };
+  }
+
+  const ctx = await getAuthContextWithRole();
+  if (!ctx) return { error: 'Session expirée. Reconnectez-vous.' };
+  if (!REGULATEUR_OR_DIRIGEANT.includes(ctx.role as 'regulateur' | 'dirigeant')) {
+    return { error: 'Seul un régulateur ou un dirigeant peut modifier un paiement.' };
+  }
+
+  // Pas de transition de statut ride ici — on ne touche qu'aux champs paiement.
+  // payment_received_at posé à now() UNIQUEMENT à la bascule vers `encaisse`
+  // (sinon laissé tel quel : éviter d'écraser la date d'origine d'encaissement).
+  const update: Record<string, unknown> = {
+    payment_status: parsed.data.payment_status,
+    updated_by: ctx.userId,
+  };
+  if (parsed.data.tarif_amount_eur !== undefined) {
+    update.tarif_amount_eur = parsed.data.tarif_amount_eur;
+  }
+  if (parsed.data.tarif_source !== undefined) {
+    update.tarif_source = parsed.data.tarif_source;
+  }
+  if (parsed.data.payment_method !== undefined) {
+    update.payment_method = parsed.data.payment_method;
+  }
+  if (parsed.data.payment_status === 'encaisse') {
+    update.payment_received_at = new Date().toISOString();
+  }
+
+  const { error } = await ctx.supabase
+    .from('rides')
+    .update(update as never)
+    .eq('id', parsed.data.rideId);
+  if (error) return { error: 'Mise à jour paiement impossible.' };
+
+  revalidatePath('/courses');
+  return { success: true, id: parsed.data.rideId };
 }
