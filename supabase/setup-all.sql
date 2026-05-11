@@ -1829,7 +1829,11 @@ begin
   insert into auth.users (
     id, instance_id, aud, role, email, encrypted_password,
     email_confirmed_at, created_at, updated_at,
-    raw_app_meta_data, raw_user_meta_data
+    raw_app_meta_data, raw_user_meta_data,
+    confirmation_token, recovery_token,
+    email_change_token_new, email_change_token_current,
+    email_change, phone_change, phone_change_token,
+    reauthentication_token
   )
   values (
     p_user_id, '00000000-0000-0000-0000-000000000000',
@@ -1837,7 +1841,8 @@ begin
     p_email, crypt(p_password, gen_salt('bf')),
     now(), now(), now(),
     jsonb_build_object('provider', 'email', 'providers', jsonb_build_array('email')),
-    jsonb_build_object('prenom', p_prenom, 'nom', p_nom)
+    jsonb_build_object('prenom', p_prenom, 'nom', p_nom),
+    '', '', '', '', '', '', '', ''
   )
   on conflict (id) do update
     set encrypted_password = excluded.encrypted_password,
