@@ -1811,102 +1811,100 @@ values (
 on conflict (id) do nothing;
 
 -- -----------------------------------------------------------------------------
--- Comptes Auth + profils
+-- Comptes Auth + identités + profils
 -- -----------------------------------------------------------------------------
--- Mot de passe : demo1234! (haché bcrypt côté Supabase Auth via gotrue)
--- L'INSERT direct dans auth.users avec encrypted_password est volontairement
--- limité au contexte local. En staging/prod : invitation via service_role.
+-- Mot de passe : demo1234! (haché bcrypt via pgcrypto/crypt)
+--
+-- 3 inserts par compte (ordre IMPORTANT) :
+--   1. auth.users           — identifiant + mot de passe
+--   2. auth.identities      — REQUIS depuis GoTrue v2.x sinon
+--                              signInWithPassword renvoie "Invalid login credentials"
+--   3. public.profiles      — métier (organization_id, rôle)
+--
+-- Helper local pour éviter la duplication.
 -- -----------------------------------------------------------------------------
 
-do $$
-declare
-  org_id uuid := '00000000-0000-0000-0000-000000000001';
-  dirigeant_id uuid := '00000000-0000-0000-0000-000000000010';
-  regulateur_id uuid := '00000000-0000-0000-0000-000000000020';
-  chauffeur_id uuid := '00000000-0000-0000-0000-000000000030';
-  hashed text := crypt('demo1234!', gen_salt('bf'));
+create or replace function pg_temp.seed_demo_user(
+  p_user_id uuid,
+  p_email text,
+  p_password text,
+  p_org_id uuid,
+  p_role text,
+  p_prenom text,
+  p_nom text
+) returns void language plpgsql as $fn$
 begin
-  -- Dirigeant
   insert into auth.users (
     id, instance_id, aud, role, email, encrypted_password,
-    email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data
+    email_confirmed_at, created_at, updated_at,
+    raw_app_meta_data, raw_user_meta_data
   )
   values (
-    dirigeant_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-    'dirigeant@demo.tap', hashed,
+    p_user_id, '00000000-0000-0000-0000-000000000000',
+    'authenticated', 'authenticated',
+    p_email, crypt(p_password, gen_salt('bf')),
     now(), now(), now(),
     jsonb_build_object('provider', 'email', 'providers', jsonb_build_array('email')),
-    jsonb_build_object('prenom', 'Patrick', 'nom', 'Hoarau')
+    jsonb_build_object('prenom', p_prenom, 'nom', p_nom)
   )
-  on conflict (id) do nothing;
+  on conflict (id) do update
+    set encrypted_password = excluded.encrypted_password,
+        email_confirmed_at = coalesce(auth.users.email_confirmed_at, excluded.email_confirmed_at),
+        updated_at = now();
 
-  insert into public.profiles (id, organization_id, role, prenom, nom, email)
-  values (dirigeant_id, org_id, 'dirigeant', 'Patrick', 'Hoarau', 'dirigeant@demo.tap')
-  on conflict (id) do nothing;
-
-  -- Régulateur
-  insert into auth.users (
-    id, instance_id, aud, role, email, encrypted_password,
-    email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data
+  -- auth.identities — provider_id = user_id::text pour le provider 'email'.
+  -- La colonne `id` a été ajoutée à auth.identities en 2024 (cloud Supabase).
+  -- On la fournit systématiquement (gen_random_uuid) — sur les rares envs
+  -- où elle n'existe pas, l'INSERT échouera proprement et le seed sera
+  -- à relancer après upgrade GoTrue.
+  insert into auth.identities (
+    id, user_id, provider_id, identity_data, provider,
+    last_sign_in_at, created_at, updated_at
   )
   values (
-    regulateur_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-    'regulateur@demo.tap', hashed,
-    now(), now(), now(),
-    jsonb_build_object('provider', 'email', 'providers', jsonb_build_array('email')),
-    jsonb_build_object('prenom', 'Sandrine', 'nom', 'Payet')
+    gen_random_uuid(), p_user_id, p_user_id::text,
+    jsonb_build_object('sub', p_user_id::text, 'email', p_email, 'email_verified', true),
+    'email',
+    now(), now(), now()
   )
-  on conflict (id) do nothing;
+  on conflict (provider, provider_id) do nothing;
 
   insert into public.profiles (id, organization_id, role, prenom, nom, email)
-  values (regulateur_id, org_id, 'regulateur', 'Sandrine', 'Payet', 'regulateur@demo.tap')
-  on conflict (id) do nothing;
-
-  -- Chauffeur
-  insert into auth.users (
-    id, instance_id, aud, role, email, encrypted_password,
-    email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data
-  )
-  values (
-    chauffeur_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-    'chauffeur@demo.tap', hashed,
-    now(), now(), now(),
-    jsonb_build_object('provider', 'email', 'providers', jsonb_build_array('email')),
-    jsonb_build_object('prenom', 'Jean-Marc', 'nom', 'Técher')
-  )
-  on conflict (id) do nothing;
-
-  insert into public.profiles (id, organization_id, role, prenom, nom, email)
-  values (chauffeur_id, org_id, 'chauffeur', 'Jean-Marc', 'Técher', 'chauffeur@demo.tap')
-  on conflict (id) do nothing;
+  values (p_user_id, p_org_id, p_role, p_prenom, p_nom, p_email)
+  on conflict (id) do update
+    set organization_id = excluded.organization_id,
+        role = excluded.role,
+        prenom = excluded.prenom,
+        nom = excluded.nom,
+        email = excluded.email;
 end
-$$;
+$fn$;
 
--- -----------------------------------------------------------------------------
--- Compte E2E (PLAN-1 helper loginAsRegulateur attend reg-demo@tap.test)
--- -----------------------------------------------------------------------------
 do $$
 declare
   org_id uuid := '00000000-0000-0000-0000-000000000001';
-  e2e_id uuid := 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
-  hashed text := crypt('demo1234!', gen_salt('bf'));
 begin
-  insert into auth.users (
-    id, instance_id, aud, role, email, encrypted_password,
-    email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data
-  )
-  values (
-    e2e_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-    'reg-demo@tap.test', hashed,
-    now(), now(), now(),
-    jsonb_build_object('provider', 'email', 'providers', jsonb_build_array('email')),
-    jsonb_build_object('prenom', 'E2E', 'nom', 'Régulatrice')
-  )
-  on conflict (id) do nothing;
-
-  insert into public.profiles (id, organization_id, role, prenom, nom, email)
-  values (e2e_id, org_id, 'regulateur', 'E2E', 'Régulatrice', 'reg-demo@tap.test')
-  on conflict (id) do nothing;
+  perform pg_temp.seed_demo_user(
+    '00000000-0000-0000-0000-000000000010',
+    'dirigeant@demo.tap', 'demo1234!',
+    org_id, 'dirigeant', 'Patrick', 'Hoarau'
+  );
+  perform pg_temp.seed_demo_user(
+    '00000000-0000-0000-0000-000000000020',
+    'regulateur@demo.tap', 'demo1234!',
+    org_id, 'regulateur', 'Sandrine', 'Payet'
+  );
+  perform pg_temp.seed_demo_user(
+    '00000000-0000-0000-0000-000000000030',
+    'chauffeur@demo.tap', 'demo1234!',
+    org_id, 'chauffeur', 'Jean-Marc', 'Técher'
+  );
+  -- Compte E2E (PLAN-1 helper loginAsRegulateur attend reg-demo@tap.test)
+  perform pg_temp.seed_demo_user(
+    'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+    'reg-demo@tap.test', 'demo1234!',
+    org_id, 'regulateur', 'E2E', 'Régulatrice'
+  );
 end
 $$;
 
