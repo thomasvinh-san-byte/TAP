@@ -29,11 +29,11 @@ export default async function PatientsPage() {
 
   return (
     <div className="space-y-24">
-      <header className="flex items-center justify-between gap-12">
+      <header className="flex flex-col gap-16 md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl font-semibold tracking-tight">Patients</h1>
-        <div className="flex items-center gap-12">
-          <HeaderNewRideButton variant="outline" />
-          <Button asChild>
+        <div className="flex flex-col gap-12 md:flex-row md:items-center">
+          <HeaderNewRideButton />
+          <Button asChild variant="default">
             <Link href="/patients/new">
               <Plus className="mr-8 h-16 w-16" aria-hidden />
               Nouveau patient

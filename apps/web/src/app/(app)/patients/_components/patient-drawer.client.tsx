@@ -97,7 +97,7 @@ function DrawerBody({ data }: { data: DrawerPatientShape }) {
         <NewRideForPatientButton patientId={data.id} />
         <Link
           href={`/patients/${data.id}`}
-          className="text-sm text-primary hover:underline"
+          className="text-sm text-primary hover:underline self-start"
         >
           Voir la fiche complète →
         </Link>

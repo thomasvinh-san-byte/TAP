@@ -1,39 +1,53 @@
 'use server';
 
-import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
+import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 
 /**
- * Switch de session démo (Phase 3 / 03-G).
+ * Server Action /dev — switch de session démo (Phase 3 / 03-G).
  *
- * Outils de développement : permet de basculer rapidement entre les 3 comptes
- * démo (dirigeant / régulateur / chauffeur) sans repasser par /login. Garde
- * env identique à la page d'appel — la Server Action n'est jamais exposée en
- * production commerciale.
+ * Pattern miroir `(auth)/login/actions.ts` (CLAUDE.md § 10) :
+ *   useFormState → safeParse zod → signOut + signInWithPassword Supabase →
+ *   reformulation FR des erreurs → revalidatePath('/', 'layout') + redirect.
  *
- * Pattern Supabase officiel (cf. supabase.com/docs/guides/auth/server-side/nextjs) :
- *   signOut → signInWithPassword → revalidatePath layout → redirect.
+ * Flag d'environnement : `NEXT_PUBLIC_SHOW_DEMO_CREDENTIALS` (déjà posé sur
+ * preview et production démo Phase 0.7). Si absent, la Server Action refuse
+ * tout — alignement avec la page /dev qui renvoie un 404 dans ce cas.
  */
-export async function loginAsDemoAction(formData: FormData): Promise<void> {
-  if (
-    process.env.NODE_ENV === 'production' &&
-    process.env.NEXT_PUBLIC_DEMO_MODE !== 'true'
-  ) {
-    redirect('/login');
+
+const switchSchema = z.object({
+  email: z.string().trim().toLowerCase().email(),
+  password: z.string().min(1),
+  redirectTo: z.string().startsWith('/'),
+});
+
+export type SwitchState = { error?: string };
+
+export async function loginAsDemoAction(
+  _prev: SwitchState,
+  formData: FormData,
+): Promise<SwitchState> {
+  if (process.env.NEXT_PUBLIC_SHOW_DEMO_CREDENTIALS !== 'true') {
+    return { error: 'Mode démo désactivé.' };
   }
 
-  const email = String(formData.get('email') ?? '');
-  const password = String(formData.get('password') ?? '');
-  const redirectTo = String(formData.get('redirectTo') ?? '/patients');
+  const parsed = switchSchema.safeParse({
+    email: formData.get('email'),
+    password: formData.get('password'),
+    redirectTo: formData.get('redirectTo'),
+  });
+  if (!parsed.success) return { error: 'Données démo invalides.' };
 
   const supabase = createClient();
   await supabase.auth.signOut();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) {
-    redirect('/dev?error=' + encodeURIComponent(error.message));
-  }
+  const { error } = await supabase.auth.signInWithPassword({
+    email: parsed.data.email,
+    password: parsed.data.password,
+  });
+  if (error) return { error: 'Connexion démo impossible.' };
 
   revalidatePath('/', 'layout');
-  redirect(redirectTo);
+  redirect(parsed.data.redirectTo);
 }
