@@ -3,38 +3,42 @@ import {
   dehydrate,
   QueryClient,
 } from '@tanstack/react-query';
-import { listRides } from './_lib/queries';
+import { listRidesEnriched } from './_lib/queries';
 import { RidesList } from './_components/rides-list.client';
+import { HeaderNewRideButton } from './_components/header-new-ride-button.client';
 
 export const metadata = { title: 'Courses — TAP Régulation' };
 export const dynamic = 'force-dynamic';
 
 /**
- * RSC page /courses (Phase 2 / Wave 4 — D-07).
+ * RSC page /courses (Phase 3 / 03-D — refonte sub-header + CTA contextuel).
  *
- * Pré-fetch RLS-filtré côté serveur via `listRides({})` puis hydratation.
- * Les filtres (status, mode) + recherche fuzzy sont gérés côté client par
- * `<RidesList>`. Le bouton « + Nouvelle course » est livré dans le header
- * global du layout (pas ici) — D-03 modal global.
+ * Pré-fetch RLS-filtré côté serveur via `listRidesEnriched({})` puis hydratation.
+ * Le bouton « + Nouvelle course » est ré-attaché ici en CTA contextuel
+ * (retiré du header global en 03-C). Le raccourci Cmd/Ctrl+Shift+K reste
+ * le canal principal pour la régulatrice.
  */
 export default async function CoursesPage() {
   const queryClient = new QueryClient();
   await queryClient.prefetchQuery({
     queryKey: ['rides', { status: 'all', mode: 'all' }],
-    queryFn: () => listRides({}),
+    queryFn: () => listRidesEnriched({}),
   });
 
   return (
     <div className="space-y-24">
-      <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Courses</h1>
-        <p className="text-sm text-muted-foreground">
-          Utilisez{' '}
-          <kbd className="rounded border px-4 py-2 text-xs font-mono">
-            Cmd/Ctrl+Shift+K
-          </kbd>{' '}
-          ou le bouton « Nouvelle course » pour saisir une course.
-        </p>
+      <header className="flex flex-col gap-12 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4">
+          <h1 className="text-2xl font-semibold tracking-tight">Courses</h1>
+          <p className="hidden sm:block text-sm text-muted-foreground">
+            Astuce :{' '}
+            <kbd className="rounded border border-border bg-muted px-4 py-2 text-xs font-mono">
+              Cmd/Ctrl+Shift+K
+            </kbd>{' '}
+            pour saisir une course rapidement.
+          </p>
+        </div>
+        <HeaderNewRideButton />
       </header>
       <HydrationBoundary state={dehydrate(queryClient)}>
         <RidesList />

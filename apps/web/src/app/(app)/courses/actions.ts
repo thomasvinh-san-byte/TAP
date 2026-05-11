@@ -210,6 +210,47 @@ export async function listRidesAction(
   );
 }
 
+/**
+ * Variante enrichie : courses + patient/driver/vehicle joints (03-D).
+ * Consommée par RidesList côté client via useQuery.
+ */
+export async function listRidesEnrichedAction(
+  params: z.infer<typeof listRidesParamsSchema> = {},
+) {
+  const parsed = listRidesParamsSchema.safeParse(params);
+  if (!parsed.success) return [];
+  const { listRidesEnriched } = await import('./_lib/queries');
+  return listRidesEnriched(
+    parsed.data as Parameters<typeof listRidesEnriched>[0],
+  );
+}
+
+/**
+ * Détail d'une course pour le drawer régulateur (03-D).
+ */
+export async function getRideByIdAction(rideId: string) {
+  if (!z.string().uuid().safeParse(rideId).success) return null;
+  const { getRideByIdEnriched } = await import('./_lib/queries');
+  return getRideByIdEnriched(rideId);
+}
+
+/** Audit log d'une course (drawer timeline — 03-D). */
+export async function getRideAuditLogAction(rideId: string) {
+  if (!z.string().uuid().safeParse(rideId).success) return [];
+  const { getRideAuditLog } = await import('./_lib/queries');
+  return getRideAuditLog(rideId);
+}
+
+/** Référentiel drivers/vehicles actifs (modal assignation — 03-D). */
+export async function listActiveDriversAction() {
+  const { listActiveDrivers } = await import('./_lib/queries');
+  return listActiveDrivers();
+}
+export async function listActiveVehiclesAction() {
+  const { listActiveVehicles } = await import('./_lib/queries');
+  return listActiveVehicles();
+}
+
 // --------------------------------------------------------------------------
 // ASSIGNATION + PAIEMENT (régulateur + dirigeant) — Phase 3 Passe 1, 03-B
 // --------------------------------------------------------------------------

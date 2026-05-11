@@ -2,31 +2,41 @@
 
 import { useDeferredValue, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { listRidesAction } from '../actions';
+import { ArrowRight } from 'lucide-react';
+import {
+  listRidesEnrichedAction,
+} from '../actions';
 import type {
-  RideRow,
+  RideRowEnriched,
   RideStatus,
   RideTransportMode,
 } from '../_lib/queries';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Select } from '@/components/ui/select';
+import { InitialsAvatar } from '@/components/ui/initials-avatar';
+import {
+  formatShortDateFr,
+  formatTimeFr,
+  isToday,
+} from '@/lib/dates-fr';
+import {
+  ModeBadge,
+  PaymentBadge,
+  StatusBadge,
+  UrgencyBadge,
+} from './ride-badges';
+import { RideDrawer } from './ride-drawer.client';
+import { AssignModal } from './assign-modal.client';
 
-/**
- * RidesList (Phase 2 / Wave 4 — D-07).
- *
- * Tableau client interactif des courses. La donnée initiale est pré-fetchée
- * en RSC par `/courses/page.tsx` via HydrationBoundary ; ici on consomme
- * `useQuery` pour les filtres et la recherche live (DEC-005 : pas de
- * useEffect-fetch). Recherche fuzzy locale dans pickup/dropoff (les filtres
- * status/mode déclenchent de vraies requêtes server-side).
- */
 const STATUS_FILTERS = [
   { value: 'all', label: 'Tous statuts' },
   { value: 'validee', label: 'Validées' },
   { value: 'assignee', label: 'Assignées' },
   { value: 'en_cours', label: 'En cours' },
   { value: 'terminee', label: 'Terminées' },
+  { value: 'annulee_regulateur', label: 'Annulées' },
 ] as const;
 
 const MODE_FILTERS = [
@@ -37,40 +47,30 @@ const MODE_FILTERS = [
   { value: 'ambulance', label: 'Ambulance' },
 ] as const;
 
-const URGENCY_LABEL: Record<string, string> = {
-  programmee: 'Programmée',
-  urgente: 'Urgente',
-  immediate: 'Immédiate',
-};
+function truncate(s: string, max = 60): string {
+  return s.length <= max ? s : `${s.slice(0, max - 1)}…`;
+}
 
-const STATUS_LABEL: Record<string, string> = {
-  validee: 'Validée',
-  assignee: 'Assignée',
-  en_cours: 'En cours',
-  terminee: 'Terminée',
-  annulee_regulateur: 'Annulée (régulateur)',
-  annulee_patient: 'Annulée (patient)',
-  annulee_chauffeur: 'Annulée (chauffeur)',
-  brouillon: 'Brouillon',
-};
-
-const MODE_LABEL: Record<string, string> = {
-  taxi_conventionne: 'Taxi conv.',
-  tpmr: 'TPMR',
-  vsl: 'VSL',
-  ambulance: 'Ambulance',
-};
-
+/**
+ * RidesList enrichi (Phase 3 / 03-D).
+ *
+ * Pré-fetch RSC via /courses/page.tsx (clé identique, queryFn pointe sur la
+ * version enrichie). Click ligne → ouvre RideDrawer. Bouton "Assigner" sur
+ * une ligne non assignée court-circuite le drawer pour passer direct à la
+ * modal (gain de clic régulatrice 8h/jour).
+ */
 export function RidesList(): JSX.Element {
   const [q, setQ] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [modeFilter, setModeFilter] = useState<string>('all');
+  const [openRideId, setOpenRideId] = useState<string | null>(null);
+  const [assignRideId, setAssignRideId] = useState<string | null>(null);
   const dq = useDeferredValue(q);
 
   const { data, isPending } = useQuery({
     queryKey: ['rides', { status: statusFilter, mode: modeFilter }],
     queryFn: () =>
-      listRidesAction({
+      listRidesEnrichedAction({
         status:
           statusFilter === 'all' ? undefined : (statusFilter as RideStatus),
         transport_mode:
@@ -82,13 +82,16 @@ export function RidesList(): JSX.Element {
     staleTime: 5_000,
   });
 
-  const rides = (data ?? []) as RideRow[];
+  const rides = (data ?? []) as RideRowEnriched[];
   const filtered = rides.filter((r) => {
     if (!dq) return true;
     const lower = dq.toLowerCase();
     return (
       r.pickup_address.toLowerCase().includes(lower) ||
-      r.dropoff_address.toLowerCase().includes(lower)
+      r.dropoff_address.toLowerCase().includes(lower) ||
+      `${r.patient?.nom ?? ''} ${r.patient?.prenom ?? ''}`
+        .toLowerCase()
+        .includes(lower)
     );
   });
 
@@ -97,36 +100,26 @@ export function RidesList(): JSX.Element {
       <div className="flex flex-wrap gap-12 items-end">
         <div className="flex-1 min-w-[240px]">
           <Input
-            aria-label="Rechercher dans les adresses"
-            placeholder="Rechercher dans les adresses…"
+            aria-label="Rechercher dans les adresses ou patients"
+            placeholder="Rechercher…"
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
         </div>
-        <select
-          aria-label="Filtre statut"
-          className="h-40 rounded-md border bg-background px-12 text-sm"
+        <Select
+          ariaLabel="Filtre statut"
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
-          {STATUS_FILTERS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        <select
-          aria-label="Filtre mode de transport"
-          className="h-40 rounded-md border bg-background px-12 text-sm"
+          onChange={setStatusFilter}
+          items={[...STATUS_FILTERS]}
+          triggerClassName="min-w-[180px]"
+        />
+        <Select
+          ariaLabel="Filtre mode de transport"
           value={modeFilter}
-          onChange={(e) => setModeFilter(e.target.value)}
-        >
-          {MODE_FILTERS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+          onChange={setModeFilter}
+          items={[...MODE_FILTERS]}
+          triggerClassName="min-w-[180px]"
+        />
       </div>
 
       {isPending && (
@@ -138,64 +131,145 @@ export function RidesList(): JSX.Element {
       )}
 
       {!isPending && filtered.length === 0 && (
-        <div className="border rounded-md p-32 text-center text-sm text-muted-foreground">
+        <div className="rounded-md border border-border p-32 text-center text-sm text-muted-foreground">
           Aucune course ne correspond aux critères.
         </div>
       )}
 
       {!isPending && filtered.length > 0 && (
-        <table className="w-full text-sm" aria-label="Liste des courses">
-          <thead className="text-left text-xs uppercase text-muted-foreground">
-            <tr>
-              <th className="py-8 pr-12">Date</th>
-              <th className="py-8 pr-12">Patient</th>
-              <th className="py-8 pr-12">Trajet</th>
-              <th className="py-8 pr-12">Mode</th>
-              <th className="py-8 pr-12">Urgence</th>
-              <th className="py-8 pr-12">Statut</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((r) => (
-              <tr key={r.id} className="border-t">
-                <td className="py-12 pr-12 tabular-nums">
-                  {new Date(r.scheduled_at).toLocaleString('fr-FR', {
-                    dateStyle: 'short',
-                    timeStyle: 'short',
-                  })}
-                </td>
-                <td className="py-12 pr-12">
-                  <span className="text-xs text-muted-foreground tabular-nums">
-                    {r.patient_id.slice(0, 8)}…
-                  </span>
-                </td>
-                <td className="py-12 pr-12">
-                  <span className="block truncate max-w-[280px]">
-                    {r.pickup_address} → {r.dropoff_address}
-                  </span>
-                </td>
-                <td className="py-12 pr-12">
-                  <Badge variant="outline">
-                    {MODE_LABEL[r.transport_mode] ?? r.transport_mode}
-                  </Badge>
-                </td>
-                <td className="py-12 pr-12">
-                  <Badge
-                    variant={r.urgency === 'immediate' ? 'destructive' : 'secondary'}
-                  >
-                    {URGENCY_LABEL[r.urgency] ?? r.urgency}
-                  </Badge>
-                </td>
-                <td className="py-12 pr-12">
-                  <Badge variant="secondary">
-                    {STATUS_LABEL[r.status] ?? r.status}
-                  </Badge>
-                </td>
+        <div className="overflow-x-auto rounded-md border border-border">
+          <table className="w-full text-sm" aria-label="Liste des courses">
+            <thead className="bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
+              <tr>
+                <th className="px-12 py-12 font-medium">Heure</th>
+                <th className="px-12 py-12 font-medium">Patient</th>
+                <th className="px-12 py-12 font-medium">Trajet</th>
+                <th className="px-12 py-12 font-medium">Mode</th>
+                <th className="px-12 py-12 font-medium">Urgence</th>
+                <th className="px-12 py-12 font-medium">Chauffeur</th>
+                <th className="px-12 py-12 font-medium">Statut</th>
+                <th className="px-12 py-12 font-medium">Paiement</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filtered.map((r) => (
+                <RideRowView
+                  key={r.id}
+                  ride={r}
+                  onOpen={() => setOpenRideId(r.id)}
+                  onAssign={() => setAssignRideId(r.id)}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
+
+      <RideDrawer
+        rideId={openRideId}
+        open={openRideId !== null}
+        onOpenChange={(o) => !o && setOpenRideId(null)}
+        onRequestAssign={(rid) => {
+          setOpenRideId(null);
+          setAssignRideId(rid);
+        }}
+      />
+      <AssignModal
+        rideId={assignRideId}
+        open={assignRideId !== null}
+        onOpenChange={(o) => !o && setAssignRideId(null)}
+      />
     </div>
+  );
+}
+
+interface RideRowProps {
+  ride: RideRowEnriched;
+  onOpen: () => void;
+  onAssign: () => void;
+}
+
+function RideRowView({ ride, onOpen, onAssign }: RideRowProps): JSX.Element {
+  const today = isToday(ride.scheduled_at);
+  const patientName = ride.patient
+    ? `${ride.patient.nom} ${ride.patient.prenom}`.trim()
+    : 'Patient inconnu';
+  return (
+    <tr
+      className="border-t border-border transition-colors duration-150 hover:bg-muted/50 cursor-pointer"
+      onClick={onOpen}
+    >
+      <td className="px-12 py-12 align-top tabular-nums">
+        <div className="font-medium">{formatTimeFr(ride.scheduled_at)}</div>
+        {!today && (
+          <div className="text-xs text-muted-foreground">
+            {formatShortDateFr(ride.scheduled_at)}
+          </div>
+        )}
+      </td>
+      <td className="px-12 py-12 align-top">
+        <div className="flex items-center gap-8">
+          <InitialsAvatar name={patientName} size={24} />
+          <span className="truncate max-w-[180px]">{patientName}</span>
+        </div>
+      </td>
+      <td className="px-12 py-12 align-top">
+        <div className="flex items-center gap-8 text-sm">
+          <span className="truncate max-w-[220px]">
+            {truncate(ride.pickup_address)}
+          </span>
+          <ArrowRight
+            className="h-12 w-12 shrink-0 text-muted-foreground"
+            aria-hidden
+          />
+          <span className="truncate max-w-[220px]">
+            {truncate(ride.dropoff_address)}
+          </span>
+        </div>
+      </td>
+      <td className="px-12 py-12 align-top">
+        <ModeBadge mode={ride.transport_mode} />
+      </td>
+      <td className="px-12 py-12 align-top">
+        <UrgencyBadge urgency={ride.urgency} />
+      </td>
+      <td className="px-12 py-12 align-top">
+        {ride.driver ? (
+          <div className="flex items-center gap-8">
+            <InitialsAvatar
+              name={ride.driver.nom_affichage}
+              role="chauffeur"
+              size={24}
+            />
+            <span className="truncate max-w-[140px]">
+              {ride.driver.nom_affichage}
+            </span>
+          </div>
+        ) : ride.status === 'validee' ? (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={(e) => {
+              e.stopPropagation();
+              onAssign();
+            }}
+          >
+            Assigner
+          </Button>
+        ) : (
+          <span className="text-xs text-muted-foreground">—</span>
+        )}
+      </td>
+      <td className="px-12 py-12 align-top">
+        <StatusBadge status={ride.status} />
+      </td>
+      <td className="px-12 py-12 align-top">
+        <PaymentBadge
+          status={ride.payment_status}
+          amountEur={ride.tarif_amount_eur}
+        />
+      </td>
+    </tr>
   );
 }
