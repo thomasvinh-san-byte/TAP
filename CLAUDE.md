@@ -11,6 +11,7 @@
 **Nature** : SaaS de régulation, optimisation, communication patient et pilotage pour sociétés de Transport Assis Professionnalisé et taxiteurs conventionnés CGSS à La Réunion.
 **Cible utilisateur principale** : la régulatrice (8 h/jour dans l'outil). Sa satisfaction conditionne 80 % du succès produit.
 **Document de référence** : `docs/cahier_des_charges_saas_tap_v2.docx` — **lecture obligatoire avant tout développement fonctionnel**.
+**Méthode de développement** : E2E par passes successives (ADR-003). Chaque passe traverse les 6 maillons du parcours métier en améliorant le minimum partout, jamais un module en profondeur avant que tous existent.
 
 ---
 
@@ -368,6 +369,21 @@ Le cahier des charges V2 contient **24 modules fonctionnels**. Avant tout dével
 - ❌ Test E2E qui tape la même chose que le smoke (duplicata)
 - ❌ Test de validation zod qui re-teste les règles zod elles-mêmes (`expect(z.string().parse('foo')).toBe('foo')`)
 
+### Stade E2E (révision 2026-05-11 — ADR-003)
+
+Pendant les Passes 1, 2 et 3, la politique de tests est encore resserrée :
+
+  - 1 test Playwright E2E par passe sur le golden path complet (les 6 maillons enchaînés)
+  - pgTAP RLS systématique sur toute nouvelle table métier (non négociable)
+  - Vitest sur logique métier nouvelle UNIQUEMENT si non triviale :
+    calcul de tarif CGSS, génération de récurrence, parseur de date.
+    PAS de Vitest sur les Server Actions, les wrappers de query, les
+    composants React.
+  - Smoke test preview maintenu (CLAUDE.md §13.5)
+
+La preuve canonique d'une passe livrée = test Playwright E2E golden path
+vert sur preview + revue manuelle Guillaume documentée dans le SUMMARY.
+
 ---
 
 ## 10. Patterns à utiliser systématiquement
@@ -479,6 +495,7 @@ Schéma récurrence → Calcul prochaines dates → Vérif exceptions (jours fé
 3. **Un seed démo réaliste 974** — données fictives mais crédibles (noms réunionnais, adresses Saint-Denis/Saint-Pierre/Le Tampon, NIRs valides Luhn, BTM CGSS) pour que la preview soit immédiatement utilisable sans setup.
 4. **Comptes démo persistants** — `dirigeant@demo.tap` / `regulateur@demo.tap` / `chauffeur@demo.tap` avec mot de passe simple (`demo1234!`). Affichés en bas de la page `/login` en environnement preview ou staging UNIQUEMENT (pas en production commerciale).
 5. **Un walkthrough script** dans le SUMMARY — 5-10 étapes que la régulatrice peut suivre pour voir la valeur livrée par la phase. Ex : « 1. Aller sur /patients. 2. Taper "Ho" dans la recherche. 3. Cliquer sur Hoarau Patrick. 4. Vérifier que le drawer s'ouvre. 5. Cliquer sur Modifier. ... »
+6. **Validation manuelle Guillaume** — 30 minutes en jouant le parcours complet sur preview, frictions notées dans le SUMMARY.
 
 **Ce que ce mandat NE veut PAS dire :**
 - ❌ Pas de cosmétique forcée sur les phases backend (un endpoint API n'a pas besoin d'UI dédiée — juste un test de non-régression visible côté UI consommatrice)
@@ -525,70 +542,35 @@ Ces notes sont fausses dès la livraison de Phase 0.7. La bonne note est : « �
 ## 14. État d'avancement
 
 ```
-LOT EN COURS : Phase 3 — Moteur tarification CGSS (à démarrer)
-PHASES LIVRÉES :
-  - Phase 0 (Lot 0) — Fondations monorepo + multi-tenant Supabase + RLS + CI/CD
-  - Phase 1 — Référentiel patients + recherche fuzzy + NIR chiffré (Edge Function)
-  - Phase 1.5 — DPA + RGPD compliance (livrée 2026-05-07)
-  - Phase 0.7 — Déploiement continu Vercel + démo seedée (livrée 2026-05-07,
-    Visible Progress Mandate § 13.5 actif)
-  - Phase 2 — Saisie express course (livrée 2026-05-07, 18 commits sur 6 plans,
-    SAIS-01..06 GREEN, modal global Cmd/Ctrl+Shift+K, brouillons multi-instance,
-    page /courses, 6 captures docs/showcase/, 02-SUMMARY.md walkthrough 10 étapes)
+LOT EN COURS : Phase 3 — E2E Passe 1 (squelette end-to-end)
+PIVOT MÉTHODOLOGIQUE : 2026-05-11 (ADR-003)
 
-LOT 1.5 LIVRÉ (2026-05-07) :
-  - 5 migrations RGPD (legal_compliance + additional + breach_72h_alert + dpo_fields + anonymize_rpc)
-  - 8 tables : data_processing_register, dpa_record, dpia_record, data_breach_incident,
-    patient_data_request, cgu_acceptance, cookie_consent_log, legal_request_attempts
-  - RPC SECURITY DEFINER : rgpd_anonymize_patient (art. 17), nir_match_patient_for_legal_request
-  - Watchdog pg_cron breach 72h + purge legal_request_attempts
-  - 7 fichiers pgTAP (5 RLS + watchdog + anonymize)
-  - Helpers TS @tap/shared : legal-token (HS256), patient-data-export, patient-anonymize, validators/legal
-  - 5 pages SSG /legal/* (cgu, cgv, confidentialite, cookies, dpo) sans auth requise
-  - Portail patient JWT-gated /legal/request/[token] + /access + /erasure (rate-limit 5/h)
-  - Bandeau cookies CNIL-conforme (3 boutons symétriques, pas de pré-coché)
-  - 6 routes admin RGPD : registre (PDF), dpa, dpia, breaches (compteur 72h temps réel), requests, dpo
-  - Banner CGU acceptance non-bloquant
-  - Vitest 31/32 GREEN (1 fail Phase 0 hors-scope SIRET Luhn — dette tracée)
-  - Playwright 14 specs compilent et sont listés (sandbox-bloqué Docker — exécution CI cloud)
+PHASES LIVRÉES (avant pivot, conservées telles quelles) :
+  - Phase 0 — Fondations monorepo + multi-tenant Supabase + RLS + CI/CD
+  - Phase 1 — Référentiel patients + recherche fuzzy + NIR chiffré
+  - Phase 1.5 — RGPD compliance (GELÉE — pas d'extension avant Passe 4)
+  - Phase 0.7 — Déploiement continu Vercel + démo seedée
+  - Phase 2 — Saisie express course
 
-DERNIER COMMIT MAJEUR : feat: stack auto complète Supabase (migrations + seed + Edge Functions)
+PHASES À VENIR (séquencement E2E — ADR-003) :
+  - Phase 3 — Passe 1 : squelette E2E
+    chauffeurs + véhicules + assignation + exécution mobile-web simple +
+    tarif manuel + encaissement on/off + liste du jour
+    Critère : design partner enchaîne 5 courses sans assistance
+  - Phase 4 — Passe 2 : PWA chauffeur + tarif standard CGSS auto + caisse
+  - Phase 5 — Passe 3 : récurrences dialyse + cockpit temps réel + SMS rappel
+  - Phase 6+ — Passe 4 : RGPD production + HDS + OR-Tools + B2B
 
-INFRASTRUCTURE CI/CD ACTUELLE (2026-05-07) :
-  - GitHub branch protection : main = production (vercel.json ignoreCommand
-    bloque tout build hors main)
-  - Workflows GitHub Actions opérationnels :
-    * ci.yml — lint + typecheck + Vitest + pgTAP (sur PR + push)
-    * cd.yml — push main → migrations Supabase + seed + Edge Functions
-      (deploy nir) + Vercel deploy production
-    * setup-vercel.yml — workflow_dispatch initial : récupère Supabase keys
-      via API + génère 4 app secrets + push 8 env vars Vercel + push 2 secrets
-      Edge Functions Supabase + trigger redeploy
-    * preview-smoke.yml — sur Vercel deployment_status : Playwright smoke
-      sur la preview URL
-    * sync-types.yml — cron quotidien : régénère types.gen.ts depuis cloud
-  - 6 secrets GitHub Actions requis : SUPABASE_ACCESS_TOKEN,
-    SUPABASE_PROJECT_REF, SUPABASE_DB_PASSWORD, VERCEL_TOKEN,
-    VERCEL_PROJECT_ID, VERCEL_TEAM_ID
-  - Page /welcome (apps/web/src/app/welcome/page.tsx) liste les secrets et
-    pointe vers GitHub Settings + GitHub Actions (zéro intervention dans
-    Vercel UI ou Supabase UI)
-  - Project Vercel : tap-web (org tvss-projects-07aa3591)
-    URL prod canonique : https://tap-web-brown.vercel.app
-    (suffixe -brown auto-attribué par Vercel car slug "tap-web" déjà pris)
-  - Project Supabase : vkanxnhipsitpnhkdsae (Frankfurt eu-central-1)
+CRITÈRE DE SUCCÈS DE PHASE (révision 2026-05-11 — ADR-003) :
+  Une phase est livrée quand un design partner peut compléter le parcours
+  de la passe sans intervention du dev. Code qui compile + tests verts +
+  preview Vercel = nécessaires mais NON suffisants.
 
-DETTE IDENTIFIÉE :
-  - SIRET Luhn check `40483304800010` (test Phase 0 commun) — fix dédié à planifier
-  - 2 imports @supabase/supabase-js exceptions documentées :
-    apps/web/src/lib/supabase/admin.ts (service_role admin client, légitime)
-    apps/web/src/app/(public)/legal/request/[token]/actions.ts (import type SupabaseClient seul)
-  - Première vraie validation cloud (Vercel preview verte + 8 env vars
-    posées + comptes démo cliquables) en attente du run setup-vercel.yml
-    par l'utilisateur
-
-DESIGN PARTNERS ACTIFS : (à remplir)
-IMMERSIONS RÉALISÉES : (à remplir)
+GEL EXPLICITE :
+  Phase 1.5 RGPD : aucune extension avant Passe 4.
+  Le code livré reste compilable et déployable, sans refactor.
+  Les pages /legal/* publiques restent. Les routes /admin/legal/* restent
+  accessibles mais ne sont pas mises en avant.
 ```
 
 ---
