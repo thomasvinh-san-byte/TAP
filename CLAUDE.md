@@ -2,6 +2,12 @@
 
 > Fichier d'instructions permanent pour Claude Code.
 > **À lire intégralement avant toute session de développement sur ce projet.**
+>
+> **Règle transverse** : voir `.planning/regle-neutralite-et-ton.md` —
+> aucun nom propre dans le code, les commentaires, les commits, les
+> docs, les mockups ; ton sobre et factuel partout ; pas d'émojis, pas
+> de tutoiement amical, pas d'encouragements gamifiés. S'applique à
+> toute production et à tout fichier de ce dépôt.
 
 ---
 
@@ -382,7 +388,7 @@ Pendant les Passes 1, 2 et 3, la politique de tests est encore resserrée :
   - Smoke test preview maintenu (CLAUDE.md §13.5)
 
 La preuve canonique d'une passe livrée = test Playwright E2E golden path
-vert sur preview + revue manuelle Guillaume documentée dans le SUMMARY.
+vert sur preview + revue manuelle dirigeant documentée dans le SUMMARY.
 
 ---
 
@@ -469,14 +475,17 @@ Schéma récurrence → Calcul prochaines dates → Vérif exceptions (jours fé
 
 ---
 
-## 13. Communication avec Guillaume
+## 13. Communication avec le dirigeant
+
+> Voir `.planning/regle-neutralite-et-ton.md` pour les règles complètes
+> (aucun nom propre, ton sobre, pas d'émojis, etc.).
 
 - Réponses **en français**, claires et précises, sans chichi
 - Pas de blabla d'introduction, aller au fait
 - Choix d'architecture : **proposer 2-3 options** avec trade-offs
 - Trade-off touchant aux 3 piliers : **demander avant d'agir**
 - Signaler proactivement les risques
-- RGPD/HDS : Guillaume n'est pas juriste, expliquer simplement
+- RGPD/HDS : le dirigeant n'est pas juriste, expliquer simplement
 - Décisions structurantes dans `docs/adr/`
 - Retours d'observation terrain dans `docs/observations/`
 
@@ -495,7 +504,7 @@ Schéma récurrence → Calcul prochaines dates → Vérif exceptions (jours fé
 3. **Un seed démo réaliste 974** — données fictives mais crédibles (noms réunionnais, adresses Saint-Denis/Saint-Pierre/Le Tampon, NIRs valides Luhn, BTM CGSS) pour que la preview soit immédiatement utilisable sans setup.
 4. **Comptes démo persistants** — `dirigeant@demo.tap` / `regulateur@demo.tap` / `chauffeur@demo.tap` avec mot de passe simple (`demo1234!`). Affichés en bas de la page `/login` en environnement preview ou staging UNIQUEMENT (pas en production commerciale).
 5. **Un walkthrough script** dans le SUMMARY — 5-10 étapes que la régulatrice peut suivre pour voir la valeur livrée par la phase. Ex : « 1. Aller sur /patients. 2. Taper "Ho" dans la recherche. 3. Cliquer sur Hoarau Patrick. 4. Vérifier que le drawer s'ouvre. 5. Cliquer sur Modifier. ... »
-6. **Validation manuelle Guillaume** — 30 minutes en jouant le parcours complet sur preview, frictions notées dans le SUMMARY.
+6. **Validation manuelle dirigeant** — 30 minutes en jouant le parcours complet sur preview, frictions notées dans le SUMMARY.
 
 **Ce que ce mandat NE veut PAS dire :**
 - ❌ Pas de cosmétique forcée sur les phases backend (un endpoint API n'a pas besoin d'UI dédiée — juste un test de non-régression visible côté UI consommatrice)
