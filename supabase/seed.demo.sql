@@ -141,6 +141,49 @@ begin
 end $$;
 
 -- -----------------------------------------------------------------------------
+-- 3 chauffeurs fictifs + 3 véhicules fictifs (Passe 1 E2E v2 — Phase 3)
+-- -----------------------------------------------------------------------------
+-- Le seul chauffeur lié à un compte Auth est Vergoz Jean → chauffeur@demo.tap
+-- (id 00000000-0000-0000-0000-000000000030 dans seed.sql). Les deux autres
+-- chauffeurs (Maillot André, Boyer Sophie) restent sans profile_id pour
+-- démontrer le cas « chauffeur enregistré avant invitation Auth ».
+do $$
+declare
+  org_id uuid := '00000000-0000-0000-0000-000000000001';
+  dirigeant_id uuid := '00000000-0000-0000-0000-000000000010';
+  chauffeur_auth_id uuid := '00000000-0000-0000-0000-000000000030';
+begin
+  insert into public.drivers (
+    id, organization_id, profile_id, nom_affichage, telephone,
+    numero_licence, type_permis, actif, created_by
+  ) values
+    ('22222222-0000-0000-0000-000000000011', org_id, chauffeur_auth_id,
+     'Vergoz Jean', '0692100001', 'LIC-974-001', '{taxi}'::text[], true, dirigeant_id),
+    ('22222222-0000-0000-0000-000000000012', org_id, null,
+     'Maillot André', '0693100002', 'LIC-974-002', '{taxi}'::text[], true, dirigeant_id),
+    ('22222222-0000-0000-0000-000000000013', org_id, null,
+     'Boyer Sophie', '0692100003', 'LIC-974-003', '{taxi,tpmr}'::text[], true, dirigeant_id)
+  on conflict (id) do nothing;
+
+  insert into public.vehicles (
+    id, organization_id, immatriculation, marque, modele, type,
+    places_assises, places_tpmr, actif, created_by
+  ) values
+    ('33333333-0000-0000-0000-000000000011', org_id,
+     'AB-123-CD', 'Dacia', 'Lodgy', 'taxi_conventionne',
+     4, null, true, dirigeant_id),
+    ('33333333-0000-0000-0000-000000000012', org_id,
+     'EF-456-GH', 'Renault', 'Master', 'tpmr',
+     6, 1, true, dirigeant_id),
+    ('33333333-0000-0000-0000-000000000013', org_id,
+     'IJ-789-KL', 'Citroën', 'Berlingo', 'vsl',
+     3, null, true, dirigeant_id)
+  on conflict (id) do nothing;
+
+  raise notice 'Seed démo : 3 chauffeurs + 3 véhicules créés (organization_id=%)', org_id;
+end $$;
+
+-- -----------------------------------------------------------------------------
 -- Données futures (commentées tant que migrations Phase 4+ pas en place)
 -- -----------------------------------------------------------------------------
 -- TODO Phase 4 (récurrences) :

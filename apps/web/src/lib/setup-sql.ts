@@ -1777,6 +1777,331 @@ comment on table public.ride_draft is
   'Brouillons de saisie course (RGPD — DB plutôt que localStorage). D-02.';
 comment on function public.rides_audit_trigger() is
   'Trigger audit rides — INSERT/UPDATE/DELETE → audit_logs (action ride.*). D-10.';
+
+-- ─── supabase/migrations/20260512000001_drivers.sql ─────────────────────────────────────────────────────────────
+
+-- =============================================================================
+-- Migration 011 — Référentiel chauffeurs (drivers)
+-- =============================================================================
+-- Crée :
+--   - table public.drivers (référentiel chauffeur d'une organization)
+--   - RLS forcée pattern Phase 1 (SELECT same_org / INSERT+UPDATE dirigeant)
+--   - 2 index : (organization_id, actif) partiel archive=false + (org, profile_id)
+--   - trigger updated_at + trigger d'audit pattern Phase 1 patients
+--   - revoke anon, grant authenticated (SELECT/INSERT/UPDATE — pas de DELETE)
+-- Refs : ADR-002 (multi-tenant RLS) ; brief E2E v2 Passe 1 §4.3
+-- =============================================================================
+
+-- -- Section 1 — Table drivers --------------------------------------------------
+-- profile_id nullable : on peut enregistrer un chauffeur avant qu'il dispose
+-- d'un compte Auth (cas pattern Phase 1.5 patient_data_request). Le rattachement
+-- profile_id ↔ compte chauffeur se fait au moment de l'invitation par dirigeant.
+create table public.drivers (
+  id uuid primary key default extensions.uuid_generate_v4(),
+  organization_id uuid not null references public.organizations(id) on delete cascade,
+  profile_id uuid references auth.users(id) on delete set null,
+  nom_affichage text not null check (length(trim(nom_affichage)) between 1 and 80),
+  telephone text,
+  numero_licence text,
+  -- type_permis : valeurs attendues côté zod {taxi, ambulance, vsl, tpmr}.
+  -- Pas de check DB pour ne pas bloquer l'ajout d'un nouveau type métier futur
+  -- sans migration (ex : 'vtc_med'). Validation centralisée dans @tap/shared.
+  type_permis text[] not null default '{}',
+  actif boolean not null default true,
+  archive boolean not null default false,
+  archive_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  created_by uuid references auth.users(id) on delete set null
+);
+
+comment on table public.drivers is
+  'Référentiel chauffeur — un par organization. CRUD dirigeant. Passe 1 E2E v2.';
+
+-- -- Section 2 — Index drivers --------------------------------------------------
+-- (organization_id, actif) partiel sur archive=false : la liste dirigeant
+-- filtre toujours archive=false et trie/filtre actif.
+create index drivers_organization_actif_idx
+  on public.drivers (organization_id, actif)
+  where archive = false;
+
+-- (organization_id, profile_id) partiel : lookup chauffeur ↔ compte auth pour
+-- le SELECT « mes courses » côté chauffeur (listMyRidesToday Phase 3 03-B).
+create index drivers_profile_idx
+  on public.drivers (organization_id, profile_id)
+  where profile_id is not null;
+
+-- -- Section 3 — RLS forcée + policies (drivers) -------------------------------
+alter table public.drivers enable row level security;
+alter table public.drivers force row level security;
+
+create policy drivers_select_same_org on public.drivers
+  for select to authenticated
+  using (organization_id = public.current_organization_id());
+
+create policy drivers_insert_dirigeant on public.drivers
+  for insert to authenticated
+  with check (
+    organization_id = public.current_organization_id()
+    and public.has_role('dirigeant'::public.user_role)
+  );
+
+create policy drivers_update_dirigeant on public.drivers
+  for update to authenticated
+  using (
+    organization_id = public.current_organization_id()
+    and public.has_role('dirigeant'::public.user_role)
+  )
+  with check (organization_id = public.current_organization_id());
+-- Pas de policy DELETE — archivage logique via colonne archive.
+
+-- -- Section 4 — Trigger updated_at --------------------------------------------
+create trigger drivers_set_updated_at
+  before update on public.drivers
+  for each row execute function public.set_updated_at();
+
+-- -- Section 5 — Trigger d'audit drivers ---------------------------------------
+-- Pattern Phase 1 patients_audit_trigger : to_jsonb(old/new) intégral. Aucune
+-- colonne sensible chiffrée à filtrer (téléphone et numéro de licence sont
+-- des données opérationnelles non-secrètes, journalisables).
+create or replace function public.drivers_audit_trigger()
+returns trigger language plpgsql security definer set search_path = public as \$\$
+declare action_name text;
+begin
+  action_name := 'driver.' || lower(tg_op);
+  insert into public.audit_logs
+    (organization_id, actor_id, actor_role, action, entity_type, entity_id, metadata)
+  values (
+    coalesce(new.organization_id, old.organization_id),
+    auth.uid(), public.current_user_role(),
+    action_name, 'driver', coalesce(new.id, old.id),
+    jsonb_build_object(
+      'old', case when tg_op in ('UPDATE','DELETE') then to_jsonb(old) else null end,
+      'new', case when tg_op in ('INSERT','UPDATE') then to_jsonb(new) else null end
+    )
+  );
+  return coalesce(new, old);
+end; \$\$;
+
+comment on function public.drivers_audit_trigger() is
+  'Trigger audit drivers — INSERT/UPDATE/DELETE → audit_logs (action driver.*).';
+
+create trigger drivers_audit_trigger
+  after insert or update or delete on public.drivers
+  for each row execute function public.drivers_audit_trigger();
+
+-- -- Section 6 — Revoke / Grant ------------------------------------------------
+revoke all on public.drivers from anon;
+grant select, insert, update on public.drivers to authenticated;
+
+-- ─── supabase/migrations/20260512000002_vehicles.sql ─────────────────────────────────────────────────────────────
+
+-- =============================================================================
+-- Migration 012 — Référentiel véhicules (vehicles)
+-- =============================================================================
+-- Crée :
+--   - table public.vehicles (référentiel véhicule d'une organization)
+--   - check type ∈ {taxi_conventionne, tpmr, vsl, ambulance} (cohérent
+--     avec public.ride_transport_mode mais sans coupler les deux types)
+--   - index unique partiel (organization_id, upper(immatriculation))
+--     where archive=false → un véhicule actif ne peut pas être saisi 2×
+--   - RLS forcée pattern drivers (SELECT same_org / INSERT+UPDATE dirigeant)
+--   - trigger updated_at + trigger d'audit
+-- Refs : ADR-002 (multi-tenant RLS) ; brief E2E v2 Passe 1 §4.3
+-- =============================================================================
+
+-- -- Section 1 — Table vehicles -------------------------------------------------
+create table public.vehicles (
+  id uuid primary key default extensions.uuid_generate_v4(),
+  organization_id uuid not null references public.organizations(id) on delete cascade,
+  immatriculation text not null,
+  marque text,
+  modele text,
+  type text not null check (
+    type in ('taxi_conventionne', 'tpmr', 'vsl', 'ambulance')
+  ),
+  places_assises int check (
+    places_assises is null or places_assises between 1 and 9
+  ),
+  places_tpmr int check (
+    places_tpmr is null or places_tpmr between 0 and 3
+  ),
+  actif boolean not null default true,
+  archive boolean not null default false,
+  archive_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  created_by uuid references auth.users(id) on delete set null
+);
+
+comment on table public.vehicles is
+  'Référentiel véhicule — un par organization. CRUD dirigeant. Passe 1 E2E v2.';
+
+-- -- Section 2 — Index vehicles ------------------------------------------------
+-- (organization_id, actif) partiel sur archive=false : pattern drivers.
+create index vehicles_organization_actif_idx
+  on public.vehicles (organization_id, actif)
+  where archive = false;
+
+-- Unique partiel : upper(immatriculation) pour normaliser AB-123-CD vs
+-- ab-123-cd. Limité aux véhicules non-archivés pour autoriser la réaffectation
+-- d'une plaque après cession (rare mais possible).
+create unique index vehicles_immatriculation_unique
+  on public.vehicles (organization_id, upper(immatriculation))
+  where archive = false;
+
+-- -- Section 3 — RLS forcée + policies (vehicles) -----------------------------
+alter table public.vehicles enable row level security;
+alter table public.vehicles force row level security;
+
+create policy vehicles_select_same_org on public.vehicles
+  for select to authenticated
+  using (organization_id = public.current_organization_id());
+
+create policy vehicles_insert_dirigeant on public.vehicles
+  for insert to authenticated
+  with check (
+    organization_id = public.current_organization_id()
+    and public.has_role('dirigeant'::public.user_role)
+  );
+
+create policy vehicles_update_dirigeant on public.vehicles
+  for update to authenticated
+  using (
+    organization_id = public.current_organization_id()
+    and public.has_role('dirigeant'::public.user_role)
+  )
+  with check (organization_id = public.current_organization_id());
+-- Pas de policy DELETE — archivage logique via colonne archive.
+
+-- -- Section 4 — Trigger updated_at --------------------------------------------
+create trigger vehicles_set_updated_at
+  before update on public.vehicles
+  for each row execute function public.set_updated_at();
+
+-- -- Section 5 — Trigger d'audit vehicles --------------------------------------
+create or replace function public.vehicles_audit_trigger()
+returns trigger language plpgsql security definer set search_path = public as \$\$
+declare action_name text;
+begin
+  action_name := 'vehicle.' || lower(tg_op);
+  insert into public.audit_logs
+    (organization_id, actor_id, actor_role, action, entity_type, entity_id, metadata)
+  values (
+    coalesce(new.organization_id, old.organization_id),
+    auth.uid(), public.current_user_role(),
+    action_name, 'vehicle', coalesce(new.id, old.id),
+    jsonb_build_object(
+      'old', case when tg_op in ('UPDATE','DELETE') then to_jsonb(old) else null end,
+      'new', case when tg_op in ('INSERT','UPDATE') then to_jsonb(new) else null end
+    )
+  );
+  return coalesce(new, old);
+end; \$\$;
+
+comment on function public.vehicles_audit_trigger() is
+  'Trigger audit vehicles — INSERT/UPDATE/DELETE → audit_logs (action vehicle.*).';
+
+create trigger vehicles_audit_trigger
+  after insert or update or delete on public.vehicles
+  for each row execute function public.vehicles_audit_trigger();
+
+-- -- Section 6 — Revoke / Grant ------------------------------------------------
+revoke all on public.vehicles from anon;
+grant select, insert, update on public.vehicles to authenticated;
+
+-- ─── supabase/migrations/20260512000003_rides_execution.sql ─────────────────────────────────────────────────────────────
+
+-- =============================================================================
+-- Migration 013 — Extension rides : assignation chauffeur + exécution + paiement
+-- =============================================================================
+-- ALTER de public.rides (créée Phase 2 — 20260509000001_rides.sql, FIGÉE).
+-- Ajoute :
+--   - driver_id / vehicle_id (FK on delete restrict — pas de drop silencieux)
+--   - started_at / ended_at (timestamps exécution)
+--   - tarif_amount_eur / tarif_source (saisie manuelle V1, cgss_auto Passe 2)
+--   - payment_status / payment_method / payment_received_at
+--   - 3 contraintes de cohérence (encaissement complet, started ⇒ driver,
+--     ended ≥ started)
+--   - 1 index sur (driver_id, scheduled_at desc) partiel statuts actifs
+--
+-- Le trigger rides_audit_trigger existant (Phase 2) journalise déjà toutes
+-- les colonnes via to_jsonb(old/new) — aucune modification du trigger n'est
+-- nécessaire, les nouvelles colonnes seront capturées automatiquement.
+-- Refs : brief E2E v2 Passe 1 §4.3
+-- =============================================================================
+
+-- -- Section 1 — Nouvelles colonnes --------------------------------------------
+alter table public.rides
+  add column driver_id uuid references public.drivers(id) on delete restrict;
+
+alter table public.rides
+  add column vehicle_id uuid references public.vehicles(id) on delete restrict;
+
+alter table public.rides
+  add column started_at timestamptz;
+
+alter table public.rides
+  add column ended_at timestamptz;
+
+alter table public.rides
+  add column tarif_amount_eur numeric(10, 2)
+    check (tarif_amount_eur is null or tarif_amount_eur >= 0);
+
+alter table public.rides
+  add column tarif_source text
+    check (tarif_source is null or tarif_source in ('manuel', 'cgss_auto'));
+
+alter table public.rides
+  add column payment_status text not null default 'non_concerne'
+    check (payment_status in ('non_concerne', 'a_encaisser', 'encaisse'));
+
+alter table public.rides
+  add column payment_method text
+    check (
+      payment_method is null
+      or payment_method in ('cash', 'cb', 'cheque', 'cgss_differe')
+    );
+
+alter table public.rides
+  add column payment_received_at timestamptz;
+
+-- -- Section 2 — Contraintes de cohérence --------------------------------------
+-- 1. Encaissement complet : status=encaisse impose method ET received_at non-null
+alter table public.rides
+  add constraint rides_payment_encaisse_complet check (
+    payment_status <> 'encaisse'
+    or (payment_method is not null and payment_received_at is not null)
+  );
+
+-- 2. Une course démarrée doit avoir un chauffeur assigné
+alter table public.rides
+  add constraint rides_started_requires_driver check (
+    started_at is null or driver_id is not null
+  );
+
+-- 3. ended_at ≥ started_at (et started_at obligatoire si ended_at présent)
+alter table public.rides
+  add constraint rides_ended_after_started check (
+    ended_at is null
+    or (started_at is not null and ended_at >= started_at)
+  );
+
+-- -- Section 3 — Index pour la liste chauffeur ---------------------------------
+-- listMyRidesToday() filtre par driver_id + scheduled_at d'aujourd'hui + statuts
+-- non-archivés. Index partiel pour éviter de gonfler avec des courses très
+-- anciennes archivées.
+create index rides_driver_scheduled_idx
+  on public.rides (driver_id, scheduled_at desc)
+  where status in ('assignee', 'en_cours', 'terminee') and archive = false;
+
+-- -- Section 4 — Commentaires documentaires ----------------------------------
+comment on column public.rides.driver_id is
+  'Chauffeur assigné. Posée à la transition validee→assignee. Passe 1 E2E v2.';
+comment on column public.rides.tarif_source is
+  'manuel = saisie chauffeur V1 ; cgss_auto = calcul packages/pricing Passe 2.';
+comment on column public.rides.payment_status is
+  'non_concerne (CGSS pur), a_encaisser (différé), encaisse (cash/CB/chèque OK).';
 `;
 
 export const SEED_SQL = String.raw`
@@ -2051,6 +2376,49 @@ begin
   on conflict (id) do nothing;
 
   raise notice 'Seed démo : 10 patients fictifs créés (organization_id=%)', org_id;
+end \$\$;
+
+-- -----------------------------------------------------------------------------
+-- 3 chauffeurs fictifs + 3 véhicules fictifs (Passe 1 E2E v2 — Phase 3)
+-- -----------------------------------------------------------------------------
+-- Le seul chauffeur lié à un compte Auth est Vergoz Jean → chauffeur@demo.tap
+-- (id 00000000-0000-0000-0000-000000000030 dans seed.sql). Les deux autres
+-- chauffeurs (Maillot André, Boyer Sophie) restent sans profile_id pour
+-- démontrer le cas « chauffeur enregistré avant invitation Auth ».
+do \$\$
+declare
+  org_id uuid := '00000000-0000-0000-0000-000000000001';
+  dirigeant_id uuid := '00000000-0000-0000-0000-000000000010';
+  chauffeur_auth_id uuid := '00000000-0000-0000-0000-000000000030';
+begin
+  insert into public.drivers (
+    id, organization_id, profile_id, nom_affichage, telephone,
+    numero_licence, type_permis, actif, created_by
+  ) values
+    ('22222222-0000-0000-0000-000000000011', org_id, chauffeur_auth_id,
+     'Vergoz Jean', '0692100001', 'LIC-974-001', '{taxi}'::text[], true, dirigeant_id),
+    ('22222222-0000-0000-0000-000000000012', org_id, null,
+     'Maillot André', '0693100002', 'LIC-974-002', '{taxi}'::text[], true, dirigeant_id),
+    ('22222222-0000-0000-0000-000000000013', org_id, null,
+     'Boyer Sophie', '0692100003', 'LIC-974-003', '{taxi,tpmr}'::text[], true, dirigeant_id)
+  on conflict (id) do nothing;
+
+  insert into public.vehicles (
+    id, organization_id, immatriculation, marque, modele, type,
+    places_assises, places_tpmr, actif, created_by
+  ) values
+    ('33333333-0000-0000-0000-000000000011', org_id,
+     'AB-123-CD', 'Dacia', 'Lodgy', 'taxi_conventionne',
+     4, null, true, dirigeant_id),
+    ('33333333-0000-0000-0000-000000000012', org_id,
+     'EF-456-GH', 'Renault', 'Master', 'tpmr',
+     6, 1, true, dirigeant_id),
+    ('33333333-0000-0000-0000-000000000013', org_id,
+     'IJ-789-KL', 'Citroën', 'Berlingo', 'vsl',
+     3, null, true, dirigeant_id)
+  on conflict (id) do nothing;
+
+  raise notice 'Seed démo : 3 chauffeurs + 3 véhicules créés (organization_id=%)', org_id;
 end \$\$;
 
 -- -----------------------------------------------------------------------------
