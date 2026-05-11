@@ -74,31 +74,35 @@ async function resolveMyDriverId(ctx: AuthContext): Promise<string | null> {
 }
 
 /**
- * Bornes de la journée courante en TZ Indian/Reunion (UTC+4, sans DST).
- * On reste en UTC dans Postgres : on construit `[startOfDayLocal, +24h)`
- * en UTC en soustrayant l'offset Réunion (+4h) à minuit local.
+ * Bornes [aujourd'hui 00h00 ; après-demain 00h00) en TZ Indian/Reunion
+ * (UTC+4, pas de DST). Couvre J + J+1 dans la même requête — le chauffeur
+ * voit ce qui l'attend dans les 48 prochaines heures.
+ *
+ * Pas de dépendance Intl/DateTimeFormat : on décale `now` de +4 h pour
+ * obtenir la « date locale » Réunion, puis on soustrait l'offset pour
+ * remonter en UTC. `tomorrowStartIso` sert au regroupement UI (cluster
+ * « Aujourd'hui » vs « Demain » côté page.tsx).
  */
-function reunionDayBoundsIso(now = new Date()): {
+const REUNION_OFFSET_HOURS = 4;
+
+function reunionUpcomingBoundsIso(now = new Date()): {
   startIso: string;
   endIso: string;
+  tomorrowStartIso: string;
 } {
-  // Décaler `now` de +4h pour obtenir la « date locale » Réunion sans
-  // dépendre d'Intl/DateTimeFormat (qui est dispo sur Node/Vercel mais
-  // évitons les surprises de TZ système). Indian/Reunion = UTC+4 en
-  // permanence (pas d'heure d'été).
-  const REUNION_OFFSET_HOURS = 4;
   const reunionNow = new Date(
     now.getTime() + REUNION_OFFSET_HOURS * 60 * 60 * 1000,
   );
   const y = reunionNow.getUTCFullYear();
   const m = reunionNow.getUTCMonth();
   const d = reunionNow.getUTCDate();
-  // Minuit local Réunion = (y-m-d 00:00 Réunion) = (y-m-d -4h) en UTC.
   const startUtcMs =
     Date.UTC(y, m, d, 0, 0, 0, 0) - REUNION_OFFSET_HOURS * 60 * 60 * 1000;
-  const endUtcMs = startUtcMs + 24 * 60 * 60 * 1000;
+  const tomorrowStartUtcMs = startUtcMs + 24 * 60 * 60 * 1000;
+  const endUtcMs = startUtcMs + 48 * 60 * 60 * 1000;
   return {
     startIso: new Date(startUtcMs).toISOString(),
+    tomorrowStartIso: new Date(tomorrowStartUtcMs).toISOString(),
     endIso: new Date(endUtcMs).toISOString(),
   };
 }
@@ -188,10 +192,27 @@ function joinPatient(
 }
 
 // --------------------------------------------------------------------------
-// listMyRidesToday — courses du jour du chauffeur authentifié
+// listMyRidesUpcoming — courses J + J+1 du chauffeur authentifié
 // --------------------------------------------------------------------------
 
-export async function listMyRidesToday(): Promise<RideForDriverList[]> {
+export type UpcomingDayBucket = 'today' | 'tomorrow';
+
+export type RideForDriverWithBucket = RideForDriverList & {
+  bucket: UpcomingDayBucket;
+};
+
+/**
+ * Liste des courses des 48 prochaines heures TZ Indian/Reunion, classées
+ * par cluster jour pour le regroupement UI (« Aujourd'hui » / « Demain »).
+ *
+ * Élargi en Phase 3 / clôture Passe 1 (anciennement listMyRidesToday) :
+ * la régulatrice consultait sa journée mais ne voyait pas les dialyses
+ * de J+1 → la projection 48 h donne de la prévisibilité au chauffeur
+ * sans saturer la liste (limit 50 conservée).
+ */
+export async function listMyRidesUpcoming(): Promise<
+  RideForDriverWithBucket[]
+> {
   const ctx = await getAuthContext();
   if (!ctx) return [];
   if (ctx.role !== 'chauffeur') return [];
@@ -199,7 +220,7 @@ export async function listMyRidesToday(): Promise<RideForDriverList[]> {
   const myDriverId = await resolveMyDriverId(ctx);
   if (!myDriverId) return [];
 
-  const { startIso, endIso } = reunionDayBoundsIso();
+  const { startIso, tomorrowStartIso, endIso } = reunionUpcomingBoundsIso();
 
   const { data, error } = await ctx.supabase
     .from('rides')
@@ -210,14 +231,17 @@ export async function listMyRidesToday(): Promise<RideForDriverList[]> {
     .eq('archive', false)
     .order('scheduled_at', { ascending: true })
     .limit(50);
-  if (error) throw new Error('Lecture des courses du jour impossible.');
+  if (error) throw new Error('Lecture des courses à venir impossible.');
 
   const rides = (data ?? []) as unknown as RawRideRow[];
   const patientsById = await fetchPatientsByIds(
     ctx,
     rides.map((r) => r.patient_id),
   );
-  return rides.map((r) => joinPatient(r, patientsById));
+  return rides.map((r) => ({
+    ...joinPatient(r, patientsById),
+    bucket: r.scheduled_at < tomorrowStartIso ? 'today' : 'tomorrow',
+  }));
 }
 
 // --------------------------------------------------------------------------

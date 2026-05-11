@@ -26,6 +26,7 @@ import {
 import { ModeBadge, PaymentBadge, StatusBadge, UrgencyBadge } from './ride-badges';
 import { RideAuditTimeline } from './ride-audit-timeline';
 import { RidePaymentPopover } from './ride-payment-popover.client';
+import { useRideOrchestrator } from './ride-orchestrator-context.client';
 
 interface Props {
   rideId: string | null;
@@ -49,6 +50,7 @@ export function RideDrawer({
   onRequestAssign,
 }: Props): JSX.Element {
   const qc = useQueryClient();
+  const { dispatch } = useRideOrchestrator();
   const [payOpen, setPayOpen] = React.useState(false);
   const [pending, setPending] = React.useState(false);
 
@@ -99,8 +101,21 @@ export function RideDrawer({
           <DrawerSkeleton />
         ) : (
           <div className="space-y-24">
-            <SheetHeader>
+            <SheetHeader className="flex flex-row items-center justify-between gap-12">
               <SheetTitle>Course</SheetTitle>
+              {(ride.status === 'validee' || ride.status === 'assignee') && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    dispatch({ type: 'OPEN_EDIT', rideId: ride.id });
+                    onOpenChange(false);
+                  }}
+                >
+                  Modifier
+                </Button>
+              )}
             </SheetHeader>
 
             <section className="space-y-12">
