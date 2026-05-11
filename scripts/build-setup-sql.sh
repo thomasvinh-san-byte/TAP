@@ -52,3 +52,19 @@ HEAD
 
 mv "$TMP" "$OUT"
 echo "✓ $OUT régénéré ($(wc -l < "$OUT") lignes)"
+
+# Génère aussi apps/web/src/lib/setup-sql.ts pour que l'app puisse appliquer
+# le setup elle-même (Server Action sur clic du bouton /setup).
+TS_OUT="apps/web/src/lib/setup-sql.ts"
+{
+  echo "/**"
+  echo " * SQL de setup auto-généré par scripts/build-setup-sql.sh — NE PAS éditer manuellement."
+  echo " * Source: supabase/migrations/*.sql + supabase/seed.sql + supabase/seed.demo.sql"
+  echo " * Régénération : ./scripts/build-setup-sql.sh"
+  echo " */"
+  echo ""
+  echo "export const SETUP_SQL = String.raw\`"
+  cat "$OUT" | sed 's/\\/\\\\/g; s/`/\\`/g; s/\$/\\$/g'
+  echo "\`;"
+} > "$TS_OUT"
+echo "✓ $TS_OUT régénéré"

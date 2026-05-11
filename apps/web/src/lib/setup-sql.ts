@@ -1,3 +1,10 @@
+/**
+ * SQL de setup auto-généré par scripts/build-setup-sql.sh — NE PAS éditer manuellement.
+ * Source: supabase/migrations/*.sql + supabase/seed.sql + supabase/seed.demo.sql
+ * Régénération : ./scripts/build-setup-sql.sh
+ */
+
+export const SETUP_SQL = String.raw`
 -- ==============================================================================
 -- TAP Régulation — Setup complet en une seule fois (migrations + seed démo)
 -- ==============================================================================
@@ -53,12 +60,12 @@ comment on type public.user_role is
 create or replace function public.set_updated_at()
 returns trigger
 language plpgsql
-as $$
+as \$\$
 begin
   new.updated_at := now();
   return new;
 end;
-$$;
+\$\$;
 
 comment on function public.set_updated_at() is
   'Trigger générique : met à jour updated_at à chaque UPDATE.';
@@ -81,10 +88,10 @@ create table public.organizations (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint organizations_siret_format check (
-    siret is null or siret ~ '^[0-9]{14}$'
+    siret is null or siret ~ '^[0-9]{14}\$'
   ),
   constraint organizations_code_postal_974 check (
-    code_postal is null or code_postal ~ '^974[0-9]{2}$'
+    code_postal is null or code_postal ~ '^974[0-9]{2}\$'
   )
 );
 
@@ -149,13 +156,13 @@ language sql
 stable
 security definer
 set search_path = public
-as $$
+as \$\$
   select organization_id
   from public.profiles
   where id = auth.uid()
     and actif is true
   limit 1;
-$$;
+\$\$;
 
 comment on function public.current_organization_id() is
   'organization_id du profil rattaché à auth.uid(). NULL si non authentifié ou inactif.';
@@ -166,13 +173,13 @@ language sql
 stable
 security definer
 set search_path = public
-as $$
+as \$\$
   select role
   from public.profiles
   where id = auth.uid()
     and actif is true
   limit 1;
-$$;
+\$\$;
 
 comment on function public.current_user_role() is
   'Rôle du profil rattaché à auth.uid(). NULL si non authentifié ou inactif.';
@@ -183,7 +190,7 @@ language sql
 stable
 security definer
 set search_path = public
-as $$
+as \$\$
   select exists (
     select 1
     from public.profiles
@@ -191,7 +198,7 @@ as $$
       and actif is true
       and role = required_role
   );
-$$;
+\$\$;
 
 comment on function public.has_role(public.user_role) is
   'TRUE si auth.uid() possède le rôle exact demandé.';
@@ -311,7 +318,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = public
-as $$
+as \$\$
 declare
   acting_role public.user_role;
 begin
@@ -341,7 +348,7 @@ begin
 
   return new;
 end;
-$$;
+\$\$;
 
 comment on function public.profiles_prevent_self_escalation() is
   'Empêche un non-dirigeant de modifier organization_id, role ou actif sur son profil.';
@@ -415,9 +422,9 @@ create extension if not exists unaccent with schema extensions;
 -- (extensions.unaccent est STABLE, sans wrapper Postgres lève
 -- « generation expression is not immutable »). Cf. RESEARCH Pitfall 1.
 create or replace function public.unaccent_immutable(input text)
-returns text language sql immutable parallel safe as $$
+returns text language sql immutable parallel safe as \$\$
   select extensions.unaccent('extensions.unaccent', input)
-$$;
+\$\$;
 
 -- -- Section 2 — Types énumérés ------------------------------------------------
 create type public.patient_constraint_type as enum (
@@ -439,15 +446,15 @@ create table public.patients (
   telephone_normalized text,
   adresse_ligne1 text not null,
   adresse_ligne2 text,
-  code_postal text not null check (code_postal ~ '^974[0-9]{2}$'),
+  code_postal text not null check (code_postal ~ '^974[0-9]{2}\$'),
   ville text not null,
   contact_urgence_nom text,
   contact_urgence_telephone text,
   nir_encrypted bytea,
   nir_search_hash bytea,
-  -- Format `XX YY` = 2 derniers digits + 2 digits de la clé. Pseudonymisation
+  -- Format \`XX YY\` = 2 derniers digits + 2 digits de la clé. Pseudonymisation
   -- partielle (ADR-004 placeholder). Inclus dans le delta d'audit (non-secret).
-  nir_last4 text check (nir_last4 is null or nir_last4 ~ '^[0-9]{2}\s[0-9]{2}$'),
+  nir_last4 text check (nir_last4 is null or nir_last4 ~ '^[0-9]{2}\\s[0-9]{2}\$'),
   canal_contact_prefere public.canal_contact_prefere not null default 'appel',
   consentement_sms boolean not null default false,
   consentement_sms_at timestamptz,
@@ -593,7 +600,7 @@ create trigger patient_operational_note_set_updated_at before update on public.p
 -- (old + new) — JAMAIS de ciphertext dupliqué dans audit_logs.
 -- nir_last4 reste inclus (non-secret).
 create or replace function public.patients_audit_trigger()
-returns trigger language plpgsql security definer set search_path = public as $$
+returns trigger language plpgsql security definer set search_path = public as \$\$
 declare action_name text;
 begin
   action_name := 'patient.' || lower(tg_op);
@@ -611,7 +618,7 @@ begin
     )
   );
   return coalesce(new, old);
-end; $$;
+end; \$\$;
 
 create trigger patients_audit_trigger
   after insert or update or delete on public.patients
@@ -619,7 +626,7 @@ create trigger patients_audit_trigger
 
 -- -- Section 12 — Trigger d'audit patient_constraint --------------------------
 create or replace function public.patient_constraint_audit_trigger()
-returns trigger language plpgsql security definer set search_path = public as $$
+returns trigger language plpgsql security definer set search_path = public as \$\$
 declare action_name text;
 begin
   action_name := 'patient_constraint.' || lower(tg_op);
@@ -635,7 +642,7 @@ begin
     )
   );
   return coalesce(new, old);
-end; $$;
+end; \$\$;
 
 create trigger patient_constraint_audit_trigger
   after insert or update or delete on public.patient_constraint
@@ -643,7 +650,7 @@ create trigger patient_constraint_audit_trigger
 
 -- -- Section 13 — Trigger d'audit patient_operational_note --------------------
 create or replace function public.patient_operational_note_audit_trigger()
-returns trigger language plpgsql security definer set search_path = public as $$
+returns trigger language plpgsql security definer set search_path = public as \$\$
 declare action_name text;
 begin
   action_name := 'patient_operational_note.' || lower(tg_op);
@@ -659,7 +666,7 @@ begin
     )
   );
   return coalesce(new, old);
-end; $$;
+end; \$\$;
 
 create trigger patient_operational_note_audit_trigger
   after insert or update or delete on public.patient_operational_note
@@ -719,7 +726,7 @@ language sql
 stable
 security invoker
 set search_path = public, extensions
-as $$
+as \$\$
   select *
   from public.patients_safe
   where organization_id = public.current_organization_id()
@@ -729,7 +736,7 @@ as $$
     search_text, lower(extensions.unaccent(q))
   ) desc
   limit 10;
-$$;
+\$\$;
 
 comment on function public.search_patients(text) is
   'Recherche fuzzy patient (pg_trgm). Retourne setof patients_safe — masque
@@ -1009,13 +1016,13 @@ create trigger patient_data_request_set_updated_at
 -- Auto-renseigne deadline_at = requested_at + 30 jours si NULL fourni.
 -- Garantit l'art. 12 RGPD (délai légal de réponse).
 create or replace function public.patient_data_request_set_deadline()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql as \$\$
 begin
   if new.deadline_at is null then
     new.deadline_at := new.requested_at + interval '30 days';
   end if;
   return new;
-end; $$;
+end; \$\$;
 
 create trigger patient_data_request_set_deadline_trigger
   before insert on public.patient_data_request
@@ -1025,7 +1032,7 @@ create trigger patient_data_request_set_deadline_trigger
 
 -- data_processing_register : pas de filtre (aucun secret)
 create or replace function public.data_processing_register_audit_trigger()
-returns trigger language plpgsql security definer set search_path = public as $$
+returns trigger language plpgsql security definer set search_path = public as \$\$
 declare action_name text;
 begin
   action_name := 'data_processing_register.' || lower(tg_op);
@@ -1041,7 +1048,7 @@ begin
     )
   );
   return coalesce(new, old);
-end; $$;
+end; \$\$;
 
 create trigger data_processing_register_audit_trigger
   after insert or update or delete on public.data_processing_register
@@ -1049,7 +1056,7 @@ create trigger data_processing_register_audit_trigger
 
 -- dpa_record : pas de filtre
 create or replace function public.dpa_record_audit_trigger()
-returns trigger language plpgsql security definer set search_path = public as $$
+returns trigger language plpgsql security definer set search_path = public as \$\$
 declare action_name text;
 begin
   action_name := 'dpa_record.' || lower(tg_op);
@@ -1065,7 +1072,7 @@ begin
     )
   );
   return coalesce(new, old);
-end; $$;
+end; \$\$;
 
 create trigger dpa_record_audit_trigger
   after insert or update or delete on public.dpa_record
@@ -1073,7 +1080,7 @@ create trigger dpa_record_audit_trigger
 
 -- dpia_record : pas de filtre (jsonb risques/mitigations = pas secret)
 create or replace function public.dpia_record_audit_trigger()
-returns trigger language plpgsql security definer set search_path = public as $$
+returns trigger language plpgsql security definer set search_path = public as \$\$
 declare action_name text;
 begin
   action_name := 'dpia_record.' || lower(tg_op);
@@ -1089,7 +1096,7 @@ begin
     )
   );
   return coalesce(new, old);
-end; $$;
+end; \$\$;
 
 create trigger dpia_record_audit_trigger
   after insert or update or delete on public.dpia_record
@@ -1097,7 +1104,7 @@ create trigger dpia_record_audit_trigger
 
 -- data_breach_incident : filtre cnil_notification_reference (numéro ARS-CNIL sensible)
 create or replace function public.data_breach_incident_audit_trigger()
-returns trigger language plpgsql security definer set search_path = public as $$
+returns trigger language plpgsql security definer set search_path = public as \$\$
 declare action_name text;
 begin
   action_name := 'data_breach_incident.' || lower(tg_op);
@@ -1115,7 +1122,7 @@ begin
     )
   );
   return coalesce(new, old);
-end; $$;
+end; \$\$;
 
 create trigger data_breach_incident_audit_trigger
   after insert or update or delete on public.data_breach_incident
@@ -1125,7 +1132,7 @@ create trigger data_breach_incident_audit_trigger
 -- Pitfall 2 RESEARCH : ces 2 colonnes ne doivent JAMAIS apparaître en clair
 -- dans audit_logs.metadata.
 create or replace function public.patient_data_request_audit_trigger()
-returns trigger language plpgsql security definer set search_path = public as $$
+returns trigger language plpgsql security definer set search_path = public as \$\$
 declare action_name text;
 begin
   action_name := 'patient_data_request.' || lower(tg_op);
@@ -1145,7 +1152,7 @@ begin
     )
   );
   return coalesce(new, old);
-end; $$;
+end; \$\$;
 
 create trigger patient_data_request_audit_trigger
   after insert or update or delete on public.patient_data_request
@@ -1294,12 +1301,12 @@ comment on table public.legal_request_attempts is
 --   - cron.schedule('legal-request-attempts-purge', '0 3 * * *', ...) — quotidien
 -- =============================================================================
 -- Note CI : si pg_cron absent (sandbox locale, docker registry bloqué),
--- les `select cron.schedule(...)` sont guardés via DO block conditionnel.
+-- les \`select cron.schedule(...)\` sont guardés via DO block conditionnel.
 -- En production Supabase Cloud, pg_cron est pré-installé.
 -- =============================================================================
 
 -- pg_cron : pré-installé sur Supabase Cloud. Localement absent → guard.
-do $$
+do \$\$
 begin
   if exists (select 1 from pg_available_extensions where name = 'pg_cron') then
     create extension if not exists pg_cron;
@@ -1307,7 +1314,7 @@ begin
     raise notice 'pg_cron non disponible (sandbox locale) — cron.schedule sera skip.';
   end if;
 end;
-$$;
+\$\$;
 
 -- -- check_breach_deadlines() : watchdog 72h -------------------------------
 -- Pour chaque data_breach_incident dont :
@@ -1321,7 +1328,7 @@ returns void
 language plpgsql
 security definer
 set search_path = public
-as $$
+as \$\$
 declare r record;
 begin
   for r in
@@ -1345,7 +1352,7 @@ begin
     );
   end loop;
 end;
-$$;
+\$\$;
 
 comment on function public.check_breach_deadlines() is
   'Watchdog 72h notification CNIL (art. 33 RGPD) — exécuté horaire par pg_cron.';
@@ -1356,35 +1363,35 @@ returns void
 language plpgsql
 security definer
 set search_path = public
-as $$
+as \$\$
 begin
   delete from public.legal_request_attempts
   where attempted_at < now() - interval '7 days';
 end;
-$$;
+\$\$;
 
 comment on function public.purge_legal_request_attempts() is
   'Purge legal_request_attempts > 7 jours (Pitfall 6 RESEARCH) — exécuté quotidien.';
 
 -- -- cron.schedule (guardé : DO block si extension présente) ----------------
-do $$
+do \$\$
 begin
   if exists (select 1 from pg_extension where extname = 'pg_cron') then
     -- Watchdog 72h breach : exécution horaire
     perform cron.schedule(
       'breach-72h-watchdog',
       '0 * * * *',
-      $cron$ select public.check_breach_deadlines(); $cron$
+      \$cron\$ select public.check_breach_deadlines(); \$cron\$
     );
     -- Purge rate limit attempts : 03h00 chaque nuit
     perform cron.schedule(
       'legal-request-attempts-purge',
       '0 3 * * *',
-      $cron$ select public.purge_legal_request_attempts(); $cron$
+      \$cron\$ select public.purge_legal_request_attempts(); \$cron\$
     );
   end if;
 end;
-$$;
+\$\$;
 
 -- ─── supabase/migrations/20260508000004_organizations_dpo_fields.sql ─────────────────────────────────────────────────────────────
 
@@ -1433,7 +1440,7 @@ comment on column public.profiles.cgu_version_accepted is
 -- -- Pré-requis : relaxer NOT NULL sur colonnes anonymisables --------------
 -- L'anonymisation art. 17 met prenom/nom/date_naissance/adresse_ligne1/ville
 -- à NULL. Sans cette ALTER, le UPDATE du RPC échoue. Garde le check_postal
--- (974XX) car la valeur NULL passe le check (`code_postal is null or ...`).
+-- (974XX) car la valeur NULL passe le check (\`code_postal is null or ...\`).
 alter table public.patients alter column prenom drop not null;
 alter table public.patients alter column nom drop not null;
 alter table public.patients alter column date_naissance drop not null;
@@ -1460,7 +1467,7 @@ create or replace function public.rgpd_anonymize_patient(
 language plpgsql
 security definer
 set search_path = public, extensions
-as $$
+as \$\$
 declare
   v_org_id uuid;
   v_old_search_hash bytea;
@@ -1526,7 +1533,7 @@ begin
     )
   );
 end;
-$$;
+\$\$;
 
 revoke execute on function public.rgpd_anonymize_patient(uuid, uuid, text) from public, anon;
 grant execute on function public.rgpd_anonymize_patient(uuid, uuid, text) to authenticated;
@@ -1550,7 +1557,7 @@ returns uuid
 language plpgsql
 security definer
 set search_path = public, extensions
-as $$
+as \$\$
 declare
   v_patient_id uuid;
   v_org_id uuid;
@@ -1577,7 +1584,7 @@ begin
 
   return v_patient_id;
 end;
-$$;
+\$\$;
 
 revoke all on function public.nir_match_patient_for_legal_request(uuid, bytea, text, date) from public;
 grant execute on function public.nir_match_patient_for_legal_request(uuid, bytea, text, date) to authenticated, service_role;
@@ -1707,7 +1714,7 @@ create trigger rides_set_updated_at
 -- Aucune colonne sensible chiffrée à filtrer (NIR n'est pas dans rides).
 -- Audit complet via to_jsonb(old) / to_jsonb(new) — pattern Phase 1 patients.
 create or replace function public.rides_audit_trigger()
-returns trigger language plpgsql security definer set search_path = public as $$
+returns trigger language plpgsql security definer set search_path = public as \$\$
 declare action_name text;
 begin
   action_name := 'ride.' || lower(tg_op);
@@ -1723,7 +1730,7 @@ begin
     )
   );
   return coalesce(new, old);
-end; $$;
+end; \$\$;
 
 create trigger rides_audit_trigger
   after insert or update or delete on public.rides
@@ -1792,7 +1799,7 @@ comment on function public.rides_audit_trigger() is
 -- =============================================================================
 -- Crée 1 organization de démo + 3 comptes (dirigeant, régulateur, chauffeur).
 -- À NE JAMAIS exécuter en production. Ce fichier est appliqué automatiquement
--- par `supabase db reset` en local.
+-- par \`supabase db reset\` en local.
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
@@ -1818,7 +1825,7 @@ on conflict (id) do nothing;
 -- limité au contexte local. En staging/prod : invitation via service_role.
 -- -----------------------------------------------------------------------------
 
-do $$
+do \$\$
 declare
   org_id uuid := '00000000-0000-0000-0000-000000000001';
   dirigeant_id uuid := '00000000-0000-0000-0000-000000000010';
@@ -1880,12 +1887,12 @@ begin
   values (chauffeur_id, org_id, 'chauffeur', 'Jean-Marc', 'Técher', 'chauffeur@demo.tap')
   on conflict (id) do nothing;
 end
-$$;
+\$\$;
 
 -- -----------------------------------------------------------------------------
 -- Compte E2E (PLAN-1 helper loginAsRegulateur attend reg-demo@tap.test)
 -- -----------------------------------------------------------------------------
-do $$
+do \$\$
 declare
   org_id uuid := '00000000-0000-0000-0000-000000000001';
   e2e_id uuid := 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
@@ -1908,7 +1915,7 @@ begin
   values (e2e_id, org_id, 'regulateur', 'E2E', 'Régulatrice', 'reg-demo@tap.test')
   on conflict (id) do nothing;
 end
-$$;
+\$\$;
 
 -- ─── seed.demo.sql ───────────────────────────────────────────────────
 
@@ -1918,7 +1925,7 @@ $$;
 -- Applique APRÈS supabase/seed.sql. Ne contient AUCUNE donnée réelle :
 --   • Noms réunionnais courants mais sans lien réel (Hoarau, Payet, Grondin,
 --     Boyer, Dijoux, Maillot, Lebon, Robert, Vergoz, Bègue)
---   • NIRs fictifs avec clé de contrôle Luhn correcte (algorithme `97 - n mod 97`)
+--   • NIRs fictifs avec clé de contrôle Luhn correcte (algorithme \`97 - n mod 97\`)
 --   • Adresses de communes 974 (Saint-Denis, Saint-Pierre, Le Tampon, etc.)
 --   • Téléphones format La Réunion (0262 fixe / 0692 mobile) NON attribués
 --
@@ -1926,24 +1933,24 @@ $$;
 -- réelle ne doit être co-localisée avec le seed démo).
 --
 -- Pour ne charger ce seed qu'en preview/staging :
---   psql "$SUPABASE_DB_URL" -f supabase/seed.sql
---   psql "$SUPABASE_DB_URL" -f supabase/seed.demo.sql   (preview/staging seulement)
+--   psql "\$SUPABASE_DB_URL" -f supabase/seed.sql
+--   psql "\$SUPABASE_DB_URL" -f supabase/seed.demo.sql   (preview/staging seulement)
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
 -- 10 patients fictifs réunionnais
 -- -----------------------------------------------------------------------------
 -- Helper inline : calcule la clé NIR Luhn (97 - (n mod 97)) pour un NIR sans clé
--- Format NIR Réunion : `1AAMMddCCCNNN` ou `2AAMMddCCCNNN` (13 chiffres) + clé 2 chiffres
+-- Format NIR Réunion : \`1AAMMddCCCNNN\` ou \`2AAMMddCCCNNN\` (13 chiffres) + clé 2 chiffres
 -- où CCC = code commune (974xx pour La Réunion sur ce format simplifié de démo)
 -- -----------------------------------------------------------------------------
 
-do $$
+do \$\$
 declare
   org_id uuid := '00000000-0000-0000-0000-000000000001';
   regulateur_id uuid := '00000000-0000-0000-0000-000000000020';
   -- Edge Function NIR : on simule le chiffrement par null en seed démo
-  -- (les fiches sans NIR sont valides ; affichage = `••• ••• ••• ••• •••`)
+  -- (les fiches sans NIR sont valides ; affichage = \`••• ••• ••• ••• •••\`)
   -- Les NIRs réels seront ajoutés depuis l'UI une fois Edge Function configurée.
 begin
   insert into public.patients (
@@ -2052,7 +2059,7 @@ begin
   on conflict (id) do nothing;
 
   raise notice 'Seed démo : 10 patients fictifs créés (organization_id=%)', org_id;
-end $$;
+end \$\$;
 
 -- -----------------------------------------------------------------------------
 -- Données futures (commentées tant que migrations Phase 4+ pas en place)
@@ -2068,3 +2075,4 @@ end $$;
 -- ─── DONE ─────────────────────────────────────────────────────────────
 
 select '✅ Setup terminé : migrations + seed appliqués' as status;
+`;
