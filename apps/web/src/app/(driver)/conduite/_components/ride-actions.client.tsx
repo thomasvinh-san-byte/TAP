@@ -10,15 +10,17 @@ import { formatTimeFr } from '@/lib/dates-fr';
 import { EndRideModal } from './end-ride-modal.client';
 
 /**
- * CTA contextuel d'une course chauffeur (Phase 3 / 03-E).
+ * CTA contextuel d'une course (Phase 3 / 03-E).
  *
- * Statut → action :
- *   - assignee  → bouton primaire "Démarrer la course" (startRideAction)
- *   - en_cours  → bouton primaire "Clôturer la course" (ouvre EndRideModal)
- *   - terminee  → badge "Terminée à HHhMM"
- *   - annulee_* → badge neutre "Course annulée"
+ * Statut → action (couleurs alignées sur conduite-maquette.html) :
+ *   - assignee  → bouton primary « Démarrer la course »
+ *   - en_cours  → bouton warning orange « Clôturer la course »
+ *   - terminee  → badge success h-14 « Terminée à HHhMM »
+ *   - annulee_* → badge neutre h-14 « Course annulée »
  *
- * Hauteur fixe h-14 (56px) pour cohérence pouce mobile (CLAUDE.md § 5).
+ * Hauteur fixe h-14 (56 px) pour cible tactile pouce mobile (CLAUDE.md § 5).
+ * Variant `sticky` : utilisé en page détail, le CTA se colle en bas du
+ * viewport pour rester accessible sans scroll.
  */
 
 interface Props {
@@ -68,7 +70,7 @@ export function RideActions({
 
   const stickyCls =
     variant === 'sticky'
-      ? 'sticky bottom-16 mx-auto w-full max-w-[608px]'
+      ? 'sticky bottom-0 -mx-16 sm:-mx-24 px-16 sm:px-24 py-12 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85 border-t border-border'
       : '';
 
   if (status === 'en_cours') {
@@ -78,7 +80,7 @@ export function RideActions({
           <Button
             type="button"
             onClick={() => setEndOpen(true)}
-            className="h-14 w-full text-base font-semibold"
+            className="h-14 w-full text-base font-semibold bg-warning text-white hover:bg-warning/90 focus-visible:ring-warning"
           >
             Clôturer la course
           </Button>

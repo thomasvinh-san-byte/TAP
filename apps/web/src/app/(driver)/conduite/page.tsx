@@ -1,4 +1,4 @@
-import { CalendarX } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { listMyRidesToday } from './_lib/queries';
 import { RideCard } from './_components/ride-card.client';
 
@@ -6,11 +6,11 @@ export const metadata = { title: 'Ma journée — TAP' };
 export const dynamic = 'force-dynamic';
 
 /**
- * Page chauffeur — vue « Ma journée » (Phase 3 / 03-E).
+ * Page « Ma journée » (Phase 3 / 03-E).
  *
  * RSC : `listMyRidesToday()` filtre RLS + applicatif (driver_id ↔ profil
  * authentifié) et borne la journée à `Indian/Reunion`. Cartes empilées
- * verticalement, vide → empty state CalendarX (référence Things 3).
+ * verticalement, vide → empty state sobre (cf. règle ton §3).
  */
 export default async function ConduitePage() {
   const rides = await listMyRidesToday();
@@ -18,16 +18,14 @@ export default async function ConduitePage() {
   if (rides.length === 0) {
     return (
       <div className="flex flex-col items-center gap-12 py-48 text-center">
-        <CalendarX
+        <Calendar
           className="h-48 w-48 text-muted-foreground"
           aria-hidden
+          strokeWidth={1.5}
         />
-        <h1 className="text-lg font-semibold">
-          Aucune course prévue aujourd'hui
-        </h1>
+        <h1 className="text-lg font-semibold">Aucune course planifiée</h1>
         <p className="max-w-[320px] text-sm text-muted-foreground">
-          Lorsque la régulation vous assignera des courses, elles apparaîtront
-          ici.
+          Les courses du jour s'afficheront ici.
         </p>
       </div>
     );
@@ -41,7 +39,7 @@ export default async function ConduitePage() {
           {rides.length} course{rides.length > 1 ? 's' : ''}
         </span>
       </header>
-      <ul className="space-y-16" aria-label="Mes courses du jour">
+      <ul className="space-y-16" aria-label="Courses du jour">
         {rides.map((r) => (
           <li key={r.id}>
             <RideCard ride={r} />

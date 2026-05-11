@@ -43,11 +43,11 @@ interface Props {
 }
 
 /**
- * Modal de clôture chauffeur (Phase 3 / 03-E).
+ * Modal de clôture (Phase 3 / 03-E — cf. conduite-maquette.html).
  *
  * Layout responsive : bottom-sheet sur mobile (inset-x-0 bottom-0,
- * rounded-t-xl), centré sur ≥ sm (référence Stripe Checkout mobile +
- * Mercury). Inputs gros et tactiles, focus immédiat sur le tarif.
+ * rounded-t-xl), centré sur ≥ sm. Inputs gros et tactiles, focus
+ * immédiat sur le tarif, format virgule française accepté.
  *
  * Submission : endRideAction (en_cours → terminee + tarif + paiement).
  * Toast Sonner sur succès, refresh route pour recharger la liste.
@@ -116,7 +116,7 @@ export function EndRideModal({
         <div className="space-y-4">
           <DialogTitle className="text-lg">Clôturer la course</DialogTitle>
           <DialogDescription className="text-sm">
-            Saisir le tarif et le moyen de paiement.
+            Saisis le tarif et le mode de paiement.
           </DialogDescription>
         </div>
 

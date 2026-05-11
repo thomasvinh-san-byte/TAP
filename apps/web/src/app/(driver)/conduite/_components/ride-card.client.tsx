@@ -9,12 +9,17 @@ import type { RideForDriverList } from '../_lib/queries';
 import { RideActions } from './ride-actions.client';
 
 /**
- * Carte course chauffeur (Phase 3 / 03-E — référence Things 3 today view).
+ * Carte course (Phase 3 / 03-E — cf. conduite-maquette.html).
  *
- * - Bandeau couleur 4px en haut, sémantique selon statut
- * - Heure + patient en gros, adresses denses au-dessus du CTA
- * - Click sur la carte (hors CTA) → /conduite/[rideId] détail
- * - CTA pleine largeur h-14 (56px) en bas
+ *   - Bandeau couleur 4 px en haut, sémantique selon statut
+ *   - Heure scheduled_at text-2xl tabular-nums + patient + meta muted
+ *     (mode transport · urgence)
+ *   - Trajet pickup → dropoff dans un sous-bloc `bg-muted/50` ; le
+ *     contraste léger délimite visuellement l'information « adresses »
+ *     sans alourdir.
+ *   - Click carte (hors CTA) → page détail /conduite/[rideId].
+ *   - CTA pleine largeur h-14 (56 px) en bas, couleur selon statut
+ *     (cf. <RideActions>).
  */
 
 const STATUS_BAR: Record<string, string> = {
@@ -25,6 +30,27 @@ const STATUS_BAR: Record<string, string> = {
   annulee_patient: 'bg-destructive/60',
   annulee_chauffeur: 'bg-destructive/60',
 };
+
+const MODE_LABEL: Record<string, string> = {
+  taxi_conventionne: 'Taxi conv.',
+  tpmr: 'TPMR',
+  vsl: 'VSL',
+  ambulance: 'Ambulance',
+};
+
+const URGENCY_LABEL: Record<string, string> = {
+  programmee: 'Programmée',
+  urgente: 'Urgente',
+  immediate: 'Immédiate',
+};
+
+function buildMeta(ride: RideForDriverList): string {
+  const parts = [
+    MODE_LABEL[ride.transport_mode] ?? ride.transport_mode,
+    URGENCY_LABEL[ride.urgency] ?? ride.urgency,
+  ];
+  return parts.filter(Boolean).join(' · ');
+}
 
 interface Props {
   ride: RideForDriverList;
@@ -62,10 +88,13 @@ export function RideCard({ ride }: Props): JSX.Element {
             <div className="text-base font-semibold truncate">
               {fullName || 'Patient inconnu'}
             </div>
+            <div className="mt-4 text-xs text-muted-foreground">
+              {buildMeta(ride)}
+            </div>
           </div>
         </div>
 
-        <div className="mt-16 space-y-8 text-base">
+        <div className="mt-16 rounded-md bg-muted/50 px-12 py-12 space-y-4 text-base">
           <div className="flex gap-12">
             <MapPin
               className="h-16 w-16 shrink-0 text-muted-foreground mt-4"
