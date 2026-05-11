@@ -38,12 +38,15 @@ interface Props {
 }
 
 /**
- * Détail course chauffeur pleine page (Phase 3 / 03-E).
+ * Détail course pleine page (Phase 3 / 03-E — cf. conduite-maquette.html).
  *
- * - Bandeau couleur statut + retour /conduite
- * - Patient + heure en grand
- * - Adresses complètes (rue + cp/ville) avec téléphone tel:
- * - CTA sticky bottom-16 max-w aligné sur le main 640px
+ *   - Bandeau couleur statut + lien retour /conduite
+ *   - Patient + heure en grand, téléphone patient cliquable (tel:)
+ *   - Adresses complètes (rue + cp + ville) groupées avec MapPin /
+ *     ArrowDown / Navigation
+ *   - CTA contextuel sticky bottom-0 (au ras du bas du viewport,
+ *     barre de fond translucide pour rester visible au-dessus du
+ *     contenu qui défile).
  */
 export function RideDetail({ ride }: Props): JSX.Element {
   const fullName = `${ride.patient.nom} ${ride.patient.prenom}`.trim();
