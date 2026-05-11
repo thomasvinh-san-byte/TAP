@@ -27,10 +27,10 @@ export default async function CoursesPage() {
 
   return (
     <div className="space-y-24">
-      <header className="flex flex-col gap-12 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-col gap-4">
+      <header className="flex flex-col gap-16 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-4 min-w-0">
           <h1 className="text-2xl font-semibold tracking-tight">Courses</h1>
-          <p className="hidden sm:block text-sm text-muted-foreground">
+          <p className="hidden md:block text-sm text-muted-foreground">
             Astuce :{' '}
             <kbd className="rounded border border-border bg-muted px-4 py-2 text-xs font-mono">
               Cmd/Ctrl+Shift+K
