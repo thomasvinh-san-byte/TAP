@@ -17,10 +17,15 @@ import { createSupabaseMiddlewareClient } from '@tap/database';
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Pages toujours accessibles sans Supabase (statiques)
+  // Pages toujours accessibles sans Supabase (statiques / setup)
   const isWelcome = pathname === '/welcome';
+  const isSetup = pathname === '/setup';
 
   // Détection précoce env vars absentes — pas de Supabase = redirect /welcome
+  // Stratégie de bring-up :
+  //   1. Sans env vars        → /welcome (« connecte Vercel à Supabase »)
+  //   2. Avec env vars + DB vide → /setup (bouton « Initialiser »)
+  //   3. Avec env vars + DB OK  → /login (comportement normal)
   const supabaseConfigured =
     !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
     !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -33,6 +38,21 @@ export async function middleware(request: NextRequest) {
     welcomeUrl.pathname = '/welcome';
     welcomeUrl.search = '';
     return NextResponse.redirect(welcomeUrl);
+  }
+
+  // Si env vars OK et user tape /welcome, on le pousse vers /setup pour
+  // débloquer la dernière étape. /setup détecte si la DB est vide et soit
+  // affiche le bouton init, soit redirect vers /login.
+  if (isWelcome) {
+    const setupUrl = request.nextUrl.clone();
+    setupUrl.pathname = '/setup';
+    setupUrl.search = '';
+    return NextResponse.redirect(setupUrl);
+  }
+
+  // /setup reste toujours accessible — c'est lui qui détecte l'état DB.
+  if (isSetup) {
+    return NextResponse.next();
   }
 
   const response = NextResponse.next({
