@@ -60,7 +60,7 @@ begin
   )
   on conflict (id) do update
     set encrypted_password = excluded.encrypted_password,
-        email_confirmed_at = coalesce(auth.users.email_confirmed_at, excluded.email_confirmed_at),
+        email_confirmed_at = excluded.email_confirmed_at,
         updated_at = now();
 
   -- auth.identities — provider_id = user_id::text pour le provider 'email'.
