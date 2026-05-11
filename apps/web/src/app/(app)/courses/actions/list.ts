@@ -1,0 +1,67 @@
+'use server';
+
+/**
+ * Wrappers Server Actions exposant les queries RSC du module Courses aux
+ * Client Components via useQuery (DEC-005 : pas de useEffect-fetch).
+ *
+ * Convention : on importe dynamiquement `../_lib/queries` (resp.
+ * `../_lib/queries-enriched`, re-exporté depuis `../_lib/queries`) pour
+ * éviter qu'un éventuel import statique de `next/headers` ne contamine
+ * un bundle client. L'exécution serveur est garantie par `'use server'`.
+ */
+
+import { z } from 'zod';
+
+const listRidesParamsSchema = z.object({
+  status: z.string().optional(),
+  transport_mode: z.string().optional(),
+  urgency: z.string().optional(),
+});
+
+/** RidesList Wave 4 (Phase 2) — version simple (sans jointures). */
+export async function listRidesAction(
+  params: z.infer<typeof listRidesParamsSchema> = {},
+) {
+  const parsed = listRidesParamsSchema.safeParse(params);
+  if (!parsed.success) return [];
+  const { listRides } = await import('../_lib/queries');
+  return listRides(parsed.data as Parameters<typeof listRides>[0]);
+}
+
+/** Variante enrichie : courses + patient/driver/vehicle joints (03-D). */
+export async function listRidesEnrichedAction(
+  params: z.infer<typeof listRidesParamsSchema> = {},
+) {
+  const parsed = listRidesParamsSchema.safeParse(params);
+  if (!parsed.success) return [];
+  const { listRidesEnriched } = await import('../_lib/queries');
+  return listRidesEnriched(
+    parsed.data as Parameters<typeof listRidesEnriched>[0],
+  );
+}
+
+/** Détail d'une course pour le drawer régulateur (03-D). */
+export async function getRideByIdAction(rideId: string) {
+  if (!z.string().uuid().safeParse(rideId).success) return null;
+  const { getRideByIdEnriched } = await import('../_lib/queries');
+  return getRideByIdEnriched(rideId);
+}
+
+/** Audit log d'une course (drawer timeline — 03-D). */
+export async function getRideAuditLogAction(rideId: string) {
+  if (!z.string().uuid().safeParse(rideId).success) return [];
+  const { getRideAuditLog } = await import('../_lib/queries');
+  return getRideAuditLog(rideId);
+}
+
+/** Référentiel drivers actifs (modal assignation — 03-D). */
+export async function listActiveDriversAction() {
+  const { listActiveDrivers } = await import('../_lib/queries');
+  return listActiveDrivers();
+}
+
+/** Référentiel vehicles actifs (modal assignation — 03-D). */
+export async function listActiveVehiclesAction() {
+  const { listActiveVehicles } = await import('../_lib/queries');
+  return listActiveVehicles();
+}
