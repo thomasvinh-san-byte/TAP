@@ -18,6 +18,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { parseFreeformDate, rideExpressInputSchema } from '@tap/shared';
 import { createRideAction, upsertRideDraft } from '../actions';
+import { getPatientByIdAction } from '../../patients/actions';
 import { PatientPickerField } from './ride-patient-picker.client';
 import {
   AddressField,
@@ -133,8 +134,12 @@ export function RideExpressModal(props: Props): JSX.Element {
         return next;
       });
       setFieldErrors((prev) => {
-        if (!(key in prev)) return prev;
-        const { [key as string]: _removed, ...rest } = prev;
+        // Cas spécifique : `dateInput` est la string libre saisie par
+        // l'utilisateur ; le champ zod correspondant est `scheduled_at`.
+        // On clear donc `scheduled_at` quand l'utilisateur retape la date.
+        const errKey = (key as string) === 'dateInput' ? 'scheduled_at' : (key as string);
+        if (!prev[errKey]) return prev;
+        const { [errKey]: _omit, ...rest } = prev;
         return rest;
       });
     },
@@ -148,6 +153,31 @@ export function RideExpressModal(props: Props): JSX.Element {
     },
     [],
   );
+
+  // Synchronise `patientLabel` quand le modal est ouvert avec un
+  // `initialPatientId` (drawer patient → 03-G). Sans ce sync, l'utilisateur
+  // verrait « Sélectionné : (vide) » alors que `form.patient_id` est bien
+  // posé — confusion garantie. Une seule requête à la première ouverture,
+  // pas de retry si la lecture échoue (RLS bloque → patient hors org).
+  const initialPatientId = props.initialPatientId;
+  useEffect(() => {
+    if (!initialPatientId || patientLabel) return;
+    let cancelled = false;
+    void getPatientByIdAction(initialPatientId)
+      .then((p) => {
+        if (cancelled || !p) return;
+        const nom = (p as { nom?: string | null }).nom ?? '';
+        const prenom = (p as { prenom?: string | null }).prenom ?? '';
+        const label = `${prenom} ${nom}`.trim();
+        if (label) setPatientLabel(label);
+      })
+      .catch(() => {
+        /* lecture impossible — label vide, pas bloquant */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [initialPatientId, patientLabel]);
 
   const handlePatientSelect = useCallback(
     (id: string, label: string) => {
@@ -238,9 +268,7 @@ export function RideExpressModal(props: Props): JSX.Element {
 
           <DateFreeformField
             value={form.dateInput ?? ''}
-            onChange={(v) =>
-              setForm((prev) => ({ ...prev, dateInput: v }))
-            }
+            onChange={(v) => updateField('dateInput', v)}
             onParsed={(iso) => updateField('scheduled_at', iso)}
             error={dateError ?? fieldErrors.scheduled_at ?? null}
             onError={setDateError}
