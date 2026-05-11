@@ -21,6 +21,10 @@ export interface PatientListItem {
   telephone: string | null;
   canal_contact_prefere: 'sms' | 'appel' | 'aucun';
   archive: boolean;
+  /** ISO timestamp de la dernière course non archivée (≤ maintenant). */
+  last_ride_at?: string | null;
+  /** ISO timestamp de la prochaine course non archivée (> maintenant). */
+  next_ride_at?: string | null;
 }
 
 /**
@@ -30,6 +34,12 @@ export interface PatientListItem {
  * - `q` vide → retourne les 20 premiers patients non archivés (liste par défaut).
  * - `q` 1 char → retourne `[]` SANS aller en base (économie + alignement UI D-10).
  * - `q` ≥ 2 chars → RPC ; top 10 triés par similarity desc.
+ *
+ * Phase 3 (03-D) : pour chaque patient retourné, on ramène en deuxième
+ * round-trip `last_ride_at` (max scheduled_at ≤ now) et `next_ride_at`
+ * (min scheduled_at > now). On évite d'étendre la RPC `search_patients`
+ * (migration coûteuse pour Passe 1) en faisant 2 requêtes paginées sur
+ * `rides` (RLS-filtré same-org) puis aggregation JS.
  */
 export async function searchPatients(
   query: string,
@@ -39,32 +49,92 @@ export async function searchPatients(
   if (trimmed.length > 0 && trimmed.length < 2) return [];
 
   const supabase = createClient();
+  let items: PatientListItem[];
 
   if (trimmed.length >= 2) {
-    // RPC créée par PLAN-2 Wave 1, retourne setof patients_safe.
-    // Cast args en `as never` : @supabase/supabase-js 2.105 attend un type
-    // `Args = never` par défaut sur rpc() ; le typage strict s'effectue via
-    // l'inférence du nom de fonction côté Database['public']['Functions'].
     const { data, error } = await supabase.rpc(
       'search_patients',
       { q: trimmed } as never,
     );
     if (error) throw new Error('Recherche impossible');
     const rows = (data ?? []) as PatientSafeRow[];
-    return rows.map(toListItem);
+    items = rows.map(toListItem);
+  } else {
+    const { data, error } = await supabase
+      .from('patients_safe')
+      .select(
+        'id, nom, prenom, telephone, canal_contact_prefere, archive',
+      )
+      .eq('archive', false)
+      .order('nom', { ascending: true })
+      .limit(20);
+    if (error) throw new Error('Recherche impossible');
+    items = (data ?? []).map(toListItem);
   }
 
-  // Liste par défaut : 20 premiers patients non archivés depuis la vue safe.
-  const { data, error } = await supabase
-    .from('patients_safe')
-    .select(
-      'id, nom, prenom, telephone, canal_contact_prefere, archive',
-    )
-    .eq('archive', false)
-    .order('nom', { ascending: true })
-    .limit(20);
-  if (error) throw new Error('Recherche impossible');
-  return (data ?? []).map(toListItem);
+  if (items.length === 0) return items;
+  await hydratePatientRideAggregates(supabase, items);
+  return items;
+}
+
+/**
+ * Mute les items reçus en peuplant `last_ride_at` / `next_ride_at`.
+ *
+ * Stratégie : SELECT id de course + patient_id pour les patients de la
+ * liste, tri scheduled_at asc, agrégation JS. Limit 500 pour borner le
+ * payload (≤ 20 patients × 25 courses récentes = volume négligeable).
+ * RLS filtre déjà par organization_id.
+ */
+async function hydratePatientRideAggregates(
+  supabase: ReturnType<typeof createClient>,
+  items: PatientListItem[],
+): Promise<void> {
+  const ids = items.map((p) => p.id);
+  if (ids.length === 0) return;
+
+  const nowIso = new Date().toISOString();
+
+  const [pastRes, nextRes] = await Promise.all([
+    supabase
+      .from('rides')
+      .select('patient_id, scheduled_at')
+      .in('patient_id', ids)
+      .lte('scheduled_at', nowIso)
+      .eq('archive', false)
+      .order('scheduled_at', { ascending: false })
+      .limit(500),
+    supabase
+      .from('rides')
+      .select('patient_id, scheduled_at')
+      .in('patient_id', ids)
+      .gt('scheduled_at', nowIso)
+      .eq('archive', false)
+      .order('scheduled_at', { ascending: true })
+      .limit(500),
+  ]);
+
+  const lastByPatient = new Map<string, string>();
+  for (const row of (pastRes.data ?? []) as {
+    patient_id: string;
+    scheduled_at: string;
+  }[]) {
+    if (!lastByPatient.has(row.patient_id)) {
+      lastByPatient.set(row.patient_id, row.scheduled_at);
+    }
+  }
+  const nextByPatient = new Map<string, string>();
+  for (const row of (nextRes.data ?? []) as {
+    patient_id: string;
+    scheduled_at: string;
+  }[]) {
+    if (!nextByPatient.has(row.patient_id)) {
+      nextByPatient.set(row.patient_id, row.scheduled_at);
+    }
+  }
+  for (const p of items) {
+    p.last_ride_at = lastByPatient.get(p.id) ?? null;
+    p.next_ride_at = nextByPatient.get(p.id) ?? null;
+  }
 }
 
 function toListItem(row: Partial<PatientSafeRow>): PatientListItem {

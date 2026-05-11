@@ -21,18 +21,58 @@
 import { createClient } from '@/lib/supabase/server';
 import type { Database } from '@tap/database/types';
 
-export type RideRow = Database['public']['Tables']['rides']['Row'];
+export type RideRow = Database['public']['Tables']['rides']['Row'] & {
+  // TODO(types) : colonnes Passe 1 absentes de types.gen.ts (régénérées nightly).
+  driver_id?: string | null;
+  vehicle_id?: string | null;
+  started_at?: string | null;
+  ended_at?: string | null;
+  tarif_amount_eur?: number | null;
+  tarif_source?: string | null;
+  payment_status?: string | null;
+  payment_method?: string | null;
+  payment_received_at?: string | null;
+};
 export type RideDraftRow = Database['public']['Tables']['ride_draft']['Row'];
 export type RideTransportMode = Database['public']['Enums']['ride_transport_mode'];
 export type RideUrgency = Database['public']['Enums']['ride_urgency'];
 export type RideStatus = Database['public']['Enums']['ride_status'];
+
+export type PatientMin = {
+  id: string;
+  nom: string;
+  prenom: string;
+};
+
+export type DriverMin = {
+  id: string;
+  nom_affichage: string;
+  type_permis: string[];
+};
+
+export type VehicleMin = {
+  id: string;
+  immatriculation: string;
+  marque: string | null;
+  modele: string | null;
+  type: string;
+};
+
+export type RideRowEnriched = RideRow & {
+  patient: PatientMin | null;
+  driver: DriverMin | null;
+  vehicle: VehicleMin | null;
+};
 
 const RIDE_COLUMNS =
   'id, organization_id, patient_id, scheduled_at, ' +
   'pickup_address, pickup_postal_code, pickup_city, ' +
   'dropoff_address, dropoff_postal_code, dropoff_city, ' +
   'transport_mode, urgency, status, notes_regulateur, ' +
-  'archive, created_at, updated_at, created_by, updated_by';
+  'archive, created_at, updated_at, created_by, updated_by, ' +
+  'driver_id, vehicle_id, started_at, ended_at, ' +
+  'tarif_amount_eur, tarif_source, payment_status, payment_method, ' +
+  'payment_received_at';
 
 /**
  * Liste des courses RLS-filtrées (org courante).
@@ -78,6 +118,22 @@ export async function listDrafts(): Promise<RideDraftRow[]> {
   if (error) throw new Error('Lecture brouillons impossible.');
   return (data ?? []) as RideDraftRow[];
 }
+
+/**
+ * Listes enrichies + référentiels drivers/vehicles + audit log → fichier
+ * dédié pour respecter la limite CLAUDE.md § 11 (≤ 300 lignes par fichier) :
+ *   - listRidesEnriched / getRideByIdEnriched / getRideAuditLog
+ *   - listActiveDrivers / listActiveVehicles
+ * Cf. `./queries-enriched.ts`.
+ */
+export {
+  listRidesEnriched,
+  getRideByIdEnriched,
+  getRideAuditLog,
+  listActiveDrivers,
+  listActiveVehicles,
+  type RideAuditEntry,
+} from './queries-enriched';
 
 /**
  * Top 5 adresses pickup distinctes du patient (specifics §11.4).
