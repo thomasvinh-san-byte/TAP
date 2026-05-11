@@ -51,11 +51,7 @@ export async function signInAction(
   });
 
   if (error) {
-    // DEBUG TEMPORAIRE — diagnostic blocage login 2026-05-11
-    // À retirer dès que la cause est identifiée (voir issue/PR de fix).
-    return {
-      error: `[debug] ${error.message} (code: ${error.code ?? 'n/a'}, status: ${error.status ?? 'n/a'})`,
-    };
+    return { error: 'Identifiants invalides ou compte inexistant.' };
   }
 
   const next = parsed.data.next;
