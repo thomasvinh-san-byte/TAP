@@ -27,10 +27,17 @@ export async function signInAction(
   _prev: SignInState,
   formData: FormData,
 ): Promise<SignInState> {
+  // FormData.get() retourne null pour un champ absent ou vide (cas d'un hidden
+  // input "next" non renseigné). zod .optional() n'accepte que undefined → on
+  // coerce null → undefined avant le parse.
+  const rawEmail = formData.get('email');
+  const rawPassword = formData.get('password');
+  const rawNext = formData.get('next');
+
   const parsed = signInSchema.safeParse({
-    email: formData.get('email'),
-    password: formData.get('password'),
-    next: formData.get('next'),
+    email: rawEmail ?? undefined,
+    password: rawPassword ?? undefined,
+    next: rawNext ?? undefined,
   });
 
   if (!parsed.success) {
