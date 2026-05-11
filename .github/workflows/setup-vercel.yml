@@ -25,6 +25,16 @@ on:
         description: "Régénérer les 4 app secrets (NIR/JWT/salt) ? Si false, conserve ceux existants."
         type: boolean
         default: false
+  # Auto-trigger : si quelqu'un modifie ce workflow lui-même sur main, on
+  # le re-run pour pousser la nouvelle config sur Vercel/Supabase. Safe car
+  # la génération de secrets est idempotente par défaut (récupère les
+  # valeurs existantes depuis Vercel, ne régénère que celles manquantes).
+  # Pour forcer la régénération : utiliser workflow_dispatch avec
+  # regenerate_app_secrets=true.
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/setup-vercel.yml
 
 jobs:
   setup:
