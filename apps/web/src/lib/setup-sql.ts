@@ -4,21 +4,7 @@
  * Régénération : ./scripts/build-setup-sql.sh
  */
 
-export const SETUP_SQL = String.raw`
--- ==============================================================================
--- TAP Régulation — Setup complet en une seule fois (migrations + seed démo)
--- ==============================================================================
--- À copier-coller intégralement dans Supabase Studio → SQL Editor → Run.
--- Fichier généré automatiquement par scripts/build-setup-sql.sh.
---
--- Contenu :
---   - 10 migrations (001 → 010)
---   - seed.sql       : 1 organization + 4 comptes auth (dirigeant/régulateur/chauffeur)
---   - seed.demo.sql  : 10 patients fictifs réunionnais + notes + contraintes
---
--- Idempotent : peut être ré-exécuté sans casser les données existantes.
--- ==============================================================================
-
+export const MIGRATIONS_SQL = String.raw`
 
 -- ─── supabase/migrations/20260506000001_foundations.sql ─────────────────────────────────────────────────────────────
 
@@ -1791,6 +1777,9 @@ comment on table public.ride_draft is
   'Brouillons de saisie course (RGPD — DB plutôt que localStorage). D-02.';
 comment on function public.rides_audit_trigger() is
   'Trigger audit rides — INSERT/UPDATE/DELETE → audit_logs (action ride.*). D-10.';
+`;
+
+export const SEED_SQL = String.raw`
 
 -- ─── seed.sql ────────────────────────────────────────────────────────
 
@@ -2069,8 +2058,4 @@ end \$\$;
 --   - 200 rides historiques sur 60 derniers jours pour KPIs et démo cockpit
 -- TODO Phase 9 (PWA chauffeur) :
 --   - 6 chauffeurs avec credentials pour démo conformité (Phase 15)
-
--- ─── DONE ─────────────────────────────────────────────────────────────
-
-select '✅ Setup terminé : migrations + seed appliqués' as status;
 `;
