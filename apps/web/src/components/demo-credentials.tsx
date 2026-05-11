@@ -1,9 +1,10 @@
 /**
- * DemoCredentials — affiche les comptes de démo SEULEMENT en preview/staging.
+ * DemoCredentials — affiche les comptes de démo si l'env var est posée.
  *
  * Activation via env var `NEXT_PUBLIC_SHOW_DEMO_CREDENTIALS=true`.
- * En production commerciale, l'env var doit être absente ou = `false` —
- * sinon les comptes démo sont visibles publiquement (fuite d'identifiants).
+ * V1 démo pré-commerciale : flag = true sur prod ET preview (la prod EST la
+ * démo). Quand on aura un premier client payant, retirer le flag de la prod
+ * via setup-vercel.yml (passer "$ALL" → "$PREVIEW").
  *
  * Le composant est un Server Component (pas d'interactivité, pas de state).
  */
