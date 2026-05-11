@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maquette /conduite — Vision chauffeur (TAP)</title>
+<style>
+  :root {
+    --primary: hsl(217 92% 32%);
+    --primary-fg: white;
+    --accent: hsl(14 78% 55%);
+    --accent-fg: white;
+    --success: hsl(142 71% 35%);
+    --success-bg: hsl(142 71% 95%);
+    --warning: hsl(32 95% 44%);
+    --warning-bg: hsl(38 92% 95%);
+    --info: hsl(217 92% 50%);
+    --info-bg: hsl(217 92% 96%);
+    --muted-bg: hsl(0 0% 96%);
+    --muted-fg: hsl(0 0% 45%);
+    --border: hsl(0 0% 90%);
+    --border-strong: hsl(0 0% 82%);
+    --card: white;
+    --bg-driver: hsl(45 100% 99%); /* tint subtil chaud — contexte chauffeur */
+    --fg: hsl(0 0% 9%);
+    --fg-strong: hsl(0 0% 5%);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-feature-settings: 'tnum', 'cv11';
+    margin: 0;
+    padding: 48px 32px;
+    background: hsl(220 14% 96%);
+    color: var(--fg);
+    line-height: 1.5;
+  }
+
+  .page-title {
+    max-width: 1400px;
+    margin: 0 auto 48px;
+  }
+
+  .page-title h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 8px;
+    color: var(--fg-strong);
+  }
+
+  .page-title p {
+    margin: 0;
+    color: var(--muted-fg);
+    font-size: 14px;
+  }
+
+  .layout {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    align-items: start;
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted-fg);
+    margin: 0 0 16px;
+  }
+
+  /* ============ DEVICE FRAMES ============ */
+
+  .device {
+    background: var(--bg-driver);
+    border: 1px solid var(--border-strong);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px hsl(0 0% 0% / 0.06);
+  }
+
+  .device-mobile {
+    width: 375px;
+    margin: 0 auto;
+  }
+
+  .device-desktop {
+    width: 100%;
+  }
+
+  /* ============ APP HEADER ============ */
+
+  .app-header {
+    height: 56px;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border);
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .app-header-brand {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .app-header-brand strong {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .app-header-brand span {
+    font-size: 13px;
+    color: var(--muted-fg);
+  }
+
+  .app-header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .icon-button {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted-fg);
+    cursor: pointer;
+    border-radius: 6px;
+  }
+
+  .icon-button:hover {
+    background: var(--muted-bg);
+    color: var(--fg);
+  }
+
+  .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--success);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* ============ MAIN CONTENT ============ */
+
+  .app-main {
+    padding: 24px;
+  }
+
+  .app-main-mobile {
+    padding: 16px;
+  }
+
+  .main-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    color: var(--fg-strong);
+  }
+
+  .main-subtitle {
+    margin: 0 0 24px;
+    color: var(--muted-fg);
+    font-size: 14px;
+  }
+
+  /* ============ RIDE CARD ============ */
+
+  .ride-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .ride-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px hsl(0 0% 0% / 0.04);
+  }
+
+  .ride-card-banner {
+    height: 4px;
+    width: 100%;
+  }
+
+  .ride-card-banner-assignee { background: hsl(0 0% 75%); }
+  .ride-card-banner-encours  { background: var(--warning); }
+  .ride-card-banner-terminee { background: var(--success); }
+
+  .ride-card-body {
+    padding: 20px 20px 16px;
+  }
+
+  .ride-card-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .ride-card-time {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--fg-strong);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  .ride-card-patient {
+    flex: 1;
+  }
+
+  .ride-card-patient-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--fg-strong);
+    line-height: 1.3;
+  }
+
+  .ride-card-patient-meta {
+    font-size: 13px;
+    color: var(--muted-fg);
+    margin-top: 2px;
+  }
+
+  .ride-card-trajet {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    background: var(--muted-bg);
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+
+  .ride-card-trajet-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14px;
+  }
+
+  .ride-card-trajet-line svg {
+    width: 16px;
+    height: 16px;
+    color: var(--muted-fg);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .ride-card-trajet-text {
+    color: var(--fg);
+    line-height: 1.4;
+  }
+
+  .ride-card-trajet-arrow {
+    margin-left: 7px;
+    color: hsl(0 0% 70%);
+  }
+
+  .ride-card-trajet-arrow svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* ============ PRIMARY ACTION ============ */
+
+  .btn-primary {
+    width: 100%;
+    height: 56px;
+    border-radius: 10px;
+    background: var(--primary);
+    color: var(--primary-fg);
+    border: none;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: filter 150ms ease-out;
+  }
+
+  .btn-primary:hover {
+    filter: brightness(1.1);
+  }
+
+  .btn-warning {
+    background: var(--warning);
+  }
+
+  .btn-done {
+    width: 100%;
+    height: 56px;
+    border-radius: 10px;
+    background: var(--success-bg);
+    color: var(--success);
+    border: 1px solid hsl(142 71% 80%);
+    font-size: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  /* ============ MODAL ============ */
+
+  .modal-overlay {
+    position: relative;
+    margin-top: 24px;
+    padding: 24px;
+    background: hsl(0 0% 0% / 0.4);
+    border-radius: 12px;
+  }
+
+  .modal-sheet {
+    background: white;
+    border-radius: 16px 16px 0 0;
+    padding: 24px 24px 32px;
+    box-shadow: 0 -8px 32px hsl(0 0% 0% / 0.15);
+  }
+
+  .modal-grabber {
+    width: 40px;
+    height: 4px;
+    background: hsl(0 0% 80%);
+    border-radius: 2px;
+    margin: -8px auto 16px;
+  }
+
+  .modal-title {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 0 0 4px;
+    color: var(--fg-strong);
+  }
+
+  .modal-subtitle {
+    margin: 0 0 24px;
+    color: var(--muted-fg);
+    font-size: 13px;
+  }
+
+  .field {
+    margin-bottom: 24px;
+  }
+
+  .field-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted-fg);
+    margin-bottom: 8px;
+  }
+
+  /* Tarif input */
+  .tarif-input {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 6px;
+    padding: 16px;
+    background: var(--muted-bg);
+    border: 2px solid var(--border-strong);
+    border-radius: 12px;
+  }
+
+  .tarif-input.focused {
+    border-color: var(--primary);
+    background: white;
+  }
+
+  .tarif-value {
+    font-size: 36px;
+    font-weight: 600;
+    color: var(--fg-strong);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  .tarif-currency {
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--muted-fg);
+  }
+
+  /* Payment method radio grid */
+  .payment-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .payment-method {
+    padding: 16px 12px;
+    border: 1.5px solid var(--border-strong);
+    border-radius: 10px;
+    background: white;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transition: all 150ms ease-out;
+  }
+
+  .payment-method svg {
+    width: 22px;
+    height: 22px;
+    color: var(--muted-fg);
+  }
+
+  .payment-method-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--fg);
+  }
+
+  .payment-method.selected {
+    border-color: var(--primary);
+    background: var(--info-bg);
+  }
+
+  .payment-method.selected svg,
+  .payment-method.selected .payment-method-label {
+    color: var(--primary);
+  }
+
+  /* Switch */
+  .switch-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--muted-bg);
+    border-radius: 10px;
+  }
+
+  .switch-label {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .switch-track {
+    width: 44px;
+    height: 24px;
+    background: var(--success);
+    border-radius: 12px;
+    position: relative;
+    cursor: pointer;
+  }
+
+  .switch-thumb {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px hsl(0 0% 0% / 0.3);
+  }
+
+  /* ============ DESKTOP LAYOUT ============ */
+
+  .desktop-main {
+    padding: 32px 48px;
+  }
+
+  .desktop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 24px;
+  }
+
+  /* ============ EMPTY STATE ============ */
+
+  .empty-state {
+    text-align: center;
+    padding: 64px 24px;
+    color: var(--muted-fg);
+  }
+
+  .empty-state svg {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+    color: hsl(0 0% 70%);
+  }
+
+  .empty-state-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--fg);
+    margin-bottom: 4px;
+  }
+
+  /* ============ ANNOTATIONS ============ */
+
+  .annotations {
+    max-width: 1400px;
+    margin: 64px auto 0;
+    padding: 24px 32px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .annotations h2 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 16px;
+  }
+
+  .annotations ul {
+    margin: 0;
+    padding-left: 20px;
+    color: var(--muted-fg);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .annotations strong {
+    color: var(--fg-strong);
+  }
+
+  /* Helper badges for spec annotations */
+  .spec-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--info-bg);
+    color: var(--info);
+    border-radius: 4px;
+    font-family: 'SF Mono', Menlo, monospace;
+    font-feature-settings: 'tnum';
+  }
+</style>
+</head>
+<body>
+
+<header class="page-title">
+  <h1>Maquette /conduite — Vision chauffeur</h1>
+  <p>Référence visuelle pour le prompt 03-E. Trois états de carte (assignée / en cours / terminée) + modal de clôture. Mobile 375px et desktop 1280px.</p>
+</header>
+
+<div class="layout">
+
+  <!-- ============================================ -->
+  <!-- COLONNE GAUCHE : MOBILE 375px                -->
+  <!-- ============================================ -->
+  <div>
+    <div class="section-label">Mobile 375px — iPhone SE</div>
+
+    <div class="device device-mobile">
+      <!-- Header chauffeur -->
+      <div class="app-header">
+        <div class="app-header-brand">
+          <strong>TAP</strong>
+          <span>Ma journée</span>
+        </div>
+        <div class="app-header-right">
+          <div class="avatar">VJ</div>
+        </div>
+      </div>
+
+      <!-- Main -->
+      <div class="app-main app-main-mobile">
+
+        <div class="ride-cards">
+
+          <!-- ============================ -->
+          <!-- Carte 1 — ASSIGNÉE           -->
+          <!-- ============================ -->
+          <div class="ride-card">
+            <div class="ride-card-banner ride-card-banner-assignee"></div>
+            <div class="ride-card-body">
+              <div class="ride-card-head">
+                <div class="ride-card-time">09h30</div>
+                <div class="ride-card-patient">
+                  <div class="ride-card-patient-name">Bègue Christiane</div>
+                  <div class="ride-card-patient-meta">F — 65 ans · TPMR</div>
+                </div>
+              </div>
+
+              <div class="ride-card-trajet">
+                <div class="ride-card-trajet-line">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 7-8 13-8 13s-8-6-8-13a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  <div class="ride-card-trajet-text">
+                    5 rue Sainte-Anne<br>
+                    <span style="color: var(--muted-fg); font-size: 13px;">97460 Saint-Paul</span>
+                  </div>
+                </div>
+                <div class="ride-card-trajet-arrow">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+                </div>
+                <div class="ride-card-trajet-line">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+                  <div class="ride-card-trajet-text">
+                    CHU Sud — Service Dialyse<br>
+                    <span style="color: var(--muted-fg); font-size: 13px;">97410 Saint-Pierre</span>
+                  </div>
+                </div>
+              </div>
+
+              <button class="btn-primary">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Démarrer la course
+              </button>
+            </div>
+          </div>
+
+          <!-- ============================ -->
+          <!-- Carte 2 — EN COURS           -->
+          <!-- ============================ -->
+          <div class="ride-card">
+            <div class="ride-card-banner ride-card-banner-encours"></div>
+            <div class="ride-card-body">
+              <div class="ride-card-head">
+                <div class="ride-card-time">11h00</div>
+                <div class="ride-card-patient">
+                  <div class="ride-card-patient-name">Boyer Suzanne</div>
+                  <div class="ride-card-patient-meta">F — 55 ans · Démarrée à 11h02</div>
+                </div>
+              </div>
+
+              <div class="ride-card-trajet">
+                <div class="ride-card-trajet-line">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 7-8 13-8 13s-8-6-8-13a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  <div class="ride-card-trajet-text">
+                    23 rue Montgaillard<br>
+                    <span style="color: var(--muted-fg); font-size: 13px;">97400 Saint-Denis</span>
+                  </div>
+                </div>
+                <div class="ride-card-trajet-arrow">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+                </div>
+                <div class="ride-card-trajet-line">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+                  <div class="ride-card-trajet-text">
+                    Hôpital Bellepierre<br>
+                    <span style="color: var(--muted-fg); font-size: 13px;">97400 Saint-Denis</span>
+                  </div>
+                </div>
+              </div>
+
+              <button class="btn-primary btn-warning">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Clôturer la course
+              </button>
+            </div>
+          </div>
+
+          <!-- ============================ -->
+          <!-- Carte 3 — TERMINÉE           -->
+          <!-- ============================ -->
+          <div class="ride-card">
+            <div class="ride-card-banner ride-card-banner-terminee"></div>
+            <div class="ride-card-body">
+              <div class="ride-card-head">
+                <div class="ride-card-time" style="color: var(--muted-fg);">08h00</div>
+                <div class="ride-card-patient">
+                  <div class="ride-card-patient-name" style="color: var(--muted-fg);">Dijoux André</div>
+                  <div class="ride-card-patient-meta">H — 72 ans · 28,50 € encaissés cash</div>
+                </div>
+              </div>
+
+              <div class="ride-card-trajet" style="opacity: 0.7;">
+                <div class="ride-card-trajet-line">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 7-8 13-8 13s-8-6-8-13a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  <div class="ride-card-trajet-text" style="color: var(--muted-fg);">
+                    14 chemin des Mahots, 97417 La Montagne
+                  </div>
+                </div>
+                <div class="ride-card-trajet-arrow">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+                </div>
+                <div class="ride-card-trajet-line">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+                  <div class="ride-card-trajet-text" style="color: var(--muted-fg);">
+                    CHU Nord — Consultation
+                  </div>
+                </div>
+              </div>
+
+              <div class="btn-done">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                Terminée à 08h42
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ EMPTY STATE en miniature ============ -->
+    <div style="margin-top: 32px;">
+      <div class="section-label">État vide</div>
+      <div class="device device-mobile">
+        <div class="app-header">
+          <div class="app-header-brand">
+            <strong>TAP</strong>
+            <span>Ma journée</span>
+          </div>
+          <div class="avatar">VJ</div>
+        </div>
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="16" x2="15" y2="16"/></svg>
+          <div class="empty-state-title">Aucune course prévue aujourd'hui</div>
+          <div>Profite de ta journée.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- COLONNE DROITE : MODAL CLÔTURE               -->
+  <!-- ============================================ -->
+  <div>
+    <div class="section-label">Modal clôture — bottom-sheet mobile</div>
+
+    <div class="device device-mobile">
+      <!-- Aperçu fond : course en cours grisée -->
+      <div class="app-header" style="opacity: 0.4;">
+        <div class="app-header-brand">
+          <strong>TAP</strong>
+          <span>Ma journée</span>
+        </div>
+        <div class="avatar">VJ</div>
+      </div>
+
+      <div style="padding: 16px; opacity: 0.3;">
+        <div class="ride-card">
+          <div class="ride-card-banner ride-card-banner-encours"></div>
+          <div class="ride-card-body" style="padding: 12px;">
+            <div class="ride-card-head" style="margin-bottom: 0;">
+              <div class="ride-card-time">11h00</div>
+              <div class="ride-card-patient">
+                <div class="ride-card-patient-name">Boyer Suzanne</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal bottom-sheet -->
+      <div class="modal-sheet" style="margin-top: -16px;">
+        <div class="modal-grabber"></div>
+
+        <div class="modal-title">Clôturer la course</div>
+        <div class="modal-subtitle">Saisis le tarif et le mode de paiement.</div>
+
+        <div class="field">
+          <div class="field-label">Tarif</div>
+          <div class="tarif-input focused">
+            <span class="tarif-value">28,50</span>
+            <span class="tarif-currency">€</span>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-label">Mode de paiement</div>
+          <div class="payment-grid">
+
+            <div class="payment-method selected">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+              <div class="payment-method-label">Cash</div>
+            </div>
+
+            <div class="payment-method">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              <div class="payment-method-label">CB</div>
+            </div>
+
+            <div class="payment-method">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <div class="payment-method-label">Chèque</div>
+            </div>
+
+            <div class="payment-method">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <div class="payment-method-label">CGSS différé</div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="switch-row">
+            <div class="switch-label">Encaissé maintenant</div>
+            <div class="switch-track">
+              <div class="switch-thumb"></div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-primary">
+          Clôturer la course
+        </button>
+      </div>
+    </div>
+
+    <!-- ============ DESKTOP centred modal ============ -->
+    <div style="margin-top: 48px;">
+      <div class="section-label">Modal clôture — centré desktop ≥ 768px</div>
+      <div class="device" style="background: hsl(0 0% 0% / 0.4); padding: 48px 0;">
+        <div style="background: white; max-width: 480px; margin: 0 auto; border-radius: 12px; padding: 32px;">
+
+          <div class="modal-title">Clôturer la course</div>
+          <div class="modal-subtitle">Saisis le tarif et le mode de paiement.</div>
+
+          <div class="field">
+            <div class="field-label">Tarif</div>
+            <div class="tarif-input focused">
+              <span class="tarif-value">28,50</span>
+              <span class="tarif-currency">€</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field-label">Mode de paiement</div>
+            <div class="payment-grid">
+              <div class="payment-method selected">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/></svg>
+                <div class="payment-method-label">Cash</div>
+              </div>
+              <div class="payment-method">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                <div class="payment-method-label">CB</div>
+              </div>
+              <div class="payment-method">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <div class="payment-method-label">Chèque</div>
+              </div>
+              <div class="payment-method">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <div class="payment-method-label">CGSS différé</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="switch-row">
+              <div class="switch-label">Encaissé maintenant</div>
+              <div class="switch-track"><div class="switch-thumb"></div></div>
+            </div>
+          </div>
+
+          <button class="btn-primary">Clôturer la course</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- DESKTOP 1280px FULL                          -->
+<!-- ============================================ -->
+<div style="max-width: 1400px; margin: 64px auto 0;">
+  <div class="section-label">Desktop ≥ 1280px — grille adaptative</div>
+
+  <div class="device device-desktop">
+    <div class="app-header">
+      <div class="app-header-brand">
+        <strong>TAP</strong>
+        <span>Ma journée</span>
+      </div>
+      <div class="app-header-right">
+        <div class="icon-button">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 13V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v6"/><polyline points="22 13 12 19 2 13"/></svg>
+        </div>
+        <div class="avatar">VJ</div>
+      </div>
+    </div>
+
+    <div class="app-main desktop-main">
+      <h1 class="main-title">Ma journée</h1>
+      <p class="main-subtitle">Mardi 14 mai 2026 — 3 courses prévues</p>
+
+      <div class="desktop-grid">
+
+        <div class="ride-card">
+          <div class="ride-card-banner ride-card-banner-assignee"></div>
+          <div class="ride-card-body">
+            <div class="ride-card-head">
+              <div class="ride-card-time">09h30</div>
+              <div class="ride-card-patient">
+                <div class="ride-card-patient-name">Bègue Christiane</div>
+                <div class="ride-card-patient-meta">F — 65 ans · TPMR</div>
+              </div>
+            </div>
+            <div class="ride-card-trajet">
+              <div class="ride-card-trajet-line">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 7-8 13-8 13s-8-6-8-13a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <div class="ride-card-trajet-text">5 rue Sainte-Anne, Saint-Paul</div>
+              </div>
+              <div class="ride-card-trajet-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg></div>
+              <div class="ride-card-trajet-line">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+                <div class="ride-card-trajet-text">CHU Sud, Saint-Pierre</div>
+              </div>
+            </div>
+            <button class="btn-primary">Démarrer la course</button>
+          </div>
+        </div>
+
+        <div class="ride-card">
+          <div class="ride-card-banner ride-card-banner-encours"></div>
+          <div class="ride-card-body">
+            <div class="ride-card-head">
+              <div class="ride-card-time">11h00</div>
+              <div class="ride-card-patient">
+                <div class="ride-card-patient-name">Boyer Suzanne</div>
+                <div class="ride-card-patient-meta">F — 55 ans · Démarrée à 11h02</div>
+              </div>
+            </div>
+            <div class="ride-card-trajet">
+              <div class="ride-card-trajet-line">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 7-8 13-8 13s-8-6-8-13a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <div class="ride-card-trajet-text">23 rue Montgaillard, Saint-Denis</div>
+              </div>
+              <div class="ride-card-trajet-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg></div>
+              <div class="ride-card-trajet-line">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+                <div class="ride-card-trajet-text">Hôpital Bellepierre, Saint-Denis</div>
+              </div>
+            </div>
+            <button class="btn-primary btn-warning">Clôturer la course</button>
+          </div>
+        </div>
+
+        <div class="ride-card">
+          <div class="ride-card-banner ride-card-banner-terminee"></div>
+          <div class="ride-card-body">
+            <div class="ride-card-head">
+              <div class="ride-card-time" style="color: var(--muted-fg);">08h00</div>
+              <div class="ride-card-patient">
+                <div class="ride-card-patient-name" style="color: var(--muted-fg);">Dijoux André</div>
+                <div class="ride-card-patient-meta">H — 72 ans · 28,50 € encaissés cash</div>
+              </div>
+            </div>
+            <div class="ride-card-trajet" style="opacity: 0.7;">
+              <div class="ride-card-trajet-line">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 7-8 13-8 13s-8-6-8-13a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <div class="ride-card-trajet-text" style="color: var(--muted-fg);">14 chemin des Mahots, La Montagne</div>
+              </div>
+              <div class="ride-card-trajet-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg></div>
+              <div class="ride-card-trajet-line">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+                <div class="ride-card-trajet-text" style="color: var(--muted-fg);">CHU Nord — Consultation</div>
+              </div>
+            </div>
+            <div class="btn-done">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Terminée à 08h42
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- ANNOTATIONS                                  -->
+<!-- ============================================ -->
+<div class="annotations">
+  <h2>Notes de design pour Claude Code (à reprendre dans le prompt 03-E)</h2>
+  <ul>
+    <li><strong>Bandeau couleur 4px</strong> en haut de chaque carte, encode le statut visuellement : <span class="spec-badge">assignee</span> gris neutre, <span class="spec-badge">en_cours</span> warning orange (action requise), <span class="spec-badge">terminee</span> success vert.</li>
+    <li><strong>Heure scheduled_at</strong> en grand (text-2xl), tabular-nums obligatoire, format HHhMM français.</li>
+    <li><strong>Adresses</strong> dans un sous-bloc <span class="spec-badge">bg-muted/50</span> avec icônes Lucide MapPin (pickup) → ArrowDown → Navigation (dropoff). Code postal + ville en muted sur la ligne suivante.</li>
+    <li><strong>Bouton primaire</strong> h-14 (56px) pleine largeur, label contextuel selon statut. Couleur primaire pour Démarrer, warning orange pour Clôturer (action urgente), bouton désactivé style success pour Terminée.</li>
+    <li><strong>Carte terminée</strong> grisée à 70% d'opacité sur le trajet, garde le bandeau vert, montant encaissé visible dans la meta du patient (« 28,50 € encaissés cash »).</li>
+    <li><strong>Modal clôture</strong> en bottom-sheet sur mobile (items-end), centré sur desktop (items-center). Grabber visuel 4px en haut sur mobile.</li>
+    <li><strong>Input tarif</strong> en grand (text-3xl), tabular-nums, focus visible par border-primary + background blanc. La virgule française est conservée (28,50 et non 28.50).</li>
+    <li><strong>Payment method grid 2×2</strong> : cash / CB / chèque / CGSS différé. Sélection avec border-primary + background info-bg. Icônes Lucide ligne fine.</li>
+    <li><strong>Switch encaissé</strong> ON par défaut (success vert) car cas le plus fréquent (cash, CB). Si OFF, payment_status = a_encaisser.</li>
+    <li><strong>Empty state</strong> illustration Lucide simple (Calendar) + texte FR + sous-titre apaisé (« Profite de ta journée. »). Pas d'illustration colorée enfantine.</li>
+    <li><strong>Background driver</strong> teinté <span class="spec-badge">hsl(45 100% 99%)</span> pour ancrer le contexte chauffeur (cf. 03-C).</li>
+    <li><strong>Mode nuit</strong> à traiter à parité (non illustré ici).</li>
+  </ul>
+</div>
+
+</body>
+</html>
