@@ -188,6 +188,14 @@
 - Phase de résolution : Passe 2 (Phase 04, livrable 04-B)
 - Workaround : fonctionnellement OK.
 
+### UI/UX modal saisie course
+
+- Issue : frictions visuelles secondaires identifiées à la clôture Phase 03.2 lors de l'UAT dev solo — proportions Mode/Urgence trop grandes vs autres champs, espacement vertical excessif entre sections, asymétrie icônes date/heure (Calendar avec icône préfixe vs Select sans), micro-incohérences de spacing dans la grille `grid-cols-2`. Non bloquant pour la valeur livrée (saisie express + smart defaults + chips date + dédoublonnage), mais à reprendre en bloc.
+- Files : `apps/web/src/app/(app)/courses/_components/ride-express-modal.client.tsx`, `ride-express-form-fields.client.tsx`
+- Sévérité : **minor** (cosmétique — fonctionnalité OK, modal utilisable telle quelle)
+- Phase de résolution : phase UI/UX dédiée post-Passe 2 PWA, à traiter en bloc avec autres polishes accumulés (refonte login + welcome + setup, alignements généraux design system)
+- Workaround : aucun. **Interdit de faire un fix cosmétique opportuniste dans Phase 04** — sortir de la passe pour polisher cassera la cadence E2E (ADR-003).
+
 ### Manifest PWA + offline chauffeur
 
 - Issue : PWA chauffeur (Passe 1 livrée en web responsive) sans manifest installable ni service worker offline. CLAUDE.md § 5 exige mode hors-ligne fonctionnel (démarrage / clôture course, scan BT).
