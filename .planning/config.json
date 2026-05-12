@@ -1,0 +1,13 @@
+{
+  "$schema": "https://raw.githubusercontent.com/get-shit-done/get-shit-done-cc/main/schema/planning-config.json",
+  "_about": "Configuration GSD pour le pilotage projet TAP. Voir .planning/PROJECT.md pour le contexte. Schéma documenté dans ~/.claude/get-shit-done/references/planning-config.md.",
+  "_neutralite_injection_todo": "INJECTION NEUTRALITÉ — étape manuelle à faire en session fraîche. La règle .planning/regle-neutralite-et-ton.md doit d'abord être installée comme skill (mkdir ~/.claude/skills/tap-neutralite + SKILL.md avec frontmatter, contenu copié depuis .planning/regle-neutralite-et-ton.md). Ensuite, ajouter dans agent_skills : { 'gsd-discuss-phase': 'tap-neutralite', 'gsd-plan-phase': 'tap-neutralite', 'gsd-execute-phase': 'tap-neutralite', 'gsd-verify-work': 'tap-neutralite' }. Lancer /gsd-config --integrations pour assistance guidée.",
+
+  "workflow": {
+    "discuss_mode": "assumptions",
+    "context_coverage_gate": true,
+    "drift_action": "warn"
+  },
+
+  "agent_skills": {}
+}
