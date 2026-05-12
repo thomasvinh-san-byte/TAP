@@ -29,7 +29,7 @@ import {
   encryptAndHashNir,
   decryptNir as decryptNirEdge,
 } from '@/lib/nir-client';
-import { searchPatients, getPatientById } from './queries';
+import { searchPatients, getPatientById } from '../queries';
 
 export type ActionState = { error?: string; success?: boolean };
 

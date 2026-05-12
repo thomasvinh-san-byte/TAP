@@ -19,6 +19,7 @@ export type { ActionState } from './_shared';
 
 export { createRideAction, upsertRideDraft, deleteRideDraft, listDraftsAction } from './create';
 export { updateRideAction } from './edit';
+export { checkDuplicateRideAction } from './check-duplicate';
 export { cancelRideAction } from './cancel';
 export { assignRideAction, unassignRideAction } from './assignment';
 export { updateRidePaymentAction } from './payment';

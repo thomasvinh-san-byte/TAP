@@ -45,6 +45,10 @@ design partners). Chaque requirement mappe vers exactement une phase.
 - [ ] **SAIS-04** : Régulatrice peut mettre une saisie en pause et y revenir (file d'attente brouillons)
 - [ ] **SAIS-05** : Multi-saisies en parallèle (plusieurs brouillons ouverts simultanément, jamais bloquant)
 - [ ] **SAIS-06** : Création de course écrit dans `audit_logs` (cf. DEC-010)
+- [x] **SAIS-07** : Smart defaults mode + urgence depuis dernière course patient (Phase 03.1) — pré-remplissage silencieux quand le formulaire est encore aux défauts V1.
+- [ ] **SAIS-08** : Chips date rapides 4 valeurs chrono.fr-compatibles (Phase 03.1) — `demain 8h`, `demain 14h`, `lundi 9h`, `dans 30 minutes`.
+- [ ] **SAIS-09** : Détection doublon ±30 min non-bloquante avec bypass (Phase 03.1) — banner amber + bouton « Créer quand même ».
+- [ ] **SAIS-10** : Re-seed défense en profondeur patients démo (Phase 03.1, NFR-001) — tél `02 62 99 90 XX` / `06 92 99 90 XX`, adresse `9XXX ...`.
 
 ### Tarification CGSS (PRIC)
 
@@ -270,6 +274,10 @@ Mapping requirement → phase. Mis à jour lors de la création du roadmap.
 | SAIS-04 | Phase 2 | Pending |
 | SAIS-05 | Phase 2 | Pending |
 | SAIS-06 | Phase 2 | Pending |
+| SAIS-07 | Phase 03.1 | Complete |
+| SAIS-08 | Phase 03.1 | Pending |
+| SAIS-09 | Phase 03.1 | Pending |
+| SAIS-10 | Phase 03.1 | Pending |
 | PRIC-01 | Phase 3 | Pending |
 | PRIC-02 | Phase 3 | Pending |
 | PRIC-03 | Phase 3 | Pending |
@@ -347,13 +355,13 @@ Mapping requirement → phase. Mis à jour lors de la création du roadmap.
 > Promotion des contraintes CON-015..CON-020 en NFR formels. S'appliquent
 > à toutes les phases sans exception.
 
-- [ ] **NFR-001** : Neutralité absolue — aucun nom propre dans code,
+- [x] **NFR-001** : Neutralité absolue — aucun nom propre dans code,
   identifiants, schémas DB, commentaires, JSDoc, commits, descriptions PR,
   mockups, captures, pages produit, marketing, légales. Substitution par
   rôles fonctionnels (`dirigeant`, `régulateur`, `chauffeur`, `patient`,
   `design partner`). Exception : `seed.demo.sql` pour illustration. Source :
   `.planning/regle-neutralite-et-ton.md`. CON-015.
-- [ ] **NFR-002** : Ton sobre — pas d'émojis dans l'UI, le code, les
+- [x] **NFR-002** : Ton sobre — pas d'émojis dans l'UI, le code, les
   commits, les docs. Pas de tutoiement amical, pas d'humour, pas
   d'encouragements gamifiés. Empty states factuels. Messages d'erreur
   reformulés FR (jamais le brut Supabase/Postgres). Source :
