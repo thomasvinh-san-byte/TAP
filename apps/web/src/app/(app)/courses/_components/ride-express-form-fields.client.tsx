@@ -44,14 +44,32 @@ const URGENCY_OPTIONS: ReadonlyArray<{ value: Urgency; label: string }> = [
 ];
 
 /**
- * 96 créneaux 15 min de '00:00' à '23:45' (D-DTPICK-21).
- * Pattern Doctolib / Cal.com — discret, 24H par construction.
+ * Créneaux 15 min restreints aux heures de service taxi conventionné TAP
+ * Réunion : 5h00 → 22h00 inclus (D-DTPICK-27 Phase 03.2.1).
+ *
+ * Couvre :
+ * - Dialyse matinale (premières séances 5h-6h)
+ * - Consultations en journée
+ * - Sorties hôpital tardives (jusqu'à 22h)
+ *
+ * Pattern Doctolib / Cal.com — 24H par construction. Hors plage =
+ * cas particulier (urgence ou override manuel ultérieur).
+ *
+ * 69 créneaux : 05:00, 05:15, ..., 21:45, 22:00.
  */
+const TIME_SLOT_START_HOUR = 5;
+const TIME_SLOT_END_HOUR = 22; // inclus
+const TIME_SLOT_STEP_MIN = 15;
 const TIME_SLOTS: ReadonlyArray<{ value: string; label: string }> = Array.from(
-  { length: 96 },
+  {
+    length:
+      ((TIME_SLOT_END_HOUR - TIME_SLOT_START_HOUR) * 60) / TIME_SLOT_STEP_MIN +
+      1,
+  },
   (_, i) => {
-    const h = String(Math.floor(i / 4)).padStart(2, '0');
-    const m = String((i % 4) * 15).padStart(2, '0');
+    const totalMinutes = TIME_SLOT_START_HOUR * 60 + i * TIME_SLOT_STEP_MIN;
+    const h = String(Math.floor(totalMinutes / 60)).padStart(2, '0');
+    const m = String(totalMinutes % 60).padStart(2, '0');
     const v = `${h}:${m}`;
     return { value: v, label: v };
   },
