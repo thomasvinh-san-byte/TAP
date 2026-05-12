@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: Between phases — Phase 03 mergeable, Phase 04 à discuter/planifier
 stopped_at: (between_phases — Phase 03 close, Phase 04 ready to discuss)
-last_updated: "2026-05-12T06:11:11.862Z"
+last_updated: "2026-05-12T06:52:00.722Z"
 last_activity: 2026-05-12 — ROADMAP réécrite via /gsd-ingest-docs (manifest 3 SPECs)
 progress:
   total_phases: 10
   completed_phases: 3
-  total_plans: 18
-  completed_plans: 20
+  total_plans: 23
+  completed_plans: 23
   percent: 100
 ---
 
@@ -30,7 +30,7 @@ Phase next: 04 (E2E Passe 2 — PWA + tarif CGSS auto + caisse + refonte login)
 Status: Between phases — Phase 03 mergeable, Phase 04 à discuter/planifier
 Last activity: 2026-05-12 — ROADMAP réécrite via /gsd-ingest-docs (manifest 3 SPECs)
 
-Progress: [██████░░░░] 67 % (6 phases livrées sur 9 phases V1 alignées passes E2E)
+Progress: [██████████] 100%
 
 Phases livrées :
 
@@ -71,6 +71,7 @@ Phases à venir :
 la première planifiée via `/gsd-plan-phase`.
 
 *Updated after each plan completion.*
+| Phase 03.1 P01 | 12 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,7 @@ Décisions affectant le travail courant :
 
 - Phase 03 (close) : DEC-005 (saisie < 30 s respectée), DEC-014 (boutons chauffeur ≥ 56px), DEC-015 (recherche fuzzy 2 car), DEC-016 (logique métier en packages)
 - Phase 04 (next) : DEC-007 (chiffrement NIR si carry-over PWA), DEC-008 (consentement SMS — préparation Passe 3), DEC-013 (couverture pricing 100%), DEC-014 (PWA hors-ligne)
+- [Phase ?]: D-A2-1 silent prefill — aucun startTransition autour de getPatientRideDefaultsAction (checker W6)
 
 ### NFR (Non-Functional Requirements transverses)
 
@@ -129,9 +131,9 @@ Décisions affectant le travail courant :
 
 ## Session Continuity
 
-Last session: 2026-05-12T05:30:00.000Z
+Last session: 2026-05-12T06:51:56.070Z
 Stopped at: (between_phases — Phase 03 close, Phase 04 ready to discuss)
-Resume file: .planning/phases/03-e2e-passe1-squelette/03-SUMMARY.md
+Resume file: None
 Next command suggested: /gsd-discuss-phase 03.1
 
 ## Ingest Runs
