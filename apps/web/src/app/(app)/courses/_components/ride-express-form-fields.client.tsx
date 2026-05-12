@@ -60,7 +60,11 @@ const TIME_SLOTS: ReadonlyArray<{ value: string; label: string }> = Array.from(
 /** Combine une Date (jour) + un créneau hh:mm en ISO 8601 UTC. */
 function combineToIso(date: Date | undefined, time: string): string | null {
   if (!date || !time) return null;
-  const [h, m] = time.split(':').map(Number);
+  const parts = time.split(':');
+  if (parts.length !== 2) return null;
+  const h = Number(parts[0]);
+  const m = Number(parts[1]);
+  if (Number.isNaN(h) || Number.isNaN(m)) return null;
   const out = new Date(date);
   out.setHours(h, m, 0, 0);
   return Number.isNaN(out.getTime()) ? null : out.toISOString();
