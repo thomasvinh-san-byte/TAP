@@ -83,10 +83,9 @@ export function DateTimeFields({
         popperPlacement="bottom-start"
         disabled={disabled}
         ariaInvalid={error ? 'true' : undefined}
-        ariaLabelledBy="ride-scheduled-at-label"
         wrapperClassName="w-full"
         className={cn(
-          'flex h-40 w-full min-w-0 items-center rounded-md border border-input bg-background px-12 text-sm',
+          'h-10 w-full min-w-0 rounded-md border border-input bg-background px-12 py-8 text-sm',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
           'disabled:pointer-events-none disabled:opacity-50',
           'placeholder:text-muted-foreground',

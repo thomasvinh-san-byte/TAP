@@ -146,6 +146,12 @@ CLAUDE.md § 5 + NFR-003 : aucune valeur intermédiaire (`px-3`, `px-4`, `px-6` 
 
 Exemples : `driver-form.client.tsx:62` `className="space-y-16"` ; `dev-switcher.client.tsx:64` `className="w-full h-12 justify-center gap-8"`.
 
+**Piège — classes de hauteur `h-*` :** l'échelle custom du repo s'**ajoute** au default Tailwind via `theme.extend.spacing` (`apps/web/tailwind.config.ts`), elle ne le remplace pas. Les clés non couvertes par le custom (`10`, `40`, etc.) tombent sur l'échelle default en `rem` :
+- `h-10` → `2.5rem` = **40 px** ✅ (utilisé par `Input` shadcn `apps/web/src/components/ui/input.tsx:13`)
+- `h-40` → `10rem` = **160 px** ❌ (régression visuelle massive)
+
+Règle : pour la hauteur d'un Input / Select / Button taille default, écrire `h-10` (et non `h-40`). Pour un bouton chauffeur ≥ 56 px (PWA mobile, CLAUDE.md § 5), écrire `h-14` (default `3.5rem` = 56 px). L'échelle custom px reste valable pour `padding`, `gap`, `space-*`, `width` fixes et tout ce qui n'est pas hauteur de champ de formulaire.
+
 ## Sheet / Drawer — largeurs fixes
 
 **Patient drawer = 400 px fixe** ; **course/ride drawer = 480 px fixe**. Vérifié par E2E `boundingBox().width === 400` (`apps/web/e2e/patient-flow.spec.ts:57`).
