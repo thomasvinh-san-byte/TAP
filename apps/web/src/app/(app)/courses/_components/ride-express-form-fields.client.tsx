@@ -63,6 +63,25 @@ function combineToIso(date: string, time: string): string | null {
   return combined.toISOString();
 }
 
+// D-DTPICK-7..10 : preview FR via Intl. `lang="fr-FR"` posé sur les inputs
+// est respecté par Firefox/Safari mais ignoré par Chrome desktop (suit locale
+// OS). Le preview garantit la lecture FR indépendamment du browser. Mobile
+// (contexte chauffeur principal) : iOS Safari + Android Chrome respectent
+// la locale OS (FR par défaut côté Réunion). Limitation Chrome desktop assumée.
+const PREVIEW_FORMATTER = new Intl.DateTimeFormat('fr-FR', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  hour: '2-digit',
+  minute: '2-digit',
+});
+
+function formatPreviewFr(iso: string | null): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : PREVIEW_FORMATTER.format(d);
+}
+
 export function DateTimeFields({
   value,
   onChange,
@@ -77,6 +96,7 @@ export function DateTimeFields({
 }): JSX.Element {
   const { date, time } = splitIso(value);
   const min = todayIso();
+  const preview = date && time ? formatPreviewFr(value) : null;
 
   const handleDateChange = (next: string): void => {
     onChange(combineToIso(next, time));
@@ -88,32 +108,47 @@ export function DateTimeFields({
   return (
     <div className="space-y-8">
       <Label htmlFor="ride-date">Date et heure</Label>
+      {/* D-DTPICK-9 : `min-w-0` évite le débordement des inputs natifs sur
+          mobile 375px (min-width implicite du navigateur casse le layout). */}
       <div className="grid grid-cols-2 gap-12">
         <Input
           id="ride-date"
           type="date"
+          lang="fr-FR"
           aria-label="Date"
           value={date}
           min={min}
           onChange={(e) => handleDateChange(e.target.value)}
           aria-invalid={error ? true : undefined}
-          className={cn(error && 'border-destructive focus-visible:ring-destructive')}
+          className={cn(
+            'min-w-0',
+            error && 'border-destructive focus-visible:ring-destructive',
+          )}
           disabled={disabled}
           tabIndex={2}
         />
         <Input
           id="ride-time"
           type="time"
+          lang="fr-FR"
           aria-label="Heure"
           value={time}
           step={300}
           onChange={(e) => handleTimeChange(e.target.value)}
           aria-invalid={error ? true : undefined}
-          className={cn(error && 'border-destructive focus-visible:ring-destructive')}
+          className={cn(
+            'min-w-0',
+            error && 'border-destructive focus-visible:ring-destructive',
+          )}
           disabled={disabled}
           tabIndex={3}
         />
       </div>
+      {preview && !error && (
+        <p className="text-xs text-muted-foreground" aria-live="polite">
+          {preview}
+        </p>
+      )}
       {error && (
         <p className="text-xs text-destructive" role="alert">
           {error}
