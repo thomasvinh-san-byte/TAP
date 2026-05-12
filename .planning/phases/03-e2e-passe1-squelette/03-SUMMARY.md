@@ -42,17 +42,23 @@ key-files:
     - apps/web/src/app/(app)/courses/_components/ride-drawer.client.tsx (bouton Modifier)
     - apps/web/src/app/(app)/courses/actions/index.ts (export updateRideAction)
     - supabase/seed.sql + supabase/seed.demo.sql + supabase/setup-all.sql + apps/web/src/lib/setup-sql.ts (libellés démo)
+    - apps/web/src/app/(app)/courses/_components/ride-drawer.client.tsx (bouton Annuler — clôture-bis)
+    - apps/web/src/app/(admin)/layout.tsx (nav admin Chauffeurs/Véhicules — clôture-bis)
+    - packages/shared/src/validators/index.ts (export driver + vehicle — clôture-bis)
 decisions:
   - "Édition course avancée de Passe 2 vers clôture Passe 1 — friction terrain trop fréquente pour différer."
   - "Pas de nouveau test Playwright (politique tests allégée Passe 1, CLAUDE.md § 9)."
   - "Update bloqué côté serveur si status ∉ {validee, assignee} — règle métier garde-fou en plus du masquage UI."
   - "Bucket today/tomorrow calculé côté serveur (queries.ts) pour éviter de réimporter la borne TZ dans la page RSC."
   - "Anonymisation appliquée via migration idempotente + patch sources (seed.sql / setup-all.sql) pour idempotence en cas de réinit DB."
+  - "Annulation course avancée Passe 2 → clôture Passe 1 — l'enum status existait déjà mais aucune Server Action ne l'exposait. Ajout colonne cancel_motif libre (pas d'enum motifs en V1, taxonomie viendra de l'observation réelle)."
+  - "CRUD admin chauffeurs/véhicules avancé Passe 2 → clôture Passe 1 — validation manuelle nécessaire pour ajouter un chauffeur avant tests multi-rôle ; cohérence avec /dev déjà avancé. Tables drivers/vehicles + RLS dirigeant existaient depuis 03-A, n'avaient juste pas d'écran."
+  - "Composant Textarea créé en exception unique (le repo n'en avait pas) — pattern strict miroir d'Input."
 metrics:
-  duration_minutes: 60
+  duration_minutes: 90
   completed_date: 2026-05-13
-  files_modified: 11
-  files_created: 5
+  files_modified: 13
+  files_created: 16
 ---
 
 # Phase 3 — Clôture Passe 1 : 12 frictions + édition course
@@ -100,6 +106,32 @@ Les frictions résiduelles (édition impossible, profils démo nominatifs, vue c
   - Clusters UI « Aujourd'hui » / « Demain » sur `/conduite`
   - Bucket calculé côté serveur, projection 50 max conservée
 
+### Thème F — Frontière clôture-bis (commit additif)
+
+Deux fonctionnalités initialement prévues Passe 2 avancées pour clôturer
+proprement le périmètre Passe 1 avant la PWA.
+
+- **F.1 — Annulation de course** :
+  - Migration `20260514000001_rides_cancel_motif.sql` (colonne text nullable)
+  - Server Action `cancelRideAction` (zod + RLS + whitelist rôle + filtre statut validee/assignee)
+  - Bouton « Annuler » dans header drawer (variant ghost + text-destructive, à côté de « Modifier »)
+  - Modal `CancelRideModal` (bottom-sheet mobile, centré desktop, motif optionnel ≤ 500 chars)
+  - Badge « Annulée » déjà supporté par `ride-badges.tsx` (préexistant)
+- **F.2 — CRUD admin chauffeurs (`/admin/chauffeurs`)** :
+  - Schéma `driverInputSchema` dans `@tap/shared`
+  - 3 Server Actions : `createDriverAction` / `updateDriverAction` / `archiveDriverAction` (archivage logique)
+  - Page RSC + composants `DriversList` (Sheet création/édition + sheet bottom de confirmation archivage) + `DriverForm` (useFormState/useFormStatus)
+  - Champs : nom_affichage / téléphone / numéro de licence / type_permis (4 checkboxes : taxi / ambulance / vsl / tpmr) / actif
+- **F.3 — CRUD admin véhicules (`/admin/vehicules`)** :
+  - Schéma `vehicleInputSchema` dans `@tap/shared`
+  - 3 Server Actions miroir avec reformulation FR du conflit `vehicles_immatriculation_unique`
+  - Page RSC + composants `VehiclesList` (icônes Lucide par type : Car / Accessibility / HeartPulse / PlusCircle) + `VehicleForm` (Select shadcn + hidden input pour type)
+  - Champs : immatriculation (uppercase tabular-nums) / marque / modèle / type / places_assises (1-9) / places_tpmr (0-3) / actif
+- **F.4 — Composant Textarea (`/components/ui/textarea.tsx`)** :
+  - Création minimale (~20L) miroir d'`Input` mais element `<textarea>` — exception unique documentée prompt clôture-bis
+- **F.5 — Nav admin** :
+  - 2 liens supplémentaires dans le header `/admin` (Chauffeurs / Véhicules) avant Registre / Violations
+
 ## Visible Progress
 
 ### URL preview
@@ -135,6 +167,10 @@ Placeholders dans `docs/showcase/03-e2e-passe1-squelette/` :
 10. Sur `/conduite`, vérifier que les courses sont regroupées en deux sections « Aujourd'hui » + « Demain » (créer une course J+1 en amont via régulateur).
 11. Sur `/conduite`, démarrer la course, la clôturer (modal bottom sheet mobile 375 px).
 12. Tenter d'accéder à `/patients` connecté en chauffeur : redirect `/conduite`. Inverse : régulateur sur `/conduite` → redirect `/patients`.
+13. Switcher dirigeant. Aller sur `/admin/chauffeurs`. Créer un chauffeur (« Nouveau chauffeur ») avec types de permis cochés. Vérifier qu'il apparaît dans la liste avec ses badges.
+14. Aller sur `/admin/vehicules`. Créer un véhicule. Tenter de recréer la même immatriculation : message FR « Cette immatriculation existe déjà ».
+15. Switcher régulateur. Sur `/courses`, ouvrir une course validée. Cliquer « Annuler » → modal motif. Saisir un motif court → « Annuler la course ». Toast « Course annulée ». La course apparaît avec badge « Annulée ».
+16. Rouvrir la course annulée : les boutons « Modifier » et « Annuler » ne sont plus visibles (statut figé).
 
 ## Frictions identifiées (à remonter après validation)
 
@@ -146,14 +182,21 @@ Placeholders dans `docs/showcase/03-e2e-passe1-squelette/` :
 - Modal assignation : pas de filtrage `type_permis` ↔ `vehicle.type`.
 - Refonte login + `/welcome` + `/setup` → 04-B Passe 2.
 - Manifest PWA + offline → Passe 2.
-- CRUD admin chauffeurs / véhicules → Passe 2.
+- Invitation chauffeur (création compte Auth + rattachement `profile_id`) → Passe 2 ou plus tard. V1 garde `profile_id` nullable côté table `drivers`.
 - Modal édition course : pas de différenciation visuelle « Modifier » vs « Créer » au-delà du titre. Améliorable Passe 2 si besoin.
 - Modal `ride-express-modal.client.tsx` à 384 lignes (limite CLAUDE.md § 11 = 300). Dette préexistante de Phase 2 ; non refactorée pour rester dans le scope clôture.
-- Drawer `ride-drawer.client.tsx` à 312 lignes (idem, marge fine).
+- Drawer `ride-drawer.client.tsx` à ~330 lignes (idem, marge fine — bouton Annuler ajouté en clôture-bis).
+- Pas de page `/admin/index` dashboard global (Passe 4).
+- Pas de filtrage liste avancé sur `/admin/chauffeurs` ni `/admin/vehicules` (recherche basique côté client si besoin Passe 2).
+- Taxonomie motifs d'annulation : V1 = texte libre, à observer puis catégoriser Passe 4.
 
 ## Tech stack Δ
 
-Aucune nouvelle dépendance npm. Aucun nouveau composant `/components/ui/`. Aucun nouveau test Playwright.
+Aucune nouvelle dépendance npm. Aucun nouveau test Playwright.
+
+Une exception sur `/components/ui/` : ajout d'un composant `Textarea`
+minimal (~20 L, miroir strict d'`Input`) — le repo n'en avait pas, le
+modal d'annulation en avait besoin.
 
 ## Suite
 
