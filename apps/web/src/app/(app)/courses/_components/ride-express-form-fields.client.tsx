@@ -1,30 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { CalendarIcon } from 'lucide-react';
-import { startOfDay } from 'date-fns';
-import { formatDateFr } from '@tap/shared';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
 
 /**
- * Sous-composants de présentation du modal saisie express (Phase 2 / Wave 3 ;
- * Phase 03.1.1 : DatePicker shadcn officiel + Select 96 créneaux 15 min).
- * Extrait pour respecter la limite 300 lignes/fichier (CLAUDE.md § 11).
- *
- * Contient DateTimeFields (D-DTPICK-19..25 : Popover+Calendar+Select),
- * pickup/dropoff, mode/urgency, notes, indicateur d'auto-save. La logique
- * métier (validation, persistence) reste dans le modal parent (DEC-016).
+ * Sous-composants de présentation du modal saisie express. Phase 03.2.4 :
+ * DateTimeFields = inputs HTML natifs (HTML5 depuis 2014, zéro dépendance,
+ * zéro Portal, zéro z-index). Contient aussi pickup/dropoff, mode/urgency,
+ * notes, indicateur d'auto-save. Logique métier dans le modal parent (DEC-016).
  */
 
 export type TransportMode = 'taxi_conventionne' | 'tpmr' | 'vsl' | 'ambulance';
@@ -75,30 +62,45 @@ const TIME_SLOTS: ReadonlyArray<{ value: string; label: string }> = Array.from(
   },
 );
 
-/** Combine une Date (jour) + un créneau hh:mm en ISO 8601 UTC. */
-function combineToIso(date: Date | undefined, time: string): string | null {
-  if (!date || !time) return null;
-  const parts = time.split(':');
-  if (parts.length !== 2) return null;
-  const h = Number(parts[0]);
-  const m = Number(parts[1]);
-  if (Number.isNaN(h) || Number.isNaN(m)) return null;
-  const out = new Date(date);
-  out.setHours(h, m, 0, 0);
+/** Combine une date 'yyyy-mm-dd' + un créneau 'HH:MM' en ISO 8601 UTC. */
+function combineToIso(dateStr: string, time: string): string | null {
+  if (!dateStr || !time) return null;
+  const dateParts = dateStr.split('-');
+  const timeParts = time.split(':');
+  if (dateParts.length !== 3 || timeParts.length !== 2) return null;
+  const y = Number(dateParts[0]);
+  const mo = Number(dateParts[1]);
+  const d = Number(dateParts[2]);
+  const h = Number(timeParts[0]);
+  const mi = Number(timeParts[1]);
+  if ([y, mo, d, h, mi].some(Number.isNaN)) return null;
+  const out = new Date(y, mo - 1, d, h, mi, 0, 0);
   return Number.isNaN(out.getTime()) ? null : out.toISOString();
 }
 
-/** ISO 8601 → { day: Date, time: 'hh:mm' } pour l'état UI. */
+/** ISO 8601 → { dateStr: 'yyyy-mm-dd', time: 'HH:MM' } pour les inputs natifs. */
 function splitIso(iso: string | null): {
-  day: Date | undefined;
+  dateStr: string;
   time: string;
 } {
-  if (!iso) return { day: undefined, time: '' };
+  if (!iso) return { dateStr: '', time: '' };
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return { day: undefined, time: '' };
+  if (Number.isNaN(d.getTime())) return { dateStr: '', time: '' };
+  const yyyy = String(d.getFullYear()).padStart(4, '0');
+  const mo = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
   const hh = String(d.getHours()).padStart(2, '0');
   const mm = String(d.getMinutes()).padStart(2, '0');
-  return { day: d, time: `${hh}:${mm}` };
+  return { dateStr: `${yyyy}-${mo}-${dd}`, time: `${hh}:${mm}` };
+}
+
+/** 'yyyy-mm-dd' du jour pour `min` attribute (refus passé côté navigateur). */
+function todayIsoDate(): string {
+  const now = new Date();
+  const yyyy = String(now.getFullYear()).padStart(4, '0');
+  const mo = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  return `${yyyy}-${mo}-${dd}`;
 }
 
 export function DateTimeFields({
@@ -113,65 +115,58 @@ export function DateTimeFields({
   error?: string | null;
   disabled?: boolean;
 }): JSX.Element {
-  const { day, time } = splitIso(value);
-  const [popoverOpen, setPopoverOpen] = useState(false);
+  const { dateStr, time } = splitIso(value);
 
-  const handleDayChange = (next: Date | undefined): void => {
+  const handleDateChange = (next: string): void => {
     onChange(combineToIso(next, time));
-    setPopoverOpen(false);
   };
   const handleTimeChange = (next: string): void => {
-    onChange(combineToIso(day, next));
+    onChange(combineToIso(dateStr, next));
   };
 
   return (
     <div className="space-y-8">
       <Label>Date et heure</Label>
-      {/* D-DTPICK-9 (conservé) : min-w-0 sur les 2 colonnes — Calendar Popover
-          a une largeur intrinsèque qui peut casser le grid sur mobile 375px.
-          D-DTPICK-28 (Phase 03.2.2) : hauteur explicite h-40 sur les 2 triggers
-          pour alignement vertical strict + placeholder Select pour éviter
-          le rendu vide. */}
+      {/* Phase 03.2.4 — inputs HTML natifs (HTML5 depuis 2014).
+          Pattern éprouvé : type=date → calendrier OS natif au clic ;
+          select natif → menu déroulant OS. Aucune dépendance, aucun
+          Portal, aucun z-index, fonctionne identique partout. */}
       <div className="grid grid-cols-2 gap-12">
-        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={disabled}
-              aria-invalid={error ? true : undefined}
-              className={cn(
-                'h-40 min-w-0 justify-start text-left font-normal px-12',
-                !day && 'text-muted-foreground',
-                error && 'border-destructive',
-              )}
-              tabIndex={2}
-            >
-              <CalendarIcon className="mr-8 h-16 w-16 shrink-0" aria-hidden />
-              <span className="truncate">
-                {day ? formatDateFr(day) : 'jj/mm/aaaa'}
-              </span>
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={day}
-              onSelect={handleDayChange}
-              disabled={(d) => d < startOfDay(new Date())}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
-        <Select
-          ariaLabel="Heure"
-          value={time}
-          onChange={handleTimeChange}
-          items={[...TIME_SLOTS]}
-          placeholder="hh:mm"
-          triggerClassName="min-w-0 w-full"
-          contentClassName="max-h-[260px] overflow-y-auto"
+        <Input
+          type="date"
+          aria-label="Date"
+          value={dateStr}
+          min={todayIsoDate()}
+          onChange={(e) => handleDateChange(e.target.value)}
+          disabled={disabled}
+          aria-invalid={error ? true : undefined}
+          className={cn('min-w-0', error && 'border-destructive')}
+          tabIndex={2}
         />
+        <select
+          aria-label="Heure"
+          value={time}
+          onChange={(e) => handleTimeChange(e.target.value)}
+          disabled={disabled}
+          aria-invalid={error ? true : undefined}
+          className={cn(
+            'flex h-40 w-full min-w-0 items-center rounded-md border border-input bg-background px-12 text-sm',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+            'disabled:pointer-events-none disabled:opacity-50',
+            error && 'border-destructive',
+            !time && 'text-muted-foreground',
+          )}
+          tabIndex={3}
+        >
+          <option value="" disabled>
+            hh:mm
+          </option>
+          {TIME_SLOTS.map((slot) => (
+            <option key={slot.value} value={slot.value}>
+              {slot.label}
+            </option>
+          ))}
+        </select>
       </div>
       {error && (
         <p className="text-xs text-destructive" role="alert">
