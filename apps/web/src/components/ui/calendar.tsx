@@ -64,8 +64,23 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        IconLeft: () => <ChevronLeft className="h-16 w-16" aria-hidden />,
-        IconRight: () => <ChevronRight className="h-16 w-16" aria-hidden />,
+        // react-day-picker v9 : composant Chevron unique avec prop `orientation`
+        // (les anciennes APIs IconLeft / IconRight de v8 ont été fusionnées).
+        // Cf. https://daypicker.dev/upgrading
+        Chevron: ({ orientation, className: chevronClassName, ...iconProps }) =>
+          orientation === 'left' ? (
+            <ChevronLeft
+              className={cn('h-16 w-16', chevronClassName)}
+              aria-hidden
+              {...iconProps}
+            />
+          ) : (
+            <ChevronRight
+              className={cn('h-16 w-16', chevronClassName)}
+              aria-hidden
+              {...iconProps}
+            />
+          ),
       }}
       {...props}
     />
