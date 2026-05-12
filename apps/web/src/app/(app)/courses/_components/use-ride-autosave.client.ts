@@ -18,7 +18,6 @@ type AutosavePayloadBase = {
   pickup_address?: string;
   dropoff_address?: string;
   scheduled_at?: string;
-  dateInput?: string;
 };
 
 export function useRideAutosave<TForm extends AutosavePayloadBase>(args: {
@@ -47,10 +46,9 @@ export function useRideAutosave<TForm extends AutosavePayloadBase>(args: {
         return;
       }
       setSavingState('saving');
-      const { dateInput: _ignored, ...persisted } = payload;
       const res = await upsertRideDraft({
         id: draftIdRef.current,
-        payload: persisted,
+        payload,
         patient_id: payload.patient_id,
       });
       if ('error' in res) {
