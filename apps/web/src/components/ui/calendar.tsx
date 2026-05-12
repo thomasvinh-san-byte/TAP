@@ -5,21 +5,24 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { DayPicker } from 'react-day-picker';
 import { fr } from 'date-fns/locale';
 
+// CSS de base react-day-picker v9 (grid, sizing, layout interne).
+// Sans cet import, le calendrier rend sans aucun layout (chiffres empilés).
+// Cf. github.com/gpbl/react-day-picker discussion #2280 + #2208.
+import 'react-day-picker/style.css';
+
 import { cn } from '@/lib/utils';
-import { buttonVariants } from '@/components/ui/button';
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
 /**
- * Composant Calendar shadcn — migration react-day-picker v9 (D-DTPICK-26
- * Phase 03.2.1 hotfix).
+ * Composant Calendar shadcn — react-day-picker v9 (D-DTPICK-20ter
+ * Phase 03.2.2 hotfix).
  *
- * Le template shadcn officiel cible toujours react-day-picker v8 ; v9 a
- * renommé toutes les clés de `classNames` (month_caption au lieu de caption,
- * weekdays / weekday au lieu de head_row / head_cell, button_previous /
- * button_next au lieu de nav_button_*, etc.). Le calendrier rendait
- * illisible (chiffres empilés, jours collés) tant que les anciens noms v8
- * étaient utilisés.
+ * Approche : on garde le CSS de base v9 (`react-day-picker/style.css`)
+ * pour le layout grid / sizing des cellules / position des chevrons, et
+ * on ajoute uniquement quelques overrides Tailwind cohérents avec le
+ * thème shadcn (couleur primary pour selected, accent pour today,
+ * muted-foreground pour outside/disabled).
  *
  * Locale FR injectée par défaut (NFR-001) ; override possible via prop.
  */
@@ -36,37 +39,13 @@ function Calendar({
       showOutsideDays={showOutsideDays}
       className={cn('p-12', className)}
       classNames={{
-        months: 'flex flex-col sm:flex-row gap-16',
-        month: 'flex flex-col gap-16',
-        month_caption: 'flex justify-center items-center h-32 relative',
-        caption_label: 'text-sm font-medium',
-        nav: 'flex items-center justify-between absolute inset-x-0 top-0 h-32 px-2',
-        button_previous: cn(
-          buttonVariants({ variant: 'outline' }),
-          'h-28 w-28 bg-transparent p-0 opacity-50 hover:opacity-100',
-        ),
-        button_next: cn(
-          buttonVariants({ variant: 'outline' }),
-          'h-28 w-28 bg-transparent p-0 opacity-50 hover:opacity-100',
-        ),
-        month_grid: 'w-full border-collapse',
-        weekdays: 'flex',
-        weekday:
-          'text-muted-foreground rounded-md w-36 font-normal text-xs text-center',
-        week: 'flex w-full mt-8',
-        day: 'h-36 w-36 text-center text-sm p-0 relative',
-        day_button: cn(
-          buttonVariants({ variant: 'ghost' }),
-          'h-36 w-36 p-0 font-normal aria-selected:opacity-100',
-        ),
+        // Overrides shadcn : couleurs uniquement (le layout vient du CSS v9).
         selected:
-          'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground',
-        today: 'bg-accent text-accent-foreground',
-        outside: 'text-muted-foreground opacity-50',
-        disabled: 'text-muted-foreground opacity-50',
-        range_middle:
-          'aria-selected:bg-accent aria-selected:text-accent-foreground',
-        hidden: 'invisible',
+          'rdp-selected !bg-primary !text-primary-foreground hover:!bg-primary',
+        today: 'rdp-today !text-accent-foreground font-semibold',
+        outside: 'rdp-outside !text-muted-foreground !opacity-50',
+        disabled: 'rdp-disabled !text-muted-foreground !opacity-30',
+        caption_label: 'text-sm font-medium capitalize',
         ...classNames,
       }}
       components={{
