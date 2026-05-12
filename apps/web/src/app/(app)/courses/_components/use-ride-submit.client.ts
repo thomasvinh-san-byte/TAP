@@ -2,7 +2,7 @@
 
 import { useCallback, useTransition } from 'react';
 import { toast } from 'sonner';
-import { parseFreeformDate, rideExpressInputSchema } from '@tap/shared';
+import { rideExpressInputSchema } from '@tap/shared';
 import { createRideAction, updateRideAction } from '../actions';
 import type { TransportMode, Urgency } from './ride-express-form-fields.client';
 
@@ -11,11 +11,12 @@ import type { TransportMode, Urgency } from './ride-express-form-fields.client';
  *
  * Pattern : validation zod → toast optimiste → Server Action.
  * En cas d'échec, restaure le snapshot via `onRestore` (Pitfall 3).
+ * `scheduled_at` est déjà ISO 8601 (set par DateTimeFields, Phase 03.1.1) —
+ * plus de fallback `parseFreeformDate` depuis le retrait de DateFreeformField.
  */
 export type RideSubmitFormState = {
   patient_id?: string;
   scheduled_at?: string;
-  dateInput?: string;
   pickup_address?: string;
   dropoff_address?: string;
   transport_mode?: TransportMode;
@@ -30,7 +31,6 @@ export function useRideSubmit(args: {
   draftIdRef: { current: string | undefined };
   onSuccess: () => void;
   onRestore: (snapshot: RideSubmitFormState) => void;
-  onDateError: (msg: string) => void;
   onFieldErrors: (errors: Record<string, string>) => void;
 }) {
   const [isPending, startTransition] = useTransition();
@@ -38,14 +38,6 @@ export function useRideSubmit(args: {
   const submit = useCallback(
     (form: RideSubmitFormState) => {
       const next: RideSubmitFormState = { ...form };
-      if (next.dateInput && !next.scheduled_at) {
-        const parsed = parseFreeformDate(next.dateInput);
-        if (!parsed.ok) {
-          args.onDateError(parsed.reason);
-          return;
-        }
-        next.scheduled_at = parsed.iso;
-      }
       const validation = rideExpressInputSchema.safeParse({
         patient_id: next.patient_id,
         scheduled_at: next.scheduled_at,

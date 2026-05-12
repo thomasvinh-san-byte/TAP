@@ -5,15 +5,17 @@ import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
-import { parseFreeformDate } from '@tap/shared';
+import { Textarea } from '@/components/ui/textarea';
 
 /**
- * Sous-composants de présentation du modal saisie express (Phase 2 / Wave 3).
- * Extrait pour respecter la limite 300 lignes/fichier (CLAUDE.md § 11).
+ * Sous-composants de présentation du modal saisie express (Phase 2 / Wave 3,
+ * date+time picker natif Phase 03.1.1). Extrait pour respecter la limite
+ * 300 lignes/fichier (CLAUDE.md § 11).
  *
- * Contient les champs date freeform, pickup/dropoff, mode/urgency, notes,
- * et l'indicateur d'auto-save. La logique métier (validation, persistence)
- * reste dans le modal parent (DEC-016 : pas de logique métier en composant).
+ * Contient les champs date+time natifs, pickup/dropoff, mode/urgency,
+ * notes, et l'indicateur d'auto-save. La logique métier (validation,
+ * persistence) reste dans le modal parent (DEC-016 : pas de logique
+ * métier en composant).
  */
 
 export type TransportMode = 'taxi_conventionne' | 'tpmr' | 'vsl' | 'ambulance';
@@ -32,84 +34,86 @@ const URGENCY_OPTIONS: ReadonlyArray<{ value: Urgency; label: string }> = [
   { value: 'immediate', label: 'Immédiate' },
 ];
 
-/**
- * Chips date rapides (D-A3-2 Phase 03.1) — valeurs verbatim, ordre figé.
- * Toutes chrono.fr-compatibles avec `forwardDate: true`.
- */
-const DATE_CHIPS = [
-  'demain 8h',
-  'demain 14h',
-  'lundi 9h',
-  'dans 30 minutes',
-] as const;
+function todayIso(): string {
+  // ISO local YYYY-MM-DD pour l'attribut min de l'input date.
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
 
-export function DateFreeformField({
+function splitIso(iso: string | null): { date: string; time: string } {
+  // ISO 8601 UTC → date+time locaux pour les inputs natifs.
+  if (!iso) return { date: '', time: '' };
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return { date: '', time: '' };
+  const y = d.getFullYear();
+  const mo = String(d.getMonth() + 1).padStart(2, '0');
+  const da = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return { date: `${y}-${mo}-${da}`, time: `${hh}:${mm}` };
+}
+
+function combineToIso(date: string, time: string): string | null {
+  if (!date || !time) return null;
+  const combined = new Date(`${date}T${time}:00`);
+  if (Number.isNaN(combined.getTime())) return null;
+  return combined.toISOString();
+}
+
+export function DateTimeFields({
   value,
   onChange,
-  onParsed,
   error,
-  onError,
   disabled,
-  rideId,
 }: {
-  value: string;
-  onChange: (v: string) => void;
-  onParsed: (iso: string) => void;
-  error: string | null;
-  onError: (e: string | null) => void;
-  /** Désactive l'input et masque les chips (D-A3-5). */
+  /** ISO 8601 UTC ou null. */
+  value: string | null;
+  onChange: (iso: string | null) => void;
+  error?: string | null;
   disabled?: boolean;
-  /** rideId présent = mode édition : chips masquées (D-A3-5). */
-  rideId?: string;
 }): JSX.Element {
-  const handleChipClick = (label: string): void => {
-    onChange(label);
-    const parsed = parseFreeformDate(label);
-    if (parsed.ok) {
-      onError(null);
-      onParsed(parsed.iso);
-    } else {
-      onError(parsed.reason);
-    }
+  const { date, time } = splitIso(value);
+  const min = todayIso();
+
+  const handleDateChange = (next: string): void => {
+    onChange(combineToIso(next, time));
   };
-  const showChips = !disabled && !rideId;
+  const handleTimeChange = (next: string): void => {
+    onChange(combineToIso(date, next));
+  };
+
   return (
     <div className="space-y-8">
-      <Label htmlFor="date">Date et heure</Label>
-      <Input
-        id="date"
-        aria-label="Date et heure"
-        placeholder="ex : 15/05 14h30 — demain 8h — lundi 9h"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onBlur={() => {
-          if (!value) return;
-          const parsed = parseFreeformDate(value);
-          if (parsed.ok) {
-            onError(null);
-            onParsed(parsed.iso);
-          } else {
-            onError(parsed.reason);
-          }
-        }}
-        disabled={disabled}
-        autoComplete="off"
-        tabIndex={2}
-      />
-      {showChips ? (
-        <div className="flex flex-wrap gap-8 mt-8">
-          {DATE_CHIPS.map((label) => (
-            <button
-              key={label}
-              type="button"
-              onClick={() => handleChipClick(label)}
-              className="px-12 py-8 rounded-full text-xs border border-input bg-background hover:bg-muted text-muted-foreground transition-colors"
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      ) : null}
+      <Label htmlFor="ride-date">Date et heure</Label>
+      <div className="grid grid-cols-2 gap-12">
+        <Input
+          id="ride-date"
+          type="date"
+          aria-label="Date"
+          value={date}
+          min={min}
+          onChange={(e) => handleDateChange(e.target.value)}
+          aria-invalid={error ? true : undefined}
+          className={cn(error && 'border-destructive focus-visible:ring-destructive')}
+          disabled={disabled}
+          tabIndex={2}
+        />
+        <Input
+          id="ride-time"
+          type="time"
+          aria-label="Heure"
+          value={time}
+          step={300}
+          onChange={(e) => handleTimeChange(e.target.value)}
+          aria-invalid={error ? true : undefined}
+          className={cn(error && 'border-destructive focus-visible:ring-destructive')}
+          disabled={disabled}
+          tabIndex={3}
+        />
+      </div>
       {error && (
         <p className="text-xs text-destructive" role="alert">
           {error}
@@ -211,14 +215,16 @@ export function NotesField({
   return (
     <div className="space-y-8">
       <Label htmlFor="notes">Notes (optionnel)</Label>
-      <Input
+      <Textarea
         id="notes"
         aria-label="Notes"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
         maxLength={500}
+        rows={2}
         tabIndex={7}
+        className="min-h-0 resize-none"
       />
     </div>
   );

@@ -19,7 +19,7 @@ import { DuplicateBanner } from './duplicate-banner.client';
 import { PatientPickerField } from './ride-patient-picker.client';
 import {
   AddressField,
-  DateFreeformField,
+  DateTimeFields,
   ModeUrgencyFields,
   NotesField,
   SavingIndicator,
@@ -59,7 +59,6 @@ export function RideExpressModal(props: Props): JSX.Element {
     urgency: 'programmee',
   });
   const [patientLabel, setPatientLabel] = useState<string>('');
-  const [dateError, setDateError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   // B3 — détection doublon non-bloquante (D-B3-1..5).
   const dup = useDuplicateCheck();
@@ -81,7 +80,6 @@ export function RideExpressModal(props: Props): JSX.Element {
     (r) => ({
       patient_id: r.patient_id,
       scheduled_at: r.scheduled_at,
-      dateInput: '',
       pickup_address: r.pickup_address,
       dropoff_address: r.dropoff_address,
       transport_mode: r.transport_mode as TransportMode,
@@ -98,8 +96,7 @@ export function RideExpressModal(props: Props): JSX.Element {
         return next;
       });
       setFieldErrors((prev) => {
-        // `dateInput` est la string libre ; champ zod = `scheduled_at`.
-        const errKey = (key as string) === 'dateInput' ? 'scheduled_at' : (key as string);
+        const errKey = key as string;
         if (!prev[errKey]) return prev;
         const { [errKey]: _omit, ...rest } = prev;
         return rest;
@@ -171,7 +168,6 @@ export function RideExpressModal(props: Props): JSX.Element {
       props.onClose();
     },
     onRestore: setForm,
-    onDateError: setDateError,
     onFieldErrors: setFieldErrors,
   });
 
@@ -204,20 +200,17 @@ export function RideExpressModal(props: Props): JSX.Element {
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-16" noValidate>
+        <form onSubmit={handleSubmit} className="space-y-12" noValidate>
           <PatientPickerField
             selectedLabel={patientLabel}
             onSelect={handlePatientSelect}
             error={fieldErrors.patient_id}
           />
 
-          <DateFreeformField
-            value={form.dateInput ?? ''}
-            onChange={(v) => updateField('dateInput', v)}
-            onParsed={(iso) => updateField('scheduled_at', iso)}
-            error={dateError ?? fieldErrors.scheduled_at ?? null}
-            onError={setDateError}
-            rideId={props.rideId}
+          <DateTimeFields
+            value={form.scheduled_at ?? null}
+            onChange={(iso) => updateField('scheduled_at', iso ?? undefined)}
+            error={fieldErrors.scheduled_at ?? null}
           />
 
           <AddressField

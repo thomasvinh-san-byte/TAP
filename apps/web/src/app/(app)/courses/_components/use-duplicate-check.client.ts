@@ -1,21 +1,22 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { parseFreeformDate } from '@tap/shared';
 import { checkDuplicateRideAction } from '../actions';
 import type { RideSubmitFormState } from './use-ride-submit.client';
 
 /**
- * Hook B3 — détection doublon non-bloquante (Phase 03.1, D-B3-1..5).
+ * Hook B3 — détection doublon non-bloquante (Phase 03.1, D-B3-1..5 ;
+ * Phase 03.1.1 retire le fallback parseFreeformDate suite à passage aux
+ * inputs date+time natifs — `scheduled_at` est désormais toujours ISO).
  *
  * Encapsule le state `duplicates` + `duplicateConfirmed` et la pré-vérif
  * avant submit. Extrait du modal pour respecter CLAUDE.md § 11 (≤ 300 L).
  *
  * Flow :
- *   1. `runCheck(form, excludeRideId)` parse `dateInput` si besoin, appelle
- *      `checkDuplicateRideAction` et retourne `true` si un doublon est
- *      détecté (le state `duplicates` est alors alimenté ; le caller doit
- *      return early pour laisser le banner s'afficher).
+ *   1. `runCheck(form, excludeRideId)` appelle `checkDuplicateRideAction`
+ *      et retourne `true` si un doublon est détecté (le state `duplicates`
+ *      est alors alimenté ; le caller doit return early pour laisser le
+ *      banner s'afficher).
  *   2. `confirm()` → `setDuplicateConfirmed(true)`, le prochain `runCheck`
  *      sera bypassé via `bypass` explicite (cf. ride-express-modal).
  *   3. `reset()` → état propre à la réouverture du modal (D-B3-5).
@@ -31,14 +32,7 @@ export function useDuplicateCheck() {
       form: RideSubmitFormState,
       excludeRideId: string | undefined,
     ): Promise<boolean> => {
-      const scheduledIso =
-        form.scheduled_at ??
-        (form.dateInput
-          ? (() => {
-              const p = parseFreeformDate(form.dateInput);
-              return p.ok ? p.iso : undefined;
-            })()
-          : undefined);
+      const scheduledIso = form.scheduled_at;
       if (!form.patient_id || !scheduledIso) return false;
       const result = await checkDuplicateRideAction({
         patientId: form.patient_id,
