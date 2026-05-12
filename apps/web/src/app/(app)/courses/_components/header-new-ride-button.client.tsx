@@ -13,8 +13,8 @@ import { useRideOrchestrator } from './ride-orchestrator-context.client';
  * que l'E2E SAIS-02 et les utilisateurs clavier le découvrent.
  *
  * Sizing (fix 03-d-bis — débordement preview) :
- *   - `size="default"` (h-40) aligne verticalement sur les Inputs/Selects
- *     de la ligne de filtres juste en dessous (cohérence visuelle).
+ *   - `size="default"` (h-10 = 40px via default Tailwind) aligne verticalement
+ *     sur les Inputs/Selects de la ligne de filtres juste en dessous.
  *   - `shrink-0` empêche le bouton de déborder du parent flex.
  *   - `w-full md:w-auto` : pleine largeur sous le titre en mobile, taille
  *     intrinsèque à partir de 768 px.

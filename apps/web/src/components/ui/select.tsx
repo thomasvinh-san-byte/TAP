@@ -58,7 +58,7 @@ export function Select({
       <DropdownMenuTrigger
         aria-label={ariaLabel}
         className={cn(
-          'inline-flex h-40 items-center justify-between gap-8 rounded-md border border-input bg-background px-12 text-sm',
+          'inline-flex h-10 items-center justify-between gap-8 rounded-md border border-input bg-background px-12 text-sm',
           'transition-colors duration-150 hover:bg-muted hover:text-foreground',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
           'disabled:pointer-events-none disabled:opacity-50',
