@@ -32,27 +32,47 @@ const URGENCY_OPTIONS: ReadonlyArray<{ value: Urgency; label: string }> = [
   { value: 'immediate', label: 'Immédiate' },
 ];
 
+/**
+ * Chips date rapides (D-A3-2 Phase 03.1) — valeurs verbatim, ordre figé.
+ * Toutes chrono.fr-compatibles avec `forwardDate: true`.
+ */
+const DATE_CHIPS = [
+  'demain 8h',
+  'demain 14h',
+  'lundi 9h',
+  'dans 30 minutes',
+] as const;
+
 export function DateFreeformField({
   value,
   onChange,
   onParsed,
   error,
   onError,
-  rideId: _rideId,
+  disabled,
+  rideId,
 }: {
   value: string;
   onChange: (v: string) => void;
   onParsed: (iso: string) => void;
   error: string | null;
   onError: (e: string | null) => void;
-  /**
-   * Identifiant de la course en édition. Propagé par le modal (Wave 0
-   * Phase 03.1) pour permettre à Plan 03.1-02 de masquer les chips de
-   * sélection rapide en mode édition. Pour l'instant, prop accepté mais
-   * non utilisé (suffixe `_rideId` pour calmer le linter).
-   */
+  /** Désactive l'input et masque les chips (D-A3-5). */
+  disabled?: boolean;
+  /** rideId présent = mode édition : chips masquées (D-A3-5). */
   rideId?: string;
 }): JSX.Element {
+  const handleChipClick = (label: string): void => {
+    onChange(label);
+    const parsed = parseFreeformDate(label);
+    if (parsed.ok) {
+      onError(null);
+      onParsed(parsed.iso);
+    } else {
+      onError(parsed.reason);
+    }
+  };
+  const showChips = !disabled && !rideId;
   return (
     <div className="space-y-8">
       <Label htmlFor="date">Date et heure</Label>
@@ -72,9 +92,24 @@ export function DateFreeformField({
             onError(parsed.reason);
           }
         }}
+        disabled={disabled}
         autoComplete="off"
         tabIndex={2}
       />
+      {showChips ? (
+        <div className="flex flex-wrap gap-8 mt-8">
+          {DATE_CHIPS.map((label) => (
+            <button
+              key={label}
+              type="button"
+              onClick={() => handleChipClick(label)}
+              className="px-12 py-8 rounded-full text-xs border border-input bg-background hover:bg-muted text-muted-foreground transition-colors"
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      ) : null}
       {error && (
         <p className="text-xs text-destructive" role="alert">
           {error}
