@@ -38,12 +38,20 @@ export function DateFreeformField({
   onParsed,
   error,
   onError,
+  rideId: _rideId,
 }: {
   value: string;
   onChange: (v: string) => void;
   onParsed: (iso: string) => void;
   error: string | null;
   onError: (e: string | null) => void;
+  /**
+   * Identifiant de la course en édition. Propagé par le modal (Wave 0
+   * Phase 03.1) pour permettre à Plan 03.1-02 de masquer les chips de
+   * sélection rapide en mode édition. Pour l'instant, prop accepté mais
+   * non utilisé (suffixe `_rideId` pour calmer le linter).
+   */
+  rideId?: string;
 }): JSX.Element {
   return (
     <div className="space-y-8">
