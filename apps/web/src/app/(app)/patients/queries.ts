@@ -161,6 +161,50 @@ function toListItem(row: Partial<PatientSafeRow>): PatientListItem {
  *  - `patient_constraint` : toutes les contraintes du patient.
  *  - `patient_operational_note` : note active uniquement (`replaced_by_id is null`).
  */
+/**
+ * Lecture des « smart defaults » de saisie express (Plan 03.1-01, D-A2-2).
+ *
+ * Retourne `transport_mode` + `urgency` de la dernière course non archivée
+ * du patient, hors statuts d'annulation. Utilisé par
+ * `getPatientRideDefaultsAction` pour pré-remplir silencieusement le modal
+ * saisie express (D-A2-1 : aucun toast, aucun spinner).
+ *
+ * Filtre :
+ *  - `patient_id = $patientId` ET `organization_id = $organizationId`
+ *  - `archive = false`
+ *  - `status ∈ {validee, assignee, en_cours, terminee}` (exclut `annulee_*`)
+ *  - `order by scheduled_at desc limit 1`
+ *
+ * Silent fail : toute erreur Supabase ou résultat vide retourne `null`
+ * (le pré-remplissage est non-critique — l'absence de défauts n'est pas
+ * un bug, juste un patient sans historique exploitable).
+ */
+export async function getPatientRideDefaults(
+  patientId: string,
+  organizationId: string,
+): Promise<{
+  transport_mode: Database['public']['Enums']['ride_transport_mode'];
+  urgency: Database['public']['Enums']['ride_urgency'];
+} | null> {
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('rides')
+    .select('transport_mode, urgency')
+    .eq('patient_id', patientId)
+    .eq('organization_id', organizationId)
+    .eq('archive', false)
+    .in('status', ['validee', 'assignee', 'en_cours', 'terminee'])
+    .order('scheduled_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error || !data) return null;
+  const row = data as {
+    transport_mode: Database['public']['Enums']['ride_transport_mode'];
+    urgency: Database['public']['Enums']['ride_urgency'];
+  };
+  return { transport_mode: row.transport_mode, urgency: row.urgency };
+}
+
 export async function getPatientById(id: string) {
   const supabase = createClient();
   const { data, error } = await supabase

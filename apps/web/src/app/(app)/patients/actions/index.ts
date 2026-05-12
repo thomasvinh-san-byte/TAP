@@ -7,8 +7,8 @@
  *
  * - `_existing.ts` : actions héritées (create / update / decryptNir /
  *   searchPatientsAction / getPatientByIdAction).
- *
- * Plan 03.1-01 ajoutera ici l'export de `getPatientRideDefaultsAction`
- * via un fichier dédié `./get-ride-defaults.ts`.
+ * - `get-ride-defaults.ts` : `getPatientRideDefaultsAction` (Plan 03.1-01,
+ *   smart defaults mode + urgence depuis la dernière course du patient).
  */
 export * from './_existing';
+export * from './get-ride-defaults';
