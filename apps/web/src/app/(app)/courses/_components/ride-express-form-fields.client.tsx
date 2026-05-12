@@ -12,11 +12,17 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
 /**
- * Sous-composants de présentation du modal saisie express. Phase 03.2.5 :
- * DateTimeFields = react-datepicker v7 (locale FR forcée, picker
- * combiné date+heure, Portal externe au Sheet pour zéro collision
- * z-index). Contient aussi pickup/dropoff, mode/urgency, notes,
- * indicateur d'auto-save. Logique métier dans le modal parent (DEC-016).
+ * Sous-composants de présentation du modal saisie express. Phase 03.2.7 :
+ * DateTimeFields = deux champs distincts (date à gauche, heure à droite,
+ * grid-cols-2 gap-12), chacun un react-datepicker v7. Combinaison interne
+ * via états locaux pour préserver la saisie partielle ; le parent voit
+ * toujours un ISO 8601 complet ou null si l'un des deux est manquant.
+ * Sync externe via useEffect avec comparaison projection-locale pour
+ * éviter la boucle de reset (prefill async, reset modal). Portal externe
+ * (#datepicker-portal dans layout.tsx) commun aux deux pickers, zéro
+ * collision z-index avec le Sheet Radix. Contient aussi pickup/dropoff,
+ * mode/urgency, notes, indicateur d'auto-save. Logique métier dans le
+ * modal parent (DEC-016).
  */
 
 registerLocale('fr', fr);
@@ -46,6 +52,54 @@ const SERVICE_START_HOUR = 5;
 const SERVICE_END_HOUR = 22;
 const TIME_INTERVAL_MIN = 15;
 
+/** ISO 8601 → { date: Date pure jour, time: Date pure heure-minute } ou null. */
+function projectFromIso(iso: string | null): {
+  date: Date | null;
+  time: Date | null;
+} {
+  if (!iso) return { date: null, time: null };
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return { date: null, time: null };
+  const dateOnly = new Date(
+    d.getFullYear(),
+    d.getMonth(),
+    d.getDate(),
+    0, 0, 0, 0,
+  );
+  const timeOnly = new Date(0, 0, 0, d.getHours(), d.getMinutes(), 0, 0);
+  return { date: dateOnly, time: timeOnly };
+}
+
+function sameDate(a: Date | null, b: Date | null): boolean {
+  if (a === null && b === null) return true;
+  if (a === null || b === null) return false;
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+function sameTime(a: Date | null, b: Date | null): boolean {
+  if (a === null && b === null) return true;
+  if (a === null || b === null) return false;
+  return a.getHours() === b.getHours() && a.getMinutes() === b.getMinutes();
+}
+
+/** Combine date pure + heure pure en ISO 8601 UTC. Retourne null si l'un manque. */
+function combineDateTime(date: Date | null, time: Date | null): string | null {
+  if (!date || !time) return null;
+  const combined = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+    time.getHours(),
+    time.getMinutes(),
+    0, 0,
+  );
+  return Number.isNaN(combined.getTime()) ? null : combined.toISOString();
+}
+
 export function DateTimeFields({
   value,
   onChange,
@@ -58,40 +112,91 @@ export function DateTimeFields({
   error?: string | null;
   disabled?: boolean;
 }): JSX.Element {
-  const selected = value ? new Date(value) : null;
+  const [localDate, setLocalDate] = useState<Date | null>(
+    () => projectFromIso(value).date,
+  );
+  const [localTime, setLocalTime] = useState<Date | null>(
+    () => projectFromIso(value).time,
+  );
+
+  // Sync externe : si `value` change (prefill async, reset modal, édition
+  // existante), reprojeter en local SEULEMENT si la valeur externe ne
+  // correspond plus à la combinaison locale. Évite la boucle reset →
+  // émit → reset où le parent renverrait la valeur émise.
+  useEffect(() => {
+    const projected = projectFromIso(value);
+    if (
+      !sameDate(localDate, projected.date) ||
+      !sameTime(localTime, projected.time)
+    ) {
+      setLocalDate(projected.date);
+      setLocalTime(projected.time);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
   const today = new Date();
   const minTime = setMinutes(setHours(today, SERVICE_START_HOUR), 0);
   const maxTime = setMinutes(setHours(today, SERVICE_END_HOUR), 0);
 
+  const handleDate = (d: Date | null): void => {
+    setLocalDate(d);
+    onChange(combineDateTime(d, localTime));
+  };
+  const handleTime = (t: Date | null): void => {
+    setLocalTime(t);
+    onChange(combineDateTime(localDate, t));
+  };
+
+  const fieldClass = cn(
+    'h-10 w-full min-w-0 rounded-md border border-input bg-background px-12 py-8 text-sm',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+    'disabled:pointer-events-none disabled:opacity-50',
+    'placeholder:text-muted-foreground',
+    error && 'border-destructive',
+  );
+
   return (
     <div className="space-y-8">
-      <Label htmlFor="ride-scheduled-at">Date et heure</Label>
-      <DatePicker
-        id="ride-scheduled-at"
-        selected={selected}
-        onChange={(d: Date | null) => onChange(d ? d.toISOString() : null)}
-        locale="fr"
-        dateFormat="dd/MM/yyyy HH:mm"
-        showTimeSelect
-        timeIntervals={TIME_INTERVAL_MIN}
-        timeCaption="Heure"
-        minDate={today}
-        minTime={minTime}
-        maxTime={maxTime}
-        placeholderText="jj/mm/aaaa hh:mm"
-        portalId="datepicker-portal"
-        popperPlacement="bottom-start"
-        disabled={disabled}
-        ariaInvalid={error ? 'true' : undefined}
-        wrapperClassName="w-full"
-        className={cn(
-          'h-10 w-full min-w-0 rounded-md border border-input bg-background px-12 py-8 text-sm',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-          'disabled:pointer-events-none disabled:opacity-50',
-          'placeholder:text-muted-foreground',
-          error && 'border-destructive',
-        )}
-      />
+      <Label htmlFor="ride-scheduled-date">Date et heure</Label>
+      <div className="grid grid-cols-2 gap-12">
+        <DatePicker
+          id="ride-scheduled-date"
+          selected={localDate}
+          onChange={handleDate}
+          locale="fr"
+          dateFormat="dd/MM/yyyy"
+          minDate={today}
+          placeholderText="jj/mm/aaaa"
+          portalId="datepicker-portal"
+          popperPlacement="bottom-start"
+          disabled={disabled}
+          ariaInvalid={error ? 'true' : undefined}
+          wrapperClassName="w-full"
+          className={fieldClass}
+        />
+        <DatePicker
+          id="ride-scheduled-time"
+          selected={localTime}
+          onChange={handleTime}
+          locale="fr"
+          showTimeSelect
+          showTimeSelectOnly
+          timeIntervals={TIME_INTERVAL_MIN}
+          timeCaption="Heure"
+          minTime={minTime}
+          maxTime={maxTime}
+          dateFormat="HH:mm"
+          timeFormat="HH:mm"
+          placeholderText="hh:mm"
+          portalId="datepicker-portal"
+          popperPlacement="bottom-start"
+          disabled={disabled}
+          ariaInvalid={error ? 'true' : undefined}
+          wrapperClassName="w-full"
+          className={fieldClass}
+        />
+      </div>
       {error && (
         <p className="text-xs text-destructive" role="alert">
           {error}
