@@ -128,7 +128,10 @@ export function DateTimeFields({
     <div className="space-y-8">
       <Label>Date et heure</Label>
       {/* D-DTPICK-9 (conservé) : min-w-0 sur les 2 colonnes — Calendar Popover
-          a une largeur intrinsèque qui peut casser le grid sur mobile 375px. */}
+          a une largeur intrinsèque qui peut casser le grid sur mobile 375px.
+          D-DTPICK-28 (Phase 03.2.2) : hauteur explicite h-40 sur les 2 triggers
+          pour alignement vertical strict + placeholder Select pour éviter
+          le rendu vide. */}
       <div className="grid grid-cols-2 gap-12">
         <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
           <PopoverTrigger asChild>
@@ -138,14 +141,16 @@ export function DateTimeFields({
               disabled={disabled}
               aria-invalid={error ? true : undefined}
               className={cn(
-                'min-w-0 justify-start text-left font-normal',
+                'h-40 min-w-0 justify-start text-left font-normal px-12',
                 !day && 'text-muted-foreground',
                 error && 'border-destructive',
               )}
               tabIndex={2}
             >
-              <CalendarIcon className="mr-8 h-16 w-16" aria-hidden />
-              {day ? formatDateFr(day) : 'jj/mm/aaaa'}
+              <CalendarIcon className="mr-8 h-16 w-16 shrink-0" aria-hidden />
+              <span className="truncate">
+                {day ? formatDateFr(day) : 'jj/mm/aaaa'}
+              </span>
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
@@ -163,6 +168,7 @@ export function DateTimeFields({
           value={time}
           onChange={handleTimeChange}
           items={[...TIME_SLOTS]}
+          placeholder="hh:mm"
           triggerClassName="min-w-0 w-full"
           contentClassName="max-h-[260px] overflow-y-auto"
         />

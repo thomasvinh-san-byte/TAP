@@ -34,6 +34,8 @@ interface SelectProps {
   onChange: (next: string) => void;
   items: SelectItem[];
   ariaLabel: string;
+  /** Texte affiché quand aucune valeur n'est sélectionnée. */
+  placeholder?: string;
   triggerClassName?: string;
   contentClassName?: string;
   /** Affichage personnalisé d'un item dans la liste (icône, badge…). */
@@ -45,6 +47,7 @@ export function Select({
   onChange,
   items,
   ariaLabel,
+  placeholder,
   triggerClassName,
   contentClassName,
   renderItem,
@@ -63,7 +66,9 @@ export function Select({
           triggerClassName,
         )}
       >
-        <span className="truncate">{current?.label ?? ''}</span>
+        <span className={cn('truncate', !current && 'text-muted-foreground')}>
+          {current?.label ?? placeholder ?? ''}
+        </span>
         <ChevronDown
           className="h-16 w-16 shrink-0 text-muted-foreground"
           aria-hidden
