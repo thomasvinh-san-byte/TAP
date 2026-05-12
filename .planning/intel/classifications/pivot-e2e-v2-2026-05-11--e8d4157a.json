@@ -1,0 +1,29 @@
+{
+  "source_path": "/home/user/TAP/.planning/pivot-e2e-v2-2026-05-11.md",
+  "type": "SPEC",
+  "confidence": "high",
+  "manifest_override": true,
+  "title": "Pivot E2E v2 — Brief stratégique + Playbook Claude Code Web",
+  "summary": "Réorganise la roadmap en passes E2E successives (Passe 1 = squelette, Passe 2 = PWA + tarif CGSS, Passe 3 = récurrences + cockpit + SMS, Passe 4 = HDS + OR-Tools + B2B), avec double goal fonctionnel + UX par passe.",
+  "scope": [
+    "roadmap-restructure",
+    "e2e-passes-vs-vertical-modules",
+    "double-goal-functional-ux",
+    "ux-non-negotiables",
+    "design-tokens",
+    "spacing-scale-4-8-12-16-24-32-48-64",
+    "shell-refonte",
+    "passe-1-squelette",
+    "passe-2-pwa-tarif",
+    "passe-3-recurrences-cockpit-sms",
+    "passe-4-hds-or-tools-b2b"
+  ],
+  "cross_refs": [
+    ".planning/pivot-e2e-2026-05-11.md",
+    "CLAUDE.md",
+    "docs/adr/ADR-003-pivot-e2e-passes-successives.md"
+  ],
+  "locked": false,
+  "precedence": 1,
+  "notes": "Doc stratégique adossé à ADR-003 (qui formalise la décision). Contient un nom propre en frontmatter (Auteur Guillaume), violation de regle-neutralite-et-ton.md — à signaler en INFO mais pas bloquant car doc historique référencé."
+}

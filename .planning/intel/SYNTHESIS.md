@@ -131,3 +131,39 @@ le CDC), et 15 modules secondaires du CDC v2 sont absents du synthèse.
 **Statut** : prêt à router (READY) — aucun blocker, aucune variante en attente
 d'arbitrage utilisateur. La complétude fonctionnelle restera limitée tant que
 le CDC v2 n'aura pas été ingéré comme PRD.
+
+---
+
+## Annexe — Run 2026-05-12 (incrémental)
+
+Second ingest via manifest manuel `.planning/intel/staged-manifest.yml`,
+3 SPECs ajoutées :
+
+| Type | Source | Précédence | Locked |
+|---|---|---|---|
+| SPEC | .planning/regle-neutralite-et-ton.md | 0 | non |
+| SPEC | .planning/pivot-e2e-v2-2026-05-11.md | 1 | non |
+| SPEC | .planning/passes-2-3-4-detail.md | 2 | non |
+
+**Contraintes ajoutées** : CON-015 à CON-021 (7 nouvelles contraintes
+appendées à `constraints.md`).
+
+**Conflits run 2026-05-12** :
+
+| Bucket | Compte |
+|---|---|
+| BLOCKERS | 0 |
+| WARNINGS | 1 (désalignement ROADMAP CDC ↔ pivot E2E) |
+| INFO | 3 (CON-015..016, CON-017..020, CON-021) |
+
+Rapport détaillé : `INGEST-CONFLICTS.md` (réécrit).
+
+**Décisions à promouvoir** :
+- CON-015 / CON-016 → NFR-001 (neutralité) / NFR-002 (ton sobre) dans
+  REQUIREMENTS.md.
+- CON-018 → NFR-003 (spacing scale strict).
+- CON-019 → renforcer DEC-004 dans PROJECT.md.
+- CON-021 → seeder les phases 04/05/06 de la nouvelle ROADMAP réécrite.
+
+**Statut** : AWAITING USER — la WARNING ROADMAP doit être tranchée
+avant que le route_merge_mode ne réécrive `.planning/ROADMAP.md`.

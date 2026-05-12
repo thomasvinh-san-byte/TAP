@@ -1,0 +1,17 @@
+# Manifest généré à la volée par /gsd-ingest-docs (run 2026-05-12).
+# Liste 3 briefs stratégiques .planning/ (le 4e demandé,
+# decisions-pivot-v2-2026-05-11.md, n'existe pas sur disque).
+#
+# Précédence : règle neutralité = 0 (NFR transverse, gagne tout en
+# cas de conflit), pivot v2 = 1 (décisions stratégiques), passes
+# detail = 2 (planification dérivée du pivot).
+docs:
+  - path: .planning/regle-neutralite-et-ton.md
+    type: SPEC
+    precedence: 0
+  - path: .planning/pivot-e2e-v2-2026-05-11.md
+    type: SPEC
+    precedence: 1
+  - path: .planning/passes-2-3-4-detail.md
+    type: SPEC
+    precedence: 2

@@ -2,45 +2,39 @@
 
 ## Overview
 
-Le produit se construit en 3 lots successifs livrés à des design partners.
-Le **Lot 0** (fondations multi-tenant, RLS, CI/CD) est terminé. Le **Lot 1**
-ouvre la valeur métier à la régulatrice : référentiel patients, saisie express,
-moteur tarifaire CGSS, courses récurrentes, cockpit temps réel. Le **Lot 2**
-amène la beta auprès du premier design partner régulateur : planning Gantt,
-imprévus temps réel, communication SMS patient. Le **Lot 3** ouvre le terrain
-chauffeur (PWA hors-ligne, optimisation OR-Tools, routing OSRM) et finalise
-les capacités opérationnelles (caisse, mode dégradé). Le pilier UX prime à
-chaque phase : aucun écran ne sort si la régulatrice ne pourrait pas en faire
-une capture pour une page d'accueil produit.
+Le produit se construit en **passes E2E successives** (ADR-003) plutôt qu'en
+modules verticaux. Chaque passe traverse les 6 maillons métier (patient →
+saisie → assignation → exécution → tarification → trace) en améliorant le
+minimum partout, jamais un module en profondeur avant que tous existent.
+
+Chaque passe a deux goals parallèles (NFR-006) :
+- **Fonctionnel** — ce que l'utilisateur peut faire.
+- **UX** — à quoi ça ressemble et comment ça se sent.
+
+Aucun goal ne peut être validé sans l'autre. Le pilier UX prime à chaque
+phase : aucun écran ne sort si la régulatrice ne pourrait pas en faire une
+capture pour une page d'accueil produit.
+
+Sources de vérité de ce séquencement : ADR-003 (LOCKED) +
+`.planning/pivot-e2e-v2-2026-05-11.md` + `.planning/passes-2-3-4-detail.md`.
 
 ## Phases
 
 **Numérotation :**
 - Phases entières (0, 1, 2…) : milestones planifiés.
-- Phases décimales (2.1, 2.2…) : insertions urgentes (marquées INSERTED).
+- Phases décimales (1.5, 0.7) : insertions infra/légales conservées de
+  la roadmap pré-pivot.
+- Phases 03-06 : passes E2E v2 (alignement ADR-003).
 
 - [x] **Phase 0: Fondations Lot 0** - Monorepo, RLS multi-tenant, migrations, CI/CD (livré commit `f68b1d2`)
 - [x] **Phase 1: Référentiel patients** - Fiche patient avec NIR chiffré, recherche fuzzy, préférences (livré 16 commits, 5/5 SC + 7/7 PAT delivered, runtime CI human_needed)
 - [x] **Phase 1.5: DPA + RGPD compliance** - Registre traitements, DPA Supabase, DPIA santé, portail droits patient (livré 28 commits, 8/8 DPA delivered, runtime CI human_needed)
 - [x] **Phase 0.7: Déploiement continu Vercel + démo seedée** - Visible Progress Mandate (Vercel preview + seed démo 974 + showcase/ + smoke test cloud) — livrée 2026-05-07
 - [x] **Phase 2: Saisie express course** - Saisie < 30 s, raccourci `Cmd/Ctrl+Shift+K`, brouillons, multi-saisies (livré 22 commits, 6/6 SAIS delivered, 2026-05-07)
-- [ ] **Phase 3: Moteur tarification CGSS** - `packages/pricing` versionné, 100 % branches couvert
-- [ ] **Phase 4: Moteur récurrences** - `packages/recurrence`, exceptions jours fériés 974, 100 % branches
-- [ ] **Phase 4.5: Bootstrap OSRM** - `services/osrm` Docker + tuiles OSM 974 + RPC distance/eta (parallélise Lot 1, débloque Phases 9, 10, 12)
-- [ ] **Phase 5: Cockpit régulatrice temps réel** - Écran d'accueil, blocs courses + alertes, TTI < 2 s
-- [ ] **Phase 6: Planning Gantt drag-and-drop** - Vue par chauffeur et par jour, réaffectation visuelle
-- [ ] **Phase 7: Gestion des imprévus** - Workflows panne, patient absent, réaffectation temps réel
-- [ ] **Phase 8: Communication SMS patient** - `packages/sms`, consentement actif, templates, delivery
-- [ ] **Phase 9: PWA chauffeur** - `apps/mobile` complète : terrain, hors-ligne, vocal, mode soleil
-- [ ] **Phase 9.5: Géolocalisation temps réel** - Capture position chauffeur + streaming Realtime cockpit + rétention 90j
-- [ ] **Phase 10: Optimisation des tournées** - Microservice Python OR-Tools + client TS
-- [ ] **Phase 11: Routing GPS OSRM (advanced)** - Geocoding inverse, alternatives, isochrones (Phase 4.5 a déjà livré OSRM bootstrap)
-- [ ] **Phase 12: Caisse et paiements directs** - Encaissements cash / CB / chèque, rapprochement
-- [ ] **Phase 13: Mode dégradé** - Continuité de service en panne réseau / Supabase / tiers (transverse)
-- [ ] **Phase 14: KPIs dirigeant** - CA, marge, mutualisation, productivité chauffeur, drill-down + comparatifs M-1/M-12
-- [ ] **Phase 15: Conformité réglementaire** - Alertes 90/60/30j carte pro, CT véhicule, visite médicale, agrément ARS/CPAM
-- [ ] **Phase 16: Exports comptables et intégrations** - FEC annuel DGFiP, Lomaco CSV mensuel, PDF récap mensuel, B2B mensuel
-- [ ] **Phase 17: Beta terrain chauffeur** *(V1.5)* - Validation Hauts Réunion (35°C cockpit, 3G dégradé, 2-3 design partners)
+- [x] **Phase 03: E2E Passe 1 — Squelette + clôture-bis** - 6 maillons reliés bout-à-bout (chauffeurs/véhicules/assignation/exécution/tarif manuel/encaissement) + édition course + role guards + 48h chauffeur + annulation + CRUD admin (livré 2026-05-12 sur branches `claude/consolidate-phase-3-validation-9Tzax` + `feat/03-cloture-bis-annulation-crud-admin`)
+- [ ] **Phase 04: E2E Passe 2 — PWA + tarif CGSS auto + caisse + refonte login** - PWA installable hors-ligne 1h + tarif CGSS court trajet automatique avec override + récap caisse style Stripe Balance + refonte `/login` `/welcome` `/setup` + page `/dev` switch session
+- [ ] **Phase 05: E2E Passe 3 — Récurrences + cockpit temps réel + SMS** - `packages/recurrence` 100% (dialyse 3×/sem, exceptions jours fériés 974) + cockpit régulateur Realtime Supabase + SMS rappel J-1 et J-2h via Twilio
+- [ ] **Phase 06: E2E Passe 4 — HDS + OR-Tools + B2B + facturation** - Migration HDS production (Scaleway/OVHcloud) + microservice Python OR-Tools tournée + portail B2B dirigeant + facturation CGSS mensuelle PDF
 
 ## Phase Details
 
@@ -140,246 +134,132 @@ Plans:
 - [ ] 02-06-PLAN.md — Wave 5 : E2E saisie-express SAIS-01..06 GREEN + smoke preview étendu + 6 captures Visible Progress + 02-SUMMARY.md
 **UI hint**: yes
 
-### Phase 3: Moteur tarification CGSS
-**Goal**: Toute course créée dispose d'un calcul tarifaire CGSS exact, déterministe, versionné et 100 % couvert par les tests, isolé dans `packages/pricing`.
-**Depends on**: Phase 2
-**Requirements**: PRIC-01, PRIC-02, PRIC-03, PRIC-04
+### Phase 03: E2E Passe 1 — Squelette + clôture-bis
+**Goal fonctionnel**: Un design partner enchaîne 5 courses sans assistance — saisir une course, l'assigner à un chauffeur+véhicule, démarrer côté chauffeur (mobile-web), clôturer avec tarif manuel + encaissement on/off, voir la trace dans la liste du jour. Édition course + annulation + CRUD admin chauffeurs/véhicules livrés en clôture-bis avant la PWA.
+**Goal UX**: Shell régulateur refondu (header sticky 56px, mode jour/nuit, UserMenu, raccourcis clavier visibles), liste patients enrichie, drawer course 480px, modal assignation propre, vue chauffeur mobile 375px avec sections « Aujourd'hui » + « Demain ».
+**Depends on**: Phase 2 (saisie express)
+**Requirements**: NFR-001, NFR-002, NFR-003, NFR-004, NFR-005, NFR-006 (méthode E2E)
 **Success Criteria** (what must be TRUE):
-  1. Le calcul tarifaire d'une course (base, suppléments, mutualisation, à vide) renvoie un résultat exact et identique à des cas de référence CGSS validés
-  2. Les grilles tarifaires sont versionnées (`tariff_grid` avec date d'effet) et le calcul utilise toujours la grille active à la date de la course
-  3. La couverture de tests `packages/pricing` atteint 100 % de branches en CI (échec si < 100 %)
-  4. Aucun calcul tarifaire n'existe ailleurs que dans `packages/pricing` (audit grep en CI)
-  5. Toute modification de paramètre tarifaire écrit une ligne dans `audit_logs`
+  1. Un design partner peut enchaîner 5 courses sans demander d'aide (test manuel walkthrough scripté)
+  2. Le shell régulateur (mode jour ET mode nuit) ressemble à Linear/Stripe — capture publiable
+  3. Une course peut être créée, modifiée, assignée, exécutée, clôturée, annulée — tous statuts gérés
+  4. Le chauffeur voit ses courses J + J+1 sur PWA mobile 375px, avec sections groupées
+  5. Role guards layouts : chauffeur → /conduite, régulateur → /patients (defense in depth RLS)
+  6. CRUD admin chauffeurs/véhicules opérationnel (`/admin/chauffeurs`, `/admin/vehicules`)
+  7. Profils démo anonymisés (Dirigeant Démo / Régulateur Démo / Chauffeur Démo)
+**Plans**: livré 2026-05-12 sans planification GSD formelle (pré-migration GSD).
+Sous-blocs livrés : 03-A (migrations + seed) → 03-B (Server Actions + queries) → 03-C (shell refonte) → 03-D (écrans dirigeant/régulateur) → 03-E (écran chauffeur) → 03-cloture (12 frictions + édition course) → 03-cloture-bis (annulation + CRUD admin).
+Branches : `claude/consolidate-phase-3-validation-9Tzax` + `feat/03-cloture-bis-annulation-crud-admin`.
+**Status**: Code complete (2026-05-12) — validation manuelle dirigeant en attente, rituel 5/5 captures à jouer post-merge.
+**UI hint**: yes (shell refondu + 10 captures showcase placeholders dans `docs/showcase/03-e2e-passe1-squelette/`)
 
-### Phase 4: Moteur récurrences
-**Goal**: La régulatrice peut configurer un schéma de récurrence (dialyse 3×/sem, chimio) et obtenir des occurrences générées automatiquement avec exceptions jours fériés 974, 100 % couvert par les tests, isolé dans `packages/recurrence`.
-**Depends on**: Phase 3
-**Requirements**: RECU-01, RECU-02, RECU-03, RECU-04, RECU-05, RECU-06
+### Phase 04: E2E Passe 2 — PWA + tarif CGSS auto + caisse + refonte login
+**Goal fonctionnel**: Le chauffeur installe l'application sur son téléphone comme une vraie app native, travaille hors-ligne pendant 1 heure et synchronise au retour réseau. Le tarif CGSS court trajet est calculé automatiquement à la clôture (forfait base + distance estimée) avec override manuel possible. La régulatrice voit un récap caisse de la journée par chauffeur.
+**Goal UX**: PWA installable proprement (manifest.json complet, icônes 192/512 sans bavure, splash screen identité, theme color cohérent mode courant). Transitions natives entre `/conduite` et `/conduite/[rideId]` style iOS push (slide latéral). Indicateurs hors-ligne discrets mais visibles (point header, badge synchro). Récap caisse table dense type Stripe Balance avec totaux tabulaires en pied. Refonte `/login` `/welcome` `/setup` : layout split avec zone identité (logo, baseline produit) + form, comptes démo cliquables si DEMO_MODE, identité visuelle forte, mode nuit.
+**Depends on**: Phase 03 (squelette E2E + CRUD admin déjà livrés)
+**Requirements**: PRIC-01..04, CHAUF-01..04, CAIS-01..03, NFR-001..006
+**Périmètre — dans**:
+- Manifest PWA + service worker minimal pour `/conduite` et `/conduite/[rideId]`
+- Cache des courses du jour à l'ouverture, file d'attente des mutations offline (start, end), sync au retour réseau
+- Indicateurs visuels offline/synching/synced
+- Calcul tarif CGSS court trajet automatique (forfait base + distance estimée OSRM externe ou fallback Haversine). Pas d'OR-Tools. Override manuel toujours possible.
+- Page `/courses/caisse?date=YYYY-MM-DD` : récap encaissements de la journée par chauffeur, totaux, export CSV
+- Refonte pages `/login`, `/welcome`, `/setup` (layout split, comptes démo cliquables, mode nuit)
+- Page `/dev` switch session démo (déjà livrée Passe 1, à raffiner si besoin)
+**Périmètre — hors** (reporté Passe 4) :
+- Hors-ligne > 1 heure
+- Calcul CGSS long trajet, suppléments TPMR, attente
+- Push notifications, géolocalisation temps réel
+- Récurrences (Passe 3)
 **Success Criteria** (what must be TRUE):
-  1. La régulatrice peut créer une récurrence (jours, fréquence, plage horaire, durée de validité) et voir les occurrences générées dans le planning
-  2. Les jours fériés 974 (1er mai, 20 décembre Abolition de l'esclavage, etc.) ne génèrent pas d'occurrence sauf override explicite
-  3. Une exception sur une occurrence (`ride_recurrence_exception`) est visible dans le planning sans casser la série
-  4. Chaque occurrence générée décrémente le bon de transport associé (`prescription`)
-  5. La couverture de tests `packages/recurrence` atteint 100 % de branches en CI
-**Plans**: TBD
+  1. La PWA s'installe proprement sur iPhone et Android (icônes nettes, splash screen identité)
+  2. Le chauffeur peut démarrer + clôturer une course en mode avion, et la mutation se synchronise au retour réseau
+  3. Le tarif CGSS court trajet calculé automatiquement matche les cas de référence à ±0,01€
+  4. Override manuel du tarif possible et tracé dans audit_logs
+  5. Page `/courses/caisse` affiche les encaissements de la journée par chauffeur avec totaux
+  6. Refonte `/login` capture publiable, mode nuit traité à parité
+**Plans**: TBD — voir `/gsd-discuss-phase 04` puis `/gsd-plan-phase 04`
+**UI hint**: yes (PWA + refonte login + caisse style Stripe Balance)
 
-### Phase 4.5: Bootstrap OSRM
-**Goal**: Avoir un service `osrm` auto-hébergé opérationnel (Docker + tuiles OSM 974) accessible via RPC interne pour le calcul de distances et ETA, débloquant Phases 9 (PWA), 10 (optimizer) et 12 (caisse — calcul facturation au km). Bootstrap minimal volontairement court (~1 jour de dev), les features avancées (geocoding inverse, isochrones) restent en Phase 11.
-**Depends on**: Phase 0 (infra Docker dispo) — peut tourner en parallèle avec Phases 3 et 4
-**Requirements**: OSRM-bootstrap-01, OSRM-bootstrap-02, OSRM-bootstrap-03
+### Phase 05: E2E Passe 3 — Récurrences + cockpit temps réel + SMS
+**Goal fonctionnel**: La régulatrice configure une récurrence dialyse (3×/semaine, lundi/mercredi/vendredi 08h00) et toutes les occurrences se génèrent automatiquement, en respectant les jours fériés 974 (1er mai, 20 décembre, etc.). Elle voit son cockpit temps réel (Realtime Supabase) avec courses en cours, retards, alertes. Les patients reçoivent un SMS de rappel J-1 à 18h et J-2h via Twilio.
+**Goal UX**: Cockpit en table dense Linear-style avec cellules colorées par statut, mise à jour fluide sans flash (Realtime + animations subtiles). Modal récurrence avec preview des 4 prochaines occurrences. Templates SMS éditables avec preview FR/créole.
+**Depends on**: Phase 04 (PWA + tarif auto)
+**Requirements**: RECU-01..06, COCK-01..05, SMS-01..05, NFR-001..006
+**Périmètre — dans**:
+- `packages/recurrence` : moteur génération occurrences (rrule-like), 100% branches (DEC-013)
+- Exceptions jours fériés 974 (table de référence + override manuel)
+- Décrément bon de transport `prescription` à chaque occurrence générée
+- Cockpit régulatrice `/cockpit` : Realtime Supabase, courses en cours, alertes retard
+- `packages/sms` : Twilio adapter, templates personnalisables, consentement strictement vérifié (DEC-008)
+- SMS rappel J-1 18h00 (cron) + J-2h (cron) avec template patient
+- Tracking delivery status (sent/delivered/failed) dans `sms_message`
+**Périmètre — hors** (reporté Passe 4) :
+- Réception SMS patient (réponse → fiche patient)
+- KPIs dirigeant
+- Imprévus complexes (panne, patient absent automatique)
 **Success Criteria** (what must be TRUE):
-  1. `docker compose up osrm` démarre le service localement et en CI
-  2. Les tuiles OSM Réunion (974) sont préparées et chargées au démarrage
-  3. Une RPC `route(origin, destination)` retourne distance + ETA en < 50 ms en moyenne (mesuré CI)
-  4. La consommation depuis `apps/web` ou microservices passe par un wrapper typé `packages/osrm-client`
-**Plans**: TBD
-**Tag**: Infra/légal — débloque downstream
+  1. La régulatrice crée une récurrence dialyse 3×/semaine et voit les occurrences dans le planning
+  2. Les jours fériés 974 ne génèrent pas d'occurrence sauf override explicite
+  3. Couverture `packages/recurrence` à 100% branches en CI (échec si < 100%)
+  4. Le cockpit affiche les courses en cours et reflète les changements de statut sans reload
+  5. Le SMS rappel J-1 part automatiquement à 18h pour tous les patients consentants
+  6. Tout SMS sortant respecte le consentement actif (DEC-008) et trace dans `sms_message`
+**Plans**: TBD — voir `/gsd-discuss-phase 05` puis `/gsd-plan-phase 05`
+**UI hint**: yes (cockpit temps réel + modal récurrence + templates SMS)
 
-### Phase 5: Cockpit régulatrice temps réel
-**Goal**: À la connexion, la régulatrice ouvre par défaut un cockpit temps réel qui charge en moins de 2 secondes et reflète instantanément les changements (nouvelles courses, statuts chauffeur, alertes) sans flash ni reload.
-**Depends on**: Phase 4
-**Requirements**: COCK-01, COCK-02, COCK-03, COCK-04, COCK-05, COCK-06
+### Phase 06: E2E Passe 4 — HDS + OR-Tools + B2B + facturation CGSS
+**Goal fonctionnel**: Migration de l'hébergement vers une infra HDS-certifiée (Scaleway HDS ou OVHcloud Healthcare) avant lancement commercial. Optimisation des tournées par OR-Tools (microservice Python). Portail B2B dirigeant pour donneurs d'ordres (hôpitaux, cliniques, EHPAD). Facturation CGSS mensuelle PDF générée automatiquement.
+**Goal UX**: Portail B2B avec identité visuelle propre (split layout, palette adaptée). PDF facturation CGSS conforme aux standards CPAM (en-tête société, tableau courses, totaux, mentions légales).
+**Depends on**: Phase 05 (récurrences + cockpit + SMS)
+**Requirements**: OPTI-01..05, ROUT-01..03, KPI-01..*, conformité réglementaire
+**Périmètre — dans**:
+- Migration Supabase Cloud → infra HDS (CON-001) : provisioning + migration data + bascule DNS
+- `services/optimizer` : microservice Python OR-Tools, contrats client TS dans `packages/optimizer-client`
+- `services/osrm` : OSRM auto-hébergé tuiles 974 + RPC distance/eta
+- Portail B2B `apps/b2b` : auth séparée, dashboard donneur d'ordres, dépôt prescriptions
+- Génération facturation CGSS mensuelle PDF (`@react-pdf/renderer`) avec ligne par course
+- Mode dégradé (continuité de service en panne réseau / Supabase / tiers)
+- Audit grep CI pour NFR-001 (noms propres) + NFR-003 (spacing scale)
+**Périmètre — hors** (reporté V2) :
+- Push notifications natives
+- Dépôt patient sans organisation
+- Multi-langue
 **Success Criteria** (what must be TRUE):
-  1. À la connexion régulatrice, le cockpit s'affiche par défaut sans navigation supplémentaire
-  2. Un test Playwright mesure le Time to Interactive du cockpit < 2 secondes en condition réseau standard
-  3. Une nouvelle course créée dans une autre session apparaît dans le cockpit en fade-in subtil < 1 seconde, sans reload
-  4. Le bloc « courses du jour » affiche statut chauffeur, patient, statut course pour chaque course planifiée
-  5. Le bloc « alertes » affiche en temps réel les retards, imprévus signalés et SMS échoués
-**Plans**: TBD
-**UI hint**: yes
+  1. Production hébergée chez un fournisseur HDS-certifié, audit conformité passé
+  2. OR-Tools optimise une tournée de 20 courses en < 5 secondes avec contraintes (TPMR, fenêtres horaires)
+  3. Portail B2B opérationnel pour 1 donneur d'ordres pilote (hôpital ou clinique)
+  4. PDF facturation CGSS mensuelle généré et accepté par CPAM Réunion (validation pilote)
+  5. Mode dégradé : l'application continue à enregistrer les courses en local pendant > 5 min de coupure réseau
+**Plans**: TBD — voir `/gsd-discuss-phase 06` puis `/gsd-plan-phase 06`
+**UI hint**: yes (portail B2B + PDF facturation)
 
-### Phase 6: Planning Gantt drag-and-drop
-**Goal**: La régulatrice dispose d'une vue planning Gantt par chauffeur et par jour, et peut réaffecter une course d'un chauffeur à un autre par simple drag-and-drop, avec mutualisation visible.
-**Depends on**: Phase 5
-**Requirements**: PLAN-01, PLAN-02, PLAN-03, PLAN-04
-**Success Criteria** (what must be TRUE):
-  1. La régulatrice voit toutes les courses du jour groupées par chauffeur dans une vue Gantt horizontale
-  2. La régulatrice peut glisser-déposer une course depuis un chauffeur vers un autre, avec confirmation visuelle < 100 ms
-  3. Les courses mutualisées (plusieurs patients dans le même véhicule) sont visuellement distinctes des courses simples
-  4. Toute réaffectation produit une ligne dans `audit_logs` avec ancien chauffeur, nouveau chauffeur, horodatage
-**Plans**: TBD
-**UI hint**: yes
+---
 
-### Phase 7: Gestion des imprévus
-**Goal**: Les workflows critiques de la vie réelle (patient absent, panne véhicule, réaffectation course) sont traités de bout en bout en temps réel entre régulatrice et chauffeur, avec décisions tracées.
-**Depends on**: Phase 6
-**Requirements**: IMPV-01, IMPV-02, IMPV-03, IMPV-04
-**Success Criteria** (what must be TRUE):
-  1. Un chauffeur peut signaler « patient absent » depuis la PWA ; la régulatrice voit l'alerte instantanément et peut décider (annuler, reprogrammer, attendre)
-  2. En cas de panne véhicule signalée, la régulatrice peut réaffecter la course en cours et notifier le patient via SMS
-  3. Une réaffectation propage en temps réel les changements de planning aux chauffeurs concernés
-  4. Les 3 workflows imprévus passent des tests E2E Playwright sans régression
-**Plans**: TBD
-**UI hint**: yes
+## Dépendance des fonctionnalités héritées (pré-pivot)
 
-### Phase 8: Communication SMS patient
-**Goal**: La régulatrice peut envoyer des SMS patients (rappel veille, retard, annulation) uniquement aux patients ayant donné consentement actif, via templates personnalisables, avec statut delivery archivé.
-**Depends on**: Phase 7
-**Requirements**: SMS-01, SMS-02, SMS-03, SMS-04, SMS-05, SMS-06, SMS-07
-**Success Criteria** (what must be TRUE):
-  1. Aucun SMS n'est envoyé à un patient sans consentement actif horodaté ; tentative bloquée avec message clair
-  2. Le numéro expéditeur affiché côté patient est le numéro pro de la société, pas un numéro générique
-  3. Les templates SMS (rappel veille, retard, annulation) sont éditables par la régulatrice et personnalisés à l'envoi
-  4. Le statut delivery (envoyé, livré, échoué, réponse) est archivé dans la fiche patient
-  5. Les patients avec préférence « appel » ou « aucun » ne reçoivent jamais de SMS
-  6. Tout envoi SMS écrit une ligne dans `audit_logs`
-**Plans**: TBD
-**UI hint**: yes
+Liste des modules CDC v2 qui n'ont pas (encore) de phase dédiée dans la
+roadmap E2E v2. Ils sont implicitement traités dans une des passes 03-06,
+ou explicitement reportés au-delà de V1.
 
-### Phase 9: PWA chauffeur
-**Goal**: Le chauffeur dispose d'une PWA mobile utilisable au volant ou en tournée, hors-ligne, vocale au démarrage de course, lisible au soleil, avec maximum 3 informations à l'écran et confirmations par swipe.
-**Depends on**: Phase 8
-**Requirements**: CHAUF-01, CHAUF-02, CHAUF-03, CHAUF-04, CHAUF-05, CHAUF-06, CHAUF-07, CHAUF-08, CHAUF-09, CHAUF-10, CHAUF-11, CHAUF-12
-**Success Criteria** (what must be TRUE):
-  1. Sur iPhone SE (375 px), tous les boutons d'action principale font ≥ 56 px de hauteur et le texte ≥ 18 px
-  2. Le chauffeur peut démarrer et clore une course hors-ligne ; la sync se fait automatiquement au retour réseau, avec indicateur explicite
-  3. Au démarrage d'une course, le nom du patient et l'adresse sont lus à voix haute (TTS)
-  4. Le chauffeur ne voit que ses propres tournées (vérifié par tests RLS pgTAP)
-  5. Une action confirmée côté chauffeur (par swipe) affiche un retour visuel < 1 seconde même en simulation 3G
-  6. Le mode contraste élevé et la police +20 % sont activables depuis les réglages
-**Plans**: TBD
-**UI hint**: yes
+| Module CDC v2 | Statut nouveau séquencement |
+|---|---|
+| Planning Gantt drag-and-drop | Reporté V2 (cockpit Passe 3 fournit la base, Gantt = enrichissement post-V1) |
+| Géolocalisation temps réel chauffeur | Reporté V3 (Passe 4 ne livre pas le streaming GPS — V1 ne le requiert pas) |
+| Routing GPS OSRM advanced (geocoding, alternatives, isochrones) | Reporté V2 (Passe 4 livre OSRM tuiles + RPC distance/eta basiques) |
+| Mode dégradé complet | Partiellement Passe 4 (essentiel : enregistrement local pendant coupure ; complet V2) |
+| KPIs dirigeant complets (drill-down M-1/M-12) | Reporté V2 (Passe 4 livre le PDF facturation, KPIs cockpit dirigeant V2) |
+| Conformité réglementaire (alertes 90/60/30j carte pro/CT/visite med) | Reporté V2 |
+| Exports comptables FEC + Lomaco | Reporté V2 |
+| Beta terrain chauffeur Hauts Réunion | V1.5 — après livraison Passe 4 |
 
-### Phase 9.5: Géolocalisation temps réel
-**Goal**: La position du chauffeur est capturée pendant le service uniquement, streamée en temps réel au cockpit régulatrice via Supabase Realtime, et conservée 90 jours en base chaude avant agrégation et purge automatique. Couche transverse consommée par cockpit (Phase 5), planning Gantt (Phase 6), KPIs (Phase 14).
-**Depends on**: Phase 9 (PWA chauffeur capture la position) ET Phase 5 (cockpit existe pour afficher le tracker)
-**Requirements**: GEO-01, GEO-02, GEO-03, GEO-04
-**Success Criteria** (what must be TRUE):
-  1. Le chauffeur capture sa position uniquement quand il est en service (DEC-009 — toggle ON par défaut au login, OFF déconnexion)
-  2. Le cockpit régulatrice affiche un tracker live (carte MapLibre + dot + heading) avec rafraîchissement < 5 s
-  3. Les positions sont retenues 90 jours en base chaude (`driver_location`), agrégées au-delà puis purgées automatiquement
-  4. Un indicateur explicite « tracking actif » est visible dans la PWA chauffeur en permanence
-**Plans**: TBD
-**UI hint**: yes
+Justification du report : les passes E2E v2 priorisent un parcours
+fonctionnel COMPLET pour la régulatrice + chauffeur sur les 6 maillons
+métier (CDC v2 § 5). Les modules secondaires (Gantt, KPIs avancés,
+conformité, exports) enrichissent cette base, ils ne la déverrouillent
+pas. Trade-off : delivery V1 plus rapide vs périmètre V1 réduit. Adopté
+par ADR-003.
 
-### Phase 10: Optimisation des tournées
-**Goal**: Le microservice Python OR-Tools propose des tournées optimisées et des opportunités de mutualisation (spatiale ou temporelle) à la régulatrice, exposé via un client TS typé.
-**Depends on**: Phase 9
-**Requirements**: OPTI-01, OPTI-02, OPTI-03, OPTI-04, OPTI-05
-**Success Criteria** (what must be TRUE):
-  1. Le service `services/optimizer` reçoit une liste de courses + chauffeurs et renvoie une affectation optimisée respectant les contraintes métier
-  2. Le client `packages/optimizer-client` expose des types TS générés et est utilisé par `apps/web` pour appeler le service
-  3. La régulatrice voit dans le cockpit ou le planning des suggestions de mutualisation (gain estimé en km / temps)
-  4. Les tests pytest du service couvrent les cas critiques (mutualisation impossible, contraintes TPMR, fenêtres horaires)
-
-### Phase 11: Routing GPS OSRM (advanced features)
-**Goal**: Compléter Phase 4.5 (OSRM bootstrap) avec les features avancées : geocoding inverse (lat/lng → adresse postale formatée), itinéraires alternatifs (3 propositions classées par durée), isochrones (zones atteignables en X minutes pour optimisation tournées). Sans dépendance à un service tiers payant.
-**Depends on**: Phase 4.5 (OSRM service tourne déjà), Phase 10 (optimizer consomme isochrones)
-**Requirements**: ROUT-01, ROUT-02, ROUT-03
-**Success Criteria** (what must be TRUE):
-  1. Geocoding inverse opérationnel via Nominatim ou équivalent auto-hébergé
-  2. Itinéraires alternatifs renvoyés par OSRM (3 propositions classées) consommés par PWA chauffeur
-  3. Isochrones consommés par l'optimizer pour mutualisation temporelle
-  4. Aucune dépendance à Google Maps ou Mapbox (audit grep en CI)
-**Plans**: TBD
-**UI hint**: yes
-
-### Phase 12: Caisse et paiements directs
-**Goal**: La régulatrice et la dirigeante peuvent enregistrer les encaissements directs (cash, CB, chèque) rattachés à une course ou un patient, et faire un rapprochement de fin de journée.
-**Depends on**: Phase 11
-**Requirements**: CAIS-01, CAIS-02, CAIS-03
-**Success Criteria** (what must be TRUE):
-  1. Un encaissement peut être enregistré sur une course ou un patient avec mode (cash / CB / chèque), montant, horodatage
-  2. Un rapport de rapprochement de fin de journée affiche le total encaissé par mode et par chauffeur
-  3. Tout encaissement écrit une ligne dans `audit_logs` avec utilisateur et delta
-**Plans**: TBD
-**UI hint**: yes
-
-### Phase 13: Mode dégradé
-**Goal**: Si Supabase Realtime, la connexion réseau ou un service tiers tombe, l'outil reste utilisable pour les actions critiques (consultation planning régulateur, clôture course chauffeur) avec indicateur explicite à l'utilisateur.
-**Depends on**: Phase 12
-**Requirements**: DEGR-01, DEGR-02, DEGR-03
-**Success Criteria** (what must be TRUE):
-  1. Si Supabase Realtime tombe, la régulatrice peut toujours consulter le planning et créer une course ; un bandeau « mode dégradé » s'affiche
-  2. Si le réseau tombe côté chauffeur, il peut clore sa course en cours ; la sync se fait au retour réseau avec compteur d'éléments en attente
-  3. Aucune action critique ne se solde par une erreur technique brute affichée à l'utilisateur ; tout est reformulé en français
-**Plans**: TBD
-**UI hint**: yes
-
-### Phase 14: KPIs dirigeant
-**Goal**: Le dirigeant dispose d'un tableau de bord exécutif avec CA mensuel, marge brute, taux de mutualisation, productivité chauffeur (km/h, courses/jour), drill-down par chauffeur / véhicule / donneur d'ordres, et comparatifs M-1 et M-12. Les données proviennent de `ride`, `ride_billing`, `ride_execution`, `ride_payment` (Phases 3, 7, 12) — donc dépend de leur livraison.
-**Depends on**: Phase 12 (données financières) ET Phase 9.5 (géolocalisation pour productivité km/h)
-**Requirements**: KPI-01, KPI-02, KPI-03, KPI-04, KPI-05, KPI-06
-**Success Criteria** (what must be TRUE):
-  1. Le dashboard exécutif affiche CA mensuel par société et par donneur d'ordres avec comparatif M-1 et M-12
-  2. La marge brute estimée (recettes - coûts directs : essence/km, salaire chauffeur estimé, péages éventuels) est calculée par course
-  3. Le taux de mutualisation (% courses mutualisées / total courses) est mesuré et exposé au dashboard
-  4. La productivité chauffeur (km parcourus, nombre de courses, ratio temps roulé / temps service) est calculée par chauffeur
-  5. Un drill-down permet de filtrer par chauffeur, par véhicule, par donneur d'ordres et de remonter à la course individuelle
-  6. Un export PDF mensuel est généré automatiquement et envoyé au dirigeant
-**Plans**: TBD
-**UI hint**: yes
-
-### Phase 15: Conformité réglementaire
-**Goal**: Le système suit les dates d'expiration des credentials métier (carte pro chauffeur, certificat de capacité professionnelle, contrôle technique véhicule, visite médicale chauffeur, agrément ARS pour VSL, convention CPAM/CGSS pour taxi conventionné) et déclenche des alertes anticipées (90j, 60j, 30j) à la régulatrice et au dirigeant. L'assignation d'une course est automatiquement bloquée si une credential critique est expirée.
-**Depends on**: Phase 5 (cockpit existant pour afficher alertes), Phase 8 (SMS pour alertes critiques)
-**Requirements**: CONF-01, CONF-02, CONF-03, CONF-04, CONF-05, CONF-06
-**Success Criteria** (what must be TRUE):
-  1. Les credentials chauffeur (carte pro, CCP, visite médicale) et véhicule (CT, agrément ARS, assurance) sont saisissables avec date d'expiration
-  2. Des alertes 90j / 60j / 30j sont affichées au cockpit régulateur ET envoyées par email au dirigeant
-  3. L'assignation d'une course à un chauffeur dont la carte pro est expirée est bloquée automatiquement avec message clair
-  4. Le contrôle technique annuel obligatoire pour TAP/VSL (rappel : 1 an pour TAP/VSL vs 2 ans pour véhicule particulier) est tracké séparément
-  5. Une UI admin permet la mise à jour idempotente des credentials avec audit log
-  6. Tests E2E couvrent le flow alerte → renouvellement → débloquage assignation
-**Plans**: TBD
-**Tag**: Infra/légal — bloque la mise en production commerciale
-**UI hint**: yes
-
-### Phase 16: Exports comptables et intégrations
-**Goal**: Le SaaS produit les exports comptables réglementaires (FEC obligatoire DGFiP) et d'interopérabilité avec les outils du marché (Lomaco CSV pour cabinet expert-comptable transport sanitaire, PDF récapitulatif mensuel pour dirigeant et donneurs d'ordres B2B). Schedule mensuel automatique avec envoi email au DPO et à l'expert-comptable.
-**Depends on**: Phase 12 (données financières complètes), Phase 14 (calculs comptables consolidés)
-**Requirements**: EXP-01, EXP-02, EXP-03, EXP-04, EXP-05
-**Success Criteria** (what must be TRUE):
-  1. L'export FEC annuel est généré au format DGFiP (.txt pipe-separated, ordre chronologique, colonnes imposées Livre des Procédures Fiscales) et passe la validation FEC officielle
-  2. L'export Lomaco CSV mensuel est généré dans le format attendu par Lomaco (logiciel propriétaire transport sanitaire) et est testé en intégration avec un cabinet expert-comptable design partner
-  3. Un PDF récapitulatif mensuel par société et par donneur d'ordres est généré
-  4. Le schedule mensuel envoie automatiquement les exports au DPO et à l'expert-comptable par email avec accusé de réception
-  5. Les exports sont signés (hash SHA-256 + horodatage) pour traçabilité légale
-**Plans**: TBD
-
-### Phase 17: Beta terrain chauffeur (V1.5)
-**Goal**: Valider la PWA chauffeur en conditions terrain réelles dans les Hauts de La Réunion (35°C cockpit véhicule, 3G dégradé, batterie en chute libre) avec 2-3 chauffeurs design partners (Plaine des Cafres, Cilaos ou Salazie). Itérer directement sur Phase 9 selon les retours mesurés. Cette phase est moins du code et plus de la validation produit (~2-3 semaines).
-**Depends on**: Phase 9 (PWA chauffeur livrée), Phase 9.5 (géolocalisation), Phase 13 (mode dégradé fonctionnel pour 3G dégradé)
-**Requirements**: BETA-01, BETA-02, BETA-03, BETA-04, BETA-05
-**Success Criteria** (what must be TRUE):
-  1. 2-3 chauffeurs design partners installés dans les Hauts (Plaine des Cafres, Cilaos, Salazie) utilisent la PWA quotidiennement pendant ≥ 2 semaines
-  2. Le mode soleil (contraste élevé) est testé en cockpit véhicule par 35°C : taux d'erreur tactile mesuré et < 5 %
-  3. La sync différée 3G dégradé est testée sur les routes des Hauts : taux de drops sync mesuré et < 1 % avec recovery automatique
-  4. La consommation batterie d'une tournée 8h est mesurée et < 30 % d'une charge full (smartphone milieu de gamme)
-  5. Au moins 5 itérations PWA Phase 9 sont livrées suite aux retours terrain (V1.5.1, V1.5.2, ...)
-**Plans**: TBD
-**Tag**: Terrain / beta — validation produit avant scale-up
-
-## Progress
-
-**Execution Order:**
-Les phases s'exécutent dans l'ordre numérique. Phase 0 livrée, Phase 1 prête à démarrer.
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 0. Fondations Lot 0 | n/a | Complete | 2026-05-06 |
-| 1. Référentiel patients | 0/TBD | Not started | - |
-| 2. Saisie express course | 0/TBD | Not started | - |
-| 3. Moteur tarification CGSS | 0/TBD | Not started | - |
-| 4. Moteur récurrences | 0/TBD | Not started | - |
-| 5. Cockpit régulatrice temps réel | 0/TBD | Not started | - |
-| 6. Planning Gantt drag-and-drop | 0/TBD | Not started | - |
-| 7. Gestion des imprévus | 0/TBD | Not started | - |
-| 8. Communication SMS patient | 0/TBD | Not started | - |
-| 9. PWA chauffeur | 0/TBD | Not started | - |
-| 10. Optimisation des tournées | 0/TBD | Not started | - |
-| 11. Routing GPS OSRM | 0/TBD | Not started | - |
-| 12. Caisse et paiements directs | 0/TBD | Not started | - |
-| 13. Mode dégradé | 0/TBD | Not started | - |
-
-## Métriques de succès produit
-
-Mesurées en continu à partir de la Phase 1, comparées aux objectifs de Guillaume :
-
-| Métrique | Cible | Mesure |
-|----------|-------|--------|
-| Saisie d'une course en mode express | < 30 secondes | E2E Playwright sur SAIS-01 (Phase 2) |
-| Taux de mutualisation des courses | > 30 % | Métrique métier remontée du cockpit (Phase 10) |
-| Couverture tests `packages/pricing` | 100 % branches | CI (Phase 3) |
-| Couverture tests `packages/recurrence` | 100 % branches | CI (Phase 4) |
-| Time to first deploy d'un nouveau module | < 1 jour | Vélocité monorepo (mesurée à partir de la Phase 1) |
+---
+*Roadmap initialisée : 2026-05-06*
+*Dernière mise à jour : 2026-05-12 — réécriture passes 03-06 alignées ADR-003 + pivot E2E v2 (ingest run 2026-05-12, manifest 3 SPECs).*
