@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: between_phases
-stopped_at: ""
-last_updated: "2026-05-12T05:30:00.000Z"
-last_activity: 2026-05-12 -- Phase 03 close (squelette E2E + clôture-bis sur branche feature) ; ROADMAP réécrite passes 03-06 alignées ADR-003
+status: Between phases — Phase 03 mergeable, Phase 04 à discuter/planifier
+stopped_at: (between_phases — Phase 03 close, Phase 04 ready to discuss)
+last_updated: "2026-05-12T06:11:11.862Z"
+last_activity: 2026-05-12 — ROADMAP réécrite via /gsd-ingest-docs (manifest 3 SPECs)
 progress:
-  total_phases: 9
-  completed_phases: 6
-  total_plans: 21
-  completed_plans: 21
-  percent: 67
+  total_phases: 10
+  completed_phases: 3
+  total_plans: 18
+  completed_plans: 20
+  percent: 100
 ---
 
 # Project State
@@ -33,6 +33,7 @@ Last activity: 2026-05-12 — ROADMAP réécrite via /gsd-ingest-docs (manifest 
 Progress: [██████░░░░] 67 % (6 phases livrées sur 9 phases V1 alignées passes E2E)
 
 Phases livrées :
+
 - Phase 0   — Fondations Lot 0 (2026-05-06)
 - Phase 1   — Référentiel patients (2026-05-06)
 - Phase 1.5 — DPA + RGPD compliance
@@ -41,6 +42,7 @@ Phases livrées :
 - Phase 03  — E2E Passe 1 squelette + clôture-bis (2026-05-12)
 
 Phases à venir :
+
 - Phase 04 — E2E Passe 2 (PWA + tarif CGSS auto + caisse + refonte login)
 - Phase 05 — E2E Passe 3 (récurrences + cockpit + SMS)
 - Phase 06 — E2E Passe 4 (HDS + OR-Tools + B2B + facturation)
@@ -72,6 +74,10 @@ la première planifiée via `/gsd-plan-phase`.
 
 ## Accumulated Context
 
+### Roadmap Evolution
+
+- Phase 03.1 inserted after Phase 03: Efficience saisie modal course — 3 patterns Doctolib/Uber Health/Onfleet (smart defaults, chips date, détection doublon) + re-seed patients fictifs (URGENT)
+
 ### Decisions
 
 16 décisions verrouillées dans PROJECT.md (DEC-001 à DEC-016) — 2 ADRs
@@ -88,6 +94,7 @@ Décisions affectant le travail courant :
 ### NFR (Non-Functional Requirements transverses)
 
 6 NFR ajoutés en REQUIREMENTS.md (run ingest 2026-05-12) :
+
 - NFR-001 : neutralité absolue (aucun nom propre)
 - NFR-002 : ton sobre (pas d'émojis, pas de tutoiement amical)
 - NFR-003 : spacing scale strict 4/8/12/16/24/32/48/64
@@ -125,7 +132,7 @@ Décisions affectant le travail courant :
 Last session: 2026-05-12T05:30:00.000Z
 Stopped at: (between_phases — Phase 03 close, Phase 04 ready to discuss)
 Resume file: .planning/phases/03-e2e-passe1-squelette/03-SUMMARY.md
-Next command suggested: `/gsd-discuss-phase 04`
+Next command suggested: /gsd-discuss-phase 03.1
 
 ## Ingest Runs
 

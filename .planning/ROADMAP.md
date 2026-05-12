@@ -153,6 +153,16 @@ Branches : `claude/consolidate-phase-3-validation-9Tzax` + `feat/03-cloture-bis-
 **Status**: Code complete (2026-05-12) — validation manuelle dirigeant en attente, rituel 5/5 captures à jouer post-merge.
 **UI hint**: yes (shell refondu + 10 captures showcase placeholders dans `docs/showcase/03-e2e-passe1-squelette/`)
 
+### Phase 03.1: Efficience saisie modal course (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 03
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 03.1 to break down)
+
 ### Phase 04: E2E Passe 2 — PWA + tarif CGSS auto + caisse + refonte login
 **Goal fonctionnel**: Le chauffeur installe l'application sur son téléphone comme une vraie app native, travaille hors-ligne pendant 1 heure et synchronise au retour réseau. Le tarif CGSS court trajet est calculé automatiquement à la clôture (forfait base + distance estimée) avec override manuel possible. La régulatrice voit un récap caisse de la journée par chauffeur.
 **Goal UX**: PWA installable proprement (manifest.json complet, icônes 192/512 sans bavure, splash screen identité, theme color cohérent mode courant). Transitions natives entre `/conduite` et `/conduite/[rideId]` style iOS push (slide latéral). Indicateurs hors-ligne discrets mais visibles (point header, badge synchro). Récap caisse table dense type Stripe Balance avec totaux tabulaires en pied. Refonte `/login` `/welcome` `/setup` : layout split avec zone identité (logo, baseline produit) + form, comptes démo cliquables si DEMO_MODE, identité visuelle forte, mode nuit.
