@@ -105,7 +105,7 @@ Décisions affectant le travail courant :
 
 - **CDC v2 binaire `.docx`** : 15 modules secondaires non extraits ; à reconvertir en `.md` puis ré-ingérer pour enrichir REQUIREMENTS.md (non bloquant V1, à anticiper avant Phase 06).
 - **HDS** : Supabase Cloud non certifié HDS — bêta privée acceptable sous DPA, migration vers OVHcloud / Scaleway HDS prévue Phase 06 (cf. CON-001).
-- **3 branches feature en attente de PR** : `claude/consolidate-phase-3-validation-9Tzax`, `feat/03-cloture-bis-annulation-crud-admin`, `chore/migrate-to-gsd-pilotage` — à merger sur main avant `/gsd-discuss-phase 04`.
+- **Verification debt Phase 01** : 5 items audit-uat pending (`/gsd-audit-uat`). Dette transverse, à régler avant Phase 07 commercialisation, NON bloquante pour Phases 04/05/06.
 
 ## Deferred Items
 
