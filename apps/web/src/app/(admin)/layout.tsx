@@ -42,6 +42,12 @@ export default async function AdminLayout({
             TAP Administration
           </Link>
           <nav className="flex gap-16 text-sm text-muted-foreground">
+            <Link href="/admin/chauffeurs" className="hover:text-foreground">
+              Chauffeurs
+            </Link>
+            <Link href="/admin/vehicules" className="hover:text-foreground">
+              Véhicules
+            </Link>
             <Link href="/admin/legal/registre" className="hover:text-foreground">
               Registre
             </Link>

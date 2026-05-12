@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { ArrowDown, MapPin, Navigation } from 'lucide-react';
+import { ArrowDown, MapPin, Navigation, Trash2 } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -26,6 +26,7 @@ import {
 import { ModeBadge, PaymentBadge, StatusBadge, UrgencyBadge } from './ride-badges';
 import { RideAuditTimeline } from './ride-audit-timeline';
 import { RidePaymentPopover } from './ride-payment-popover.client';
+import { CancelRideModal } from './cancel-ride-modal.client';
 import { useRideOrchestrator } from './ride-orchestrator-context.client';
 
 interface Props {
@@ -52,6 +53,7 @@ export function RideDrawer({
   const qc = useQueryClient();
   const { dispatch } = useRideOrchestrator();
   const [payOpen, setPayOpen] = React.useState(false);
+  const [cancelOpen, setCancelOpen] = React.useState(false);
   const [pending, setPending] = React.useState(false);
 
   const rideQuery = useQuery({
@@ -104,17 +106,29 @@ export function RideDrawer({
             <SheetHeader className="flex flex-row items-center justify-between gap-12">
               <SheetTitle>Course</SheetTitle>
               {(ride.status === 'validee' || ride.status === 'assignee') && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    dispatch({ type: 'OPEN_EDIT', rideId: ride.id });
-                    onOpenChange(false);
-                  }}
-                >
-                  Modifier
-                </Button>
+                <div className="flex items-center gap-8">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setCancelOpen(true)}
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    <Trash2 className="mr-8 h-12 w-12" aria-hidden />
+                    Annuler
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      dispatch({ type: 'OPEN_EDIT', rideId: ride.id });
+                      onOpenChange(false);
+                    }}
+                  >
+                    Modifier
+                  </Button>
+                </div>
               )}
             </SheetHeader>
 
@@ -289,6 +303,17 @@ export function RideDrawer({
             open={payOpen}
             onOpenChange={setPayOpen}
             onDone={() => void invalidate()}
+          />
+        )}
+        {ride && (
+          <CancelRideModal
+            rideId={ride.id}
+            open={cancelOpen}
+            onOpenChange={setCancelOpen}
+            onCancelled={() => {
+              void invalidate();
+              onOpenChange(false);
+            }}
           />
         )}
       </SheetContent>
