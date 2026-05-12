@@ -1,6 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import DatePicker, { registerLocale } from 'react-datepicker';
+import { fr } from 'date-fns/locale';
+import { setHours, setMinutes } from 'date-fns';
+import 'react-datepicker/dist/react-datepicker.css';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,11 +12,14 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
 /**
- * Sous-composants de présentation du modal saisie express. Phase 03.2.4 :
- * DateTimeFields = inputs HTML natifs (HTML5 depuis 2014, zéro dépendance,
- * zéro Portal, zéro z-index). Contient aussi pickup/dropoff, mode/urgency,
- * notes, indicateur d'auto-save. Logique métier dans le modal parent (DEC-016).
+ * Sous-composants de présentation du modal saisie express. Phase 03.2.5 :
+ * DateTimeFields = react-datepicker v7 (locale FR forcée, picker
+ * combiné date+heure, Portal externe au Sheet pour zéro collision
+ * z-index). Contient aussi pickup/dropoff, mode/urgency, notes,
+ * indicateur d'auto-save. Logique métier dans le modal parent (DEC-016).
  */
+
+registerLocale('fr', fr);
 
 export type TransportMode = 'taxi_conventionne' | 'tpmr' | 'vsl' | 'ambulance';
 export type Urgency = 'programmee' | 'urgente' | 'immediate';
@@ -31,77 +38,13 @@ const URGENCY_OPTIONS: ReadonlyArray<{ value: Urgency; label: string }> = [
 ];
 
 /**
- * Créneaux 15 min restreints aux heures de service taxi conventionné TAP
- * Réunion : 5h00 → 22h00 inclus (D-DTPICK-27 Phase 03.2.1).
- *
- * Couvre :
- * - Dialyse matinale (premières séances 5h-6h)
- * - Consultations en journée
- * - Sorties hôpital tardives (jusqu'à 22h)
- *
- * Pattern Doctolib / Cal.com — 24H par construction. Hors plage =
- * cas particulier (urgence ou override manuel ultérieur).
- *
- * 69 créneaux : 05:00, 05:15, ..., 21:45, 22:00.
+ * Plage horaire de service taxi conventionné TAP Réunion : 05h00 → 22h00.
+ * Couvre dialyse matinale (premières séances 5h-6h) et sorties hôpital
+ * tardives. react-datepicker filtre la colonne d'heures via min/max.
  */
-const TIME_SLOT_START_HOUR = 5;
-const TIME_SLOT_END_HOUR = 22; // inclus
-const TIME_SLOT_STEP_MIN = 15;
-const TIME_SLOTS: ReadonlyArray<{ value: string; label: string }> = Array.from(
-  {
-    length:
-      ((TIME_SLOT_END_HOUR - TIME_SLOT_START_HOUR) * 60) / TIME_SLOT_STEP_MIN +
-      1,
-  },
-  (_, i) => {
-    const totalMinutes = TIME_SLOT_START_HOUR * 60 + i * TIME_SLOT_STEP_MIN;
-    const h = String(Math.floor(totalMinutes / 60)).padStart(2, '0');
-    const m = String(totalMinutes % 60).padStart(2, '0');
-    const v = `${h}:${m}`;
-    return { value: v, label: v };
-  },
-);
-
-/** Combine une date 'yyyy-mm-dd' + un créneau 'HH:MM' en ISO 8601 UTC. */
-function combineToIso(dateStr: string, time: string): string | null {
-  if (!dateStr || !time) return null;
-  const dateParts = dateStr.split('-');
-  const timeParts = time.split(':');
-  if (dateParts.length !== 3 || timeParts.length !== 2) return null;
-  const y = Number(dateParts[0]);
-  const mo = Number(dateParts[1]);
-  const d = Number(dateParts[2]);
-  const h = Number(timeParts[0]);
-  const mi = Number(timeParts[1]);
-  if ([y, mo, d, h, mi].some(Number.isNaN)) return null;
-  const out = new Date(y, mo - 1, d, h, mi, 0, 0);
-  return Number.isNaN(out.getTime()) ? null : out.toISOString();
-}
-
-/** ISO 8601 → { dateStr: 'yyyy-mm-dd', time: 'HH:MM' } pour les inputs natifs. */
-function splitIso(iso: string | null): {
-  dateStr: string;
-  time: string;
-} {
-  if (!iso) return { dateStr: '', time: '' };
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return { dateStr: '', time: '' };
-  const yyyy = String(d.getFullYear()).padStart(4, '0');
-  const mo = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  const hh = String(d.getHours()).padStart(2, '0');
-  const mm = String(d.getMinutes()).padStart(2, '0');
-  return { dateStr: `${yyyy}-${mo}-${dd}`, time: `${hh}:${mm}` };
-}
-
-/** 'yyyy-mm-dd' du jour pour `min` attribute (refus passé côté navigateur). */
-function todayIsoDate(): string {
-  const now = new Date();
-  const yyyy = String(now.getFullYear()).padStart(4, '0');
-  const mo = String(now.getMonth() + 1).padStart(2, '0');
-  const dd = String(now.getDate()).padStart(2, '0');
-  return `${yyyy}-${mo}-${dd}`;
-}
+const SERVICE_START_HOUR = 5;
+const SERVICE_END_HOUR = 22;
+const TIME_INTERVAL_MIN = 15;
 
 export function DateTimeFields({
   value,
@@ -115,59 +58,41 @@ export function DateTimeFields({
   error?: string | null;
   disabled?: boolean;
 }): JSX.Element {
-  const { dateStr, time } = splitIso(value);
-
-  const handleDateChange = (next: string): void => {
-    onChange(combineToIso(next, time));
-  };
-  const handleTimeChange = (next: string): void => {
-    onChange(combineToIso(dateStr, next));
-  };
+  const selected = value ? new Date(value) : null;
+  const today = new Date();
+  const minTime = setMinutes(setHours(today, SERVICE_START_HOUR), 0);
+  const maxTime = setMinutes(setHours(today, SERVICE_END_HOUR), 0);
 
   return (
     <div className="space-y-8">
-      <Label>Date et heure</Label>
-      {/* Phase 03.2.4 — inputs HTML natifs (HTML5 depuis 2014).
-          Pattern éprouvé : type=date → calendrier OS natif au clic ;
-          select natif → menu déroulant OS. Aucune dépendance, aucun
-          Portal, aucun z-index, fonctionne identique partout. */}
-      <div className="grid grid-cols-2 gap-12">
-        <Input
-          type="date"
-          aria-label="Date"
-          value={dateStr}
-          min={todayIsoDate()}
-          onChange={(e) => handleDateChange(e.target.value)}
-          disabled={disabled}
-          aria-invalid={error ? true : undefined}
-          className={cn('min-w-0', error && 'border-destructive')}
-          tabIndex={2}
-        />
-        <select
-          aria-label="Heure"
-          value={time}
-          onChange={(e) => handleTimeChange(e.target.value)}
-          disabled={disabled}
-          aria-invalid={error ? true : undefined}
-          className={cn(
-            'flex h-40 w-full min-w-0 items-center rounded-md border border-input bg-background px-12 text-sm',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-            'disabled:pointer-events-none disabled:opacity-50',
-            error && 'border-destructive',
-            !time && 'text-muted-foreground',
-          )}
-          tabIndex={3}
-        >
-          <option value="" disabled>
-            hh:mm
-          </option>
-          {TIME_SLOTS.map((slot) => (
-            <option key={slot.value} value={slot.value}>
-              {slot.label}
-            </option>
-          ))}
-        </select>
-      </div>
+      <Label htmlFor="ride-scheduled-at">Date et heure</Label>
+      <DatePicker
+        id="ride-scheduled-at"
+        selected={selected}
+        onChange={(d: Date | null) => onChange(d ? d.toISOString() : null)}
+        locale="fr"
+        dateFormat="dd/MM/yyyy HH:mm"
+        showTimeSelect
+        timeIntervals={TIME_INTERVAL_MIN}
+        timeCaption="Heure"
+        minDate={today}
+        minTime={minTime}
+        maxTime={maxTime}
+        placeholderText="jj/mm/aaaa hh:mm"
+        portalId="datepicker-portal"
+        popperPlacement="bottom-start"
+        disabled={disabled}
+        ariaInvalid={error ? 'true' : undefined}
+        ariaLabelledBy="ride-scheduled-at-label"
+        wrapperClassName="w-full"
+        className={cn(
+          'flex h-40 w-full min-w-0 items-center rounded-md border border-input bg-background px-12 text-sm',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+          'disabled:pointer-events-none disabled:opacity-50',
+          'placeholder:text-muted-foreground',
+          error && 'border-destructive',
+        )}
+      />
       {error && (
         <p className="text-xs text-destructive" role="alert">
           {error}

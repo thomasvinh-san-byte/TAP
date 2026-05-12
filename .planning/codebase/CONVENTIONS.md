@@ -207,6 +207,7 @@ La triple répétition `w-[400px] sm:w-[400px] sm:max-w-[400px]` neutralise les 
   ```
 - Reformulation messages : `'Date requise'`, `'Format non reconnu — exemples : 15/05 14h30, demain 8h, lundi 9h'`, `'Date dans le passé'`.
 - Date passée refusée systématiquement (DEC-005).
+- **Picker date+heure transactionnel** (Phase 03.2.5) : `react-datepicker` v7 forcé en locale FR (`registerLocale('fr', fr)` + `dateFormat="dd/MM/yyyy HH:mm"`) — indépendamment de la locale OS du navigateur. Portal externe via `portalId="datepicker-portal"` (ancré dans `apps/web/src/app/layout.tsx:43`) pour zéro collision z-index avec les Sheet Radix. Pour calendriers de filtre/range stats (Passe 3+), `react-datepicker` reste l'option par défaut ; ne pas réintroduire `react-day-picker` ni `@radix-ui/react-popover` sans justification documentée.
 
 ## Archivage logique — jamais de DELETE
 
