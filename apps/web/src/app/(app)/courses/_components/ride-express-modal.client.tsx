@@ -132,7 +132,9 @@ export function RideExpressModal(props: Props): JSX.Element {
     };
   }, [initialPatientId, patientLabel]);
 
-  // Hook scaffold — Plan 03.1-01 câblera l'appel ici dans handlePatientSelect.
+  // Smart defaults (A2, Plan 03.1-01) : pré-remplit silencieusement mode +
+  // urgence depuis la dernière course du patient. Gardes D-A2-4 / D-A2-5
+  // appliquées DANS le hook (pas besoin de les répéter ici).
   const smartDefaults = useSmartDefaults({
     rideId: props.rideId,
     currentMode: form.transport_mode ?? 'taxi_conventionne',
@@ -147,7 +149,7 @@ export function RideExpressModal(props: Props): JSX.Element {
     (id: string, label: string) => {
       updateField('patient_id', id);
       setPatientLabel(label);
-      // Wave 0 : appel no-op. Plan 01 activera la pré-remplissage.
+      // A2 silent prefill (D-A2-1) — pas de toast, pas de spinner.
       void smartDefaults.triggerForPatient(id);
     },
     [updateField, smartDefaults],
