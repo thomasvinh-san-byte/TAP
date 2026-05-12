@@ -14,11 +14,8 @@ import { useRidePrefill } from './use-ride-prefill.client';
 import { useRideAutosave } from './use-ride-autosave.client';
 import { useRideSubmit, type RideSubmitFormState } from './use-ride-submit.client';
 import { useSmartDefaults } from './use-smart-defaults.client';
-// Importés mais pas encore instanciés (Wave 1+ les câblera).
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { useDuplicateCheck } from './use-duplicate-check.client';
 import { DuplicateBanner } from './duplicate-banner.client';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { STATUS_LABELS_FR } from './ride-status-fr';
 import { PatientPickerField } from './ride-patient-picker.client';
 import {
   AddressField,
@@ -64,6 +61,8 @@ export function RideExpressModal(props: Props): JSX.Element {
   const [patientLabel, setPatientLabel] = useState<string>('');
   const [dateError, setDateError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  // B3 — détection doublon non-bloquante (D-B3-1..5).
+  const dup = useDuplicateCheck();
 
   const autosave = useRideAutosave<FormState>({
     isEditMode,
@@ -167,18 +166,30 @@ export function RideExpressModal(props: Props): JSX.Element {
     rideId: props.rideId,
     patientLabel,
     draftIdRef: autosave.draftIdRef,
-    onSuccess: props.onClose,
+    onSuccess: () => {
+      dup.reset(); // D-B3-5 : reset AVANT onClose
+      props.onClose();
+    },
     onRestore: setForm,
     onDateError: setDateError,
     onFieldErrors: setFieldErrors,
   });
 
-  const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
-      e.preventDefault();
+  // Pré-vérif doublon (D-B3-3) puis submit normal.
+  const runSubmit = useCallback(
+    async (bypass: boolean) => {
+      if (!bypass && (await dup.runCheck(form, props.rideId))) return;
       submit.submit(form);
     },
-    [submit, form],
+    [dup, form, props.rideId, submit],
+  );
+
+  const handleSubmit = useCallback(
+    (e?: React.FormEvent) => {
+      if (e) e.preventDefault();
+      void runSubmit(dup.duplicateConfirmed);
+    },
+    [runSubmit, dup.duplicateConfirmed],
   );
 
   return (
@@ -252,6 +263,16 @@ export function RideExpressModal(props: Props): JSX.Element {
               />
             </div>
           )}
+
+          <DuplicateBanner
+            duplicates={dup.duplicates}
+            isPending={submit.isPending}
+            onCancel={dup.cancel}
+            onConfirm={() => {
+              dup.confirm();
+              void runSubmit(true); // bypass explicite (state lu au render suivant)
+            }}
+          />
 
           <DialogFooter>
             {!isEditMode && (
