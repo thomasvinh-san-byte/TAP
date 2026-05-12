@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { type ChangeEvent, forwardRef, useEffect, useState } from 'react';
 import DatePicker, { registerLocale } from 'react-datepicker';
 import { fr } from 'date-fns/locale';
 import { setHours, setMinutes } from 'date-fns';
+import { Calendar as CalendarIcon, Clock as ClockIcon } from 'lucide-react';
 import 'react-datepicker/dist/react-datepicker.css';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
@@ -12,17 +13,29 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
 /**
- * Sous-composants de présentation du modal saisie express. Phase 03.2.7 :
- * DateTimeFields = deux champs distincts (date à gauche, heure à droite,
- * grid-cols-2 gap-12), chacun un react-datepicker v7. Combinaison interne
- * via états locaux pour préserver la saisie partielle ; le parent voit
- * toujours un ISO 8601 complet ou null si l'un des deux est manquant.
- * Sync externe via useEffect avec comparaison projection-locale pour
- * éviter la boucle de reset (prefill async, reset modal). Portal externe
- * (#datepicker-portal dans layout.tsx) commun aux deux pickers, zéro
- * collision z-index avec le Sheet Radix. Contient aussi pickup/dropoff,
- * mode/urgency, notes, indicateur d'auto-save. Logique métier dans le
- * modal parent (DEC-016).
+ * Sous-composants de présentation du modal saisie express. Phase 03.2.6
+ * (DateTimeFields finalisé) : deux champs distincts (date à gauche, heure
+ * à droite, grid-cols-2 gap-12), chacun un react-datepicker v7 avec :
+ *   - customInput maison à masque (auto-insertion des séparateurs / et :)
+ *   - icône Calendar/Clock à gauche (wrapper relative + absolute, pointer-
+ *     events-none, pl-32) ; clic-bloc gère l'ouverture du popper
+ *   - strictParsing + isClearable (croix de reset, pr-32)
+ *   - inputMode=numeric, maxLength 10/5, enterKeyHint next/done,
+ *     autoComplete=off — confort saisie clavier régulateur et mobile
+ *   - locale fr forcée, dateFormat dd/MM/yyyy + HH:mm, calendarStartDay=1
+ *     (lundi), todayButton "Aujourd'hui", aria-labels mois précédent/suivant
+ *   - minDate=today, minTime/maxTime 05:00-22:00, timeIntervals=15
+ *   - filterTime dynamique : exclut les créneaux passés si la date sélec-
+ *     tionnée est aujourd'hui
+ *   - fixedHeight (pas de saut entre mois 5/6 lignes), showPopperArrow=false
+ *   - portalId="datepicker-portal" (zéro collision z-index Sheet Radix)
+ * Combinaison interne via états locaux pour préserver la saisie partielle ;
+ * le parent voit toujours un ISO 8601 complet ou null si l'un des deux est
+ * manquant. Sync externe via useEffect + comparaison projection-locale pour
+ * éviter la boucle de reset (prefill async, reset modal, édition existante).
+ * onBlur propagé depuis le modal parent pour autosave.
+ * Contient aussi pickup/dropoff, mode/urgency, notes, indicateur d'auto-save.
+ * Logique métier dans le modal parent (DEC-016).
  */
 
 registerLocale('fr', fr);
@@ -100,15 +113,142 @@ function combineDateTime(date: Date | null, time: Date | null): string | null {
   return Number.isNaN(combined.getTime()) ? null : combined.toISOString();
 }
 
+// ---------------------------------------------------------------------------
+// Masques d'auto-insertion des séparateurs (clavier régulateur + mobile)
+// ---------------------------------------------------------------------------
+
+function digitsOnly(s: string): string {
+  return s.replace(/\D+/g, '');
+}
+
+/** "13052026" → "13/05/2026". Tronque à 8 chiffres. */
+function formatDateMask(digits: string): string {
+  const d = digits.slice(0, 8);
+  if (d.length === 0) return '';
+  if (d.length <= 2) return d;
+  if (d.length <= 4) return `${d.slice(0, 2)}/${d.slice(2)}`;
+  return `${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4)}`;
+}
+
+/** "1430" → "14:30". Tronque à 4 chiffres. */
+function formatTimeMask(digits: string): string {
+  const d = digits.slice(0, 4);
+  if (d.length === 0) return '';
+  if (d.length <= 2) return d;
+  return `${d.slice(0, 2)}:${d.slice(2)}`;
+}
+
+interface MaskedFieldProps {
+  value?: string;
+  onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
+  onClick?: () => void;
+  onBlur?: () => void;
+  onFocus?: () => void;
+  placeholder?: string;
+  disabled?: boolean;
+  ariaInvalid?: boolean | 'true' | 'false';
+}
+
+const MASKED_FIELD_CLASS = cn(
+  'h-10 w-full min-w-0 rounded-md border border-input bg-background pl-32 pr-32 py-8 text-sm',
+  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+  'disabled:pointer-events-none disabled:opacity-50',
+  'placeholder:text-muted-foreground',
+  'aria-[invalid=true]:border-destructive',
+);
+
+const DateMaskedInput = forwardRef<HTMLInputElement, MaskedFieldProps>(
+  function DateMaskedInput(
+    { value = '', onChange, onClick, onBlur, onFocus, placeholder, disabled, ariaInvalid },
+    ref,
+  ) {
+    const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
+      e.target.value = formatDateMask(digitsOnly(e.target.value));
+      onChange?.(e);
+    };
+    return (
+      <div className="relative w-full">
+        <CalendarIcon
+          className="absolute left-12 top-1/2 h-16 w-16 -translate-y-1/2 text-muted-foreground pointer-events-none"
+          aria-hidden
+        />
+        <input
+          ref={ref}
+          type="text"
+          inputMode="numeric"
+          maxLength={10}
+          enterKeyHint="next"
+          autoComplete="off"
+          aria-label="Date"
+          aria-invalid={ariaInvalid === 'true' || ariaInvalid === true || undefined}
+          value={value}
+          onChange={handleChange}
+          onClick={onClick}
+          onBlur={onBlur}
+          onFocus={onFocus}
+          placeholder={placeholder}
+          disabled={disabled}
+          className={MASKED_FIELD_CLASS}
+        />
+      </div>
+    );
+  },
+);
+
+const TimeMaskedInput = forwardRef<HTMLInputElement, MaskedFieldProps>(
+  function TimeMaskedInput(
+    { value = '', onChange, onClick, onBlur, onFocus, placeholder, disabled, ariaInvalid },
+    ref,
+  ) {
+    const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
+      e.target.value = formatTimeMask(digitsOnly(e.target.value));
+      onChange?.(e);
+    };
+    return (
+      <div className="relative w-full">
+        <ClockIcon
+          className="absolute left-12 top-1/2 h-16 w-16 -translate-y-1/2 text-muted-foreground pointer-events-none"
+          aria-hidden
+        />
+        <input
+          ref={ref}
+          type="text"
+          inputMode="numeric"
+          maxLength={5}
+          enterKeyHint="done"
+          autoComplete="off"
+          aria-label="Heure"
+          aria-invalid={ariaInvalid === 'true' || ariaInvalid === true || undefined}
+          value={value}
+          onChange={handleChange}
+          onClick={onClick}
+          onBlur={onBlur}
+          onFocus={onFocus}
+          placeholder={placeholder}
+          disabled={disabled}
+          className={MASKED_FIELD_CLASS}
+        />
+      </div>
+    );
+  },
+);
+
+// ---------------------------------------------------------------------------
+// DateTimeFields
+// ---------------------------------------------------------------------------
+
 export function DateTimeFields({
   value,
   onChange,
+  onBlur,
   error,
   disabled,
 }: {
   /** ISO 8601 UTC ou null. */
   value: string | null;
   onChange: (iso: string | null) => void;
+  /** Notification du modal parent pour autosave (DEC-016). */
+  onBlur?: () => void;
   error?: string | null;
   disabled?: boolean;
 }): JSX.Element {
@@ -148,13 +288,23 @@ export function DateTimeFields({
     onChange(combineDateTime(localDate, t));
   };
 
-  const fieldClass = cn(
-    'h-10 w-full min-w-0 rounded-md border border-input bg-background px-12 py-8 text-sm',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-    'disabled:pointer-events-none disabled:opacity-50',
-    'placeholder:text-muted-foreground',
-    error && 'border-destructive',
-  );
+  // filterTime dynamique : si la date sélectionnée est aujourd'hui, exclure
+  // les créneaux antérieurs à l'heure courante. Sinon, tous OK (la borne
+  // service 05:00-22:00 est portée par minTime/maxTime).
+  const filterTime = (time: Date): boolean => {
+    if (!localDate) return true;
+    const todayMid = new Date();
+    todayMid.setHours(0, 0, 0, 0);
+    const localMid = new Date(localDate);
+    localMid.setHours(0, 0, 0, 0);
+    if (localMid.getTime() !== todayMid.getTime()) return true;
+    const now = new Date();
+    const candidate = new Date(now);
+    candidate.setHours(time.getHours(), time.getMinutes(), 0, 0);
+    return candidate.getTime() > now.getTime();
+  };
+
+  const ariaInvalidFlag: 'true' | undefined = error ? 'true' : undefined;
 
   return (
     <div className="space-y-8">
@@ -164,21 +314,31 @@ export function DateTimeFields({
           id="ride-scheduled-date"
           selected={localDate}
           onChange={handleDate}
+          onBlur={onBlur}
           locale="fr"
           dateFormat="dd/MM/yyyy"
           minDate={today}
+          strictParsing
+          isClearable
           placeholderText="jj/mm/aaaa"
           portalId="datepicker-portal"
           popperPlacement="bottom-start"
+          showPopperArrow={false}
+          fixedHeight
+          calendarStartDay={1}
+          todayButton="Aujourd'hui"
+          previousMonthAriaLabel="Mois précédent"
+          nextMonthAriaLabel="Mois suivant"
           disabled={disabled}
-          ariaInvalid={error ? 'true' : undefined}
+          ariaInvalid={ariaInvalidFlag}
           wrapperClassName="w-full"
-          className={fieldClass}
+          customInput={<DateMaskedInput />}
         />
         <DatePicker
           id="ride-scheduled-time"
           selected={localTime}
           onChange={handleTime}
+          onBlur={onBlur}
           locale="fr"
           showTimeSelect
           showTimeSelectOnly
@@ -186,15 +346,19 @@ export function DateTimeFields({
           timeCaption="Heure"
           minTime={minTime}
           maxTime={maxTime}
+          filterTime={filterTime}
           dateFormat="HH:mm"
           timeFormat="HH:mm"
+          strictParsing
+          isClearable
           placeholderText="hh:mm"
           portalId="datepicker-portal"
           popperPlacement="bottom-start"
+          showPopperArrow={false}
           disabled={disabled}
-          ariaInvalid={error ? 'true' : undefined}
+          ariaInvalid={ariaInvalidFlag}
           wrapperClassName="w-full"
-          className={fieldClass}
+          customInput={<TimeMaskedInput />}
         />
       </div>
       {error && (

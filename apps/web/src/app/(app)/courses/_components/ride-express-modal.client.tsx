@@ -210,6 +210,7 @@ export function RideExpressModal(props: Props): JSX.Element {
           <DateTimeFields
             value={form.scheduled_at ?? null}
             onChange={(iso) => updateField('scheduled_at', iso ?? undefined)}
+            onBlur={() => void autosave.flushSave(form)}
             error={fieldErrors.scheduled_at ?? null}
           />
 
