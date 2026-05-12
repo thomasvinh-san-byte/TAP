@@ -37,13 +37,7 @@ export default function RootLayout({
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
       </head>
-      <body>
-        {children}
-        {/* Phase 03.2.5 — point d'ancrage Portal pour react-datepicker
-            (DateTimeFields modal saisie course). Sortir le picker du
-            Sheet Radix évite toute collision z-index / focus-trap. */}
-        <div id="datepicker-portal" />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
