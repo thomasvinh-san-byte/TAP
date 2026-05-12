@@ -28,7 +28,11 @@ import { Textarea } from '@/components/ui/textarea';
  *   - filterTime dynamique : exclut les créneaux passés si la date sélec-
  *     tionnée est aujourd'hui
  *   - fixedHeight (pas de saut entre mois 5/6 lignes), showPopperArrow=false
- *   - portalId="datepicker-portal" (zéro collision z-index Sheet Radix)
+ *   - rendu inline (PAS de portail externe) : Radix Dialog inert ses
+ *     siblings dans <body>, donc un <div id="datepicker-portal"> placé
+ *     en sibling devient inert quand le Dialog est ouvert (Phase 03.2.8).
+ *     Le popper reste dans le DialogContent ; z-index 80 (globals.css)
+ *     suffit à le placer au-dessus du DialogContent (z-50).
  * Combinaison interne via états locaux pour préserver la saisie partielle ;
  * le parent voit toujours un ISO 8601 complet ou null si l'un des deux est
  * manquant. Sync externe via useEffect + comparaison projection-locale pour
@@ -321,7 +325,6 @@ export function DateTimeFields({
           strictParsing
           isClearable
           placeholderText="jj/mm/aaaa"
-          portalId="datepicker-portal"
           popperPlacement="bottom-start"
           showPopperArrow={false}
           fixedHeight
@@ -352,7 +355,6 @@ export function DateTimeFields({
           strictParsing
           isClearable
           placeholderText="hh:mm"
-          portalId="datepicker-portal"
           popperPlacement="bottom-start"
           showPopperArrow={false}
           disabled={disabled}
