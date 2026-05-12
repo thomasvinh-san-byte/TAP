@@ -1,0 +1,21 @@
+{
+  "source_path": "/home/user/TAP/.planning/regle-neutralite-et-ton.md",
+  "type": "SPEC",
+  "confidence": "high",
+  "manifest_override": true,
+  "title": "Règle de neutralité et ton — projet TAP",
+  "summary": "Convention transverse imposant l'absence de noms propres et un ton sobre dans toute production écrite (code, UI, commits, docs, mockups).",
+  "scope": [
+    "naming",
+    "ui-tone",
+    "commits",
+    "documentation",
+    "seed-data",
+    "mockups",
+    "design-partners-anonymisation"
+  ],
+  "cross_refs": [],
+  "locked": false,
+  "precedence": 0,
+  "notes": "NFR transverse (Non-Functional Requirement) à appliquer à toutes les phases. Le doc lui-même contient une auto-violation (mentionne 'Guillaume', 'Marie', 'Hoarau Patrick', 'Payet Marie') comme exemples de ce qui est interdit — exception documentée dans le doc."
+}

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: "Chemin critique : page fonctionnelle bloque Phase 3. Fix seed pooler (region auto). User: 6 secrets GitHub + 1 clic Run workflow."
-last_updated: "2026-05-07T12:22:54.907Z"
-last_activity: 2026-05-07 -- Phase 2 execution started
+status: between_phases
+stopped_at: ""
+last_updated: "2026-05-12T05:30:00.000Z"
+last_activity: 2026-05-12 -- Phase 03 close (squelette E2E + clôture-bis sur branche feature) ; ROADMAP réécrite passes 03-06 alignées ADR-003
 progress:
-  total_phases: 22
-  completed_phases: 3
-  total_plans: 18
-  completed_plans: 19
-  percent: 100
+  total_phases: 9
+  completed_phases: 6
+  total_plans: 21
+  completed_plans: 21
+  percent: 67
 ---
 
 # Project State
@@ -21,68 +21,117 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 2 — Saisie express course
+**Current focus:** Phase 03 close (validation manuelle dirigeant en attente) — Phase 04 (PWA + tarif CGSS auto) à planifier.
 
 ## Current Position
 
-Phase: 2 (Saisie express course) — EXECUTING
-Plan: 1 of 6
-Status: Executing Phase 2
-Last activity: 2026-05-07 -- Phase 2 execution started
+Phase: 03 (E2E Passe 1 — Squelette + clôture-bis) — CODE COMPLETE, walkthrough pending
+Phase next: 04 (E2E Passe 2 — PWA + tarif CGSS auto + caisse + refonte login)
+Status: Between phases — Phase 03 mergeable, Phase 04 à discuter/planifier
+Last activity: 2026-05-12 — ROADMAP réécrite via /gsd-ingest-docs (manifest 3 SPECs)
 
-Progress: [█░░░░░░░░░] 7 % (Phase 0 complète sur 14 phases totales)
+Progress: [██████░░░░] 67 % (6 phases livrées sur 9 phases V1 alignées passes E2E)
+
+Phases livrées :
+- Phase 0   — Fondations Lot 0 (2026-05-06)
+- Phase 1   — Référentiel patients (2026-05-06)
+- Phase 1.5 — DPA + RGPD compliance
+- Phase 0.7 — Déploiement continu Vercel + démo seedée (2026-05-07)
+- Phase 2   — Saisie express course (2026-05-07)
+- Phase 03  — E2E Passe 1 squelette + clôture-bis (2026-05-12)
+
+Phases à venir :
+- Phase 04 — E2E Passe 2 (PWA + tarif CGSS auto + caisse + refonte login)
+- Phase 05 — E2E Passe 3 (récurrences + cockpit + SMS)
+- Phase 06 — E2E Passe 4 (HDS + OR-Tools + B2B + facturation)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 0 (Lot 0 livré avant introduction du planning par phase)
-- Average duration: n/a
-- Total execution time: n/a
+- Phases livrées V1 (avant pivot GSD) : 6 (en 6 jours, 2026-05-06 → 2026-05-12)
+- Plans formels GSD complétés : 0 (pré-migration, livraison via prompts manuels CCWeb)
+- Average duration : n/a (méthode pré-GSD)
+- Total execution time : n/a
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 0. Fondations Lot 0 | n/a | n/a | n/a (livré hors GSD) |
+| 0     | n/a (livré hors GSD)            | n/a | n/a |
+| 1     | 5 (livrés en 16 commits)        | n/a | n/a |
+| 1.5   | 7 (livrés en 28 commits)        | n/a | n/a |
+| 0.7   | n/a (livré hors GSD)            | n/a | n/a |
+| 2     | 6 (livrés en 22 commits)        | n/a | n/a |
+| 03    | n/a (sous-blocs 03-A à 03-cloture-bis) | n/a | n/a |
 
-**Recent Trend:**
+**Recent Trend:** Pas encore de données vélocité GSD. La Phase 04 sera
+la première planifiée via `/gsd-plan-phase`.
 
-- Pas encore de données de vélocité GSD (Phase 0 livrée hors workflow `/gsd-plan-phase`)
-- Trend: à mesurer dès la Phase 1
-
-*Updated after each plan completion*
+*Updated after each plan completion.*
 
 ## Accumulated Context
 
 ### Decisions
 
-16 décisions verrouillées dans PROJECT.md (DEC-001 à DEC-016) — 2 ADRs formels + 14 décisions élevées par autorité du propriétaire projet sur CLAUDE.md.
+16 décisions verrouillées dans PROJECT.md (DEC-001 à DEC-016) — 2 ADRs
+formels + 14 décisions élevées par autorité du propriétaire projet sur
+CLAUDE.md. ADR-003 (pivot E2E par passes) est LOCKED dans `docs/adr/`
+mais pas encore listé dans le bloc PROJECT.md `<decisions>` — à ajouter
+en Phase 06 lors du nettoyage HDS.
 
 Décisions affectant le travail courant :
 
-- Phase 0 : DEC-001 (monorepo Turborepo), DEC-002 (RLS multi-tenant), DEC-012 (GitHub Flow)
-- Phase 1 : DEC-007 (chiffrement AES-256-GCM du NIR), DEC-010 (audit_logs), DEC-015 (recherche fuzzy 2 caractères)
-- Phase 2 : DEC-005 (saisie < 30 s), DEC-015 (`Cmd/Ctrl+N`, brouillons, multi-saisies)
+- Phase 03 (close) : DEC-005 (saisie < 30 s respectée), DEC-014 (boutons chauffeur ≥ 56px), DEC-015 (recherche fuzzy 2 car), DEC-016 (logique métier en packages)
+- Phase 04 (next) : DEC-007 (chiffrement NIR si carry-over PWA), DEC-008 (consentement SMS — préparation Passe 3), DEC-013 (couverture pricing 100%), DEC-014 (PWA hors-ligne)
+
+### NFR (Non-Functional Requirements transverses)
+
+6 NFR ajoutés en REQUIREMENTS.md (run ingest 2026-05-12) :
+- NFR-001 : neutralité absolue (aucun nom propre)
+- NFR-002 : ton sobre (pas d'émojis, pas de tutoiement amical)
+- NFR-003 : spacing scale strict 4/8/12/16/24/32/48/64
+- NFR-004 : identité visuelle (bleu primaire + accent terracotta + Inter tnum + Lucide)
+- NFR-005 : états interactifs et animations standard (5 états, 150ms)
+- NFR-006 : double goal par passe E2E (fonctionnel + UX)
 
 ### Pending Todos
 
-Aucun pour l'instant.
+- Validation manuelle dirigeant Phase 03 (walkthrough 16 étapes — voir `.planning/phases/03-e2e-passe1-squelette/03-SUMMARY.md`)
+- Production des 10 captures Visible Progress dans `docs/showcase/03-e2e-passe1-squelette/` (placeholders en place)
+- Câblage skill `tap-neutralite` dans `.planning/config.json` (note inline dans config.json)
 
 ### Blockers/Concerns
 
-- **CDC v2 binaire `.docx`** : 15 modules secondaires non extraits ; à reconvertir en `.md` puis ré-ingérer pour enrichir REQUIREMENTS.md (non bloquant V1, à anticiper avant la Phase 6).
-- **HDS** : Supabase Cloud non certifié HDS — bêta privée acceptable sous DPA, migration vers OVHcloud / Scaleway HDS à anticiper avant lancement commercial (cf. CON-001).
+- **CDC v2 binaire `.docx`** : 15 modules secondaires non extraits ; à reconvertir en `.md` puis ré-ingérer pour enrichir REQUIREMENTS.md (non bloquant V1, à anticiper avant Phase 06).
+- **HDS** : Supabase Cloud non certifié HDS — bêta privée acceptable sous DPA, migration vers OVHcloud / Scaleway HDS prévue Phase 06 (cf. CON-001).
+- **3 branches feature en attente de PR** : `claude/consolidate-phase-3-validation-9Tzax`, `feat/03-cloture-bis-annulation-crud-admin`, `chore/migrate-to-gsd-pilotage` — à merger sur main avant `/gsd-discuss-phase 04`.
 
 ## Deferred Items
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| Modules secondaires CDC v2 | 15 modules non encore extraits | Pending PRD ingest | 2026-05-06 |
-| Portail B2B (apps/b2b) | Reporté V1.5 | Out of scope V1 | 2026-05-06 |
+| Modules secondaires CDC v2 | 15 modules non extraits | Pending PRD ingest | 2026-05-06 |
+| Portail B2B (apps/b2b) | Phase 06 (Passe 4) | Out of scope V1 minimal | 2026-05-06 |
+| Planning Gantt drag-and-drop | V2 (post Passe 4) | Reporté pivot E2E v2 | 2026-05-11 |
+| Géolocalisation temps réel | V3 | Reporté pivot E2E v2 | 2026-05-11 |
+| KPIs dirigeant avancés (drill-down) | V2 | Reporté pivot E2E v2 | 2026-05-11 |
+| Conformité réglementaire (alertes carte pro/CT) | V2 | Reporté pivot E2E v2 | 2026-05-11 |
+| Exports comptables FEC + Lomaco | V2 | Reporté pivot E2E v2 | 2026-05-11 |
+| Beta terrain chauffeur Hauts Réunion | V1.5 (après Phase 06) | Maintenu | 2026-05-06 |
 
 ## Session Continuity
 
-Last session: 2026-05-07T12:22:54.884Z
-Stopped at: Chemin critique : page fonctionnelle bloque Phase 3. Fix seed pooler (region auto). User: 6 secrets GitHub + 1 clic Run workflow.
-Resume file: .planning/phases/00.7-deploiement-vercel/0.7-SUMMARY.md
+Last session: 2026-05-12T05:30:00.000Z
+Stopped at: (between_phases — Phase 03 close, Phase 04 ready to discuss)
+Resume file: .planning/phases/03-e2e-passe1-squelette/03-SUMMARY.md
+Next command suggested: `/gsd-discuss-phase 04`
+
+## Ingest Runs
+
+| Run | Date | Mode | Sources | Bloc | Warn | Info |
+|-----|------|------|---------|------|------|------|
+| 1   | 2026-05-11 | new   | 5 docs (2 ADR, 3 DOC) | 0 | 0 | 3 |
+| 2   | 2026-05-12 | merge | 3 docs (3 SPEC)       | 0 | 1 | 3 |
+
+Run 2 résolu : ROADMAP réécrite (CDC numbering → E2E passes numbering aligné ADR-003) après approval utilisateur sur le WARNING désalignement structurel.

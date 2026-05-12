@@ -1,0 +1,26 @@
+{
+  "source_path": "/home/user/TAP/.planning/passes-2-3-4-detail.md",
+  "type": "SPEC",
+  "confidence": "high",
+  "manifest_override": true,
+  "title": "Brief détaillé — Passes 2, 3, 4",
+  "summary": "Détail périmètre + écrans cibles + critères de fin pour les passes 2 (PWA + tarif CGSS auto + caisse + CRUD admin), 3 (récurrences + cockpit + SMS) et 4 (HDS + OR-Tools + B2B + facturation), complément du pivot v2.",
+  "scope": [
+    "passe-2-pwa-tarif-caisse-admin-crud",
+    "passe-3-recurrences-cockpit-sms",
+    "passe-4-hds-or-tools-b2b-facturation",
+    "manifest-pwa-service-worker",
+    "tarif-cgss-court-trajet-auto",
+    "recap-caisse-stripe-balance-style",
+    "crud-admin-chauffeurs-vehicules",
+    "refonte-login-welcome-setup",
+    "page-dev-switch-session"
+  ],
+  "cross_refs": [
+    ".planning/pivot-e2e-v2-2026-05-11.md",
+    "docs/adr/ADR-003-pivot-e2e-passes-successives.md"
+  ],
+  "locked": false,
+  "precedence": 2,
+  "notes": "Précise les passes 2/3/4 esquissées dans le pivot v2. Mentionne explicitement le report du CRUD admin chauffeurs/véhicules de la Passe 1 vers la Passe 2 (décision Q1) — note : ce report a été annulé en Phase 03-cloture-bis qui livre le CRUD admin avant la PWA."
+}

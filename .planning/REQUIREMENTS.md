@@ -338,3 +338,47 @@ Mapping requirement → phase. Mis à jour lors de la création du roadmap.
 ---
 *Requirements définis : 2026-05-06*
 *Dernière mise à jour : 2026-05-06 après ingest et création du roadmap initial*
+
+---
+
+## NFR (Non-Functional Requirements transverses)
+
+> Source : ingest run 2026-05-12, manifest `.planning/intel/staged-manifest.yml`.
+> Promotion des contraintes CON-015..CON-020 en NFR formels. S'appliquent
+> à toutes les phases sans exception.
+
+- [ ] **NFR-001** : Neutralité absolue — aucun nom propre dans code,
+  identifiants, schémas DB, commentaires, JSDoc, commits, descriptions PR,
+  mockups, captures, pages produit, marketing, légales. Substitution par
+  rôles fonctionnels (`dirigeant`, `régulateur`, `chauffeur`, `patient`,
+  `design partner`). Exception : `seed.demo.sql` pour illustration. Source :
+  `.planning/regle-neutralite-et-ton.md`. CON-015.
+- [ ] **NFR-002** : Ton sobre — pas d'émojis dans l'UI, le code, les
+  commits, les docs. Pas de tutoiement amical, pas d'humour, pas
+  d'encouragements gamifiés. Empty states factuels. Messages d'erreur
+  reformulés FR (jamais le brut Supabase/Postgres). Source :
+  `.planning/regle-neutralite-et-ton.md`. CON-016.
+- [ ] **NFR-003** : Spacing scale strict — Tailwind 4/8/12/16/24/32/48/64
+  uniquement. Aucune valeur intermédiaire (interdits : `px-3`, `px-5`,
+  `px-6`, `gap-10`, etc.). Si un écran a l'air vide ou serré, c'est le
+  mauvais cran de l'échelle. Audit grep CI à mettre en place (Passe 4).
+  Source : `.planning/pivot-e2e-v2-2026-05-11.md` § 2. CON-018.
+- [ ] **NFR-004** : Identité visuelle imposée — bleu primaire profond
+  (`--primary`) + accent terracotta (`--accent`, à utiliser réellement),
+  Inter avec `font-feature-settings: 'tnum'` partout où il y a des
+  chiffres (téléphones, montants, dates, IDs), Lucide ligne fine sans
+  mélange. Mode jour/nuit traités à parité (palette dédiée, pas
+  d'inversion mécanique). Source :
+  `.planning/pivot-e2e-v2-2026-05-11.md` § 2. CON-019.
+- [ ] **NFR-005** : États interactifs et animations standard — 5 états
+  distincts par élément interactif (repos, survol, pressé, actif,
+  désactivé), transitions 150 ms ease-out, focus clavier visible
+  (anneau coloré + offset), skeleton screens > 500 ms (jamais de
+  spinners), optimistic UI, Toast Sonner (jamais alert/popup natif).
+  Source : `.planning/pivot-e2e-v2-2026-05-11.md` § 2. CON-020.
+- [ ] **NFR-006** : Double goal par passe E2E — chaque passe (1, 2, 3,
+  4) a deux goals parallèles : fonctionnel (ce que l'utilisateur peut
+  faire) + UX (à quoi ça ressemble et comment ça se sent). Aucun goal
+  ne peut être validé sans l'autre. Validation de fin de passe :
+  walkthrough joué seul + ratio captures publiables ≥ 1:1. Source :
+  ADR-003 + `.planning/pivot-e2e-v2-2026-05-11.md`. CON-017.

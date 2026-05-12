@@ -197,3 +197,129 @@
   - Mode « régulateur de garde » : un seul régulateur actif simultané.
   - Un chauffeur ne voit QUE ses propres tournées (`driver_id = auth.uid()`).
   - Trigger anti-élévation de privilège sur `profiles` (cf. ADR-002).
+
+---
+
+> **Ingest run 2026-05-12** — 3 SPECs ajoutées via manifest manuel
+> (`.planning/intel/staged-manifest.yml`). Précédence : neutralité=0,
+> pivot=1, passes-detail=2.
+
+---
+
+## CON-015 — Neutralité absolue : aucun nom propre
+
+- **source**: /home/user/TAP/.planning/regle-neutralite-et-ton.md
+- **type**: nfr (convention transverse, NFR-001)
+- **contenu** :
+  - Aucun nom de personne physique (utilisateur, dirigeant, équipier,
+    design partner) dans : code, identifiants, schémas DB, commentaires,
+    JSDoc, commits, descriptions PR, mockups, captures, pages produit
+    et marketing, pages légales.
+  - Substituer par des rôles fonctionnels : `dirigeant`, `régulateur`,
+    `chauffeur`, `patient`, `design partner`, `utilisateur authentifié`.
+  - Données de seed démo (`seed.demo.sql`) : exception unique pour
+    illustration ; jamais réinjectées dans le code applicatif.
+  - Audit grep CI à mettre en place (Passe 4) sur les patterns
+    de noms propres connus.
+- **alerte** : le doc source contient lui-même une auto-violation
+  documentée (cite « Guillaume », « Marie », « Hoarau Patrick », « Payet
+  Marie » comme exemples interdits) — exception interne, ne s'applique
+  qu'au doc source lui-même.
+
+---
+
+## CON-016 — Ton sobre dans toute production écrite
+
+- **source**: /home/user/TAP/.planning/regle-neutralite-et-ton.md
+- **type**: nfr (convention transverse, NFR-002)
+- **contenu** :
+  - Pas d'émojis dans l'UI, le code, les commits, les docs.
+  - Pas de tutoiement amical, pas d'humour, pas d'encouragements
+    gamifiés (« Bravo ! », « Great job ! »).
+  - Empty states factuels (« Aucune course planifiée. »), pas
+    enthousiastes.
+  - Messages d'erreur reformulés en français lisible (jamais le
+    message brut Supabase/Postgres).
+
+---
+
+## CON-017 — Double goal par passe E2E (fonctionnel + UX)
+
+- **source**: /home/user/TAP/.planning/pivot-e2e-v2-2026-05-11.md
+- **type**: nfr (méthode de delivery)
+- **contenu** :
+  - Chaque passe E2E (Passe 1, 2, 3, 4) a deux goals parallèles :
+    (a) goal fonctionnel = ce que l'utilisateur peut faire,
+    (b) goal UX = à quoi ça ressemble et comment ça se sent.
+  - Aucun goal ne peut être validé sans l'autre. Une passe livrée
+    techniquement mais visuellement médiocre est une passe non-livrée.
+  - Référence niveau qualité visé : Linear, Stripe, Notion, Pitch,
+    Things 3, Cron (cf. CLAUDE.md § 1).
+  - Validation de fin de passe : walkthrough joué seul + ratio captures
+    publiables ≥ 1:1 + règle de la nuit avant validation.
+- **lien** : adossé à ADR-003 (pivot E2E par passes successives).
+
+---
+
+## CON-018 — Échelle de spacing stricte 4/8/12/16/24/32/48/64
+
+- **source**: /home/user/TAP/.planning/pivot-e2e-v2-2026-05-11.md § 2
+- **type**: schema (design tokens)
+- **contenu** :
+  - Tailwind utilise uniquement les classes `*-4 / *-8 / *-12 / *-16
+    / *-24 / *-32 / *-48 / *-64` (px-* / py-* / gap-* / m-*).
+  - Aucune valeur intermédiaire (interdits : `px-3`, `px-5`, `px-6`,
+    `gap-10`, etc.).
+  - Si un écran a l'air vide ou serré, c'est probablement le mauvais
+    cran de l'échelle, pas une valeur intermédiaire à inventer.
+  - Audit grep CI à mettre en place (Passe 4).
+
+---
+
+## CON-019 — Identité visuelle imposée (palette + fonts + icônes)
+
+- **source**: /home/user/TAP/.planning/pivot-e2e-v2-2026-05-11.md § 2
+- **type**: schema (design tokens)
+- **contenu** :
+  - Couleur primaire : bleu profond (`--primary` déjà en place).
+  - Accent : terracotta (`--accent`, à utiliser réellement, pas juste
+    défini).
+  - Font : Inter avec `font-feature-settings: 'tnum'` partout où il y
+    a des chiffres (téléphones, montants, dates, IDs).
+  - Icônes : Lucide ligne fine, jamais mélangé avec d'autres familles.
+  - Mode jour ET mode nuit traités à parité (pas une inversion
+    mécanique — palette dédiée).
+
+---
+
+## CON-020 — États interactifs et animations standard
+
+- **source**: /home/user/TAP/.planning/pivot-e2e-v2-2026-05-11.md § 2
+- **type**: nfr (interaction design)
+- **contenu** :
+  - 5 états distincts par élément interactif : repos, survol, pressé,
+    actif, désactivé.
+  - Transitions 150 ms ease-out.
+  - Focus clavier visible : anneau coloré avec offset, jamais retiré.
+  - Skeleton screens pour chargements > 500 ms, jamais de spinners.
+  - Optimistic UI sur les mutations courantes.
+  - Toast Sonner pour confirmation, jamais alert/popup natif.
+
+---
+
+## CON-021 — Périmètres détaillés des passes 2/3/4
+
+- **source**: /home/user/TAP/.planning/passes-2-3-4-detail.md
+- **type**: nfr (delivery scope)
+- **contenu** :
+  - **Passe 2** : PWA installable + tarif CGSS court trajet auto
+    (forfait + distance estimée) + override manuel + récap caisse
+    style Stripe Balance + CRUD admin chauffeurs/véhicules + refonte
+    `/login` `/welcome` `/setup` + page `/dev` switch session.
+  - **Passe 3** : Récurrences dialyse 3×/sem (`packages/recurrence`,
+    100 % couverture) + cockpit régulateur temps réel + SMS rappel J-1
+    et J-2h via Twilio.
+  - **Passe 4** : Migration HDS + OR-Tools tournée + portail B2B
+    dirigeant + facturation CGSS mensuelle PDF.
+  - Le report Passe 1 → Passe 2 du CRUD admin chauffeurs/véhicules
+    a été annulé en Phase 03-cloture-bis (livraison anticipée).
