@@ -27,7 +27,8 @@ export type RideUrgency = z.infer<typeof rideUrgencySchema>;
  *   pickup_address / dropoff_address / scheduled_at / transport_mode / urgency
  *
  * NB : scheduled_at est validé en ISO 8601 avec offset (TZ Indian/Reunion
- * côté navigateur, UTC en DB — voir parseFreeformDate + Pitfall 5 RESEARCH).
+ * côté navigateur, UTC en DB — date-fns + DatePicker shadcn fournissent
+ * l'ISO via combineToIso (cf. ride-express-form-fields, D-DTPICK-19..25).
  */
 export const rideExpressInputSchema = z.object({
   patient_id: z.string().uuid('Patient requis'),

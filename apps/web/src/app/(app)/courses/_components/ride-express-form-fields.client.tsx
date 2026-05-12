@@ -1,21 +1,30 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { CalendarIcon } from 'lucide-react';
+import { startOfDay } from 'date-fns';
+import { formatDateFr } from '@tap/shared';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 
 /**
- * Sous-composants de présentation du modal saisie express (Phase 2 / Wave 3,
- * date+time picker natif Phase 03.1.1). Extrait pour respecter la limite
- * 300 lignes/fichier (CLAUDE.md § 11).
+ * Sous-composants de présentation du modal saisie express (Phase 2 / Wave 3 ;
+ * Phase 03.1.1 : DatePicker shadcn officiel + Select 96 créneaux 15 min).
+ * Extrait pour respecter la limite 300 lignes/fichier (CLAUDE.md § 11).
  *
- * Contient les champs date+time natifs, pickup/dropoff, mode/urgency,
- * notes, et l'indicateur d'auto-save. La logique métier (validation,
- * persistence) reste dans le modal parent (DEC-016 : pas de logique
- * métier en composant).
+ * Contient DateTimeFields (D-DTPICK-19..25 : Popover+Calendar+Select),
+ * pickup/dropoff, mode/urgency, notes, indicateur d'auto-save. La logique
+ * métier (validation, persistence) reste dans le modal parent (DEC-016).
  */
 
 export type TransportMode = 'taxi_conventionne' | 'tpmr' | 'vsl' | 'ambulance';
@@ -34,52 +43,40 @@ const URGENCY_OPTIONS: ReadonlyArray<{ value: Urgency; label: string }> = [
   { value: 'immediate', label: 'Immédiate' },
 ];
 
-function todayIso(): string {
-  // ISO local YYYY-MM-DD pour l'attribut min de l'input date.
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const d = String(now.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
+/**
+ * 96 créneaux 15 min de '00:00' à '23:45' (D-DTPICK-21).
+ * Pattern Doctolib / Cal.com — discret, 24H par construction.
+ */
+const TIME_SLOTS: ReadonlyArray<{ value: string; label: string }> = Array.from(
+  { length: 96 },
+  (_, i) => {
+    const h = String(Math.floor(i / 4)).padStart(2, '0');
+    const m = String((i % 4) * 15).padStart(2, '0');
+    const v = `${h}:${m}`;
+    return { value: v, label: v };
+  },
+);
+
+/** Combine une Date (jour) + un créneau hh:mm en ISO 8601 UTC. */
+function combineToIso(date: Date | undefined, time: string): string | null {
+  if (!date || !time) return null;
+  const [h, m] = time.split(':').map(Number);
+  const out = new Date(date);
+  out.setHours(h, m, 0, 0);
+  return Number.isNaN(out.getTime()) ? null : out.toISOString();
 }
 
-function splitIso(iso: string | null): { date: string; time: string } {
-  // ISO 8601 UTC → date+time locaux pour les inputs natifs.
-  if (!iso) return { date: '', time: '' };
+/** ISO 8601 → { day: Date, time: 'hh:mm' } pour l'état UI. */
+function splitIso(iso: string | null): {
+  day: Date | undefined;
+  time: string;
+} {
+  if (!iso) return { day: undefined, time: '' };
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return { date: '', time: '' };
-  const y = d.getFullYear();
-  const mo = String(d.getMonth() + 1).padStart(2, '0');
-  const da = String(d.getDate()).padStart(2, '0');
+  if (Number.isNaN(d.getTime())) return { day: undefined, time: '' };
   const hh = String(d.getHours()).padStart(2, '0');
   const mm = String(d.getMinutes()).padStart(2, '0');
-  return { date: `${y}-${mo}-${da}`, time: `${hh}:${mm}` };
-}
-
-function combineToIso(date: string, time: string): string | null {
-  if (!date || !time) return null;
-  const combined = new Date(`${date}T${time}:00`);
-  if (Number.isNaN(combined.getTime())) return null;
-  return combined.toISOString();
-}
-
-// D-DTPICK-7..10 : preview FR via Intl. `lang="fr-FR"` posé sur les inputs
-// est respecté par Firefox/Safari mais ignoré par Chrome desktop (suit locale
-// OS). Le preview garantit la lecture FR indépendamment du browser. Mobile
-// (contexte chauffeur principal) : iOS Safari + Android Chrome respectent
-// la locale OS (FR par défaut côté Réunion). Limitation Chrome desktop assumée.
-const PREVIEW_FORMATTER = new Intl.DateTimeFormat('fr-FR', {
-  weekday: 'long',
-  day: 'numeric',
-  month: 'long',
-  hour: '2-digit',
-  minute: '2-digit',
-});
-
-function formatPreviewFr(iso: string | null): string | null {
-  if (!iso) return null;
-  const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? null : PREVIEW_FORMATTER.format(d);
+  return { day: d, time: `${hh}:${mm}` };
 }
 
 export function DateTimeFields({
@@ -94,61 +91,60 @@ export function DateTimeFields({
   error?: string | null;
   disabled?: boolean;
 }): JSX.Element {
-  const { date, time } = splitIso(value);
-  const min = todayIso();
-  const preview = date && time ? formatPreviewFr(value) : null;
+  const { day, time } = splitIso(value);
+  const [popoverOpen, setPopoverOpen] = useState(false);
 
-  const handleDateChange = (next: string): void => {
+  const handleDayChange = (next: Date | undefined): void => {
     onChange(combineToIso(next, time));
+    setPopoverOpen(false);
   };
   const handleTimeChange = (next: string): void => {
-    onChange(combineToIso(date, next));
+    onChange(combineToIso(day, next));
   };
 
   return (
     <div className="space-y-8">
-      <Label htmlFor="ride-date">Date et heure</Label>
-      {/* D-DTPICK-9 : `min-w-0` évite le débordement des inputs natifs sur
-          mobile 375px (min-width implicite du navigateur casse le layout). */}
+      <Label>Date et heure</Label>
+      {/* D-DTPICK-9 (conservé) : min-w-0 sur les 2 colonnes — Calendar Popover
+          a une largeur intrinsèque qui peut casser le grid sur mobile 375px. */}
       <div className="grid grid-cols-2 gap-12">
-        <Input
-          id="ride-date"
-          type="date"
-          lang="fr-FR"
-          aria-label="Date"
-          value={date}
-          min={min}
-          onChange={(e) => handleDateChange(e.target.value)}
-          aria-invalid={error ? true : undefined}
-          className={cn(
-            'min-w-0',
-            error && 'border-destructive focus-visible:ring-destructive',
-          )}
-          disabled={disabled}
-          tabIndex={2}
-        />
-        <Input
-          id="ride-time"
-          type="time"
-          lang="fr-FR"
-          aria-label="Heure"
+        <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={disabled}
+              aria-invalid={error ? true : undefined}
+              className={cn(
+                'min-w-0 justify-start text-left font-normal',
+                !day && 'text-muted-foreground',
+                error && 'border-destructive',
+              )}
+              tabIndex={2}
+            >
+              <CalendarIcon className="mr-8 h-16 w-16" aria-hidden />
+              {day ? formatDateFr(day) : 'jj/mm/aaaa'}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={day}
+              onSelect={handleDayChange}
+              disabled={(d) => d < startOfDay(new Date())}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+        <Select
+          ariaLabel="Heure"
           value={time}
-          step={300}
-          onChange={(e) => handleTimeChange(e.target.value)}
-          aria-invalid={error ? true : undefined}
-          className={cn(
-            'min-w-0',
-            error && 'border-destructive focus-visible:ring-destructive',
-          )}
-          disabled={disabled}
-          tabIndex={3}
+          onChange={handleTimeChange}
+          items={[...TIME_SLOTS]}
+          triggerClassName="min-w-0 w-full"
+          contentClassName="max-h-[260px] overflow-y-auto"
         />
       </div>
-      {preview && !error && (
-        <p className="text-xs text-muted-foreground" aria-live="polite">
-          {preview}
-        </p>
-      )}
       {error && (
         <p className="text-xs text-destructive" role="alert">
           {error}
