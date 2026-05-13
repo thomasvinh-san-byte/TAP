@@ -1,11 +1,32 @@
 # Codebase Concerns
 
 **Analysis Date:** 2026-05-12
+**Re-mapping update:** 2026-05-13 (refonte planning DEC-023 — god-phase 04 split)
 
 > Inventaire factuel de la dette technique, items reportés, blocages
 > sandbox et zones fragiles identifiés à la clôture Phase 03 (E2E Passe
 > 1). Sources croisées : code, `.planning/STATE.md`,
 > `.planning/PROJECT.md`, `03-SUMMARY.md`, ADRs.
+
+---
+
+## Re-mapping post-DEC-023 (refonte E2E god-phase 04 split)
+
+Les items « Phase de résolution : Passe 2 (Phase 04) » référencés ci-dessous sont **re-mappés** vers la sous-phase appropriée du découpage DEC-023 :
+
+| Item | Phase de résolution avant (Phase 04 god-phase) | Phase de résolution après (DEC-023) |
+|------|------------------------------------------------|-------------------------------------|
+| Manifest PWA + offline chauffeur | Phase 04 | **Phase 04.9** (PWA enveloppe) |
+| Workflow invitation chauffeur | Phase 04 | **Phase 04** (onboarding chauffeur — scope core) |
+| Filtrage `type_permis` ↔ `vehicle.type` modal assignation | Phase 04 | **Phase 04.5** (robustesse régulateur) |
+| Audit logs nom acteur | Phase 04 | **Phase 04.5** |
+| `react-hook-form` non utilisé | Phase 04 ou 05 | **Phase 04** (premier usage `/accept-invite` — DEC-018) |
+| Types Supabase non régénérés (5 `TODO(types)`) | Phase 04 | **Phase 04.5** |
+| `ride-express-modal.client.tsx` 384L > 300 | Phase 04 | **Phase 04.5** (découpe orchestrateur) |
+| `ride-drawer.client.tsx` 337L > 300 | Phase 04 | **Phase 04.5** |
+| Showcase Phase 03 — 10 captures à produire | avant Passe 2 | **Phase 04.5** (livraison en retard) |
+| UI/UX modal saisie course (polish proportions, espacement) | phase UI/UX dédiée post-Passe 2 | **Phase UI dédiée post-Passe 2** (verrou maintenu) |
+| Refonte `/login` + `/welcome` + `/setup` | Phase 04 (livrable 04-B) | **Phase 04** (mode jour) + **Phase UI dédiée** (mode nuit + identité complète) |
 
 ## Tech Debt
 
@@ -221,6 +242,32 @@
 - Phase de résolution : avant ouverture Passe 2
 - Workaround : preview Vercel + walkthrough script texte dans `03-SUMMARY.md`.
 
+## Reportés Phase UI/UX dédiée post-Passe 2 (DEC-023)
+
+### Slide-route iOS-style PWA Driver
+
+- Issue : Transitions natives iOS-style (slide latéral) entre `/conduite` ↔ `/conduite/[rideId]` voulues à l'esquisse Phase 04 ne sont pas implémentables proprement en V1. Bug `vercel/next.js#42658` ouvert depuis 2022 : `template.tsx` ne déclenche pas d'animation à la sortie de route. View Transitions API supportée Chrome only (expérimental). `framer-motion` interdit par NFR-004 (verrou anti-lib UI nouvelle).
+- Files : `apps/web/src/app/(driver)/template.tsx` (à créer Phase 04.9 avec fade-in simple), `apps/web/src/app/(driver)/conduite/[rideId]/`
+- Sévérité : **minor** (UX nice-to-have, pas bloquant fonctionnel)
+- Phase de résolution : **Phase UI dédiée post-Passe 2** (DEC-020 — quand Next.js corrige le bug OU que View Transitions API stabilise)
+- Workaround V1 : fade-in `template.tsx` 250ms ease-out via `tailwindcss-animate` (acceptable, livré Phase 04.9 — DEC-020)
+
+### Layout split tablette 768-1024 px
+
+- Issue : Le split layout `<AuthShell>` activé à `lg:` (≥ 1024 px) n'est pas spécifié pour la fenêtre tablette 768-1024 px. Le single-column collapse mobile s'applique mais peut paraître sous-optimal sur tablette landscape (iPad classique). Identifié à l'audit UI-SPEC Phase 04.
+- Files : `apps/web/src/app/(auth)/_components/auth-shell.client.tsx` (à créer Phase 04)
+- Sévérité : **minor** (cosmétique, audience cible tablette régulateur secondaire)
+- Phase de résolution : **Phase UI dédiée post-Passe 2** — breakpoint `md:` intermédiaire avec proportions adaptées
+- Workaround V1 : single-column < 1024 px (Phase 04 livre cette version)
+
+### Mode nuit toggle complet
+
+- Issue : Spec mode nuit présente dans `04-UI-SPEC.md § 4 Color` (tokens HSL complets jour/nuit) mais le toggle utilisateur est explicitement hors scope Phase 04 (DEC-023 — refonte light login mode jour uniquement). L'infrastructure Tailwind `darkMode: ['class', '[data-theme="dark"]']` + tokens CSS vars `globals.css` est déjà en place. Manque : Server Action `toggleThemeAction` + cookie httpOnly + bouton `<Sun>`/`<Moon>` dans AuthShell header + tests visuels parité.
+- Files : `apps/web/src/app/(auth)/_components/auth-shell.client.tsx` (à créer Phase 04, sans toggle), `apps/web/src/app/actions/theme.ts` (à créer Phase UI dédiée)
+- Sévérité : **minor** (Pilier 1 UX impose parité jour/nuit à long terme — CLAUDE.md § 1)
+- Phase de résolution : **Phase UI dédiée post-Passe 2** (toggle + QA parité visuelle + captures publiables nuit)
+- Workaround V1 : utilisateurs reçoivent thème jour par défaut Phase 04, mode nuit consultable par injection manuelle `data-theme="dark"` sur `<html>` (test interne)
+
 ---
 
-*Concerns audit : 2026-05-12*
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023*

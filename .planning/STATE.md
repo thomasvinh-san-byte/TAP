@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: "Between phases — attendre UAT preview puis merge PR #39, puis discuss Phase 04"
-stopped_at: Phase 04 UI-SPEC approved (6/6 PASS), ready for plan-phase
-last_updated: "2026-05-13T05:11:42.733Z"
-last_activity: 2026-05-12 — Phase 03.1 shipped via GSD pipeline (discuss → ui → plan → execute → verify → ship)
+status: "Between phases — Phase 03.2 shipped (PR #47..#55), refonte planning E2E mergée. Phase 04 next = onboarding chauffeur"
+stopped_at: ""
+last_updated: "2026-05-13T12:00:00.000Z"
+last_activity: 2026-05-13 — Refonte planning E2E (DEC-023) : découpage god-phase 04 en 4 sous-phases (04 onboarding / 04.5 robustesse / 04.7 pricing mockup + caisse / 04.9 PWA enveloppe) + insertion 05.5 pricing CGSS réel (DEC-021)
 progress:
-  total_phases: 11
-  completed_phases: 4
+  total_phases: 14
+  completed_phases: 7
   total_plans: 23
   completed_plans: 25
-  percent: 100
+  percent: 50
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-06)
 
 ## Current Position
 
-Phase: 03.1 (Efficience saisie modal course) — SHIPPED via PR #39
-Phase next: 04 (E2E Passe 2 — PWA + tarif CGSS auto + caisse + refonte login)
-Status: Between phases — attendre UAT preview puis merge PR #39, puis discuss Phase 04
-Last activity: 2026-05-12 — Phase 03.1 shipped via GSD pipeline (discuss → ui → plan → execute → verify → ship)
+Phase: refonte planning E2E (DEC-023) — god-phase 04 split en 4 sous-phases + insertion 05.5
+Phase next: Phase 04 redéfinie onboarding-only (workflow invitation chauffeur + AuthShell mode jour)
+Status: Between phases — refonte planning à merger puis `/gsd-discuss-phase 04` avec nouveau périmètre
+Last activity: 2026-05-13 — Refonte planning E2E (DEC-023 + DEC-021) après revue critique du périmètre Phase 04 (17-25h god-phase) face à ADR-003 pivot E2E
 
-Progress: [███████░░░] 70 % (7 phases livrées sur 10 phases V1)
+Progress: [████████░░░░░░] 50 % (7 phases livrées sur 14 phases V1 après insertions)
 
 Phases livrées :
 
@@ -41,12 +41,17 @@ Phases livrées :
 - Phase 2   — Saisie express course (2026-05-07)
 - Phase 03  — E2E Passe 1 squelette + clôture-bis (2026-05-12)
 - Phase 03.1 — Efficience saisie modal course (2026-05-12, PR #39 — 1ère phase pilotée par GSD)
+- Phase 03.2 — Série hotfixes finition (DateTimeFields react-datepicker + AddressPickerField BAN — PR #47..#55, 2026-05-12/13, hors GSD plan)
 
-Phases à venir :
+Phases à venir (après refonte DEC-023) :
 
-- Phase 04 — E2E Passe 2 (PWA + tarif CGSS auto + caisse + refonte login)
-- Phase 05 — E2E Passe 3 (récurrences + cockpit + SMS)
-- Phase 06 — E2E Passe 4 (HDS + OR-Tools + B2B + facturation)
+- Phase 04   — Onboarding chauffeur + AuthShell mode jour (~4-5h)
+- Phase 04.5 — Robustesse régulateur + dette CONCERNS (~4-6h)
+- Phase 04.7 — Pricing mockup + Caisse + Migration géocoding (~6-9h)
+- Phase 04.9 — PWA chauffeur enveloppe (Serwist + Dexie) (~8-10h)
+- Phase 05   — Récurrences + cockpit temps réel + SMS + patient absent
+- Phase 05.5 — Tarif CGSS réel (calcul réel + grille dirigeant) (~8-12h)
+- Phase 06   — HDS + OR-Tools + B2B + facturation CGSS PDF
 
 ## Performance Metrics
 
@@ -109,9 +114,9 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ### Pending Todos
 
-- UAT Phase 03.1 sur preview Vercel (4 tests — voir 03.1-UAT.md)
-- Merge PR #39 après UAT GREEN
-- Production des 10 captures Visible Progress Phase 03 dans `docs/showcase/03-e2e-passe1-squelette/` (placeholders en place)
+- Inscrire DEC-017..023 + ADR-003 dans bloc `<decisions>` PROJECT.md (intégré refonte planning DEC-023)
+- Production des 10 captures Visible Progress Phase 03 dans `docs/showcase/03-e2e-passe1-squelette/` (livraison déplacée vers Phase 04.5)
+- Démarrer `/gsd-discuss-phase 04` avec nouveau périmètre onboarding-only après merge de la refonte planning
 
 ### Blockers/Concerns
 
@@ -135,10 +140,10 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-05-13T05:11:42.713Z
-Stopped at: Phase 04 UI-SPEC approved (6/6 PASS), ready for plan-phase
-Resume file: .planning/phases/04-e2e-passe2-pwa-tarif/04-UI-SPEC.md
-Next command suggested: `/gsd-progress (Phase 03.1 shipped, PR #39 — UAT 4 tests pending preview Vercel)`
+Last session: 2026-05-13T12:00:00.000Z
+Stopped at: ""
+Resume file: .planning/phases/04-onboarding-chauffeur-authshell/04-CONTEXT.md
+Next command suggested: `/gsd-discuss-phase 04` (nouveau périmètre onboarding-only après refonte DEC-023)
 
 ## Ingest Runs
 

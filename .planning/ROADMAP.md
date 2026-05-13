@@ -32,8 +32,12 @@ Sources de vérité de ce séquencement : ADR-003 (LOCKED) +
 - [x] **Phase 0.7: Déploiement continu Vercel + démo seedée** - Visible Progress Mandate (Vercel preview + seed démo 974 + showcase/ + smoke test cloud) — livrée 2026-05-07
 - [x] **Phase 2: Saisie express course** - Saisie < 30 s, raccourci `Cmd/Ctrl+Shift+K`, brouillons, multi-saisies (livré 22 commits, 6/6 SAIS delivered, 2026-05-07)
 - [x] **Phase 03: E2E Passe 1 — Squelette + clôture-bis** - 6 maillons reliés bout-à-bout (chauffeurs/véhicules/assignation/exécution/tarif manuel/encaissement) + édition course + role guards + 48h chauffeur + annulation + CRUD admin (livré 2026-05-12 sur branches `claude/consolidate-phase-3-validation-9Tzax` + `feat/03-cloture-bis-annulation-crud-admin`)
-- [ ] **Phase 04: E2E Passe 2 — PWA + tarif CGSS auto + caisse + refonte login** - PWA installable hors-ligne 1h + tarif CGSS court trajet automatique avec override + récap caisse style Stripe Balance + refonte `/login` `/welcome` `/setup` + page `/dev` switch session
-- [ ] **Phase 05: E2E Passe 3 — Récurrences + cockpit temps réel + SMS** - `packages/recurrence` 100% (dialyse 3×/sem, exceptions jours fériés 974) + cockpit régulateur Realtime Supabase + SMS rappel J-1 et J-2h via Twilio
+- [ ] **Phase 04: Onboarding chauffeur + AuthShell mode jour** - Workflow invitation chauffeur via magic link Supabase Auth + `<AuthShell>` réutilisable (refonte light `/login` `/welcome` `/setup` + `/accept-invite`) + DemoCredentials cliquables + premier RHF du repo (DEC-018). Mode nuit reporté Phase UI dédiée. **(DEC-023 god-phase split)**
+- [ ] **Phase 04.5: Robustesse régulateur + dette CONCERNS** - Filtrage type_permis↔vehicle.type modal assignation + audit logs nom acteur + découpe ride-express-modal/ride-drawer + types Supabase regen + livraison 10 captures showcase Phase 03
+- [ ] **Phase 04.7: Pricing mockup + Caisse + Migration géocoding** - `packages/pricing` stub DEMO + PricingBreakdown UI + OverrideTarifModal + page `/courses/caisse` style Stripe Balance + export CSV utf-8-sig + migration BDD lat/lng/citycode threadée depuis BAN. **Pricing réel reporté Phase 05.5 (DEC-021)**
+- [ ] **Phase 04.9: PWA chauffeur enveloppe** - Serwist + Dexie 4.x (DEC-019) + manifest + icônes maskable + splash iOS DPR + ConnectionStatus 4 cas + sync engine + persistence storage warning > 7j (DEC-022) + transitions fade-in template.tsx (DEC-020)
+- [ ] **Phase 05: E2E Passe 3 — Récurrences + cockpit temps réel + SMS + patient absent** - `packages/recurrence` 100% (dialyse 3×/sem, exceptions jours fériés 974) + cockpit régulateur Realtime Supabase + SMS rappel J-1 et J-2h via Twilio + workflow patient absent au pickup
+- [ ] **Phase 05.5: Tarif CGSS réel** - Implémentation calcul réel `computeCgssShortTrip` (remplace stub Phase 04.7), décision distance tranchée en discuss préalable, validation grille dirigeant 5+ cas, 100% branch coverage Vitest (DEC-021)
 - [ ] **Phase 06: E2E Passe 4 — HDS + OR-Tools + B2B + facturation** - Migration HDS production (Scaleway/OVHcloud) + microservice Python OR-Tools tournée + portail B2B dirigeant + facturation CGSS mensuelle PDF
 
 ## Phase Details
@@ -163,48 +167,132 @@ Branches : `claude/consolidate-phase-3-validation-9Tzax` + `feat/03-cloture-bis-
 Plans:
 - [ ] TBD (run /gsd-plan-phase 03.1 to break down)
 
-### Phase 03.1.1: Date+time picker natif (fix forward 03.1) (INSERTED)
+> **Phase 03.1.1 supprimée (DEC-023)** : stub jamais utilisé, travail absorbé par la série PR #47..#55 Phase 03.2 (DateTimeFields finalisé + AddressPickerField BAN).
 
-**Goal:** [Urgent work - to be planned]
-**Requirements**: TBD
-**Depends on:** Phase 03.1
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (run /gsd-plan-phase 03.1.1 to break down)
-
-### Phase 04: E2E Passe 2 — PWA + tarif CGSS auto + caisse + refonte login
-**Goal fonctionnel**: Le chauffeur installe l'application sur son téléphone comme une vraie app native, travaille hors-ligne pendant 1 heure et synchronise au retour réseau. Le tarif CGSS court trajet est calculé automatiquement à la clôture (forfait base + distance estimée) avec override manuel possible. La régulatrice voit un récap caisse de la journée par chauffeur.
-**Goal UX**: PWA installable proprement (manifest.json complet, icônes 192/512 sans bavure, splash screen identité, theme color cohérent mode courant). Transitions natives entre `/conduite` et `/conduite/[rideId]` style iOS push (slide latéral). Indicateurs hors-ligne discrets mais visibles (point header, badge synchro). Récap caisse table dense type Stripe Balance avec totaux tabulaires en pied. Refonte `/login` `/welcome` `/setup` : layout split avec zone identité (logo, baseline produit) + form, comptes démo cliquables si DEMO_MODE, identité visuelle forte, mode nuit.
-**Depends on**: Phase 03 (squelette E2E + CRUD admin déjà livrés)
-**Requirements**: PRIC-01..04, CHAUF-01..04, CAIS-01..03, NFR-001..006
+### Phase 04: Onboarding chauffeur + AuthShell mode jour (REFACTOR DEC-023)
+**Goal fonctionnel**: Le dirigeant invite un chauffeur par email. Le chauffeur active son compte via un magic link Supabase Auth, est rattaché à sa fiche `drivers` existante, puis peut se connecter via `/login` refondu.
+**Goal UX**: `<AuthShell>` réutilisable — layout split desktop, single column mobile. `/login` + `/welcome` + `/setup` refondus en mode jour, captures publiables. `DemoCredentials` cards cliquables qui prefill le form si `NEXT_PUBLIC_SHOW_DEMO_CREDENTIALS === '1'`. Premier RHF + `zodResolver` du repo (DEC-018).
+**Depends on**: Phase 03 (squelette E2E + CRUD admin chauffeurs déjà livrés)
+**Requirements**: CHAUF-01..04 (workflow invitation), NFR-001..006
 **Périmètre — dans**:
-- Manifest PWA + service worker minimal pour `/conduite` et `/conduite/[rideId]`
-- Cache des courses du jour à l'ouverture, file d'attente des mutations offline (start, end), sync au retour réseau
-- Indicateurs visuels offline/synching/synced
-- Calcul tarif CGSS court trajet automatique (forfait base + distance estimée OSRM externe ou fallback Haversine). Pas d'OR-Tools. Override manuel toujours possible.
-- Page `/courses/caisse?date=YYYY-MM-DD` : récap encaissements de la journée par chauffeur, totaux, export CSV
-- Refonte pages `/login`, `/welcome`, `/setup` (layout split, comptes démo cliquables, mode nuit)
-- Page `/dev` switch session démo (déjà livrée Passe 1, à raffiner si besoin)
-**Périmètre — hors** (reporté Passe 4) :
-- Hors-ligne > 1 heure
-- Calcul CGSS long trajet, suppléments TPMR, attente
-- Push notifications, géolocalisation temps réel
-- Récurrences (Passe 3)
+- Migration BDD : table `driver_invitations` (token UUID, status `pending|accepted|expired`, expiry 48h, RLS organization_id)
+- Server Action `inviteDriverAction` depuis `/admin/chauffeurs`
+- Supabase Auth magic link (template SES par défaut — Resend/Brevo reporté Phase 06)
+- Page `/accept-invite?token=...` avec RHF + zodResolver (création password + activation)
+- Rattachement `drivers.profile_id = auth.uid()` à l'activation
+- Composant `<AuthShell>` extrait dans `apps/web/src/app/(auth)/_components/`
+- `DemoCredentials` converti Server → Client, cards cliquables, prefill email + password si flag
+**Périmètre — hors** (Phase UI dédiée post-Passe 2):
+- Mode nuit toggle complet (spec UI prête dans 04-UI-SPEC.md § 4)
+- Refonte visuelle complète logo/baseline (logo TAP existant conservé en Phase 04)
+- Slide bidirectionnel iOS-style PWA Driver (DEC-020 — bug Next.js #42658)
 **Success Criteria** (what must be TRUE):
-  1. La PWA s'installe proprement sur iPhone et Android (icônes nettes, splash screen identité)
-  2. Le chauffeur peut démarrer + clôturer une course en mode avion, et la mutation se synchronise au retour réseau
-  3. Le tarif CGSS court trajet calculé automatiquement matche les cas de référence à ±0,01€
-  4. Override manuel du tarif possible et tracé dans audit_logs
-  5. Page `/courses/caisse` affiche les encaissements de la journée par chauffeur avec totaux
-  6. Refonte `/login` capture publiable, mode nuit traité à parité
+  1. Le dirigeant invite un humain réel via `/admin/chauffeurs` sans intervention dev
+  2. L'humain reçoit un email magic link et active son compte sur `/accept-invite`
+  3. `drivers.profile_id` rattaché correctement à l'activation (cohérent base)
+  4. `/login` refondue, capture publiable mode jour
+  5. `DemoCredentials` cards prefill le form si flag actif
 **Plans**: TBD — voir `/gsd-discuss-phase 04` puis `/gsd-plan-phase 04`
-**UI hint**: yes (PWA + refonte login + caisse style Stripe Balance)
+**Captures Visible Progress**: 2 (`/login` jour, `/accept-invite`)
+**Estimation**: 4-5 h
+**UI hint**: yes (refonte light auth pages + AuthShell)
+**Canonical refs**: `.planning/phases/04-onboarding-chauffeur-authshell/04-CONTEXT.md`, `04-UI-SPEC.md` (§ 7.6 AuthShell + § 7.7 DemoCredentials + § 7.8 /accept-invite)
 
-### Phase 05: E2E Passe 3 — Récurrences + cockpit temps réel + SMS
-**Goal fonctionnel**: La régulatrice configure une récurrence dialyse (3×/semaine, lundi/mercredi/vendredi 08h00) et toutes les occurrences se génèrent automatiquement, en respectant les jours fériés 974 (1er mai, 20 décembre, etc.). Elle voit son cockpit temps réel (Realtime Supabase) avec courses en cours, retards, alertes. Les patients reçoivent un SMS de rappel J-1 à 18h et J-2h via Twilio.
-**Goal UX**: Cockpit en table dense Linear-style avec cellules colorées par statut, mise à jour fluide sans flash (Realtime + animations subtiles). Modal récurrence avec preview des 4 prochaines occurrences. Templates SMS éditables avec preview FR/créole.
-**Depends on**: Phase 04 (PWA + tarif auto)
+### Phase 04.5: Robustesse régulateur + dette CONCERNS (INSERTED DEC-023)
+**Goal fonctionnel**: Frictions et risques opérationnels documentés `CONCERNS.md` levés. La régulatrice ne peut plus mismatcher permis/véhicule. La timeline audit affiche le nom de l'acteur. Modals dépassant 300L découpées proprement.
+**Goal UX**: Aucun nouvel écran. Amélioration ciblée modal assignation. Livraison en retard des 10 captures showcase Phase 03 (Visible Progress § 13.5).
+**Depends on**: Phase 04
+**Requirements**: NFR-006 + dette CONCERNS.md
+**Périmètre — dans**:
+- Filtrage `type_permis` ↔ `vehicle.type` modal assignation (CONCERNS.md severity major)
+- Audit logs enrichissement nom acteur (join `profiles.first_name + last_name` OU dénormalisation)
+- Découpe `ride-express-modal.client.tsx` (384L → <200L orchestrateur fin)
+- Découpe `ride-drawer.client.tsx` (337L → <200L)
+- Régénération types Supabase (`pnpm db:types`) + suppression des 5 `TODO(types)`
+- Production des 10 captures showcase Phase 03 pending (`docs/showcase/03-e2e-passe1-squelette/`)
+**Périmètre — hors**: Aucun nouvel écran, aucun nouveau flow.
+**Success Criteria** (what must be TRUE):
+  1. Modal assignation refuse le couplage permis B + minibus (validation form bloquante)
+  2. Timeline audit (`ride-drawer` historique) affiche prénom/nom au lieu de "regulateur" générique
+  3. Aucun fichier `apps/web/src/app/**/_components/*.tsx` > 300L (`wc -l`)
+  4. `grep -rn "TODO(types)" apps/web/src` retourne 0
+  5. 10 captures Phase 03 livrées dans `docs/showcase/03-e2e-passe1-squelette/`
+**Plans**: TBD — voir `/gsd-discuss-phase 04.5` puis `/gsd-plan-phase 04.5`
+**Captures Visible Progress**: 0 nouvelles (livraison 10 captures Phase 03 en retard)
+**Estimation**: 4-6 h
+**UI hint**: no (dette technique + showcase)
+**Canonical refs**: `.planning/phases/04.5-robustesse-regulateur/04.5-CONTEXT.md`
+
+### Phase 04.7: Pricing mockup + Caisse + Migration géocoding (INSERTED DEC-023)
+**Goal fonctionnel**: La chaîne pricing UI est en place sans calcul réel. `packages/pricing` exporte un **stub** `computeCgssShortTrip` retournant des valeurs hardcodées clairement « DEMO ». `PricingBreakdown` UI réel à la clôture. `OverrideTarifModal` fonctionnel et tracé `audit_logs`. Page `/courses/caisse` avec totaux et export CSV. Migration BDD préparée pour `lat/lng/citycode` mais **non consommée** par le pricing.
+**Goal UX**: `PricingBreakdown` lisible avec mention visible « DEMO — tarif non contractuel » (UI lock anti-facturation). `OverrideTarifModal` avec raison obligatoire. `/courses/caisse` table dense type Stripe Balance, groupes expandables par chauffeur, sous-totaux + total `<tfoot>`.
+**Depends on**: Phase 04.5 (modals découpées propres + types regen)
+**Requirements**: PRIC-01..03 partial (stub only), CAIS-01..03, NFR-001..006
+**Périmètre — dans**:
+- `packages/pricing` workspace clone de `packages/shared`, fonction pure stub `computeCgssShortTrip` retournant `{ amount_eur, breakdown, source: 'cgss_auto_demo' }` avec valeurs hardcodées DEMO
+- **100 % Vitest sur le contrat de la fonction** (DEC-013) — la couverture porte sur le contrat pur, pas la grille réelle (qui arrive 05.5)
+- Migration BDD : `rides.pickup_lat numeric(10,7) NULL`, `pickup_lng numeric(10,7) NULL`, `pickup_citycode text NULL` + `dropoff_*` idem
+- Threading lat/lng depuis `AddressPickerField` BAN (Phase 03.2.7) vers `createRideAction` / `editRideAction` (lift D-ADDR-06)
+- `<PricingBreakdown>` composant avec **badge « DEMO »** visible (Lucide `AlertTriangle` + `text-warning`)
+- `<OverrideTarifModal>` régulateur depuis `ride-drawer` + override inline dans `end-ride-modal` chauffeur
+- `/courses/caisse?date=YYYY-MM-DD` Server Component + `_lib/queries-caisse.ts` (miroir `queries-enriched.ts`)
+- Export CSV via Server Action retournant `Response` `text/csv; charset=utf-8` avec UTF-8 BOM (`U+FEFF`) + séparateur `;` + format date FR (`jj/mm/aaaa`) pour Excel FR
+- Permissions régulateur + dirigeant uniquement sur `/courses/caisse` (RLS Server Component)
+**Périmètre — hors** (reporté Phase 05.5 — DEC-021):
+- Calcul tarif **réel** CGSS court trajet 974
+- Décision distance (OSRM auto-hébergé / Mapbox / OpenRoute paid / Haversine + override Hauts)
+- Validation grille tarifaire dirigeant avec cas de référence
+- Backfill géocoding courses pré-Phase-04.7 (Phase 06 si volume)
+**Success Criteria** (what must be TRUE):
+  1. Régulateur ouvre une course clôturée, voit `PricingBreakdown` avec mention « DEMO » + valeurs hardcodées cohérentes (forfait + km factice + total)
+  2. `OverrideTarifModal` accessible depuis `ride-drawer`, raison obligatoire (RHF + zod), trace `audit_logs` avec ancien montant + nouveau + raison
+  3. `/courses/caisse` affiche récap journée par chauffeur (groupes expandables), totaux pied `<tfoot>`
+  4. Export CSV s'ouvre dans Excel FR sans encoding cassé (UTF-8 BOM + `;` séparateur)
+  5. Migration géocoding appliquée, `lat/lng/citycode` threadés depuis BAN dans `rides`
+**Plans**: TBD — voir `/gsd-discuss-phase 04.7` puis `/gsd-plan-phase 04.7`
+**Captures Visible Progress**: 3 (`PricingBreakdown` DEMO, `OverrideTarifModal`, `/courses/caisse`)
+**Estimation**: 6-9 h
+**UI hint**: yes (PricingBreakdown + Override + CaisseTable)
+**Canonical refs**: `.planning/phases/04.7-pricing-mockup-caisse/04.7-CONTEXT.md`, `04-UI-SPEC.md` (§ 7.3 PricingBreakdown + § 7.4 OverrideTarifModal + § 7.5 CaisseTable)
+
+### Phase 04.9: PWA chauffeur enveloppe (INSERTED DEC-023)
+**Goal fonctionnel**: Le chauffeur installe la PWA sur son téléphone, travaille hors-ligne 1 h, mutations syncées au retour réseau.
+**Goal UX**: Manifest et icônes maskable propres, splash iOS par DPR, `ConnectionStatus` header 4 cas (`online idle` / `synching` / `offline + queue` / `offline idle`), transitions fade-in via `template.tsx` (DEC-020 — slide bidirectionnel iOS-style reporté Phase UI dédiée).
+**Depends on**: Phase 04.7 (caisse + pricing stub livrés — la PWA emballe un code mûr)
+**Requirements**: CHAUF-01..04 (PWA + offline), DEC-014, NFR-001..006
+**Périmètre — dans**:
+- Manifest static `apps/web/public/manifest.json` + 4 icônes (192/512 `any` + `maskable`)
+- Splash iOS `apple-touch-startup-image` 3 DPR minimum (iPhone SE 750×1334, iPhone 13/14 1170×2532, iPhone 15 Pro Max 1290×2796)
+- Serwist scaffold (`withSerwistInit` dans `next.config.ts`, scope `/conduite*`, `reloadOnOnline: false`, `disable: NODE_ENV === 'development'`)
+- Dexie 4.x schema : table `mutations_queue` + miroir local des courses du jour
+- Sync engine : queue, retry exponentiel base 2s + jitter ±500ms, max 30s, **3 essais max**, dead letter queue avec toast Sonner destructive
+- **Spike Wave 1** : Server Action via `fetch(actionURL, { headers: 'Next-Action' })` vs Route Handler `/api/driver/rides/[id]/start|end` — trancher empiriquement (le dirigeant a indiqué préférer Route Handlers explicites Alt A, à formaliser dans le plan)
+- `<ConnectionStatus>` header 4 cas avec `useLiveQuery` Dexie sur `pendingCount`
+- `navigator.storage.persist()` au mount PWA + tracking `lastUsedAt` + warning UI banner si > 7 j inactivité (DEC-022 — iOS purge IndexedDB ~2 sem inactivité PWA)
+- Listener `window.addEventListener('online', flushQueue)` pour replay (Background Sync API non supporté iOS 17+/18)
+- Transitions fade-in via `template.tsx` (DEC-020 — slide reporté Phase UI dédiée, bug `vercel/next.js#42658` template.tsx n'anime pas la sortie)
+**Périmètre — hors** (reporté):
+- Cache PWA régulateur `/courses` (Phase 05)
+- Hors-ligne > 1 h (Phase 06)
+- Push notifications Web Push API VAPID (Phase 06)
+- Géolocalisation temps réel (Phase 06)
+- Slide bidirectionnel iOS-style PWA Driver (Phase UI dédiée)
+**Success Criteria** (what must be TRUE):
+  1. PWA installable propre iPhone + Android (icônes nettes, splash identité, `theme_color` cohérent)
+  2. Démarrer + clôturer course en mode avion, mutation sync au retour réseau, `audit_logs` cohérent
+  3. `ConnectionStatus` affiche les 4 états distinctement (test Playwright assertions)
+  4. Warning UI > 7 j inactivité visible au prochain mount PWA
+  5. Dead letter queue toast Sonner après 3 échecs de retry
+**Plans**: TBD — voir `/gsd-discuss-phase 04.9` puis `/gsd-plan-phase 04.9`
+**Captures Visible Progress**: 2 (PWA installée iPhone capture device réel, course offline + sync GIF)
+**Estimation**: 8-10 h
+**UI hint**: yes (PWA install assets + ConnectionStatus + Driver Shell)
+**Canonical refs**: `.planning/phases/04.9-pwa-chauffeur-enveloppe/04.9-CONTEXT.md`, `04-UI-SPEC.md` (§ 7.1 ConnectionStatus + § 7.2 PWA Driver Shell + § 8 PWA install assets)
+
+### Phase 05: E2E Passe 3 — Récurrences + cockpit temps réel + SMS + patient absent
+**Goal fonctionnel**: La régulatrice configure une récurrence dialyse (3×/semaine, lundi/mercredi/vendredi 08h00) et toutes les occurrences se génèrent automatiquement, en respectant les jours fériés 974 (1er mai, 20 décembre, etc.). Elle voit son cockpit temps réel (Realtime Supabase) avec courses en cours, retards, alertes. Les patients reçoivent un SMS de rappel J-1 à 18h et J-2h via Twilio. **Workflow patient absent au pickup** : le chauffeur déclare l'absence via la PWA, la régulatrice reçoit une alerte cockpit, décide reprogrammation ou annulation, action tracée `audit_logs`.
+**Goal UX**: Cockpit en table dense Linear-style avec cellules colorées par statut, mise à jour fluide sans flash (Realtime + animations subtiles). Modal récurrence avec preview des 4 prochaines occurrences. Templates SMS éditables avec preview FR/créole. Modal alerte cockpit patient absent avec actions « Reprogrammer » / « Annuler course ».
+**Depends on**: Phase 04.9 (PWA chauffeur déployée — le chauffeur déclare l'absence depuis la PWA)
 **Requirements**: RECU-01..06, COCK-01..05, SMS-01..05, NFR-001..006
 **Périmètre — dans**:
 - `packages/recurrence` : moteur génération occurrences (rrule-like), 100% branches (DEC-013)
@@ -214,10 +302,11 @@ Plans:
 - `packages/sms` : Twilio adapter, templates personnalisables, consentement strictement vérifié (DEC-008)
 - SMS rappel J-1 18h00 (cron) + J-2h (cron) avec template patient
 - Tracking delivery status (sent/delivered/failed) dans `sms_message`
+- **Workflow patient absent au pickup** : chauffeur déclare via PWA, régulatrice reçoit alerte cockpit, modal décision (reprogrammation ou annulation), action tracée `audit_logs` + notification optionnelle famille
 **Périmètre — hors** (reporté Passe 4) :
 - Réception SMS patient (réponse → fiche patient)
 - KPIs dirigeant
-- Imprévus complexes (panne, patient absent automatique)
+- Imprévus complexes (panne, multi-patient absent automatique)
 **Success Criteria** (what must be TRUE):
   1. La régulatrice crée une récurrence dialyse 3×/semaine et voit les occurrences dans le planning
   2. Les jours fériés 974 ne génèrent pas d'occurrence sauf override explicite
@@ -225,8 +314,40 @@ Plans:
   4. Le cockpit affiche les courses en cours et reflète les changements de statut sans reload
   5. Le SMS rappel J-1 part automatiquement à 18h pour tous les patients consentants
   6. Tout SMS sortant respecte le consentement actif (DEC-008) et trace dans `sms_message`
+  7. **Chauffeur déclare patient absent depuis PWA → alerte cockpit régulateur sous 5s, décision tracée `audit_logs`**
 **Plans**: TBD — voir `/gsd-discuss-phase 05` puis `/gsd-plan-phase 05`
-**UI hint**: yes (cockpit temps réel + modal récurrence + templates SMS)
+**UI hint**: yes (cockpit temps réel + modal récurrence + templates SMS + modal patient absent)
+
+### Phase 05.5: Tarif CGSS réel (INSERTED DEC-021)
+**Goal fonctionnel**: Remplacer le **stub** Phase 04.7 par un calcul tarif CGSS court trajet **réel**. Forfait base + distance routière + grille validée dirigeant. Override manuel toujours possible et tracé.
+**Goal UX**: `PricingBreakdown` sans plus la mention « DEMO ». Indication de la source distance (route OSRM / vol d'oiseau Haversine).
+**Depends on**: Phase 05 (récurrences livrées — calibration grille tarifaire sur volume réel)
+**Requirements**: PRIC-01..04 (calcul réel), DEC-013 (couverture 100 %), NFR-001..006
+**Périmètre — dans**:
+- **Discuss dédiée préalable** `/gsd-discuss-phase 05.5` pour trancher la source distance :
+  - OSRM auto-hébergé (Docker `services/osrm` + tuiles 974)
+  - Mapbox (paid)
+  - OpenRoute paid
+  - Haversine pure JS + override manuel pour Hauts Réunion (Cilaos, Salazie)
+- Validation grille tarifaire CGSS 974 dirigeant avec **5+ cas de référence**
+- `packages/pricing` `computeCgssShortTrip` implémentation **réelle** (remplace stub Phase 04.7)
+- 100 % branch coverage Vitest sur cas réels (DEC-013)
+- Migration consommation `lat/lng/citycode` (préparés en 04.7)
+- Service distance (selon décision discuss 05.5)
+- Colonne `rides.distance_estimation_method` enum audit (`osrm` / `haversine`)
+**Périmètre — hors** (reporté Phase 06):
+- CGSS long trajet, suppléments TPMR, attente nocturne, dimanches / jours fériés 974
+- Facturation mensuelle PDF CGSS
+**Success Criteria** (what must be TRUE):
+  1. `computeCgssShortTrip` ±0,01 € vs 5+ cas de référence dirigeant
+  2. `PricingBreakdown` sans badge « DEMO », montant **facturable**
+  3. Source distance indiquée (`osrm` ou `haversine`) selon disponibilité
+  4. Test Vitest 100 % branch coverage GREEN en CI (échec si < 100%)
+**Plans**: TBD — voir `/gsd-discuss-phase 05.5` puis `/gsd-plan-phase 05.5`
+**Captures Visible Progress**: 1 (`PricingBreakdown` réel avec breakdown comparé DEMO)
+**Estimation**: 8-12 h
+**UI hint**: no (modification interne calcul, UI déjà livrée Phase 04.7 sans badge)
+**Canonical refs**: `.planning/phases/05.5-pricing-cgss-reel/05.5-CONTEXT.md`
 
 ### Phase 06: E2E Passe 4 — HDS + OR-Tools + B2B + facturation CGSS
 **Goal fonctionnel**: Migration de l'hébergement vers une infra HDS-certifiée (Scaleway HDS ou OVHcloud Healthcare) avant lancement commercial. Optimisation des tournées par OR-Tools (microservice Python). Portail B2B dirigeant pour donneurs d'ordres (hôpitaux, cliniques, EHPAD). Facturation CGSS mensuelle PDF générée automatiquement.
