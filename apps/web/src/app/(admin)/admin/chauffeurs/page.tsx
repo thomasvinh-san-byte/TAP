@@ -1,33 +1,40 @@
 import { createClient } from '@/lib/supabase/server';
+import { getAuthContext } from '@/lib/auth/get-auth-context';
 import { DriversList } from './_components/drivers-list.client';
 
 export const metadata = { title: 'Chauffeurs — Admin TAP' };
 export const dynamic = 'force-dynamic';
 
 /**
- * Page admin chauffeurs (Passe 2 — Phase 04) — RSC pré-fetch.
+ * Page admin chauffeurs (Passe 2 — Phase 04, hotfix DEC-029) — RSC pré-fetch.
  *
- * Pattern miroir `/patients` : header sobre + composant client liste qui
- * monte un Sheet en mode création/édition. RLS Postgres garantit le
- * filtrage `organization_id` côté DB ; le guard rôle dirigeant est appliqué
- * dans `(admin)/layout.tsx`.
+ * Query param `vue` :
+ *   - `actifs` (par défaut) : chauffeurs non archivés
+ *   - `archives`            : chauffeurs archivés (réservé toggle UI)
  *
- * PLAN-4 §4.7 : récupère également la dernière invitation pending par
- * driver pour afficher le badge statut compte (4 états Q1.7).
+ * RLS Postgres garantit le filtrage `organization_id`. Les guards rôle
+ * sont posés en `(admin)/layout.tsx` (dirigeant ou régulateur).
  */
-export default async function ChauffeursPage() {
+export default async function ChauffeursPage({
+  searchParams,
+}: {
+  searchParams?: { vue?: string };
+}) {
   const supabase = createClient();
+  const ctx = await getAuthContext();
+  const role = ctx?.role ?? 'regulateur';
+
+  const vueArchives = searchParams?.vue === 'archives';
+
   const { data: drivers } = await supabase
     .from('drivers' as never)
     .select(
-      'id, nom_affichage, telephone, numero_licence, type_permis, actif, profile_id, created_at',
+      'id, nom_affichage, telephone, numero_licence, type_permis, actif, archive, archive_at, archive_motif, profile_id, created_at',
     )
-    .eq('archive', false)
+    .eq('archive', vueArchives)
     .order('nom_affichage', { ascending: true });
 
   // Récupère la dernière invitation pending par driver (PLAN-4 §4.7).
-  // RLS `driver_invitations_select_invited_or_recipient` autorise le dirigeant
-  // à voir les invitations qu'il a posées.
   const { data: invitations } = await supabase
     .from('driver_invitations' as never)
     .select('id, driver_id, email, status, expires_at, created_at')
@@ -53,11 +60,15 @@ export default async function ChauffeursPage() {
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">Chauffeurs</h1>
         <p className="text-sm text-muted-foreground">
-          Référentiel des chauffeurs de l&apos;organisation. Inviter le
+          Référentiel des chauffeurs de l&apos;organisation. Invitez le
           chauffeur pour lui ouvrir l&apos;accès à l&apos;application.
         </p>
       </header>
-      <DriversList initialDrivers={driversWithInvitation} />
+      <DriversList
+        initialDrivers={driversWithInvitation}
+        currentRole={role as 'dirigeant' | 'regulateur'}
+        vue={vueArchives ? 'archives' : 'actifs'}
+      />
     </div>
   );
 }
@@ -78,6 +89,9 @@ export type DriverRow = {
   numero_licence: string | null;
   type_permis: string[];
   actif: boolean;
+  archive: boolean;
+  archive_at: string | null;
+  archive_motif: string | null;
   profile_id: string | null;
   created_at: string;
   invitation: DriverInvitationRow | null;

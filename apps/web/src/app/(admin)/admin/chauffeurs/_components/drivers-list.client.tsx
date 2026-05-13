@@ -1,8 +1,18 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Plus, UserCircle2, Mail, RefreshCw } from 'lucide-react';
+import {
+  Plus,
+  UserCircle2,
+  Mail,
+  RefreshCw,
+  PauseCircle,
+  PlayCircle,
+  Archive,
+  ArchiveRestore,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,14 +36,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
   inviteDriverAction,
+  reactivateDriverAction,
   resendInvitationAction,
 } from '../actions';
 import type { DriverRow } from '../page';
 import { DriverForm } from './driver-form.client';
 import { ArchiveDriverModal } from './archive-driver-modal.client';
+import { DeactivateConfirmDialog } from './deactivate-confirm-dialog.client';
+import { UnarchiveConfirmDialog } from './unarchive-confirm-dialog.client';
+
+type Role = 'dirigeant' | 'regulateur';
+type Vue = 'actifs' | 'archives';
 
 interface Props {
   initialDrivers: DriverRow[];
+  currentRole: Role;
+  vue: Vue;
 }
 
 type Mode =
@@ -57,16 +75,29 @@ function getAccountStatus(d: DriverRow): AccountStatus {
   return 'none';
 }
 
-export function DriversList({ initialDrivers }: Props): JSX.Element {
+export function DriversList({
+  initialDrivers,
+  currentRole,
+  vue,
+}: Props): JSX.Element {
   const router = useRouter();
+  const isDirigeant = currentRole === 'dirigeant';
+
   const [mode, setMode] = React.useState<Mode>({ kind: 'closed' });
   const [archiveTarget, setArchiveTarget] = React.useState<DriverRow | null>(
     null,
   );
+  const [deactivateTarget, setDeactivateTarget] =
+    React.useState<DriverRow | null>(null);
+  const [unarchiveTarget, setUnarchiveTarget] =
+    React.useState<DriverRow | null>(null);
   const [invitationDialog, setInvitationDialog] =
     React.useState<InvitationDialogState>({ kind: 'closed' });
   const [inviteEmail, setInviteEmail] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [reactivatingId, setReactivatingId] = React.useState<string | null>(
+    null,
+  );
 
   const close = React.useCallback(() => setMode({ kind: 'closed' }), []);
   const closeInvitationDialog = React.useCallback(() => {
@@ -79,13 +110,36 @@ export function DriversList({ initialDrivers }: Props): JSX.Element {
     router.refresh();
   }, [close, router]);
 
-  // Archivage : le flow passe désormais par <ArchiveDriverModal> (DEC-029
-  // confirmation renforcée). Le submit + toast + refresh sont gérés dans
-  // le composant modal. Ici on se contente de fournir target/close/onArchived.
   const onArchived = React.useCallback(() => {
     setArchiveTarget(null);
     close();
   }, [close]);
+
+  const onDeactivated = React.useCallback(() => {
+    setDeactivateTarget(null);
+  }, []);
+
+  const onUnarchived = React.useCallback(() => {
+    setUnarchiveTarget(null);
+  }, []);
+
+  const onReactivate = React.useCallback(
+    async (driver: DriverRow) => {
+      setReactivatingId(driver.id);
+      try {
+        const res = await reactivateDriverAction(driver.id);
+        if (res.error) {
+          toast.error(res.error);
+          return;
+        }
+        toast.success('Chauffeur réactivé.');
+        router.refresh();
+      } finally {
+        setReactivatingId(null);
+      }
+    },
+    [router],
+  );
 
   const onInviteSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -129,23 +183,33 @@ export function DriversList({ initialDrivers }: Props): JSX.Element {
 
   return (
     <>
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {initialDrivers.length} chauffeur
-          {initialDrivers.length > 1 ? 's' : ''}
-        </p>
-        <Button
-          type="button"
-          onClick={() => setMode({ kind: 'create' })}
-          className="gap-8"
-        >
-          <Plus className="h-16 w-16" aria-hidden />
-          Nouveau chauffeur
-        </Button>
+      <div className="flex items-center justify-between gap-12">
+        <div className="flex items-center gap-12">
+          <ViewToggle currentVue={vue} />
+          <p className="text-sm text-muted-foreground">
+            {initialDrivers.length} chauffeur
+            {initialDrivers.length > 1 ? 's' : ''}
+            {vue === 'archives' ? ' archivé' : ''}
+            {vue === 'archives' && initialDrivers.length > 1 ? 's' : ''}
+          </p>
+        </div>
+        {vue === 'actifs' ? (
+          <Button
+            type="button"
+            onClick={() => setMode({ kind: 'create' })}
+            className="gap-8"
+          >
+            <Plus className="h-16 w-16" aria-hidden />
+            Nouveau chauffeur
+          </Button>
+        ) : null}
       </div>
 
       {initialDrivers.length === 0 ? (
-        <EmptyState onCreate={() => setMode({ kind: 'create' })} />
+        <EmptyState
+          vue={vue}
+          onCreate={() => setMode({ kind: 'create' })}
+        />
       ) : (
         <ul className="divide-y divide-border rounded-md border border-border">
           {initialDrivers.map((d) => {
@@ -181,16 +245,22 @@ export function DriversList({ initialDrivers }: Props): JSX.Element {
                       </Badge>
                     ))}
                     <AccountStatusBadge status={status} />
-                    {d.actif ? (
+                    {d.archive ? (
+                      <Badge variant="outline" className="border-muted-foreground/40">
+                        Archivé
+                      </Badge>
+                    ) : d.actif ? (
                       <Badge>Actif</Badge>
                     ) : (
-                      <Badge variant="outline">Inactif</Badge>
+                      <Badge variant="outline">Désactivé</Badge>
                     )}
                   </div>
                 </button>
-                <InvitationActionButton
+
+                <DriverRowActions
                   driver={d}
-                  status={status}
+                  role={currentRole}
+                  reactivatingId={reactivatingId}
                   onInvite={(driver) => {
                     setInviteEmail('');
                     setInvitationDialog({ kind: 'invite', driver });
@@ -198,6 +268,10 @@ export function DriversList({ initialDrivers }: Props): JSX.Element {
                   onResend={(driver) =>
                     setInvitationDialog({ kind: 'resend', driver })
                   }
+                  onDeactivate={(driver) => setDeactivateTarget(driver)}
+                  onReactivate={onReactivate}
+                  onArchive={(driver) => setArchiveTarget(driver)}
+                  onUnarchive={(driver) => setUnarchiveTarget(driver)}
                 />
               </li>
             );
@@ -222,7 +296,7 @@ export function DriversList({ initialDrivers }: Props): JSX.Element {
                 : 'Nouveau chauffeur'}
             </SheetTitle>
             <SheetDescription>
-              Les informations sont visibles dans la modal d&apos;assignation
+              Les informations sont visibles dans la fenêtre d&apos;affectation
               de course.
             </SheetDescription>
           </SheetHeader>
@@ -234,7 +308,7 @@ export function DriversList({ initialDrivers }: Props): JSX.Element {
             )}
           </div>
 
-          {mode.kind === 'edit' && (
+          {mode.kind === 'edit' && isDirigeant && !mode.driver.archive ? (
             <div className="mt-24 border-t border-border pt-16">
               <Button
                 type="button"
@@ -245,7 +319,7 @@ export function DriversList({ initialDrivers }: Props): JSX.Element {
                 Archiver ce chauffeur
               </Button>
             </div>
-          )}
+          ) : null}
         </SheetContent>
       </Sheet>
 
@@ -259,7 +333,32 @@ export function DriversList({ initialDrivers }: Props): JSX.Element {
         onArchived={onArchived}
       />
 
-      {/* Dialog Inviter — mini-form email */}
+      <DeactivateConfirmDialog
+        driver={
+          deactivateTarget
+            ? {
+                id: deactivateTarget.id,
+                nom_affichage: deactivateTarget.nom_affichage,
+              }
+            : null
+        }
+        onClose={() => setDeactivateTarget(null)}
+        onDeactivated={onDeactivated}
+      />
+
+      <UnarchiveConfirmDialog
+        driver={
+          unarchiveTarget
+            ? {
+                id: unarchiveTarget.id,
+                nom_affichage: unarchiveTarget.nom_affichage,
+              }
+            : null
+        }
+        onClose={() => setUnarchiveTarget(null)}
+        onUnarchived={onUnarchived}
+      />
+
       <Dialog
         open={invitationDialog.kind === 'invite'}
         onOpenChange={(o) => {
@@ -275,7 +374,7 @@ export function DriversList({ initialDrivers }: Props): JSX.Element {
                 : ''}
             </DialogTitle>
             <DialogDescription>
-              Un email d&apos;invitation sera envoyé. Le chauffeur cliquera
+              Un courriel d&apos;invitation sera envoyé. Le chauffeur cliquera
               le lien pour définir son mot de passe et activer son compte.
             </DialogDescription>
           </DialogHeader>
@@ -313,7 +412,6 @@ export function DriversList({ initialDrivers }: Props): JSX.Element {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog Renvoyer — confirmation */}
       <Dialog
         open={invitationDialog.kind === 'resend'}
         onOpenChange={(o) => {
@@ -324,7 +422,7 @@ export function DriversList({ initialDrivers }: Props): JSX.Element {
           <DialogHeader>
             <DialogTitle>Renvoyer l&apos;invitation ?</DialogTitle>
             <DialogDescription>
-              Un nouveau lien magic sera envoyé à{' '}
+              Un nouveau lien magique sera envoyé à{' '}
               <span className="font-mono">
                 {invitationDialog.kind === 'resend'
                   ? invitationDialog.driver.invitation?.email
@@ -358,6 +456,43 @@ export function DriversList({ initialDrivers }: Props): JSX.Element {
   );
 }
 
+function ViewToggle({ currentVue }: { currentVue: Vue }) {
+  return (
+    <div
+      role="tablist"
+      aria-label="Filtre chauffeurs"
+      className="inline-flex rounded-md border border-border bg-muted/40 p-2"
+    >
+      <Link
+        href="/admin/chauffeurs?vue=actifs"
+        role="tab"
+        aria-selected={currentVue === 'actifs'}
+        className={
+          'px-12 py-6 text-sm rounded-sm transition-colors ' +
+          (currentVue === 'actifs'
+            ? 'bg-background shadow-sm text-foreground'
+            : 'text-muted-foreground hover:text-foreground')
+        }
+      >
+        Actifs
+      </Link>
+      <Link
+        href="/admin/chauffeurs?vue=archives"
+        role="tab"
+        aria-selected={currentVue === 'archives'}
+        className={
+          'px-12 py-6 text-sm rounded-sm transition-colors ' +
+          (currentVue === 'archives'
+            ? 'bg-background shadow-sm text-foreground'
+            : 'text-muted-foreground hover:text-foreground')
+        }
+      >
+        Archivés
+      </Link>
+    </div>
+  );
+}
+
 function AccountStatusBadge({ status }: { status: AccountStatus }) {
   switch (status) {
     case 'active':
@@ -379,48 +514,146 @@ function AccountStatusBadge({ status }: { status: AccountStatus }) {
   }
 }
 
-function InvitationActionButton({
+function DriverRowActions({
   driver,
-  status,
+  role,
+  reactivatingId,
   onInvite,
   onResend,
+  onDeactivate,
+  onReactivate,
+  onArchive,
+  onUnarchive,
 }: {
   driver: DriverRow;
-  status: AccountStatus;
+  role: Role;
+  reactivatingId: string | null;
   onInvite: (d: DriverRow) => void;
   onResend: (d: DriverRow) => void;
+  onDeactivate: (d: DriverRow) => void;
+  onReactivate: (d: DriverRow) => void | Promise<void>;
+  onArchive: (d: DriverRow) => void;
+  onUnarchive: (d: DriverRow) => void;
 }) {
-  if (status === 'active') return null;
-  if (status === 'none') {
+  const isDirigeant = role === 'dirigeant';
+  const status = getAccountStatus(driver);
+
+  if (driver.archive) {
     return (
-      <Button
-        type="button"
-        size="sm"
-        variant="outline"
-        onClick={() => onInvite(driver)}
-        className="gap-8 shrink-0"
-      >
-        <Mail className="h-4 w-4" aria-hidden />
-        Inviter
-      </Button>
+      <div className="flex items-center gap-8 shrink-0">
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => onUnarchive(driver)}
+          className="gap-8"
+          aria-label={`Désarchiver ${driver.nom_affichage}`}
+        >
+          <ArchiveRestore className="h-4 w-4" aria-hidden />
+          Désarchiver
+        </Button>
+      </div>
     );
   }
-  // invited or expired
+
   return (
-    <Button
-      type="button"
-      size="sm"
-      variant="outline"
-      onClick={() => onResend(driver)}
-      className="gap-8 shrink-0"
-    >
-      <RefreshCw className="h-4 w-4" aria-hidden />
-      Renvoyer
-    </Button>
+    <div className="flex items-center gap-8 shrink-0">
+      {status !== 'active' && (
+        status === 'none' ? (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => onInvite(driver)}
+            className="gap-8"
+            aria-label={`Inviter ${driver.nom_affichage}`}
+          >
+            <Mail className="h-4 w-4" aria-hidden />
+            Inviter
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => onResend(driver)}
+            className="gap-8"
+            aria-label={`Renvoyer l'invitation à ${driver.nom_affichage}`}
+          >
+            <RefreshCw className="h-4 w-4" aria-hidden />
+            Renvoyer
+          </Button>
+        )
+      )}
+
+      {driver.actif ? (
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => onDeactivate(driver)}
+          className="gap-8"
+          aria-label={`Désactiver ${driver.nom_affichage}`}
+        >
+          <PauseCircle className="h-4 w-4" aria-hidden />
+          Désactiver
+        </Button>
+      ) : (
+        <Button
+          type="button"
+          size="sm"
+          onClick={() => void onReactivate(driver)}
+          disabled={reactivatingId === driver.id}
+          aria-busy={reactivatingId === driver.id}
+          className="gap-8"
+          aria-label={`Réactiver ${driver.nom_affichage}`}
+        >
+          <PlayCircle className="h-4 w-4" aria-hidden />
+          {reactivatingId === driver.id ? 'Réactivation…' : 'Réactiver'}
+        </Button>
+      )}
+
+      {isDirigeant ? (
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() => onArchive(driver)}
+          className="gap-8 text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30"
+          aria-label={`Archiver ${driver.nom_affichage}`}
+        >
+          <Archive className="h-4 w-4" aria-hidden />
+          Archiver
+        </Button>
+      ) : null}
+    </div>
   );
 }
 
-function EmptyState({ onCreate }: { onCreate: () => void }) {
+function EmptyState({
+  vue,
+  onCreate,
+}: {
+  vue: Vue;
+  onCreate: () => void;
+}) {
+  if (vue === 'archives') {
+    return (
+      <div className="flex flex-col items-center gap-12 rounded-md border border-dashed border-border py-48 text-center">
+        <UserCircle2
+          className="h-48 w-48 text-muted-foreground"
+          strokeWidth={1.5}
+          aria-hidden
+        />
+        <div>
+          <h2 className="text-base font-semibold">Aucun chauffeur archivé</h2>
+          <p className="text-sm text-muted-foreground">
+            Les chauffeurs sortis du système apparaîtront ici.
+          </p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="flex flex-col items-center gap-12 rounded-md border border-dashed border-border py-48 text-center">
       <UserCircle2
@@ -431,7 +664,7 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
       <div>
         <h2 className="text-base font-semibold">Aucun chauffeur</h2>
         <p className="text-sm text-muted-foreground">
-          Ajoutez un premier chauffeur pour pouvoir assigner des courses.
+          Ajoutez un premier chauffeur pour pouvoir lui affecter des courses.
         </p>
       </div>
       <Button type="button" onClick={onCreate} className="gap-8">
