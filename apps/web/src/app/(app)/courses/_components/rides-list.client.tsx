@@ -153,8 +153,13 @@ export function RidesList(): JSX.Element {
             </thead>
             <tbody>
               {filtered.map((r) => (
+                // Clé inclut `status` pour forcer le re-mount au changement
+                // de statut (validee/assignee/en_cours/terminee/annulee).
+                // Sans ça, le bouton « Affecter » reste actif après affectation
+                // ou le bouton « Annuler » reste cliquable après annulation
+                // (DEC-033 + précédent Phase 03.2 #4).
                 <RideRowView
-                  key={r.id}
+                  key={`${r.id}-${r.status}`}
                   ride={r}
                   onOpen={() => setOpenRideId(r.id)}
                   onAssign={() => setAssignRideId(r.id)}

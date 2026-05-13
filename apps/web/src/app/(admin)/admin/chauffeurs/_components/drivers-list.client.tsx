@@ -215,8 +215,12 @@ export function DriversList({
           {initialDrivers.map((d) => {
             const status = getAccountStatus(d);
             return (
+              // Clé inclut `actif`/`archive` pour forcer le re-mount au
+              // changement d'état (Désactiver / Réactiver / Archiver /
+              // Désarchiver). Sans ça, les boutons d'action restent figés
+              // sur l'ancien état après router.refresh() (DEC-033).
               <li
-                key={d.id}
+                key={`${d.id}-${d.actif}-${d.archive}`}
                 className="flex w-full items-center gap-12 px-16 py-12"
               >
                 <button
