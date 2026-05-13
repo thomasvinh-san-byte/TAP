@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: "Between phases — Phase 03.2 shipped (PR #47..#55), refonte planning E2E mergée. Phase 04 next = onboarding chauffeur"
-stopped_at: ""
-last_updated: "2026-05-13T12:00:00.000Z"
-last_activity: 2026-05-13 — Refonte planning E2E (DEC-023) : découpage god-phase 04 en 4 sous-phases (04 onboarding / 04.5 robustesse / 04.7 pricing mockup + caisse / 04.9 PWA enveloppe) + insertion 05.5 pricing CGSS réel (DEC-021)
+status: planning
+stopped_at: Phase 04 plan-phase complete (5 plans W0..W4 APPROVED 10/10, 3 FLAGs patched)
+last_updated: "2026-05-13T06:11:33.005Z"
+last_activity: 2026-05-13 — Refonte planning E2E (DEC-023 + DEC-021) après revue critique du périmètre Phase 04 (17-25h god-phase) face à ADR-003 pivot E2E
 progress:
   total_phases: 14
-  completed_phases: 7
+  completed_phases: 4
   total_plans: 23
   completed_plans: 25
-  percent: 50
+  percent: 100
 ---
 
 # Project State
@@ -140,9 +140,9 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-05-13T12:00:00.000Z
-Stopped at: ""
-Resume file: .planning/phases/04-onboarding-chauffeur-authshell/04-CONTEXT.md
+Last session: 2026-05-13T06:11:32.981Z
+Stopped at: Phase 04 plan-phase complete (5 plans W0..W4 APPROVED 10/10, 3 FLAGs patched)
+Resume file: .planning/phases/04-onboarding-chauffeur-authshell/PLAN-1.md
 Next command suggested: `/gsd-discuss-phase 04` (nouveau périmètre onboarding-only après refonte DEC-023)
 
 ## Ingest Runs
