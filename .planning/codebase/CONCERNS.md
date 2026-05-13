@@ -268,6 +268,15 @@ Les items « Phase de résolution : Passe 2 (Phase 04) » référencés ci-desso
 - Phase de résolution : **Phase UI dédiée post-Passe 2** (toggle + QA parité visuelle + captures publiables nuit)
 - Workaround V1 : utilisateurs reçoivent thème jour par défaut Phase 04, mode nuit consultable par injection manuelle `data-theme="dark"` sur `<html>` (test interne)
 
+## Leçons méthode (audits rétroactifs)
+
+### Permissions héritées Phase 03.1 non re-questionnées en discuss Phase 04 (hotfix DEC-029)
+
+- **Issue** : Phase 03.1 avait verrouillé la gestion chauffeurs au rôle `dirigeant` (RLS + Server Actions + sub-guard layout (admin)). Phase 04 onboarding chauffeur a hérité silencieusement de ce verrou sans re-questionner contre le métier réel. L'UAT preview a remonté que la régulatrice ne pouvait pas onboarder les chauffeurs — workflow E2E livré Phase 04 inutilisable.
+- **Conséquence** : hotfix immédiat post-Phase 04 (DEC-029) sur 5 couches (RLS, Server Actions, archivage, sidebar, sub-guards) avant que la phase soit considérée vraiment livrée.
+- **Leçon** : les permissions des rôles **doivent être re-validées contre le métier réel à chaque phase qui touche au workflow**, pas seulement héritées silencieusement des phases précédentes. Particulièrement critique pour les opérations CRUD admin où le quotidien diverge du modèle initial (qui pense souvent à un dirigeant abstrait).
+- **Mécanisme préventif futur** : la checklist `discuss-phase` doit explicitement inclure « permissions des rôles re-validées contre le workflow opérationnel cible ? » avant de lockear le périmètre. Phase 04.5+ : auditer les autres modules admin sur le même critère (`vehicules`, `legal/*` — quels rôles devraient pouvoir consulter / éditer dans la réalité ?).
+
 ---
 
-*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023*
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçon DEC-029 ajoutée 2026-05-13*
