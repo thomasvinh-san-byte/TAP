@@ -296,6 +296,29 @@ Les items « Phase de résolution : Passe 2 (Phase 04) » référencés ci-desso
   - Espaces fines insécables U+202F avant `: ; ? ! »` (espace normale acceptable V1).
   - Audit FR à étendre aux templates email Supabase Auth quand ils seront customisés (Phase 04.5+).
 
+### CD Supabase schema_migrations drift (résolu 2026-05-13, DEC-032)
+
+- **Issue** : application MCP des migrations via `mcp__supabase__apply_migration` crée des entrées `supabase_migrations.schema_migrations` avec une `version` auto-générée (timestamp à l'instant de l'appel) au lieu de la version repo correspondante. Si le fichier disque existe avec une version différente, `supabase db push` détecte le drift (« remote has versions that local doesn't ») et refuse de pousser les migrations suivantes. Le CD `cd.yml` step `Application des migrations Supabase (production)` échoue. Incident 2026-05-13 : 3 migrations (`driver_invitations`, `drivers_perm_regulateur`, `drivers_archive_dirigeant_only`) appliquées en MCP à 10:52-10:53 UTC ont créé les versions `20260513105255` / `…312` / `…324` au lieu de `20260514000002` / `20260516000001` / `20260516000002`. 5 runs CD failed avant correction.
+- **Conséquence immédiate** : aucune nouvelle migration ne peut atterrir en prod tant que le drift n'est pas résolu. Effet de blocage en cascade pour toute PR portant du SQL.
+- **Playbook de réconciliation** (utiliser quand l'incident se reproduit) :
+  1. `mcp__supabase__execute_sql` :
+     ```sql
+     SELECT version, name, created_at
+     FROM supabase_migrations.schema_migrations
+     ORDER BY version DESC LIMIT 25;
+     ```
+     Identifier les versions auto-générées (timestamp YYYYMMDDhhmmss à la minute de l'appel MCP).
+  2. Pour chaque entrée drift, `mcp__supabase__execute_sql` :
+     ```sql
+     UPDATE supabase_migrations.schema_migrations
+     SET version = '<version_repo>'
+     WHERE name = '<nom_migration>' AND version = '<version_mcp>';
+     ```
+  3. Vérifier l'ordre chronologique : la requête SELECT doit montrer les versions repo en tête, sans gap intermédiaire.
+  4. Re-déclencher le CD via push d'un commit (vide ou substantiel) sur `main`.
+- **Leçon** : `mcp__supabase__apply_migration` est utile en hotfix urgent quand le CD est défaillant ou la BDD est désynchronisée, mais ne doit jamais être utilisé en lieu et place du flux `git → CD → supabase db push` quand celui-ci marche. La signature de la version posée par MCP est une violation silencieuse du protocole de versioning Supabase CLI.
+- **Mécanisme préventif futur** : après tout `apply_migration` sur une migration qui a aussi un fichier disque correspondant, immédiatement `UPDATE schema_migrations.version` pour aligner. Idéalement, automatiser cette réconciliation côté MCP (issue upstream à ouvrir Supabase) ; en attendant, le geste manuel est inscrit dans le playbook ci-dessus.
+
 ---
 
-*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis)*
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13*
