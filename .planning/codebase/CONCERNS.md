@@ -277,6 +277,25 @@ Les items « Phase de résolution : Passe 2 (Phase 04) » référencés ci-desso
 - **Leçon** : les permissions des rôles **doivent être re-validées contre le métier réel à chaque phase qui touche au workflow**, pas seulement héritées silencieusement des phases précédentes. Particulièrement critique pour les opérations CRUD admin où le quotidien diverge du modèle initial (qui pense souvent à un dirigeant abstrait).
 - **Mécanisme préventif futur** : la checklist `discuss-phase` doit explicitement inclure « permissions des rôles re-validées contre le workflow opérationnel cible ? » avant de lockear le périmètre. Phase 04.5+ : auditer les autres modules admin sur le même critère (`vehicules`, `legal/*` — quels rôles devraient pouvoir consulter / éditer dans la réalité ?).
 
+### Sémantique action floue : un seul verbe pour deux réalités métier (hotfix-bis DEC-029)
+
+- **Issue** : la PR #60 (premier hotfix DEC-029) a élargi l'archivage au régulateur en pensant rendre service à la régulatrice. Mais l'archivage et la désactivation sont deux opérations métier distinctes : désactiver est un filet de sécurité (« il ne peut plus prendre de courses aujourd'hui ») réversible facilement ; archiver est une sortie système (« il a quitté la société »). Mélanger les deux derrière un seul bouton « Archiver » crée des erreurs irréversibles côté régulateur sous pression et brouille l'audit RGPD.
+- **Conséquence** : second hotfix sur la même phase pour séparer en 4 actions (Désactiver / Réactiver / Archiver / Désarchiver) avec guards distincts par action et trigger column-level qui enforce la règle au niveau BDD.
+- **Leçon** : quand une fonctionnalité agrège deux réalités métier sous un seul libellé, le ton « simplifions l'UI » cache un risque opérationnel. Pour les opérations à blast radius variable (réversible / irréversible), la règle est **un verbe ≠ un autre verbe ≠ une action UI ≠ une action UI**, même si techniquement c'est juste `UPDATE drivers SET X = Y`.
+
+### Conventions rédactionnelles FR user-facing (DEC-030)
+
+- **Cadre** : audit FR du repo en méthode C hybride (grep + revue manuelle) sur les seuls textes user-facing. Toute nouvelle phase touchant à du texte user-facing doit respecter DEC-030. Audit FR ponctuel à ré-effectuer à chaque phase UI dédiée.
+- **Règles appliquées (Option β)** :
+  - Cadratin `—` en articulation / définition remplacé par `:` contextuel ; séparateurs de titre de page conservés (convention web FR).
+  - Anglicismes verbes traduits : `assigner→affecter`, `assignation→affectation`, `désassigner→désaffecter`, `modal→fenêtre`.
+  - Guillemets français `« »` privilégiés dans les messages d'erreur Zod.
+- **Hors scope DEC-030 D5** : commentaires code (`//` et `/* */`), JSDoc, docs `.md`, commentaires SQL, fichiers `.test.ts`. L'enum DB `'assignee'` reste tel quel (identifiant technique non user-facing).
+- **Dette future explicite** :
+  - Apostrophes typographiques `’` au lieu de `'` dans les textes UI (ROI insuffisant V1).
+  - Espaces fines insécables U+202F avant `: ; ? ! »` (espace normale acceptable V1).
+  - Audit FR à étendre aux templates email Supabase Auth quand ils seront customisés (Phase 04.5+).
+
 ---
 
-*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçon DEC-029 ajoutée 2026-05-13*
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis)*
