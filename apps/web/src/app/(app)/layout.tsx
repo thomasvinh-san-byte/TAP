@@ -19,10 +19,12 @@ import { DraftQueue } from './courses/_components/draft-queue.client';
  *   - sans session : redirect /login
  *   - rôle chauffeur : redirect /conduite (zone régulateur interdite)
  */
-const APP_TABS = [
+const BASE_TABS = [
   { href: '/patients', label: 'Patients' },
   { href: '/courses', label: 'Courses' },
 ];
+
+const ADMIN_TABS = [...BASE_TABS, { href: '/admin/chauffeurs', label: 'Chauffeurs' }];
 
 export default async function AppLayout({
   children,
@@ -32,6 +34,12 @@ export default async function AppLayout({
   const ctx = await getAuthContext();
   if (!ctx) redirect('/login');
   if (ctx.role === 'chauffeur') redirect('/conduite');
+
+  // Phase 04 hotfix (DEC-029) : la gestion chauffeurs est élargie au
+  // régulateur. Le lien « Chauffeurs » apparaît pour les deux rôles
+  // depuis le shell régulateur principal (sans imposer de switch admin).
+  const tabs =
+    ctx.role === 'dirigeant' || ctx.role === 'regulateur' ? ADMIN_TABS : BASE_TABS;
 
   return (
     <Providers>
@@ -55,7 +63,7 @@ export default async function AppLayout({
                   Régulation
                 </span>
               </Link>
-              <NavTabs tabs={APP_TABS} />
+              <NavTabs tabs={tabs} />
               <div className="flex items-center gap-16">
                 <DraftQueue />
                 <UserMenu />

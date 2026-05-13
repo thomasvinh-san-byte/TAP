@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { VehiclesList } from './_components/vehicles-list.client';
+import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 
 export const metadata = { title: 'Véhicules — Admin TAP' };
 export const dynamic = 'force-dynamic';
@@ -10,6 +11,7 @@ export const dynamic = 'force-dynamic';
  * dans `(admin)/layout.tsx` → defense in depth.
  */
 export default async function VehiculesPage() {
+  await requireDirigeantPage();
   const supabase = createClient();
   const { data: vehicles } = await supabase
     .from('vehicles' as never)

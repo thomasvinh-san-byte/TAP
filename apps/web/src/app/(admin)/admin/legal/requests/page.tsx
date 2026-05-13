@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { RequestsList } from './_components/requests-list.client';
+import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 
 export const metadata = { title: 'Demandes RGPD patients — TAP Admin' };
 
@@ -8,6 +9,7 @@ export const metadata = { title: 'Demandes RGPD patients — TAP Admin' };
  * Liste les demandes de droits art. 15-21 + workflow réponse.
  */
 export default async function RequestsPage() {
+  await requireDirigeantPage();
   const supabase = createClient();
   const { data } = await supabase
     .from('patient_data_request')
