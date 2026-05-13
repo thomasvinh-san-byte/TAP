@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { DpiaList } from './_components/dpia-list.client';
+import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 
 export const metadata = { title: 'Analyse d\'impact DPIA — TAP Admin' };
 
@@ -8,6 +9,7 @@ export const metadata = { title: 'Analyse d\'impact DPIA — TAP Admin' };
  * Liste les analyses d'impact par status (brouillon / validée / archivée).
  */
 export default async function DpiaPage() {
+  await requireDirigeantPage();
   const supabase = createClient();
   const { data } = await supabase
     .from('dpia_record')

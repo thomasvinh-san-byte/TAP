@@ -16,8 +16,12 @@
 import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 import { z } from 'zod';
-import { driverInputSchema, driverInvitationSchema } from '@tap/shared';
-import { getAuthContext } from '@/lib/auth/get-auth-context';
+import {
+  archiveDriverInputSchema,
+  driverInputSchema,
+  driverInvitationSchema,
+} from '@tap/shared';
+import { requireAdminOrRegulateur } from '@/lib/auth/require-admin-or-regulateur';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export type ActionState = {
@@ -27,12 +31,10 @@ export type ActionState = {
   fieldErrors?: Record<string, string>;
 };
 
-async function requireDirigeant() {
-  const ctx = await getAuthContext();
-  if (!ctx) return null;
-  if (ctx.role !== 'dirigeant') return null;
-  return ctx;
-}
+// requireDirigeant a été supprimé Phase 04 hotfix (DEC-029) — les Server
+// Actions chauffeurs sont élargies au régulateur via le guard partagé
+// `requireAdminOrRegulateur`. Les autres modules admin (vehicules, DPIA,
+// DPA, breaches) conservent leur guard `requireDirigeant` local.
 
 function parseFormData(formData: FormData) {
   return driverInputSchema.safeParse({
@@ -58,8 +60,8 @@ export async function createDriverAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  const ctx = await requireDirigeant();
-  if (!ctx) return { error: 'Accès dirigeant requis.' };
+  const ctx = await requireAdminOrRegulateur();
+  if (!ctx) return { error: 'Accès dirigeant ou régulateur requis.' };
 
   const parsed = parseFormData(formData);
   if (!parsed.success) {
@@ -95,8 +97,8 @@ export async function updateDriverAction(
     return { error: 'Identifiant chauffeur invalide.' };
   }
 
-  const ctx = await requireDirigeant();
-  if (!ctx) return { error: 'Accès dirigeant requis.' };
+  const ctx = await requireAdminOrRegulateur();
+  if (!ctx) return { error: 'Accès dirigeant ou régulateur requis.' };
 
   const parsed = parseFormData(formData);
   if (!parsed.success) {
@@ -125,26 +127,91 @@ export async function updateDriverAction(
   return { success: true, id: driverId };
 }
 
+/**
+ * `archiveDriverAction` — archive un chauffeur (soft-delete).
+ *
+ * Hotfix Phase 04 (DEC-029) : confirmation renforcée option C.
+ *  - Élargi au régulateur (en plus du dirigeant)
+ *  - Modal UI exige saisie d'un motif libre (10-500 chars) ET d'une
+ *    confirmation textuelle « ARCHIVER » avant submit
+ *  - Motif stocké en BDD (`drivers.archive_motif`) et journalisé dans
+ *    `audit_logs` (action `driver_archived`) avec acteur + rôle.
+ *
+ * Signature modifiée — accepte `formData` pour parse zod du motif. Appelé
+ * via `useFormState` côté `ArchiveDriverModal`.
+ */
 export async function archiveDriverAction(
   driverId: string,
+  _prev: ActionState,
+  formData: FormData,
 ): Promise<ActionState> {
   if (!z.string().uuid().safeParse(driverId).success) {
     return { error: 'Identifiant chauffeur invalide.' };
   }
 
-  const ctx = await requireDirigeant();
-  if (!ctx) return { error: 'Accès dirigeant requis.' };
+  const ctx = await requireAdminOrRegulateur();
+  if (!ctx) return { error: 'Accès dirigeant ou régulateur requis.' };
 
-  const { error } = await ctx.supabase
+  // Confirmation renforcée : motif (10-500 chars) + saisie « ARCHIVER »
+  const parsed = archiveDriverInputSchema.safeParse({
+    motif: formData.get('motif'),
+    confirmation: formData.get('confirmation'),
+  });
+  if (!parsed.success) {
+    return {
+      error: 'Vérifiez les champs de confirmation.',
+      fieldErrors: flattenFieldErrors(parsed.error),
+    };
+  }
+  const { motif } = parsed.data;
+
+  // Lecture courante pour valider état (non déjà archivé) — RLS bloque
+  // automatiquement les autres orgs, donc pas besoin de check organization_id.
+  const { data: current, error: fetchErr } = await ctx.supabase
+    .from('drivers' as never)
+    .select('id, archive, nom_affichage')
+    .eq('id', driverId)
+    .maybeSingle();
+  if (fetchErr) return { error: 'Lecture chauffeur impossible.' };
+  if (!current) return { error: 'Chauffeur introuvable.' };
+  if ((current as { archive: boolean }).archive) {
+    return { error: 'Chauffeur déjà archivé.' };
+  }
+
+  // UPDATE archive + motif (trigger Postgres audit émet `driver_updated`
+  // automatiquement — on ajoute en plus un audit applicatif sémantique
+  // `driver_archived` avec le motif et l'acteur, pour traçabilité claire
+  // côté RGPD et historique chauffeur).
+  const { error: updErr } = await ctx.supabase
     .from('drivers' as never)
     .update({
       archive: true,
       archive_at: new Date().toISOString(),
+      archive_motif: motif,
       actif: false,
     } as never)
-    .eq('id', driverId);
+    .eq('id', driverId)
+    .eq('archive', false);
 
-  if (error) return { error: 'Archivage impossible.' };
+  if (updErr) return { error: 'Archivage impossible.' };
+
+  // Audit log applicatif — événement sémantique distinct du UPDATE technique.
+  // Type `driver_archived` + metadata { motif, archived_by, archived_by_role }
+  // pour permettre la requête « qui a archivé quoi avec quel motif ».
+  await ctx.supabase.from('audit_logs' as never).insert({
+    organization_id: ctx.organizationId,
+    actor_id: ctx.userId,
+    actor_role: ctx.role,
+    action: 'driver_archived',
+    entity_type: 'driver',
+    entity_id: driverId,
+    metadata: {
+      motif,
+      archived_by_role: ctx.role,
+      driver_nom_affichage: (current as { nom_affichage: string }).nom_affichage,
+    },
+  } as never);
+
   revalidatePath('/admin/chauffeurs');
   return { success: true };
 }
@@ -188,8 +255,8 @@ export async function inviteDriverAction(
   formData: FormData,
 ): Promise<ActionState> {
   // 1. Guard rôle dirigeant (defense in depth ; RLS BDD double-checke)
-  const ctx = await requireDirigeant();
-  if (!ctx) return { error: 'Accès dirigeant requis.' };
+  const ctx = await requireAdminOrRegulateur();
+  if (!ctx) return { error: 'Accès dirigeant ou régulateur requis.' };
 
   // 2. Validation zod
   const parsed = driverInvitationSchema.safeParse({
@@ -318,8 +385,8 @@ export async function resendInvitationAction(
   if (!z.string().uuid().safeParse(invitationId).success) {
     return { error: 'Identifiant invitation invalide.' };
   }
-  const ctx = await requireDirigeant();
-  if (!ctx) return { error: 'Accès dirigeant requis.' };
+  const ctx = await requireAdminOrRegulateur();
+  if (!ctx) return { error: 'Accès dirigeant ou régulateur requis.' };
 
   // 1. Fetch invitation + ownership + status
   const { data: invitation, error: fetchErr } = await ctx.supabase

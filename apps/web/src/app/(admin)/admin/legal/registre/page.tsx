@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/button';
 import { ExportPdfButton } from './_components/export-pdf-button.client';
 import { RegistreList } from './_components/registre-list.client';
+import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 
 export const metadata = { title: 'Registre des traitements — TAP Admin' };
 
@@ -15,6 +16,7 @@ export const metadata = { title: 'Registre des traitements — TAP Admin' };
  * versions historiques avec la plus récente en tête.
  */
 export default async function RegistrePage() {
+  await requireDirigeantPage();
   const supabase = createClient();
   const { data } = await supabase
     .from('data_processing_register')

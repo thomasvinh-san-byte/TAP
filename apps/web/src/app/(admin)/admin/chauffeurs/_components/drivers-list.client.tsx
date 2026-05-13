@@ -25,12 +25,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-  archiveDriverAction,
   inviteDriverAction,
   resendInvitationAction,
 } from '../actions';
 import type { DriverRow } from '../page';
 import { DriverForm } from './driver-form.client';
+import { ArchiveDriverModal } from './archive-driver-modal.client';
 
 interface Props {
   initialDrivers: DriverRow[];
@@ -79,18 +79,13 @@ export function DriversList({ initialDrivers }: Props): JSX.Element {
     router.refresh();
   }, [close, router]);
 
-  const onArchive = async () => {
-    if (!archiveTarget) return;
-    const res = await archiveDriverAction(archiveTarget.id);
-    if (res.error) {
-      toast.error(res.error);
-      return;
-    }
-    toast.success('Chauffeur archivé.');
+  // Archivage : le flow passe désormais par <ArchiveDriverModal> (DEC-029
+  // confirmation renforcée). Le submit + toast + refresh sont gérés dans
+  // le composant modal. Ici on se contente de fournir target/close/onArchived.
+  const onArchived = React.useCallback(() => {
     setArchiveTarget(null);
     close();
-    router.refresh();
-  };
+  }, [close]);
 
   const onInviteSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -254,40 +249,15 @@ export function DriversList({ initialDrivers }: Props): JSX.Element {
         </SheetContent>
       </Sheet>
 
-      <Sheet
-        open={archiveTarget !== null}
-        onOpenChange={(o) => {
-          if (!o) setArchiveTarget(null);
-        }}
-      >
-        <SheetContent side="bottom" className="space-y-16 p-24">
-          <SheetHeader>
-            <SheetTitle>
-              Archiver « {archiveTarget?.nom_affichage} » ?
-            </SheetTitle>
-            <SheetDescription>
-              Le chauffeur n&apos;apparaîtra plus dans la modal
-              d&apos;assignation. Les courses passées restent intactes.
-            </SheetDescription>
-          </SheetHeader>
-          <div className="flex justify-end gap-12">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setArchiveTarget(null)}
-            >
-              Conserver
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={() => void onArchive()}
-            >
-              Archiver
-            </Button>
-          </div>
-        </SheetContent>
-      </Sheet>
+      <ArchiveDriverModal
+        driver={
+          archiveTarget
+            ? { id: archiveTarget.id, nom_affichage: archiveTarget.nom_affichage }
+            : null
+        }
+        onClose={() => setArchiveTarget(null)}
+        onArchived={onArchived}
+      />
 
       {/* Dialog Inviter — mini-form email */}
       <Dialog

@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { DpoForm } from './dpo-form.client';
+import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 
 export const metadata = { title: 'Contact DPO — TAP Admin' };
 
@@ -9,6 +10,7 @@ export const metadata = { title: 'Contact DPO — TAP Admin' };
  * Réservé au rôle dirigeant (layout (admin) garde + RLS DB).
  */
 export default async function DpoPage() {
+  await requireDirigeantPage();
   const supabase = createClient();
   const {
     data: { user },
