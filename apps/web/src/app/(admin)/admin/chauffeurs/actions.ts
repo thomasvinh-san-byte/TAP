@@ -257,7 +257,7 @@ export async function inviteDriverAction(
         driver_id: driverId,
         organization_id: ctx.organizationId,
       },
-      redirectTo: `${origin}/accept-invite`,
+      redirectTo: `${origin}/accept-invite/verify`,
     });
   if (inviteErr) {
     // Rate limit Supabase (3 emails/h défaut SMTP intégré)
@@ -356,7 +356,7 @@ export async function resendInvitationAction(
   const origin = resolveOrigin();
   const { error: resendErr } =
     await supabaseAdmin.auth.admin.inviteUserByEmail(inv.email, {
-      redirectTo: `${origin}/accept-invite`,
+      redirectTo: `${origin}/accept-invite/verify`,
     });
   if (resendErr) {
     if (

@@ -1,80 +1,119 @@
 'use client';
 
-import { useFormState, useFormStatus } from 'react-dom';
+/**
+ * LoginForm — Migration RHF + zodResolver (C06, premier RHF productif du repo).
+ *
+ * Pattern DEC-028 : `<Input>` `<Label>` `<Button>` shadcn directs, PAS de
+ * wrapper `<Form>` shadcn (réservé formulaires complexes futurs Phase 04.7).
+ *
+ * `signInAction` (actions.ts) INCHANGÉE — signature `(prev, formData)`
+ * conservée. L'appel client transite par `FormData` reconstruit dans
+ * `onSubmit` pour préserver le contrat serveur.
+ *
+ * Prefill via prop `prefill` (state up dans `<LoginFormShell>`) + `useEffect`
+ * `setValue` sur mutation de `prefill`. Permet à `<DemoCredentials>` de
+ * cliquer pour pré-remplir le form sans submit automatique.
+ *
+ * Erreurs serveur → toast Sonner (D-RHF-02). Erreurs Zod client → render
+ * inline sous champ avec `role="alert"`.
+ */
+
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { signInAction } from './actions';
 
-import { signInAction, type SignInState } from './actions';
+const signInSchema = z.object({
+  email: z.string().email({ message: 'Adresse e-mail invalide.' }),
+  password: z.string().min(1, { message: 'Mot de passe requis.' }),
+});
+type SignInInput = z.infer<typeof signInSchema>;
 
-const initialState: SignInState = {};
-
-function SubmitButton() {
-  const { pending } = useFormStatus();
-  return (
-    <Button
-      type="submit"
-      disabled={pending}
-      className="w-full h-12 text-base"
-      aria-busy={pending}
-    >
-      {pending ? 'Connexion en cours…' : 'Se connecter'}
-    </Button>
-  );
+interface LoginFormProps {
+  next?: string;
+  prefill?: { email: string; password: string };
 }
 
-/**
- * Formulaire de connexion.
- *
- * - useFormState pour récupérer l'erreur Server Action sans navigation
- * - useFormStatus pour l'état pending du bouton (feedback < 100 ms perçu)
- * - Bouton h-12 (48 px) conforme spacing system desktop (CLAUDE.md § 5)
- * - Pas de `react-hook-form` ici : le formulaire est trivial (2 champs) et
- *   `useFormState` + validation zod côté serveur suffisent. RHF sera
- *   pertinent pour le formulaire patient en PLAN-5 (15+ champs typés).
- */
-export function LoginForm({ next }: { next?: string }) {
-  const [state, formAction] = useFormState(signInAction, initialState);
+export function LoginForm({ next, prefill }: LoginFormProps) {
+  const form = useForm<SignInInput>({
+    resolver: zodResolver(signInSchema),
+    mode: 'onBlur',
+    defaultValues: {
+      email: prefill?.email ?? '',
+      password: prefill?.password ?? '',
+    },
+  });
+
+  // Sync prefill lorsque DemoCredentials est cliqué (state remonté dans
+  // LoginFormShell). shouldValidate: false → on n'ouvre pas d'erreurs
+  // d'emblée juste parce qu'on prefill.
+  useEffect(() => {
+    if (prefill) {
+      form.setValue('email', prefill.email, { shouldValidate: false });
+      form.setValue('password', prefill.password, { shouldValidate: false });
+    }
+  }, [prefill, form]);
+
+  const onSubmit = form.handleSubmit(async (data) => {
+    const fd = new FormData();
+    fd.set('email', data.email);
+    fd.set('password', data.password);
+    if (next) fd.set('next', next);
+    const result = await signInAction({}, fd);
+    if (result?.error) toast.error(result.error);
+    // Pas d'else : signInAction redirige côté serveur sur succès.
+  });
 
   return (
-    <form action={formAction} className="space-y-16" noValidate>
-      {next ? <input type="hidden" name="next" value={next} /> : null}
-
+    <form onSubmit={onSubmit} className="space-y-16" noValidate>
       <div className="space-y-8">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">Adresse e-mail</Label>
         <Input
           id="email"
-          name="email"
           type="email"
           autoComplete="username"
-          required
-          placeholder="prenom.nom@exemple.fr"
+          className="h-10"
+          {...form.register('email')}
+          aria-invalid={!!form.formState.errors.email}
         />
+        {form.formState.errors.email ? (
+          <p role="alert" className="text-sm text-destructive">
+            {form.formState.errors.email.message}
+          </p>
+        ) : null}
       </div>
 
       <div className="space-y-8">
         <Label htmlFor="password">Mot de passe</Label>
         <Input
           id="password"
-          name="password"
           type="password"
           autoComplete="current-password"
-          required
+          className="h-10"
+          {...form.register('password')}
+          aria-invalid={!!form.formState.errors.password}
         />
+        {form.formState.errors.password ? (
+          <p role="alert" className="text-sm text-destructive">
+            {form.formState.errors.password.message}
+          </p>
+        ) : null}
       </div>
 
-      {state.error ? (
-        <p
-          role="alert"
-          aria-live="polite"
-          className="text-sm text-destructive"
-        >
-          {state.error}
-        </p>
-      ) : null}
-
-      <SubmitButton />
+      <Button
+        type="submit"
+        disabled={form.formState.isSubmitting}
+        aria-busy={form.formState.isSubmitting}
+        className="w-full h-12 text-base"
+      >
+        {form.formState.isSubmitting ? 'Connexion en cours…' : 'Se connecter'}
+      </Button>
     </form>
   );
 }
