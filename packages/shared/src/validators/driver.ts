@@ -42,3 +42,26 @@ export const driverInputSchema = z.object({
 });
 
 export type DriverInput = z.infer<typeof driverInputSchema>;
+
+/**
+ * Confirmation renforcée pour archivage chauffeur (DEC-029 hotfix Phase 04).
+ *
+ * Élargissement du droit d'archivage au régulateur (option C dirigeant) :
+ * pour limiter les erreurs irréversibles, exiger un motif libre + saisie
+ * explicite du mot « ARCHIVER » avant soumission. Le motif est tracé en BDD
+ * (`drivers.archive_motif`) et dans `audit_logs` (action `driver_archived`).
+ */
+export const archiveDriverInputSchema = z.object({
+  motif: z
+    .string()
+    .trim()
+    .min(10, 'Motif requis (10 caractères minimum).')
+    .max(500, 'Motif trop long (500 caractères maximum).'),
+  confirmation: z.literal('ARCHIVER', {
+    errorMap: () => ({
+      message: 'Saisir exactement "ARCHIVER" pour confirmer.',
+    }),
+  }),
+});
+
+export type ArchiveDriverInput = z.infer<typeof archiveDriverInputSchema>;
