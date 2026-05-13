@@ -77,7 +77,7 @@ export function useRideSubmit(args: {
               fromDraftId: args.draftIdRef.current,
             });
         if (res.error) {
-          toast.error(`Échec — saisie restaurée (${res.error})`);
+          toast.error(`Échec : saisie restaurée (${res.error})`);
           args.onRestore(snapshot);
           return;
         }

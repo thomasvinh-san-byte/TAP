@@ -112,7 +112,7 @@ export function DriverForm({ initial, onSuccess }: Props): JSX.Element {
           defaultChecked={initial?.actif ?? true}
           className="h-16 w-16"
         />
-        Chauffeur actif (apparaît dans la modal d&apos;assignation)
+        Chauffeur actif (apparaît dans la fenêtre d&apos;affectation)
       </label>
 
       {state.error && !state.fieldErrors && (

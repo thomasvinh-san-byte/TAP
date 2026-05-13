@@ -496,7 +496,7 @@ export function SavingIndicator({
   if (state === 'error') {
     return (
       <span className="text-destructive" role="alert">
-        Erreur de sauvegarde — réessai dans 5 s
+        Erreur de sauvegarde : réessai dans 5 s
       </span>
     );
   }

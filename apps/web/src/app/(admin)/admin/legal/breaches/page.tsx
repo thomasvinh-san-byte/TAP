@@ -37,7 +37,7 @@ export default async function BreachesPage() {
           Violations de données
         </h1>
         <p className="text-sm text-muted-foreground mt-4">
-          Article 33 RGPD — notification CNIL sous 72h
+          Article 33 RGPD : notification CNIL sous 72h
         </p>
       </header>
 

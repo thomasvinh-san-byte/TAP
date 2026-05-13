@@ -35,7 +35,7 @@ export default async function RequestsPage() {
           Demandes RGPD patients
         </h1>
         <p className="text-sm text-muted-foreground mt-4">
-          Articles 15-21 RGPD — délai légal 30 jours
+          Articles 15-21 RGPD : délai légal 30 jours
         </p>
       </header>
 

@@ -1,101 +1,145 @@
 // =============================================================================
-// E2E Playwright — Le régulateur gère les chauffeurs (hotfix Phase 04 DEC-029)
+// E2E Playwright — Sémantique 4 actions chauffeurs (hotfix-bis Phase 04 DEC-029)
 // =============================================================================
-// Couvre le hotfix permissions chauffeurs (élargissement régulateur) :
-//   - Layout (admin) autorise rôle régulateur sur /admin/chauffeurs
-//   - Server Actions chauffeurs élargies via requireAdminOrRegulateur
-//   - Nav (app) layout : entrée Chauffeurs visible pour le régulateur
-//   - Archivage : modal confirmation renforcée (motif + saisie "ARCHIVER")
+// Couvre la sémantique 4 actions distinctes :
+//   - Désactiver  (régulateur OU dirigeant, filet de sécurité, réversible)
+//   - Réactiver   (régulateur OU dirigeant, instantané)
+//   - Archiver    (DIRIGEANT UNIQUEMENT, confirmation renforcée)
+//   - Désarchiver (régulateur OU dirigeant, confirmation simple)
 //
-// Refs : hotfix permissions, DEC-029, requirement métier réel taxi
-// conventionné 974.
+// Trois lignes de défense vérifiées :
+//   - UI : bouton Archiver caché côté régulateur
+//   - Server Action : guard requireDirigeant sur archiveDriverAction
+//   - BDD : trigger drivers_archive_columns_guard bloque côté Postgres
+//
+// Refs : DEC-029 affinée, hotfix-bis Volet 1, requirement métier 974.
 // =============================================================================
 
 import { test, expect } from '@playwright/test';
 
-// Données fictives (NFR-001 — aucun nom propre réel)
-const DRIVER_NAME = `Chauffeur regulateur ${Date.now()}`;
+const TS = Date.now();
+const DRIVER_NAME_REG = `Chauffeur Reg ${TS}`;
+const DRIVER_NAME_DIR = `Chauffeur Dir ${TS}`;
 const ARCHIVE_MOTIF =
-  'Test E2E hotfix permissions : régulateur peut archiver un chauffeur via modal de confirmation renforcée avec motif libre et saisie explicite.';
+  'Test E2E sémantique 4 actions : sortie système après fin de contrat. Archivage par dirigeant uniquement avec saisie ARCHIVER.';
 
-test.describe('Régulateur gère les chauffeurs end-to-end', () => {
-  test.beforeEach(async ({ page }) => {
-    // Login régulateur démo via DemoCredentials card (flag preview activé)
-    await page.goto('/login');
-    await page.getByLabel('Adresse e-mail').fill('regulateur@demo.tap');
-    await page.getByLabel('Mot de passe').fill('demo1234!');
-    await page.getByRole('button', { name: 'Se connecter' }).click();
-    // Attendre redirect post-login (peut être /patients ou /courses par défaut)
-    await page.waitForURL(/\/(patients|courses|admin)/);
-  });
+async function loginAs(
+  page: import('@playwright/test').Page,
+  role: 'regulateur' | 'dirigeant',
+) {
+  await page.goto('/login');
+  await page.getByLabel('Adresse e-mail').fill(`${role}@demo.tap`);
+  await page.getByLabel('Mot de passe').fill('demo1234!');
+  await page.getByRole('button', { name: 'Se connecter' }).click();
+  await page.waitForURL(/\/(patients|courses|admin)/);
+}
 
-  test('régulateur accède à /admin/chauffeurs + CRUD + archive avec modal', async ({
+test.describe('Sémantique 4 actions chauffeurs', () => {
+  test('régulateur peut désactiver puis réactiver mais PAS archiver', async ({
     page,
   }) => {
-    // 1. Visite /admin/chauffeurs (page accessible — pas de redirect /)
+    await loginAs(page, 'regulateur');
     await page.goto('/admin/chauffeurs');
     await expect(page).toHaveURL(/\/admin\/chauffeurs/);
-    await expect(
-      page.getByRole('heading', { name: /Chauffeurs|Gestion/i, level: 1 }),
-    ).toBeVisible();
 
-    // 2. Création d'un driver test
+    // 1. Création d'un driver test
     await page.getByRole('button', { name: 'Nouveau chauffeur' }).click();
-    await page.getByLabel('Nom affiché').fill(DRIVER_NAME);
+    await page.getByLabel('Nom affiché').fill(DRIVER_NAME_REG);
     await page.getByLabel(/Taxi/i).check();
     await page.getByRole('button', { name: 'Créer le chauffeur' }).click();
+    await expect(page.getByText(DRIVER_NAME_REG)).toBeVisible({
+      timeout: 10000,
+    });
 
-    // 3. Assert création — la nouvelle ligne apparaît dans la liste
-    await expect(page.getByText(DRIVER_NAME)).toBeVisible({ timeout: 10000 });
-
-    // 4. Modification via Sheet édition — click sur la ligne
-    await page.getByText(DRIVER_NAME).click();
-    // Le Sheet d'édition s'ouvre avec le nom pré-rempli
-    const newName = `${DRIVER_NAME} modifié`;
-    const nameField = page.getByLabel('Nom affiché');
-    await nameField.fill(newName);
+    // 2. Désactivation via DeactivateConfirmDialog
     await page
-      .getByRole('button', { name: /Enregistrer|Modifier/i })
-      .first()
+      .getByRole('button', { name: `Désactiver ${DRIVER_NAME_REG}` })
       .click();
-    await expect(page.getByText(newName)).toBeVisible({ timeout: 10000 });
-
-    // 5. Tente d'archiver → ouverture modal confirmation renforcée
-    await page.getByText(newName).click();
-    await page.getByRole('button', { name: /Archiver/i }).first().click();
-
-    // Le modal ArchiveDriverModal apparaît
     await expect(
-      page.getByRole('dialog', { name: new RegExp(`Archiver.*${newName.slice(0, 20)}`) }),
+      page.getByRole('dialog', { name: /Désactiver/ }),
+    ).toBeVisible();
+    await page.getByLabel('Je confirme la désactivation.').check();
+    await page.getByRole('button', { name: 'Désactiver' }).last().click();
+    await expect(page.getByText(/désactivé/i)).toBeVisible({ timeout: 10000 });
+
+    // 3. Réactivation instantanée — bouton Réactiver inline
+    await page
+      .getByRole('button', { name: `Réactiver ${DRIVER_NAME_REG}` })
+      .click();
+    await expect(page.getByText(/réactivé/i)).toBeVisible({ timeout: 10000 });
+
+    // 4. Aucun bouton Archiver visible côté régulateur sur la ligne
+    await expect(
+      page.getByRole('button', { name: `Archiver ${DRIVER_NAME_REG}` }),
+    ).toHaveCount(0);
+
+    // 5. Le Sheet d'édition n'expose pas non plus le bouton "Archiver ce chauffeur"
+    await page.getByText(DRIVER_NAME_REG).click();
+    await expect(
+      page.getByRole('button', { name: /Archiver ce chauffeur/i }),
+    ).toHaveCount(0);
+  });
+
+  test('dirigeant peut archiver avec confirmation renforcée puis désarchiver', async ({
+    page,
+  }) => {
+    await loginAs(page, 'dirigeant');
+    await page.goto('/admin/chauffeurs');
+
+    // Création
+    await page.getByRole('button', { name: 'Nouveau chauffeur' }).click();
+    await page.getByLabel('Nom affiché').fill(DRIVER_NAME_DIR);
+    await page.getByLabel(/Taxi/i).check();
+    await page.getByRole('button', { name: 'Créer le chauffeur' }).click();
+    await expect(page.getByText(DRIVER_NAME_DIR)).toBeVisible({
+      timeout: 10000,
+    });
+
+    // Archivage via bouton inline (dirigeant only)
+    await page
+      .getByRole('button', { name: `Archiver ${DRIVER_NAME_DIR}` })
+      .click();
+    await expect(
+      page.getByRole('dialog', {
+        name: new RegExp(`Archiver.*${DRIVER_NAME_DIR.slice(0, 12)}`),
+      }),
     ).toBeVisible();
 
-    // 6. Submit sans motif → erreur validation
+    // Submit sans motif : bouton désactivé OU erreur visible
     await page
       .getByRole('button', { name: 'Archiver définitivement' })
-      .click({ trial: false, force: true })
-      .catch(() => {
-        // Le bouton peut être disabled (formState.isValid=false) — c'est OK
-      });
-    // Le formulaire n'a pas dû quitter le modal (bouton désactivé OU erreur affichée)
-    await expect(
-      page.getByRole('dialog', { name: /Archiver/ }),
-    ).toBeVisible();
+      .click({ force: true })
+      .catch(() => {});
+    await expect(page.getByRole('dialog', { name: /Archiver/ })).toBeVisible();
 
-    // 7. Saisir motif > 10 chars + "ARCHIVER" + submit
+    // Motif + ARCHIVER + submit
     await page.getByLabel("Motif d'archivage").fill(ARCHIVE_MOTIF);
     await page
       .getByLabel('Confirmer en saisissant « ARCHIVER »')
       .fill('ARCHIVER');
     await page.getByRole('button', { name: 'Archiver définitivement' }).click();
-
-    // 8. Assert toast success + driver disparaît de la liste (filtre archive=false par défaut)
     await expect(page.getByText(/archivé/i)).toBeVisible({ timeout: 10000 });
+
+    // Toggle filtre Archivés → le chauffeur réapparaît
+    await page.getByRole('tab', { name: 'Archivés' }).click();
+    await expect(page.getByText(DRIVER_NAME_DIR)).toBeVisible();
+
+    // Désarchivage via UnarchiveConfirmDialog
+    await page
+      .getByRole('button', { name: `Désarchiver ${DRIVER_NAME_DIR}` })
+      .click();
+    await expect(
+      page.getByRole('dialog', { name: /Désarchiver/ }),
+    ).toBeVisible();
+    await page.getByLabel('Je confirme le désarchivage.').check();
+    await page.getByRole('button', { name: 'Désarchiver' }).last().click();
+    await expect(page.getByText(/désarchivé/i)).toBeVisible({ timeout: 10000 });
   });
 
   test('régulateur NE peut PAS accéder /admin/vehicules (sub-guard dirigeant)', async ({
     page,
   }) => {
-    // Force URL vehicules → sub-guard requireDirigeantPage redirect /admin/chauffeurs
+    await loginAs(page, 'regulateur');
     await page.goto('/admin/vehicules');
     await page.waitForURL(/\/admin\/chauffeurs/);
     await expect(page).toHaveURL(/\/admin\/chauffeurs/);
@@ -104,9 +148,8 @@ test.describe('Régulateur gère les chauffeurs end-to-end', () => {
   test('régulateur voit le lien Chauffeurs dans la nav (app)', async ({
     page,
   }) => {
-    // Navigation depuis le shell régulateur (app)
+    await loginAs(page, 'regulateur');
     await page.goto('/patients');
-    // Lien Chauffeurs visible dans NavTabs
     const navLink = page
       .getByRole('navigation', { name: 'Navigation principale' })
       .getByRole('link', { name: 'Chauffeurs' });

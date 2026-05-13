@@ -42,7 +42,7 @@ export default async function DpoPage() {
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">Contact DPO</h1>
         <p className="text-sm text-muted-foreground mt-4">
-          Délégué à la Protection des Données — visible sur la page publique
+          Délégué à la Protection des Données : visible sur la page publique
           /legal/dpo.
         </p>
       </header>

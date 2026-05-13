@@ -26,7 +26,7 @@ const ACCOUNTS = [
   },
   {
     role: 'Régulateur',
-    description: 'Saisie des courses, assignation, caisse.',
+    description: 'Saisie des courses, affectation, caisse.',
     email: 'regulateur@demo.tap',
     password: 'demo1234!',
   },

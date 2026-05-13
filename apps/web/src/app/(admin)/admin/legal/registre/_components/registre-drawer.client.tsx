@@ -47,7 +47,7 @@ export function RegistreDrawer({ open, onOpenChange }: Props) {
         <SheetHeader>
           <SheetTitle>Nouvelle entrée registre</SheetTitle>
           <SheetDescription>
-            Article 30 RGPD — chaque enregistrement crée une nouvelle version.
+            Article 30 RGPD : chaque enregistrement crée une nouvelle version.
           </SheetDescription>
         </SheetHeader>
 

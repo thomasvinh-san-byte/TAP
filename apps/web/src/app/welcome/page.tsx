@@ -62,7 +62,7 @@ export default function WelcomePage() {
           <p className="text-xs text-muted-foreground">
             Vercel pose les variables d&apos;environnement Supabase et
             redéploie l&apos;app automatiquement. À l&apos;issue, cette page
-            se transforme en bouton « Initialiser la base » — encore 1 clic
+            se transforme en bouton « Initialiser la base » : encore 1 clic
             et la connexion sera possible.
           </p>
         </div>

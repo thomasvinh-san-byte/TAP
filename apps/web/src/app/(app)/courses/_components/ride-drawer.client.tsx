@@ -89,7 +89,7 @@ export function RideDrawer({
       toast.error(res.error);
       return;
     }
-    toast.success('Chauffeur désassigné.');
+    toast.success('Chauffeur désaffecté.');
     await invalidate();
   };
 
@@ -192,7 +192,7 @@ export function RideDrawer({
             </section>
 
             <section className="space-y-8">
-              <SectionTitle>Assignation</SectionTitle>
+              <SectionTitle>Affectation</SectionTitle>
               {ride.driver ? (
                 <div className="flex items-center gap-12">
                   <InitialsAvatar
@@ -221,7 +221,7 @@ export function RideDrawer({
                       onClick={onUnassign}
                       disabled={pending}
                     >
-                      Désassigner
+                      Désaffecter
                     </Button>
                   )}
                 </div>
@@ -231,11 +231,11 @@ export function RideDrawer({
                   onClick={() => onRequestAssign(ride.id)}
                   className="w-full"
                 >
-                  Assigner un chauffeur
+                  Affecter un chauffeur
                 </Button>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  Aucun chauffeur assigné.
+                  Aucun chauffeur affecté.
                 </p>
               )}
             </section>

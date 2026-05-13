@@ -104,7 +104,7 @@ export function AssignModal({
       toast.error(res.error);
       return;
     }
-    toast.success('Course assignée.');
+    toast.success('Course affectée.');
     await Promise.all([
       qc.invalidateQueries({ queryKey: ['rides'] }),
       qc.invalidateQueries({ queryKey: ['ride', rideId] }),
@@ -127,7 +127,7 @@ export function AssignModal({
         onKeyDown={onKey}
       >
         <DialogHeader>
-          <DialogTitle>Assigner un chauffeur</DialogTitle>
+          <DialogTitle>Affecter un chauffeur</DialogTitle>
           <DialogDescription>
             Choisir un chauffeur actif et, optionnellement, un véhicule.
           </DialogDescription>

@@ -39,7 +39,7 @@ export default function ErasurePage({
         <p className="text-sm text-muted-foreground">
           Les courses passées sont conservées 5 ans pour les obligations
           de la CGSS (Code de la sécurité sociale L114-19). Elles seront
-          maintenues sous forme anonymisée — sans lien identitaire — afin
+          maintenues sous forme anonymisée (sans lien identitaire) afin
           de répondre à cette obligation comptable. Vos notes médicales
           opérationnelles, en revanche, sont effacées.
         </p>

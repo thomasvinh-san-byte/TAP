@@ -34,7 +34,7 @@ export default async function DpiaPage() {
           Analyses d&apos;impact (DPIA)
         </h1>
         <p className="text-sm text-muted-foreground mt-4">
-          Article 35 RGPD — obligatoire pour traitement à risque élevé (santé)
+          Article 35 RGPD : obligatoire pour traitement à risque élevé (santé)
         </p>
       </header>
 

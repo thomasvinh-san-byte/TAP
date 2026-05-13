@@ -6,7 +6,7 @@
  */
 export const STATUS_LABELS_FR: Record<string, string> = {
   validee: 'validée',
-  assignee: 'assignée à un chauffeur',
+  assignee: 'affectée à un chauffeur',
   en_cours: 'en cours',
   terminee: 'terminée',
 };

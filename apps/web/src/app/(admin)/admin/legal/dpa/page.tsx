@@ -33,7 +33,7 @@ export default async function DpaPage() {
           DPA sous-traitants
         </h1>
         <p className="text-sm text-muted-foreground mt-4">
-          Article 28 RGPD — accords de traitement signés
+          Article 28 RGPD : accords de traitement signés
         </p>
       </header>
 
