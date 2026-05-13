@@ -124,7 +124,7 @@ function CustomizePanel({ choices, onChange, onValidate }: PanelProps) {
     <div className="space-y-12">
       <label className="flex items-start gap-12 text-sm">
         <input type="checkbox" checked disabled aria-label="Cookies techniques (obligatoires)" />
-        <span><strong>Techniques</strong> — session, authentification (obligatoires).</span>
+        <span><strong>Techniques</strong> : session, authentification (obligatoires).</span>
       </label>
       <label className="flex items-start gap-12 text-sm">
         <input
@@ -132,11 +132,11 @@ function CustomizePanel({ choices, onChange, onValidate }: PanelProps) {
           checked={choices.analytics}
           onChange={(e) => onChange({ ...choices, analytics: e.target.checked })}
         />
-        <span><strong>Mesure d'audience</strong> — Sentry (anonymisé).</span>
+        <span><strong>Mesure d'audience</strong> : Sentry (anonymisé).</span>
       </label>
       <label className="flex items-start gap-12 text-sm text-muted-foreground">
-        <input type="checkbox" checked={false} disabled aria-label="Marketing — non utilisé en V1" />
-        <span><strong>Marketing</strong> — non utilisé dans cette version.</span>
+        <input type="checkbox" checked={false} disabled aria-label="Marketing : non utilisé en V1" />
+        <span><strong>Marketing</strong> : non utilisé dans cette version.</span>
       </label>
       <Button variant="outline" className="h-44" onClick={onValidate}>
         Valider mes choix

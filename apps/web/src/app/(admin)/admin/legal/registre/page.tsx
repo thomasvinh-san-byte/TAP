@@ -42,7 +42,7 @@ export default async function RegistrePage() {
             Registre des traitements
           </h1>
           <p className="text-sm text-muted-foreground mt-4">
-            Article 30 RGPD — versioning par lignes
+            Article 30 RGPD : versioning par lignes
           </p>
         </div>
         <div className="flex gap-12">

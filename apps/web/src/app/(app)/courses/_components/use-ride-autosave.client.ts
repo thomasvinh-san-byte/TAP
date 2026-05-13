@@ -53,7 +53,7 @@ export function useRideAutosave<TForm extends AutosavePayloadBase>(args: {
       });
       if ('error' in res) {
         setSavingState('error');
-        toast.error('Sauvegarde impossible — réessai automatique');
+        toast.error('Sauvegarde impossible : réessai automatique');
         return;
       }
       if (!draftIdRef.current) {

@@ -52,7 +52,7 @@ export default async function SetupPage() {
           </p>
           <p className="text-sm text-muted-foreground">
             {isPartial
-              ? "Les tables existent mais les comptes démo manquent (probable échec partiel d'une init précédente). Cliquer pour (re)créer les comptes — le seed est idempotent."
+              ? "Les tables existent mais les comptes démo manquent (probable échec partiel d'une init précédente). Cliquer pour (re)créer les comptes : le seed est idempotent."
               : "L'intégration Vercel ↔ Supabase est en place. Il reste à initialiser la base avec le schéma et les données démo. Un seul clic."}
           </p>
         </section>
@@ -81,7 +81,7 @@ export default async function SetupPage() {
           <InitButton />
 
           <p className="text-xs text-muted-foreground">
-            L&apos;opération est idempotente — peut être relancée sans risque
+            L&apos;opération est idempotente : peut être relancée sans risque
             de doublons.
           </p>
         </div>

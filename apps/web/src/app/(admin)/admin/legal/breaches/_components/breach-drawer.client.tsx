@@ -49,7 +49,7 @@ export function BreachDrawer({ open, onOpenChange }: Props) {
         <SheetHeader>
           <SheetTitle>Nouvel incident</SheetTitle>
           <SheetDescription>
-            Article 33 RGPD — délai notification 72h
+            Article 33 RGPD : délai notification 72h
           </SheetDescription>
         </SheetHeader>
 

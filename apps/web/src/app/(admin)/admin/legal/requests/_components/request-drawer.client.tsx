@@ -46,7 +46,7 @@ export function RequestDrawer({ open, onOpenChange }: Props) {
         <SheetHeader>
           <SheetTitle>Nouvelle demande RGPD</SheetTitle>
           <SheetDescription>
-            Articles 15-21 RGPD — délai 30 jours
+            Articles 15-21 RGPD : délai 30 jours
           </SheetDescription>
         </SheetHeader>
 
