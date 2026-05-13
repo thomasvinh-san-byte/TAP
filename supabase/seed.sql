@@ -1,7 +1,7 @@
 -- =============================================================================
 -- Seed — Données de démonstration locales uniquement
 -- =============================================================================
--- Crée 1 organization de démo + 3 comptes (dirigeant, régulateur, chauffeur).
+-- Crée 1 organization de démo + 5 comptes (dirigeant, régulateur, 3 chauffeurs).
 -- À NE JAMAIS exécuter en production. Ce fichier est appliqué automatiquement
 -- par `supabase db reset` en local.
 -- =============================================================================
@@ -113,7 +113,19 @@ begin
   perform pg_temp.seed_demo_user(
     '00000000-0000-0000-0000-000000000030',
     'chauffeur@demo.tap', 'demo1234!',
-    org_id, 'chauffeur', 'Chauffeur', 'Démo'
+    org_id, 'chauffeur', 'Vergoz', 'Jean'
+  );
+  -- DEC-031 : UAT multi-chauffeurs. 2 comptes auth additionnels rattachés
+  -- aux drivers Maillot et Boyer dans seed.demo.sql (profile_id non null).
+  perform pg_temp.seed_demo_user(
+    '00000000-0000-0000-0000-000000000031',
+    'chauffeur2@demo.tap', 'demo1234!',
+    org_id, 'chauffeur', 'Maillot', 'André'
+  );
+  perform pg_temp.seed_demo_user(
+    '00000000-0000-0000-0000-000000000032',
+    'chauffeur3@demo.tap', 'demo1234!',
+    org_id, 'chauffeur', 'Boyer', 'Sophie'
   );
   -- Compte E2E (PLAN-1 helper loginAsRegulateur attend reg-demo@tap.test)
   perform pg_temp.seed_demo_user(

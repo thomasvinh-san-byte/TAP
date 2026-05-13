@@ -5,7 +5,7 @@ milestone_name: milestone
 status: planning
 stopped_at: Phase 04 plan-phase complete (5 plans W0..W4 APPROVED 10/10, 3 FLAGs patched)
 last_updated: "2026-05-13T07:18:34.009Z"
-last_activity: 2026-05-13 — Refonte planning E2E (DEC-023 + DEC-021) après revue critique du périmètre Phase 04 (17-25h god-phase) face à ADR-003 pivot E2E
+last_activity: 2026-05-13 — Phase 04 livrée + hotfix permissions sémantique 4 actions (DEC-029) + audit FR rédac user-facing (DEC-030) + seed démo UAT multi-chauffeurs (DEC-031). Prêt UAT 3 chauffeurs connectables + 12 courses fictives peuplant le cockpit avant Phase 04.5.
 progress:
   total_phases: 14
   completed_phases: 4
