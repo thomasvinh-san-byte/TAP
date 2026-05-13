@@ -59,9 +59,34 @@ export const archiveDriverInputSchema = z.object({
     .max(500, 'Motif trop long (500 caractères maximum).'),
   confirmation: z.literal('ARCHIVER', {
     errorMap: () => ({
-      message: 'Saisir exactement "ARCHIVER" pour confirmer.',
+      message: 'Saisir exactement « ARCHIVER » pour confirmer.',
     }),
   }),
 });
 
 export type ArchiveDriverInput = z.infer<typeof archiveDriverInputSchema>;
+
+/**
+ * Confirmation simple — désactivation chauffeur (DEC-029 sémantique 4
+ * actions). Réversible facilement (réactivation instantanée), un simple
+ * coche suffit.
+ */
+export const deactivateDriverInputSchema = z.object({
+  confirmation: z.literal(true, {
+    errorMap: () => ({ message: 'Confirmation requise.' }),
+  }),
+});
+
+export type DeactivateDriverInput = z.infer<typeof deactivateDriverInputSchema>;
+
+/**
+ * Confirmation simple — désarchivage chauffeur (DEC-029 sémantique 4
+ * actions). Le chauffeur est réintégré au système, désactivé par défaut.
+ */
+export const unarchiveDriverInputSchema = z.object({
+  confirmation: z.literal(true, {
+    errorMap: () => ({ message: 'Confirmation requise.' }),
+  }),
+});
+
+export type UnarchiveDriverInput = z.infer<typeof unarchiveDriverInputSchema>;

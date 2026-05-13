@@ -18,10 +18,13 @@ import { headers } from 'next/headers';
 import { z } from 'zod';
 import {
   archiveDriverInputSchema,
+  deactivateDriverInputSchema,
   driverInputSchema,
   driverInvitationSchema,
+  unarchiveDriverInputSchema,
 } from '@tap/shared';
 import { requireAdminOrRegulateur } from '@/lib/auth/require-admin-or-regulateur';
+import { requireDirigeant } from '@/lib/auth/require-dirigeant';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 export type ActionState = {
@@ -31,10 +34,10 @@ export type ActionState = {
   fieldErrors?: Record<string, string>;
 };
 
-// requireDirigeant a été supprimé Phase 04 hotfix (DEC-029) — les Server
-// Actions chauffeurs sont élargies au régulateur via le guard partagé
-// `requireAdminOrRegulateur`. Les autres modules admin (vehicules, DPIA,
-// DPA, breaches) conservent leur guard `requireDirigeant` local.
+// Guards (DEC-029 sémantique 4 actions) :
+//   - requireAdminOrRegulateur : create / update / invite / resend +
+//     désactiver / réactiver / désarchiver
+//   - requireDirigeant        : archiver (seule action sortie système)
 
 function parseFormData(formData: FormData) {
   return driverInputSchema.safeParse({
@@ -130,15 +133,18 @@ export async function updateDriverAction(
 /**
  * `archiveDriverAction` — archive un chauffeur (soft-delete).
  *
- * Hotfix Phase 04 (DEC-029) : confirmation renforcée option C.
- *  - Élargi au régulateur (en plus du dirigeant)
- *  - Modal UI exige saisie d'un motif libre (10-500 chars) ET d'une
- *    confirmation textuelle « ARCHIVER » avant submit
- *  - Motif stocké en BDD (`drivers.archive_motif`) et journalisé dans
- *    `audit_logs` (action `driver_archived`) avec acteur + rôle.
+ * DEC-029 sémantique 4 actions : action « sortie système », réservée au
+ * dirigeant. Régulateur peut désactiver / réactiver / désarchiver mais
+ * pas archiver. Defense in depth :
+ *   - Guard applicatif : requireDirigeant (ce fichier)
+ *   - Trigger Postgres `drivers_archive_columns_guard` (migration
+ *     20260516000002) bloque toute modification de archive /
+ *     archive_at / archive_motif par un non-dirigeant.
  *
- * Signature modifiée — accepte `formData` pour parse zod du motif. Appelé
- * via `useFormState` côté `ArchiveDriverModal`.
+ * Confirmation renforcée option C : saisie d'un motif libre (10-500
+ * chars) ET du mot « ARCHIVER » avant submit. Motif stocké en BDD
+ * (`drivers.archive_motif`) et journalisé dans `audit_logs` (action
+ * `driver_archived`).
  */
 export async function archiveDriverAction(
   driverId: string,
@@ -149,8 +155,8 @@ export async function archiveDriverAction(
     return { error: 'Identifiant chauffeur invalide.' };
   }
 
-  const ctx = await requireAdminOrRegulateur();
-  if (!ctx) return { error: 'Accès dirigeant ou régulateur requis.' };
+  const ctx = await requireDirigeant();
+  if (!ctx) return { error: 'Action réservée au dirigeant.' };
 
   // Confirmation renforcée : motif (10-500 chars) + saisie « ARCHIVER »
   const parsed = archiveDriverInputSchema.safeParse({
@@ -214,6 +220,171 @@ export async function archiveDriverAction(
 
   revalidatePath('/admin/chauffeurs');
   return { success: true };
+}
+
+/**
+ * `deactivateDriverAction` (DEC-029) — bascule actif=false sans archivage.
+ *
+ * Filet de sécurité réversible : le chauffeur ne peut plus être affecté
+ * aux courses, mais reste dans le système. Régulateur autorisé.
+ */
+export async function deactivateDriverAction(
+  driverId: string,
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  if (!z.string().uuid().safeParse(driverId).success) {
+    return { error: 'Identifiant chauffeur invalide.' };
+  }
+
+  const ctx = await requireAdminOrRegulateur();
+  if (!ctx) return { error: 'Accès dirigeant ou régulateur requis.' };
+
+  const parsed = deactivateDriverInputSchema.safeParse({
+    confirmation: formData.get('confirmation') === 'true',
+  });
+  if (!parsed.success) {
+    return {
+      error: 'Confirmation requise.',
+      fieldErrors: flattenFieldErrors(parsed.error),
+    };
+  }
+
+  const { data, error } = await ctx.supabase
+    .from('drivers' as never)
+    .update({ actif: false } as never)
+    .eq('id', driverId)
+    .eq('archive', false)
+    .select('id, nom_affichage')
+    .maybeSingle();
+
+  if (error) return { error: 'Désactivation impossible.' };
+  if (!data) return { error: 'Chauffeur introuvable ou déjà archivé.' };
+
+  await ctx.supabase.from('audit_logs' as never).insert({
+    organization_id: ctx.organizationId,
+    actor_id: ctx.userId,
+    actor_role: ctx.role,
+    action: 'driver_deactivated',
+    entity_type: 'driver',
+    entity_id: driverId,
+    metadata: {
+      acted_by_role: ctx.role,
+      driver_nom_affichage: (data as { nom_affichage: string }).nom_affichage,
+    },
+  } as never);
+
+  revalidatePath('/admin/chauffeurs');
+  return { success: true, id: driverId };
+}
+
+/**
+ * `reactivateDriverAction` (DEC-029) — bascule actif=true (instantané).
+ *
+ * Action directe sans confirmation : le chauffeur redevient affectable
+ * aux courses. Régulateur autorisé. Ne s'applique pas aux chauffeurs
+ * archivés (passer par désarchivage d'abord).
+ */
+export async function reactivateDriverAction(
+  driverId: string,
+): Promise<ActionState> {
+  if (!z.string().uuid().safeParse(driverId).success) {
+    return { error: 'Identifiant chauffeur invalide.' };
+  }
+
+  const ctx = await requireAdminOrRegulateur();
+  if (!ctx) return { error: 'Accès dirigeant ou régulateur requis.' };
+
+  const { data, error } = await ctx.supabase
+    .from('drivers' as never)
+    .update({ actif: true } as never)
+    .eq('id', driverId)
+    .eq('archive', false)
+    .select('id, nom_affichage')
+    .maybeSingle();
+
+  if (error) return { error: 'Réactivation impossible.' };
+  if (!data) return { error: 'Chauffeur introuvable ou archivé.' };
+
+  await ctx.supabase.from('audit_logs' as never).insert({
+    organization_id: ctx.organizationId,
+    actor_id: ctx.userId,
+    actor_role: ctx.role,
+    action: 'driver_reactivated',
+    entity_type: 'driver',
+    entity_id: driverId,
+    metadata: {
+      acted_by_role: ctx.role,
+      driver_nom_affichage: (data as { nom_affichage: string }).nom_affichage,
+    },
+  } as never);
+
+  revalidatePath('/admin/chauffeurs');
+  return { success: true, id: driverId };
+}
+
+/**
+ * `unarchiveDriverAction` (DEC-029) — réintègre un chauffeur archivé.
+ *
+ * Réversible : remet archive=false, archive_at=NULL, archive_motif=NULL.
+ * Le chauffeur reste désactivé (actif=false) — il faudra appeler
+ * reactivateDriverAction pour qu'il redevienne affectable. Action
+ * autorisée au régulateur ET au dirigeant (D1) — le trigger Postgres
+ * `drivers_archive_columns_guard` distingue archivage (false→true,
+ * dirigeant only) du désarchivage (true→false, les deux rôles).
+ */
+export async function unarchiveDriverAction(
+  driverId: string,
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  if (!z.string().uuid().safeParse(driverId).success) {
+    return { error: 'Identifiant chauffeur invalide.' };
+  }
+
+  const ctx = await requireAdminOrRegulateur();
+  if (!ctx) return { error: 'Accès dirigeant ou régulateur requis.' };
+
+  const parsed = unarchiveDriverInputSchema.safeParse({
+    confirmation: formData.get('confirmation') === 'true',
+  });
+  if (!parsed.success) {
+    return {
+      error: 'Confirmation requise.',
+      fieldErrors: flattenFieldErrors(parsed.error),
+    };
+  }
+
+  const { data, error } = await ctx.supabase
+    .from('drivers' as never)
+    .update({
+      archive: false,
+      archive_at: null,
+      archive_motif: null,
+    } as never)
+    .eq('id', driverId)
+    .eq('archive', true)
+    .select('id, nom_affichage')
+    .maybeSingle();
+
+  if (error) return { error: 'Désarchivage impossible.' };
+  if (!data) return { error: 'Chauffeur introuvable ou non archivé.' };
+
+  await ctx.supabase.from('audit_logs' as never).insert({
+    organization_id: ctx.organizationId,
+    actor_id: ctx.userId,
+    actor_role: ctx.role,
+    action: 'driver_unarchived',
+    entity_type: 'driver',
+    entity_id: driverId,
+    metadata: {
+      acted_by_role: ctx.role,
+      driver_nom_affichage: (data as { nom_affichage: string }).nom_affichage,
+    },
+  } as never);
+
+  revalidatePath('/admin/chauffeurs');
+  return { success: true, id: driverId };
 }
 
 // ──────────────────────────────────────────────────────────────────────

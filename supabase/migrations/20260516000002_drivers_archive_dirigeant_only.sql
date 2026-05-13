@@ -29,16 +29,26 @@ security definer
 set search_path = public
 as $$
 begin
-  if (
-    new.archive       is distinct from old.archive
-    or new.archive_at is distinct from old.archive_at
-    or new.archive_motif is distinct from old.archive_motif
-  )
-  and not public.has_role('dirigeant'::public.user_role) then
+  -- Archivage (false → true) : dirigeant uniquement. Le désarchivage
+  -- (true → false) reste autorisé au régulateur (D1 décision dirigeant).
+  if (new.archive = true and old.archive = false)
+     and not public.has_role('dirigeant'::public.user_role) then
     raise exception
-      'Seul un dirigeant peut archiver, désarchiver ou modifier le motif d''archivage d''un chauffeur.'
+      'Seul un dirigeant peut archiver un chauffeur.'
       using errcode = '42501';
   end if;
+
+  -- Modification isolée du motif d'archivage (sans changement du flag
+  -- archive) : dirigeant uniquement. Empêche un régulateur de réécrire
+  -- l'historique d'un chauffeur déjà archivé.
+  if new.archive_motif is distinct from old.archive_motif
+     and new.archive is not distinct from old.archive
+     and not public.has_role('dirigeant'::public.user_role) then
+    raise exception
+      'Seul un dirigeant peut modifier le motif d''archivage.'
+      using errcode = '42501';
+  end if;
+
   return new;
 end;
 $$;
