@@ -1,10 +1,12 @@
 ---
 phase: 04
 slug: e2e-passe2-pwa-tarif
-status: draft
+status: approved
 shadcn_initialized: true
 preset: shadcn baseColor=slate (apps/web/components.json)
 created: 2026-05-13
+reviewed_at: 2026-05-13
+checker_result: 6/6 PASS (gsd-ui-checker)
 ---
 
 # Phase 04 — UI Design Contract
