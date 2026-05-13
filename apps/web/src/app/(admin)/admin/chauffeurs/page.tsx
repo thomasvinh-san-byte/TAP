@@ -26,11 +26,6 @@ export default async function ChauffeursPage({
 
   const vueArchives = searchParams?.vue === 'archives';
 
-  // DEBUG-CHAUFFEURS-VIDE-REGULATEUR : logging temporaire pour capturer
-  // l'erreur Supabase silencieuse remontée par l'UAT preview (Vercel)
-  // — la liste apparaît vide en régulateur alors que la modale
-  // d'affectation /courses voit bien les 3 chauffeurs. À retirer une
-  // fois la cause root identifiée et fixée.
   const driversRes = await supabase
     .from('drivers' as never)
     .select(
@@ -40,13 +35,15 @@ export default async function ChauffeursPage({
     .order('nom_affichage', { ascending: true });
 
   if (driversRes.error) {
+    // Erreur Supabase remontée côté serveur (visible Vercel Runtime logs).
+    // L'UI affiche un état vide silencieux ; le log permet de diagnostiquer
+    // un schéma désaligné, un RLS qui filtre tout, ou une session perdue.
     console.error('[admin/chauffeurs] drivers query error', {
       message: driversRes.error.message,
       code: driversRes.error.code,
       details: driversRes.error.details,
       hint: driversRes.error.hint,
       user_role: role,
-      user_id: ctx?.userId,
       organization_id: ctx?.organizationId,
       vue_archives: vueArchives,
     });
