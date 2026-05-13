@@ -35,7 +35,7 @@ export async function assignRideAction(
   const ctx = await getAuthContextWithRole();
   if (!ctx) return { error: 'Session expirée. Reconnectez-vous.' };
   if (!REGULATEUR_OR_DIRIGEANT.includes(ctx.role as 'regulateur' | 'dirigeant')) {
-    return { error: 'Seul un régulateur ou un dirigeant peut assigner une course.' };
+    return { error: 'Seul un régulateur ou un dirigeant peut affecter une course.' };
   }
 
   // Vérif statut courant : transition validee → assignee uniquement.
@@ -80,7 +80,7 @@ export async function unassignRideAction(rideId: string): Promise<ActionState> {
   const ctx = await getAuthContextWithRole();
   if (!ctx) return { error: 'Session expirée. Reconnectez-vous.' };
   if (!REGULATEUR_OR_DIRIGEANT.includes(ctx.role as 'regulateur' | 'dirigeant')) {
-    return { error: 'Seul un régulateur ou un dirigeant peut désassigner une course.' };
+    return { error: 'Seul un régulateur ou un dirigeant peut désaffecter une course.' };
   }
 
   const { data: current } = await ctx.supabase
@@ -93,7 +93,7 @@ export async function unassignRideAction(rideId: string): Promise<ActionState> {
   if (currentRow.status !== 'assignee') {
     return {
       error:
-        'Désassignation impossible : la course n\'est pas en statut assignée (statut : ' +
+        'Désaffectation impossible : la course n\'est pas en statut affectée (statut : ' +
         currentRow.status +
         ').',
     };

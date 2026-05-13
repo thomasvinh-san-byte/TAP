@@ -39,7 +39,7 @@ export function CguAcceptanceBanner({ currentVersion, acceptedVersion }: Props) 
       <div className="flex-1">
         <p className="font-medium">Nos CGU ont été mises à jour</p>
         <p className="text-sm text-muted-foreground mt-4">
-          Version {currentVersion} — merci de prendre connaissance des nouvelles
+          Version {currentVersion} : merci de prendre connaissance des nouvelles
           conditions.
         </p>
       </div>

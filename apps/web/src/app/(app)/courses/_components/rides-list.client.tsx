@@ -33,7 +33,7 @@ import { AssignModal } from './assign-modal.client';
 const STATUS_FILTERS = [
   { value: 'all', label: 'Tous statuts' },
   { value: 'validee', label: 'Validées' },
-  { value: 'assignee', label: 'Assignées' },
+  { value: 'assignee', label: 'Affectées' },
   { value: 'en_cours', label: 'En cours' },
   { value: 'terminee', label: 'Terminées' },
   { value: 'annulee_regulateur', label: 'Annulées' },

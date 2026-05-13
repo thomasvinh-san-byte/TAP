@@ -15,7 +15,7 @@ const BASE_BADGE =
 
 export const STATUS_LABEL: Record<string, string> = {
   validee: 'Validée',
-  assignee: 'Assignée',
+  assignee: 'Affectée',
   en_cours: 'En cours',
   terminee: 'Terminée',
   annulee_regulateur: 'Annulée',

@@ -125,7 +125,7 @@ export function VehicleForm({ initial, onSuccess }: Props): JSX.Element {
           defaultChecked={initial?.actif ?? true}
           className="h-16 w-16"
         />
-        Véhicule actif (apparaît dans la modal d&apos;assignation)
+        Véhicule actif (apparaît dans la fenêtre d&apos;affectation)
       </label>
 
       {state.error && !state.fieldErrors && (

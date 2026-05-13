@@ -155,7 +155,7 @@ export function VehiclesList({ initialVehicles }: Props): JSX.Element {
                 : 'Nouveau véhicule'}
             </SheetTitle>
             <SheetDescription>
-              Visible dans la modal d&apos;assignation de course.
+              Visible dans la fenêtre d&apos;affectation de course.
             </SheetDescription>
           </SheetHeader>
 
@@ -193,8 +193,8 @@ export function VehiclesList({ initialVehicles }: Props): JSX.Element {
               Archiver « {archiveTarget?.immatriculation} » ?
             </SheetTitle>
             <SheetDescription>
-              Le véhicule n&apos;apparaîtra plus dans la modal
-              d&apos;assignation. Les courses passées restent intactes.
+              Le véhicule n&apos;apparaîtra plus dans la fenêtre
+              d&apos;affectation. Les courses passées restent intactes.
             </SheetDescription>
           </SheetHeader>
           <div className="flex justify-end gap-12">
@@ -230,7 +230,7 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
       <div>
         <h2 className="text-base font-semibold">Aucun véhicule</h2>
         <p className="text-sm text-muted-foreground">
-          Ajoutez un premier véhicule pour pouvoir assigner des courses.
+          Ajoutez un premier véhicule pour pouvoir affecter des courses.
         </p>
       </div>
       <Button type="button" onClick={onCreate} className="gap-8">

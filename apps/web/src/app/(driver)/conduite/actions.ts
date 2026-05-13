@@ -90,7 +90,7 @@ export async function startRideAction(rideId: string): Promise<ActionState> {
   const currentRow = current as { status: string; driver_id: string | null } | null;
   if (!currentRow) return { error: 'Course introuvable.' };
   if (currentRow.driver_id !== myDriverId) {
-    return { error: 'Cette course ne vous est pas assignée.' };
+    return { error: 'Cette course ne vous est pas affectée.' };
   }
   if (currentRow.status !== 'assignee') {
     return {
@@ -169,7 +169,7 @@ export async function endRideAction(
   const currentRow = current as { status: string; driver_id: string | null } | null;
   if (!currentRow) return { error: 'Course introuvable.' };
   if (currentRow.driver_id !== myDriverId) {
-    return { error: 'Cette course ne vous est pas assignée.' };
+    return { error: 'Cette course ne vous est pas affectée.' };
   }
   if (currentRow.status !== 'en_cours') {
     return {
