@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 48" width="120" height="48" role="img" aria-label="TAP">
+  <rect x="0" y="0" width="48" height="48" rx="6" fill="hsl(217, 92%, 32%)"/>
+  <text x="24" y="32" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="700" fill="#ffffff" text-anchor="middle" letter-spacing="0.5">T</text>
+  <text x="58" y="32" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600" fill="hsl(222, 47%, 11%)" letter-spacing="0.5">TAP</text>
+</svg>

@@ -4,6 +4,7 @@ import {
   type RideForDriverWithBucket,
 } from './_lib/queries';
 import { RideCard } from './_components/ride-card.client';
+import { ActivationToast } from './_components/activation-toast.client';
 
 export const metadata = { title: 'Ma journée — TAP' };
 export const dynamic = 'force-dynamic';
@@ -15,23 +16,29 @@ export const dynamic = 'force-dynamic';
  * authentifié) et borne sur 48 h en `Indian/Reunion`. Les courses sont
  * regroupées en deux clusters « Aujourd'hui » / « Demain » pour donner de
  * la prévisibilité au chauffeur sans surcharger la liste.
+ *
+ * <ActivationToast /> consomme `?activated=1` (FLAG #1, PLAN-4 §4.8bis) et
+ * déclenche le toast success après acceptation invitation chauffeur.
  */
 export default async function ConduitePage() {
   const rides = await listMyRidesUpcoming();
 
   if (rides.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-12 py-48 text-center">
-        <Calendar
-          className="h-48 w-48 text-muted-foreground"
-          aria-hidden
-          strokeWidth={1.5}
-        />
-        <h1 className="text-lg font-semibold">Aucune course planifiée</h1>
-        <p className="max-w-[320px] text-sm text-muted-foreground">
-          Les courses à venir s'afficheront ici.
-        </p>
-      </div>
+      <>
+        <ActivationToast />
+        <div className="flex flex-col items-center gap-12 py-48 text-center">
+          <Calendar
+            className="h-48 w-48 text-muted-foreground"
+            aria-hidden
+            strokeWidth={1.5}
+          />
+          <h1 className="text-lg font-semibold">Aucune course planifiée</h1>
+          <p className="max-w-[320px] text-sm text-muted-foreground">
+            Les courses à venir s&apos;afficheront ici.
+          </p>
+        </div>
+      </>
     );
   }
 
@@ -39,21 +46,24 @@ export default async function ConduitePage() {
   const tomorrow = rides.filter((r) => r.bucket === 'tomorrow');
 
   return (
-    <div className="space-y-24">
-      <header className="flex items-baseline justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Ma journée</h1>
-        <span className="text-sm text-muted-foreground tabular-nums">
-          {rides.length} course{rides.length > 1 ? 's' : ''}
-        </span>
-      </header>
+    <>
+      <ActivationToast />
+      <div className="space-y-24">
+        <header className="flex items-baseline justify-between">
+          <h1 className="text-2xl font-semibold tracking-tight">Ma journée</h1>
+          <span className="text-sm text-muted-foreground tabular-nums">
+            {rides.length} course{rides.length > 1 ? 's' : ''}
+          </span>
+        </header>
 
-      {today.length > 0 && (
-        <RideCluster label="Aujourd'hui" rides={today} />
-      )}
-      {tomorrow.length > 0 && (
-        <RideCluster label="Demain" rides={tomorrow} />
-      )}
-    </div>
+        {today.length > 0 && (
+          <RideCluster label="Aujourd'hui" rides={today} />
+        )}
+        {tomorrow.length > 0 && (
+          <RideCluster label="Demain" rides={tomorrow} />
+        )}
+      </div>
+    </>
   );
 }
 

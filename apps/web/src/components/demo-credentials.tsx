@@ -1,43 +1,87 @@
+'use client';
+
 /**
- * DemoCredentials — affiche les comptes de démo si l'env var est posée.
+ * DemoCredentials — 3 cards cliquables qui pré-remplissent le LoginForm (C07).
  *
- * Activation via env var `NEXT_PUBLIC_SHOW_DEMO_CREDENTIALS=true`.
- * V1 démo pré-commerciale : flag = true sur prod ET preview (la prod EST la
- * démo). Quand on aura un premier client payant, retirer le flag de la prod
- * via setup-vercel.yml (passer "$ALL" → "$PREVIEW").
+ * Visible UNIQUEMENT si `NEXT_PUBLIC_SHOW_DEMO_CREDENTIALS === '1'`.
+ * Sinon le composant retourne `null` (ABSENT du DOM — pas `display:none`).
+ * Empêche fuite credentials en prod via inspecteur (Q5.1, threat model).
  *
- * Le composant est un Server Component (pas d'interactivité, pas de state).
+ * Lift state up : le parent `<LoginFormShell>` détient l'état `prefill` et
+ * passe la callback `onSelect(email, password)`. RHF re-sync via `setValue`
+ * dans le `useEffect` du LoginForm.
+ *
+ * Style : `hover:bg-accent/8` + `active:bg-accent/12` (UI-SPEC § 7.7).
+ * Échelle accent réservée à ces cards uniquement (NFR-004).
  */
 
+import { ChevronRight } from 'lucide-react';
+
 const ACCOUNTS = [
-  { role: 'Dirigeant', email: 'dirigeant@demo.tap', icon: '◉' },
-  { role: 'Régulatrice', email: 'regulateur@demo.tap', icon: '◉' },
-  { role: 'Chauffeur', email: 'chauffeur@demo.tap', icon: '◉' },
+  {
+    role: 'Dirigeant',
+    description: 'Accès complet, pilotage, configuration.',
+    email: 'dirigeant@demo.tap',
+    password: 'demo1234!',
+  },
+  {
+    role: 'Régulateur',
+    description: 'Saisie des courses, assignation, caisse.',
+    email: 'regulateur@demo.tap',
+    password: 'demo1234!',
+  },
+  {
+    role: 'Chauffeur',
+    description: 'PWA mobile, courses du jour, clôture.',
+    email: 'chauffeur@demo.tap',
+    password: 'demo1234!',
+  },
 ] as const;
 
-export function DemoCredentials() {
-  if (process.env.NEXT_PUBLIC_SHOW_DEMO_CREDENTIALS !== 'true') {
-    return null;
-  }
+interface DemoCredentialsProps {
+  onSelect: (email: string, password: string) => void;
+}
+
+export function DemoCredentials({ onSelect }: DemoCredentialsProps) {
+  if (process.env.NEXT_PUBLIC_SHOW_DEMO_CREDENTIALS !== '1') return null;
 
   return (
-    <div className="rounded-md border border-dashed border-border bg-muted/40 p-12 text-xs space-y-8">
-      <p className="font-medium text-foreground">
-        Environnement de démonstration
+    <div className="space-y-8">
+      <p className="text-sm text-muted-foreground">
+        Comptes de démonstration (cliquer pour pré-remplir).
       </p>
-      <p className="text-muted-foreground">
-        Mot de passe partagé : <code className="font-mono text-foreground">demo1234!</code>
-      </p>
-      <ul className="space-y-4">
+      <div className="space-y-8">
         {ACCOUNTS.map((account) => (
-          <li key={account.email} className="flex items-center justify-between gap-8">
-            <span className="text-muted-foreground">{account.role}</span>
-            <code className="font-mono text-foreground tabular-nums">
-              {account.email}
-            </code>
-          </li>
+          <button
+            key={account.email}
+            type="button"
+            onClick={() => onSelect(account.email, account.password)}
+            className="
+              w-full text-left
+              border border-border rounded-md p-16
+              cursor-pointer
+              hover:bg-accent/8 hover:border-accent
+              active:bg-accent/12
+              transition-colors duration-150
+              focus-visible:outline-none focus-visible:ring-2
+              focus-visible:ring-ring focus-visible:ring-offset-2
+            "
+          >
+            <div className="flex items-center justify-between">
+              <div className="space-y-4">
+                <p className="text-sm font-medium">{account.role}</p>
+                <p className="text-xs text-muted-foreground">
+                  {account.description}
+                </p>
+              </div>
+              <ChevronRight
+                className="h-4 w-4 text-muted-foreground"
+                aria-hidden="true"
+              />
+            </div>
+          </button>
         ))}
-      </ul>
+      </div>
     </div>
   );
 }

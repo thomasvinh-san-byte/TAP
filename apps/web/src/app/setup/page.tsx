@@ -7,9 +7,12 @@
  *
  * Détection à chaque rendu (force-dynamic) : si la DB est déjà peuplée, on
  * redirige vers /login.
+ *
+ * Refonte Phase 04 (PLAN-4 §4.6) : consomme `<AuthShell>` mode jour.
  */
 
 import { redirect } from 'next/navigation';
+import { AuthShell } from '../(auth)/_components/auth-shell.client';
 import { checkDatabaseState } from './actions';
 import { InitButton } from './init-button.client';
 
@@ -41,45 +44,37 @@ export default async function SetupPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-start justify-center px-24 py-48 bg-background">
-      <div className="w-full max-w-[560px] space-y-32">
-        <header className="space-y-8">
-          <h1 className="text-3xl font-semibold tracking-tight text-foreground">
-            TAP Régulation
-          </h1>
-          <p className="text-muted-foreground">
-            SaaS de régulation pour sociétés de Transport Assis Professionnalisé à La Réunion.
-          </p>
-        </header>
-
-        <section className="rounded-md border border-amber-500/40 bg-amber-500/5 p-24 space-y-8">
-          <p className="font-medium text-foreground">
-            {isPartial ? 'Init incomplète détectée' : 'Plus qu\'une étape'}
+    <AuthShell title="Initialiser la base">
+      <div className="space-y-24">
+        <section className="rounded-md border border-border bg-muted/40 p-16 space-y-8">
+          <p className="font-medium text-foreground text-sm">
+            {isPartial ? 'Init incomplète détectée' : "Plus qu'une étape"}
           </p>
           <p className="text-sm text-muted-foreground">
             {isPartial
-              ? "Les tables existent mais les comptes démo manquent (probable échec partiel d'une init précédente). Clique pour (re)créer les comptes — le seed est idempotent."
+              ? "Les tables existent mais les comptes démo manquent (probable échec partiel d'une init précédente). Cliquer pour (re)créer les comptes — le seed est idempotent."
               : "L'intégration Vercel ↔ Supabase est en place. Il reste à initialiser la base avec le schéma et les données démo. Un seul clic."}
           </p>
         </section>
 
-        <div className="rounded-md border border-border bg-card p-24 space-y-16">
+        <div className="rounded-md border border-border bg-card p-16 space-y-16">
           <div className="space-y-8">
             <h2 className="text-base font-medium text-foreground">
               Initialiser la base de données
             </h2>
             <p className="text-sm text-muted-foreground">
-              Crée les tables nécessaires (patients, courses, RGPD…) et insère
-              les comptes démo :
+              Crée les tables nécessaires (patients, courses, RGPD…) et
+              insère les comptes démo :
             </p>
-            <ul className="text-sm text-muted-foreground space-y-2 list-disc list-inside marker:text-muted-foreground/50 font-mono">
+            <ul className="text-sm text-muted-foreground space-y-4 list-disc list-inside marker:text-muted-foreground/50 font-mono">
               <li>dirigeant@demo.tap</li>
               <li>regulateur@demo.tap</li>
               <li>chauffeur@demo.tap</li>
             </ul>
             <p className="text-sm text-muted-foreground">
               Plus 10 patients fictifs réunionnais pour tester la recherche et
-              la saisie de course. Mot de passe partagé : <code className="font-mono text-foreground">demo1234!</code>
+              la saisie de course. Mot de passe partagé :{' '}
+              <code className="font-mono text-foreground">demo1234!</code>
             </p>
           </div>
 
@@ -102,6 +97,6 @@ export default async function SetupPage() {
           </details>
         )}
       </div>
-    </main>
+    </AuthShell>
   );
 }

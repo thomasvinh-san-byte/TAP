@@ -101,10 +101,10 @@ design partners). Chaque requirement mappe vers exactement une phase.
 
 ### PWA chauffeur (CHAUF)
 
-- [ ] **CHAUF-01** : Boutons d'action principale ≥ 56 px de hauteur, texte ≥ 18 px (cf. DEC-014)
-- [ ] **CHAUF-02** : Une action principale unique par écran, en bas, accessible au pouce
-- [ ] **CHAUF-03** : Maximum 3 informations simultanées sur l'écran « course en cours »
-- [ ] **CHAUF-04** : Confirmations critiques par swipe (évite clics accidentels)
+- [x] **CHAUF-01** : Boutons d'action principale ≥ 56 px de hauteur, texte ≥ 18 px (cf. DEC-014)
+- [x] **CHAUF-02** : Une action principale unique par écran, en bas, accessible au pouce
+- [x] **CHAUF-03** : Maximum 3 informations simultanées sur l'écran « course en cours »
+- [x] **CHAUF-04** : Confirmations critiques par swipe (évite clics accidentels)
 - [ ] **CHAUF-05** : Mode hors-ligne fonctionnel : tournée, démarrage / clôture course, scan BT (sync différée)
 - [ ] **CHAUF-06** : Indicateur explicite « hors-ligne » + nombre d'éléments en attente de sync
 - [ ] **CHAUF-07** : Lecture vocale (TTS) du nom patient et adresse au démarrage de course
@@ -309,10 +309,10 @@ Mapping requirement → phase. Mis à jour lors de la création du roadmap.
 | SMS-05 | Phase 8 | Pending |
 | SMS-06 | Phase 8 | Pending |
 | SMS-07 | Phase 8 | Pending |
-| CHAUF-01 | Phase 9 | Pending |
-| CHAUF-02 | Phase 9 | Pending |
-| CHAUF-03 | Phase 9 | Pending |
-| CHAUF-04 | Phase 9 | Pending |
+| CHAUF-01 | Phase 9 | Complete |
+| CHAUF-02 | Phase 9 | Complete |
+| CHAUF-03 | Phase 9 | Complete |
+| CHAUF-04 | Phase 9 | Complete |
 | CHAUF-05 | Phase 9 | Pending |
 | CHAUF-06 | Phase 9 | Pending |
 | CHAUF-07 | Phase 9 | Pending |
@@ -366,25 +366,25 @@ Mapping requirement → phase. Mis à jour lors de la création du roadmap.
   d'encouragements gamifiés. Empty states factuels. Messages d'erreur
   reformulés FR (jamais le brut Supabase/Postgres). Source :
   `.planning/regle-neutralite-et-ton.md`. CON-016.
-- [ ] **NFR-003** : Spacing scale strict — Tailwind 4/8/12/16/24/32/48/64
+- [x] **NFR-003** : Spacing scale strict — Tailwind 4/8/12/16/24/32/48/64
   uniquement. Aucune valeur intermédiaire (interdits : `px-3`, `px-5`,
   `px-6`, `gap-10`, etc.). Si un écran a l'air vide ou serré, c'est le
   mauvais cran de l'échelle. Audit grep CI à mettre en place (Passe 4).
   Source : `.planning/pivot-e2e-v2-2026-05-11.md` § 2. CON-018.
-- [ ] **NFR-004** : Identité visuelle imposée — bleu primaire profond
+- [x] **NFR-004** : Identité visuelle imposée — bleu primaire profond
   (`--primary`) + accent terracotta (`--accent`, à utiliser réellement),
   Inter avec `font-feature-settings: 'tnum'` partout où il y a des
   chiffres (téléphones, montants, dates, IDs), Lucide ligne fine sans
   mélange. Mode jour/nuit traités à parité (palette dédiée, pas
   d'inversion mécanique). Source :
   `.planning/pivot-e2e-v2-2026-05-11.md` § 2. CON-019.
-- [ ] **NFR-005** : États interactifs et animations standard — 5 états
+- [x] **NFR-005** : États interactifs et animations standard — 5 états
   distincts par élément interactif (repos, survol, pressé, actif,
   désactivé), transitions 150 ms ease-out, focus clavier visible
   (anneau coloré + offset), skeleton screens > 500 ms (jamais de
   spinners), optimistic UI, Toast Sonner (jamais alert/popup natif).
   Source : `.planning/pivot-e2e-v2-2026-05-11.md` § 2. CON-020.
-- [ ] **NFR-006** : Double goal par passe E2E — chaque passe (1, 2, 3,
+- [x] **NFR-006** : Double goal par passe E2E — chaque passe (1, 2, 3,
   4) a deux goals parallèles : fonctionnel (ce que l'utilisateur peut
   faire) + UX (à quoi ça ressemble et comment ça se sent). Aucun goal
   ne peut être validé sans l'autre. Validation de fin de passe :
