@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Between phases — Phase 03.1 shipped (PR #39), Phase 04 à discuter
-stopped_at: ""
-last_updated: "2026-05-12T07:10:00.000Z"
-last_activity: 2026-05-12 — Phase 03.1 (efficience saisie) shipped via GSD pipeline complet (PR #39)
+status: "Between phases — attendre UAT preview puis merge PR #39, puis discuss Phase 04"
+stopped_at: Phase 04 UI-SPEC approved (6/6 PASS), ready for plan-phase
+last_updated: "2026-05-13T05:11:42.733Z"
+last_activity: 2026-05-12 — Phase 03.1 shipped via GSD pipeline (discuss → ui → plan → execute → verify → ship)
 progress:
-  total_phases: 10
+  total_phases: 11
   completed_phases: 4
   total_plans: 23
-  completed_plans: 26
+  completed_plans: 25
   percent: 100
 ---
 
@@ -135,9 +135,9 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-05-12T07:10:00.000Z
-Stopped at: (Phase 03.1 shipped — PR #39 ouverte, UAT preview pending)
-Resume file: .planning/phases/03.1-efficience-saisie-modal-course/03.1-VERIFICATION.md
+Last session: 2026-05-13T05:11:42.713Z
+Stopped at: Phase 04 UI-SPEC approved (6/6 PASS), ready for plan-phase
+Resume file: .planning/phases/04-e2e-passe2-pwa-tarif/04-UI-SPEC.md
 Next command suggested: `/gsd-progress (Phase 03.1 shipped, PR #39 — UAT 4 tests pending preview Vercel)`
 
 ## Ingest Runs
