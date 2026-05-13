@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: "Between phases — attendre UAT preview puis merge PR #39, puis discuss Phase 04"
-stopped_at: Phase 04 context gathered (assumptions mode + dirigeant meta brief)
-last_updated: "2026-05-13T04:58:51.231Z"
+stopped_at: Phase 04 UI-SPEC approved (6/6 PASS), ready for plan-phase
+last_updated: "2026-05-13T05:11:42.733Z"
 last_activity: 2026-05-12 — Phase 03.1 shipped via GSD pipeline (discuss → ui → plan → execute → verify → ship)
 progress:
   total_phases: 11
@@ -135,9 +135,9 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-05-13T04:58:51.210Z
-Stopped at: Phase 04 context gathered (assumptions mode + dirigeant meta brief)
-Resume file: .planning/phases/04-e2e-passe2-pwa-tarif/04-CONTEXT.md
+Last session: 2026-05-13T05:11:42.713Z
+Stopped at: Phase 04 UI-SPEC approved (6/6 PASS), ready for plan-phase
+Resume file: .planning/phases/04-e2e-passe2-pwa-tarif/04-UI-SPEC.md
 Next command suggested: `/gsd-progress (Phase 03.1 shipped, PR #39 — UAT 4 tests pending preview Vercel)`
 
 ## Ingest Runs
