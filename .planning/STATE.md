@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: milestone
 status: planning
 stopped_at: Phase 04 plan-phase complete (5 plans W0..W4 APPROVED 10/10, 3 FLAGs patched)
-last_updated: "2026-05-13T06:11:33.005Z"
+last_updated: "2026-05-13T07:18:34.009Z"
 last_activity: 2026-05-13 — Refonte planning E2E (DEC-023 + DEC-021) après revue critique du périmètre Phase 04 (17-25h god-phase) face à ADR-003 pivot E2E
 progress:
   total_phases: 14
   completed_phases: 4
   total_plans: 23
-  completed_plans: 25
+  completed_plans: 29
   percent: 100
 ---
 
@@ -30,7 +30,7 @@ Phase next: Phase 04 redéfinie onboarding-only (workflow invitation chauffeur +
 Status: Between phases — refonte planning à merger puis `/gsd-discuss-phase 04` avec nouveau périmètre
 Last activity: 2026-05-13 — Refonte planning E2E (DEC-023 + DEC-021) après revue critique du périmètre Phase 04 (17-25h god-phase) face à ADR-003 pivot E2E
 
-Progress: [████████░░░░░░] 50 % (7 phases livrées sur 14 phases V1 après insertions)
+Progress: [██████████] 100%
 
 Phases livrées :
 
@@ -76,6 +76,7 @@ Phases à venir (après refonte DEC-023) :
 **Recent Trend:** Phase 03.1 = première donnée vélocité GSD. Phase 04 PWA permettra calibration.
 
 *Updated after each plan completion.*
+| Phase 04 P4 | ~50min | 9 tasks | 19 files |
 
 ## Accumulated Context
 
@@ -98,6 +99,8 @@ Décisions affectant le travail courant :
 
 - Phase 03.1 (close) : D-A2 smart defaults, D-A3 chips date, D-B3 banner doublon, D-SEED 5 sources alignées
 - Phase 04 (next) : DEC-007 (chiffrement NIR si carry-over PWA), DEC-008 (consentement SMS — préparation Passe 3), DEC-013 (couverture pricing 100%), DEC-014 (PWA hors-ligne)
+- [Phase ?]: PLAN-4 Route Handler deplace /accept-invite/verify (Rule 3 Next.js page+route conflict)
+- [Phase ?]: PLAN-4 Toaster Sonner monte au layout racine (Rule 3 coverage auth/driver)
 
 ### NFR (Non-Functional Requirements transverses)
 
@@ -140,9 +143,9 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-05-13T06:11:32.981Z
+Last session: 2026-05-13T07:18:19.354Z
 Stopped at: Phase 04 plan-phase complete (5 plans W0..W4 APPROVED 10/10, 3 FLAGs patched)
-Resume file: .planning/phases/04-onboarding-chauffeur-authshell/PLAN-1.md
+Resume file: None
 Next command suggested: `/gsd-discuss-phase 04` (nouveau périmètre onboarding-only après refonte DEC-023)
 
 ## Ingest Runs
