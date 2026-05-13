@@ -98,7 +98,10 @@ export function VehiclesList({ initialVehicles }: Props): JSX.Element {
           {initialVehicles.map((v) => {
             const Icon = TYPE_ICONS[v.type];
             return (
-              <li key={v.id}>
+              // Clé inclut `actif` pour forcer le re-mount au changement
+              // de l'état actif (toggle via formulaire). Pas `archive` ici :
+              // page.tsx ne fetch que les véhicules non-archivés (DEC-033).
+              <li key={`${v.id}-${v.actif}`}>
                 <button
                   type="button"
                   onClick={() => setMode({ kind: 'edit', vehicle: v })}

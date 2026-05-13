@@ -79,7 +79,11 @@ function RideCluster({
       <h2 className="text-sm font-medium text-muted-foreground">{label}</h2>
       <ul className="space-y-16" aria-label={`Courses ${label.toLowerCase()}`}>
         {rides.map((r) => (
-          <li key={r.id}>
+          // Clé inclut `status` pour forcer le re-mount de RideCard et son
+          // arbre client (RideActions) au changement de statut, sinon
+          // router.refresh() repeuple le RSC mais le composant client
+          // reste figé sur l'ancien bouton (Phase 03.2 #4 + DEC-033).
+          <li key={`${r.id}-${r.status}`}>
             <RideCard ride={r} />
           </li>
         ))}
