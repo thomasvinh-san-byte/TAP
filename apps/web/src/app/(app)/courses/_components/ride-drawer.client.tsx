@@ -5,6 +5,13 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ArrowDown, MapPin, Navigation, Trash2 } from 'lucide-react';
 import {
+  computeCgssShortTrip,
+  type TransportMode,
+  type Urgency,
+} from '@tap/pricing';
+import { PricingBreakdown } from './pricing-breakdown.client';
+import { OverrideTarifModal } from './override-tarif-modal.client';
+import {
   Sheet,
   SheetContent,
   SheetHeader,
@@ -54,6 +61,7 @@ export function RideDrawer({
   const { dispatch } = useRideOrchestrator();
   const [payOpen, setPayOpen] = React.useState(false);
   const [cancelOpen, setCancelOpen] = React.useState(false);
+  const [overrideOpen, setOverrideOpen] = React.useState(false);
   const [pending, setPending] = React.useState(false);
 
   const rideQuery = useQuery({
@@ -265,8 +273,29 @@ export function RideDrawer({
             )}
 
             {ride.status === 'terminee' && (
-              <section className="space-y-8">
+              <section className="space-y-12">
                 <SectionTitle>Paiement</SectionTitle>
+                <PricingBreakdown
+                  pricing={computeCgssShortTrip({
+                    pickup_lat:
+                      (ride as { pickup_lat?: number | null }).pickup_lat ??
+                      null,
+                    pickup_lng:
+                      (ride as { pickup_lng?: number | null }).pickup_lng ??
+                      null,
+                    dropoff_lat:
+                      (ride as { dropoff_lat?: number | null }).dropoff_lat ??
+                      null,
+                    dropoff_lng:
+                      (ride as { dropoff_lng?: number | null }).dropoff_lng ??
+                      null,
+                    scheduled_at: ride.scheduled_at,
+                    transport_mode: ride.transport_mode as TransportMode,
+                    urgency: ride.urgency as Urgency,
+                  })}
+                  editable
+                  onOverride={() => setOverrideOpen(true)}
+                />
                 <div className="flex items-center justify-between gap-12">
                   <PaymentBadge
                     status={ride.payment_status}
@@ -303,6 +332,17 @@ export function RideDrawer({
             open={payOpen}
             onOpenChange={setPayOpen}
             onDone={() => void invalidate()}
+          />
+        )}
+
+        {ride && ride.status === 'terminee' && (
+          <OverrideTarifModal
+            open={overrideOpen}
+            onOpenChange={setOverrideOpen}
+            rideId={ride.id}
+            currentTarifEur={Number(ride.tarif_amount_eur ?? 0)}
+            pricingSource={(ride as { tarif_source?: string | null }).tarif_source ?? null}
+            onSuccess={() => void invalidate()}
           />
         )}
         {ride && (
