@@ -9,9 +9,13 @@
  *   profile_id → vérif statut courant → UPDATE → revalidatePath.
  *
  * Sécurité :
- *   - RLS Postgres (rides_update policy Phase 2) autorise tout authentifié
- *     same-org à UPDATE rides — le filtre par chauffeur est applicatif ici
- *     (un chauffeur ne peut toucher qu'à SES courses). Defense in depth.
+ *   - RLS Postgres : policy rides_update_chauffeur_own_rides (migration
+ *     20260516000003) autorise UPDATE si role=chauffeur ET driver_id ∈ mes
+ *     drivers (profile_id = auth.uid()). USING + WITH CHECK identiques
+ *     empêchent transfert via UPDATE driver_id.
+ *   - Pattern DEC-041 (row count check) : on .select('id') sur l'UPDATE et
+ *     on vérifie data.length > 0 — sinon RLS a silencieusement rejeté
+ *     l'UPDATE et on retourne erreur explicite au lieu d'un faux success.
  *   - Vérif statut courant avant UPDATE (« on n'écrase pas une course
  *     déjà clôturée par mégarde »).
  *   - Trigger rides_audit_trigger Phase 2 capture toutes les transitions
@@ -106,11 +110,18 @@ export async function startRideAction(rideId: string): Promise<ActionState> {
     started_at: new Date().toISOString(),
     updated_by: ctx.userId,
   };
-  const { error } = await ctx.supabase
+  const { data: updated, error } = await ctx.supabase
     .from('rides')
     .update(update as never)
-    .eq('id', parsed.data);
+    .eq('id', parsed.data)
+    .select('id');
   if (error) return { error: 'Démarrage course impossible.' };
+  if (!updated || updated.length === 0) {
+    return {
+      error:
+        'Course non modifiée — vérifiez que vous êtes bien le chauffeur assigné.',
+    };
+  }
 
   revalidatePath('/conduite');
   return { success: true, id: parsed.data };
@@ -196,11 +207,18 @@ export async function endRideAction(
     update.payment_received_at = nowIso;
   }
 
-  const { error } = await ctx.supabase
+  const { data: updated, error } = await ctx.supabase
     .from('rides')
     .update(update as never)
-    .eq('id', parsed.data.rideId);
+    .eq('id', parsed.data.rideId)
+    .select('id');
   if (error) return { error: 'Clôture course impossible.' };
+  if (!updated || updated.length === 0) {
+    return {
+      error:
+        'Course non modifiée — vérifiez que vous êtes bien le chauffeur assigné.',
+    };
+  }
 
   revalidatePath('/conduite');
   return { success: true, id: parsed.data.rideId };
