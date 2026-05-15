@@ -22,6 +22,7 @@ import { DraftQueue } from './courses/_components/draft-queue.client';
 const BASE_TABS = [
   { href: '/patients', label: 'Patients' },
   { href: '/courses', label: 'Courses' },
+  { href: '/courses/caisse', label: 'Caisse' },
 ];
 
 const ADMIN_TABS = [...BASE_TABS, { href: '/admin/chauffeurs', label: 'Chauffeurs' }];
