@@ -409,6 +409,39 @@ ORDER BY version DESC;
   - `apps/web/src/app/(driver)/conduite/actions.ts` (startRide ✓ Phase 04.5, endRide ✓ Phase 04.5 — reste : éventuelles actions futures)
   - Inventaire exhaustif à compiler via `grep -rn "'use server'" apps/web/src/`
 
+### Dette CI rouge constante sur main (Lint + Tests unitaires + pgTAP) — depuis ≥ PR #75
+
+Diagnostic réalisé Phase 04.5 Wave B (PR #76, 2026-05-15). Trois jobs CI échouent systématiquement sur main et sur toutes les PRs récentes, dont PR #75 (docs-only) déjà mergée. Reproduit local sur checkout `origin/main` propre. Aucun lien avec les diffs des PR concernées — ce sont des dettes d'environnement / lockfile pré-existantes.
+
+**D1 — Lint cassé sur `@tap/database` et `@tap/shared`**
+
+- Symptôme : `ESLint couldn't find an eslint.config.(js|mjs|cjs) file.`
+- Cause : ESLint 10.x (livré par la résolution du lockfile) a abandonné `.eslintrc.*`. Les 2 packages ont vraisemblablement encore des `.eslintrc.json` au lieu d'un `eslint.config.js` (format flat config).
+- `apps/web` lint passe (Next.js a son propre wrapper).
+- Fix attendu : (a) downgrade ESLint à 9.x explicite via `package.json` racine, OU (b) migrer les 2 packages vers `eslint.config.js` flat config.
+
+**D2 — Test `siretSchema` rejette SIRET Carrefour 40483304800010**
+
+- Fichier : `packages/shared/src/validators/__tests__/common.test.ts:34`
+- Test : `expect(siretSchema.parse('40483304800010')).toBe('40483304800010')`
+- Symptôme : Zod throw `SIRET invalide (échec contrôle Luhn).`
+- Cause probable : (a) le contrôle Luhn dans `siretSchema` est trop strict (devrait peut-être autoriser certains SIRET historiques INSEE qui ne passent pas Luhn classique — La Poste / Carrefour SIRET siège), OU (b) le SIRET de référence du test est incorrect (Carrefour SA siège = `40483304800022` selon Sirene).
+- Fix attendu : changer le SIRET de référence vers un Luhn-valide (ex : `73282932000074` Google France) OU adapter le validateur si on veut accepter les SIRET INSEE non-Luhn.
+
+**D3 — Job `Tests RLS pgTAP` échec env**
+
+- Affecté : toutes les PRs récentes y compris docs-only PR #75.
+- Logs non lisibles sans auth GitHub Actions (sandbox).
+- Cause probable : drift de `supabase/setup-cli@v1 version: latest` — la dernière CLI Supabase peut avoir cassé `supabase db start` ou `supabase test db` (image Postgres, dépendance Docker compose, etc.).
+- Fix attendu : pinner la version de `supabase/setup-cli` à une version connue verte (ex : `2.31.x`), OU reproduire localement avec Docker activé et corriger la cause.
+
+**Conséquence verrou V6 (Phase 04.5 « attendre CD vert avant merge »)** : les PRs récentes ont été mergées malgré ces 3 dettes (précédent PR #75). Décision Phase 04.5 : merge PR #76 sur ce même précédent, ces 3 dettes sont traitées en PR séparée hors scope Wave B.
+
+**Phase de résolution** : à programmer rapidement — Phase 04.7 ou tech-debt-PR dédiée avant Wave C. Verrou bloquant pour le sérieux du pipeline.
+
+---
+
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — D1/D2/D3 dettes CI rouge main ajoutées 2026-05-15 (Wave B B.1)*
 ### Dettes CI V1.5 — stratégie acceptée 2026-05-15
 
 Stratégie inscrite VISION.md « Stratégie CI/qualité V1.5 → V3 ».
