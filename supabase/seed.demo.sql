@@ -294,15 +294,36 @@ begin
   -- pour permettre le ré-application CD avec dates relatives ré-évaluées
   -- (now() recalculé à chaque seed run). WARNING : écrase modifications
   -- manuelles régulateur sur ces rides démo uniquement.
+  -- DEC-039-bis (hotfix 2026-05-15) : reset EXHAUSTIF de toutes les
+  -- colonnes runtime-mutables pour éviter l'état hybride seed+UAT qui
+  -- violait rides_ended_after_started après démarrage/clôture manuelle.
   on conflict (id) do update set
+    -- Contexte course
     scheduled_at = excluded.scheduled_at,
-    started_at = excluded.started_at,
-    ended_at = excluded.ended_at,
     created_at = excluded.created_at,
-    status = excluded.status,
     pickup_address = excluded.pickup_address,
     dropoff_address = excluded.dropoff_address,
-    cancel_motif = excluded.cancel_motif;
+    transport_mode = excluded.transport_mode,
+    urgency = excluded.urgency,
+    driver_id = excluded.driver_id,
+    vehicle_id = excluded.vehicle_id,
+    -- Workflow runtime
+    status = excluded.status,
+    started_at = excluded.started_at,
+    ended_at = excluded.ended_at,
+    -- Tarif runtime
+    tarif_amount_eur = excluded.tarif_amount_eur,
+    tarif_source = excluded.tarif_source,
+    -- Paiement runtime (réinit aux défauts table)
+    payment_status = 'non_concerne',
+    payment_method = null,
+    payment_received_at = null,
+    -- Archive runtime (réinit défaut)
+    archive = false,
+    -- Annulation runtime
+    cancel_motif = excluded.cancel_motif,
+    -- Notes runtime (réinit null)
+    notes_regulateur = null;
 
   -- 4 courses du jour (J0) — mix assignee / en_cours / validee (non affectée)
   insert into public.rides (
@@ -347,14 +368,40 @@ begin
      'validee', 'taxi_conventionne', 'programmee',
      null, 'manuel',
      now() - interval '30 minutes', regulateur_id, regulateur_id)
-  -- DEC-039 : seed glissant — DO UPDATE pour bloc J0 rides démo
+  -- DEC-039 : seed glissant — DO UPDATE pour bloc J0 rides démo.
+  -- DEC-039-bis (hotfix 2026-05-15) : reset EXHAUSTIF — colonnes
+  -- absentes de l'INSERT (ended_at, tarif_amount_eur, cancel_motif,
+  -- payment_*) explicitement remises à leurs défauts table pour
+  -- corriger l'état hybride post-UAT qui violait
+  -- rides_ended_after_started.
   on conflict (id) do update set
+    -- Contexte course
     scheduled_at = excluded.scheduled_at,
-    started_at = excluded.started_at,
     created_at = excluded.created_at,
-    status = excluded.status,
     pickup_address = excluded.pickup_address,
-    dropoff_address = excluded.dropoff_address;
+    dropoff_address = excluded.dropoff_address,
+    transport_mode = excluded.transport_mode,
+    urgency = excluded.urgency,
+    driver_id = excluded.driver_id,
+    vehicle_id = excluded.vehicle_id,
+    -- Workflow runtime
+    status = excluded.status,
+    started_at = excluded.started_at,
+    ended_at = null,
+    -- Tarif runtime (réinit défauts — INSERT ne fournit pas
+    -- tarif_amount_eur pour les rides J0 non terminées)
+    tarif_amount_eur = null,
+    tarif_source = excluded.tarif_source,
+    -- Paiement runtime (réinit défauts table)
+    payment_status = 'non_concerne',
+    payment_method = null,
+    payment_received_at = null,
+    -- Archive runtime (réinit défaut)
+    archive = false,
+    -- Annulation runtime (J0 jamais annulée par seed)
+    cancel_motif = null,
+    -- Notes runtime
+    notes_regulateur = null;
 
   -- 3 courses J+1 — préparation journée suivante (mix assignee / validee)
   insert into public.rides (
@@ -386,15 +433,202 @@ begin
      date_trunc('day', now()) + interval '1 day' + interval '7 hours',
      'validee', 'taxi_conventionne', 'programmee',
      'manuel', now() - interval '6 hours', regulateur_id, regulateur_id)
-  -- DEC-039 : seed glissant — DO UPDATE pour bloc J+1 rides démo
+  -- DEC-039 : seed glissant — DO UPDATE pour bloc J+1 rides démo.
+  -- DEC-039-bis (hotfix 2026-05-15) : reset EXHAUSTIF — les rides
+  -- J+1 sont seedées en 'assignee'/'validee' sans started_at ni
+  -- ended_at ; reset forcé à null pour éviter état hybride
+  -- post-UAT.
   on conflict (id) do update set
+    -- Contexte course
     scheduled_at = excluded.scheduled_at,
     created_at = excluded.created_at,
-    status = excluded.status,
     pickup_address = excluded.pickup_address,
-    dropoff_address = excluded.dropoff_address;
+    dropoff_address = excluded.dropoff_address,
+    transport_mode = excluded.transport_mode,
+    urgency = excluded.urgency,
+    driver_id = excluded.driver_id,
+    vehicle_id = excluded.vehicle_id,
+    -- Workflow runtime (réinit complet — J+1 jamais démarrée par seed)
+    status = excluded.status,
+    started_at = null,
+    ended_at = null,
+    -- Tarif runtime (réinit défauts)
+    tarif_amount_eur = null,
+    tarif_source = excluded.tarif_source,
+    -- Paiement runtime (réinit défauts table)
+    payment_status = 'non_concerne',
+    payment_method = null,
+    payment_received_at = null,
+    -- Archive runtime (réinit défaut)
+    archive = false,
+    -- Annulation runtime
+    cancel_motif = null,
+    -- Notes runtime
+    notes_regulateur = null;
 
   raise notice 'Seed démo : 12 courses fictives créées (5 historiques + 4 jour + 3 J+1)';
+end $$;
+
+-- -----------------------------------------------------------------------------
+-- 30 POI métier (lieux fréquents 974) — PLAN-3 Phase 04.5
+-- -----------------------------------------------------------------------------
+-- Source : noms/adresses publics des établissements de santé La Réunion
+-- (CHU, cliniques, EHPAD, centres dialyse, cabinets, imagerie, laboratoires).
+-- IDs préfixés `66666666-` pour repérage immédiat lors de purges démo.
+-- ON CONFLICT (id) DO UPDATE : pattern DEC-039 idempotent — le reseed
+-- met à jour adresse / téléphone si modifié dans le repo, sans dupliquer.
+-- -----------------------------------------------------------------------------
+
+do $$
+declare
+  org_id uuid := '00000000-0000-0000-0000-000000000001';
+begin
+  insert into public.pois_metier (
+    id, organization_id, nom_court, nom_long, type_poi,
+    adresse, code_postal, ville, telephone, notes_acces, actif
+  ) values
+    -- CHU / hôpitaux
+    ('66666666-0000-0000-0000-000000000001', org_id,
+     'CHU Félix Guyon', 'Centre Hospitalier Universitaire de La Réunion — site Félix Guyon',
+     'hopital', 'Allée des Topazes, Bellepierre', '97400', 'Saint-Denis',
+     '0262905050', 'Entrée urgences à gauche du bâtiment principal.', true),
+    ('66666666-0000-0000-0000-000000000002', org_id,
+     'CHU Sud Saint-Pierre', 'Centre Hospitalier Universitaire de La Réunion — site Sud',
+     'hopital', 'Avenue du Président Mitterrand, Terre-Sainte', '97410', 'Saint-Pierre',
+     '0262359000', 'Parking dépose-minute devant l''accueil principal.', true),
+    ('66666666-0000-0000-0000-000000000003', org_id,
+     'GHER Saint-Benoît', 'Groupe Hospitalier Est Réunion',
+     'hopital', 'Rue de l''Amiral Lacaze', '97470', 'Saint-Benoît',
+     '0262988585', 'Accès consultations externes côté rue Lacaze.', true),
+    ('66666666-0000-0000-0000-000000000004', org_id,
+     'CH Gabriel Martin', 'Centre Hospitalier Gabriel Martin Saint-Paul',
+     'hopital', 'Route du Théâtre, Saint-Paul', '97460', 'Saint-Paul',
+     '0262458282', 'Parking visiteurs au niveau -1.', true),
+    -- Cliniques
+    ('66666666-0000-0000-0000-000000000005', org_id,
+     'Clinique Saint-Vincent', 'Clinique Saint-Vincent Saint-Denis',
+     'clinique', '60 Rue Bertin', '97400', 'Saint-Denis',
+     '0262907777', 'Dépose-minute autorisée 10 min devant l''entrée.', true),
+    ('66666666-0000-0000-0000-000000000006', org_id,
+     'Clinique Sainte-Clotilde', 'Clinique Sainte-Clotilde',
+     'clinique', '127 Route de Bois-de-Nèfles', '97490', 'Saint-Denis',
+     '0262487777', 'Accès urgences à l''arrière du bâtiment.', true),
+    ('66666666-0000-0000-0000-000000000007', org_id,
+     'Clinique Jeanne d''Arc', 'Clinique Jeanne d''Arc Le Port',
+     'clinique', '12 Rue Jeanne d''Arc', '97420', 'Le Port',
+     '0262423333', 'Parking gratuit côté nord.', true),
+    -- Centres dialyse
+    ('66666666-0000-0000-0000-000000000008', org_id,
+     'Dialyse Nord Sainte-Marie', 'Centre de dialyse AURAR Sainte-Marie',
+     'centre_dialyse', 'Route nationale 2, Duparc', '97438', 'Sainte-Marie',
+     '0262538080', 'Accueil dialyse de 6h à 23h, 3 séances/jour.', true),
+    ('66666666-0000-0000-0000-000000000009', org_id,
+     'Dialyse Sud Le Tampon', 'Centre de dialyse AURAR Le Tampon',
+     'centre_dialyse', '85 Rue Hubert Delisle', '97430', 'Le Tampon',
+     '0262278080', 'Parking PMR devant l''entrée.', true),
+    ('66666666-0000-0000-0000-000000000010', org_id,
+     'Dialyse Saint-Paul', 'Centre de dialyse Saint-Paul',
+     'centre_dialyse', 'Avenue de Bourbon', '97460', 'Saint-Paul',
+     '0262458080', 'Entrée patients sur le côté du bâtiment.', true),
+    -- EHPAD (5)
+    ('66666666-0000-0000-0000-000000000011', org_id,
+     'EHPAD Les Lataniers', 'EHPAD Les Lataniers La Possession',
+     'ehpad', 'Route de Sainte-Thérèse', '97419', 'La Possession',
+     '0262221122', 'Sonner à l''interphone, accueil 7h-19h.', true),
+    ('66666666-0000-0000-0000-000000000012', org_id,
+     'EHPAD Les Mascareignes', 'EHPAD Les Mascareignes Le Tampon',
+     'ehpad', '14 Rue des Mascareignes', '97430', 'Le Tampon',
+     '0262271133', 'Parking visiteurs limité, dépose-minute conseillée.', true),
+    ('66666666-0000-0000-0000-000000000013', org_id,
+     'EHPAD Albert Barbot', 'EHPAD Albert Barbot Saint-Denis',
+     'ehpad', '5 Rue Albert Barbot', '97400', 'Saint-Denis',
+     '0262901144', 'Sonner interphone, demander unité Alzheimer si patient atteint.', true),
+    ('66666666-0000-0000-0000-000000000014', org_id,
+     'EHPAD Les Alizés', 'EHPAD Les Alizés Saint-Pierre',
+     'ehpad', '30 Boulevard Hubert Delisle', '97410', 'Saint-Pierre',
+     '0262351155', 'Accueil 8h-18h, dépose-minute autorisée.', true),
+    ('66666666-0000-0000-0000-000000000015', org_id,
+     'EHPAD Les Tamarins', 'EHPAD Les Tamarins Sainte-Suzanne',
+     'ehpad', 'Route du Cimetière', '97441', 'Sainte-Suzanne',
+     '0262521166', 'Parking PMR à droite de l''entrée principale.', true),
+    -- Cabinets kiné (3)
+    ('66666666-0000-0000-0000-000000000016', org_id,
+     'Cabinet kiné Saint-Denis Centre', 'Cabinet de kinésithérapie 8 Rue Pasteur',
+     'cabinet_kine', '8 Rue Pasteur', '97400', 'Saint-Denis',
+     '0262202211', 'RDV uniquement, sonner interphone B.', true),
+    ('66666666-0000-0000-0000-000000000017', org_id,
+     'Cabinet kiné Saint-Pierre', 'Cabinet de kinésithérapie Boulevard Hubert Delisle',
+     'cabinet_kine', '22 Boulevard Hubert Delisle', '97410', 'Saint-Pierre',
+     '0262352211', 'Parking 5 min devant l''immeuble.', true),
+    ('66666666-0000-0000-0000-000000000018', org_id,
+     'Cabinet kiné Saint-Paul', 'Cabinet de kinésithérapie Front de mer',
+     'cabinet_kine', '5 Rue de la Compagnie des Indes', '97460', 'Saint-Paul',
+     '0262452211', 'Au 1er étage, ascenseur à droite.', true),
+    -- Cabinets ophtalmo (2)
+    ('66666666-0000-0000-0000-000000000019', org_id,
+     'Cabinet ophtalmo Saint-Denis', 'Cabinet ophtalmologie centre-ville',
+     'cabinet_medical', '14 Rue Jean Chatel', '97400', 'Saint-Denis',
+     '0262203322', 'RDV uniquement, salle d''attente 1er étage.', true),
+    ('66666666-0000-0000-0000-000000000020', org_id,
+     'Cabinet ophtalmo Saint-Pierre', 'Cabinet ophtalmologie Saint-Pierre',
+     'cabinet_medical', '7 Rue des Bons-Enfants', '97410', 'Saint-Pierre',
+     '0262353322', 'Parking visiteurs gratuit 1h.', true),
+    -- Cabinets dentaires (2)
+    ('66666666-0000-0000-0000-000000000021', org_id,
+     'Cabinet dentaire Saint-Denis', 'Cabinet dentaire Centre-ville',
+     'cabinet_medical', '32 Rue de Paris', '97400', 'Saint-Denis',
+     '0262204433', 'Au 2e étage, ascenseur disponible.', true),
+    ('66666666-0000-0000-0000-000000000022', org_id,
+     'Cabinet dentaire Le Tampon', 'Cabinet dentaire Hubert Delisle',
+     'cabinet_medical', '88 Rue Hubert Delisle', '97430', 'Le Tampon',
+     '0262274433', 'Parking visiteurs 30 min.', true),
+    -- Médecine générale (3)
+    ('66666666-0000-0000-0000-000000000023', org_id,
+     'Cabinet médecine Saint-Denis Bellepierre', 'Cabinet de médecine générale Bellepierre',
+     'cabinet_medical', 'Allée des Topazes', '97400', 'Saint-Denis',
+     '0262205544', 'Salle d''attente 1er étage, sans rendez-vous matin.', true),
+    ('66666666-0000-0000-0000-000000000024', org_id,
+     'Cabinet médecine Saint-Pierre', 'Cabinet de médecine générale Saint-Pierre',
+     'cabinet_medical', '45 Rue François de Mahy', '97410', 'Saint-Pierre',
+     '0262355544', 'Parking devant le cabinet, RDV uniquement.', true),
+    ('66666666-0000-0000-0000-000000000025', org_id,
+     'Cabinet médecine Le Tampon', 'Cabinet de médecine générale Le Tampon',
+     'cabinet_medical', '120 Rue Hubert Delisle', '97430', 'Le Tampon',
+     '0262275544', 'Sonner interphone porte A.', true),
+    -- Imagerie / labo (3)
+    ('66666666-0000-0000-0000-000000000026', org_id,
+     'Centre imagerie Saint-Denis', 'Centre imagerie médicale Saint-Denis',
+     'centre_imagerie', '18 Rue Labourdonnais', '97400', 'Saint-Denis',
+     '0262206655', 'Parking sous-sol payant 1h offerte.', true),
+    ('66666666-0000-0000-0000-000000000027', org_id,
+     'Labo Réunion Bio Saint-Pierre', 'Laboratoire Réunion Bio Saint-Pierre',
+     'laboratoire', '11 Rue Augustin Archambaud', '97410', 'Saint-Pierre',
+     '0262357766', 'Prélèvements 6h30-12h, accueil debout.', true),
+    ('66666666-0000-0000-0000-000000000028', org_id,
+     'Centre radio Saint-Paul', 'Centre de radiologie Saint-Paul',
+     'centre_imagerie', '8 Rue de la Mairie', '97460', 'Saint-Paul',
+     '0262456655', 'Parking visiteurs gratuit 2h.', true),
+    -- Foyer médicalisé + pharmacie (2)
+    ('66666666-0000-0000-0000-000000000029', org_id,
+     'Foyer Les Hibiscus', 'Foyer d''accueil médicalisé Les Hibiscus Saint-Joseph',
+     'foyer_medicalise', 'Route de la Plaine', '97480', 'Saint-Joseph',
+     '0262567788', 'Accueil 8h-18h, sonner interphone bâtiment B.', true),
+    ('66666666-0000-0000-0000-000000000030', org_id,
+     'Pharmacie de l''Océan', 'Pharmacie de l''Océan Sainte-Marie',
+     'pharmacie', '12 Rue de l''Océan', '97438', 'Sainte-Marie',
+     '0262538899', 'Place handicapée devant la vitrine.', true)
+  on conflict (id) do update set
+    nom_court = excluded.nom_court,
+    nom_long = excluded.nom_long,
+    type_poi = excluded.type_poi,
+    adresse = excluded.adresse,
+    code_postal = excluded.code_postal,
+    ville = excluded.ville,
+    telephone = excluded.telephone,
+    notes_acces = excluded.notes_acces,
+    actif = excluded.actif;
+
+  raise notice 'Seed démo : 30 POI métier créés/mis à jour (organization_id=%)', org_id;
 end $$;
 
 -- -----------------------------------------------------------------------------

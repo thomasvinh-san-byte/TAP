@@ -515,6 +515,96 @@ Les 3 dettes ci-dessous restent ROUGES sur la CI jusqu'à Phase 06 HDS. Document
 
 Phase 04.5 Wave B.2..D continueront avec cette baseline.
 
+### Validation NIR — strict vs format (2026-05-15)
+
+Hotfix UX post-PR #83 : l'UAT a révélé que la validation stricte de la clé contrôle INSEE bloque la démo (impossible de saisir un NIR fictif sans calculer la vraie clé à la main). Décision dirigeant : conserver le code de validation INSEE mais le désactiver par défaut, activable via env var pour la production.
+
+Le formulaire patient supporte 2 modes de validation NIR :
+
+- **Format only (défaut, démo)** : 15 chiffres + structure INSEE (sexe ∈ {1,2}, mois 01-12, département 2 chiffres ou 2A/2B, commune + ordre + clé en chiffres) mais clé contrôle non vérifiée. Suffisant pour démo design partner.
+
+- **Strict (production)** : tout ce qui précède + calcul clé contrôle INSEE (`97 − N mod 97`). Activé via env var `NEXT_PUBLIC_NIR_CHECKSUM_STRICT=true`.
+
+L'algorithme INSEE et ses tests unitaires sont livrés en permanence (PR #80 + PR #83), seule l'activation au runtime change via env var. Côté code : `nirFormatSchema`, `nirChecksumSchema` et `nirFieldSchema` (sélection runtime) exportés depuis `@tap/shared`.
+
+À l'arrivée en production réelle :
+1. Activer `NEXT_PUBLIC_NIR_CHECKSUM_STRICT=true` sur Vercel
+2. Redéployer
+3. Vérifier la preview de l'environnement strict (test E2E `S6ter` skip → run en strict)
+
+Pas de modification code requise au passage prod.
+
+**Vercel preview courant** : `NEXT_PUBLIC_NIR_CHECKSUM_STRICT=false` (ou non défini, défaut équivalent). Demo design partner débloquée.
+
+### NIR Edge Function chiffrement 401 — diagnostic Phase 06
+
+**Symptôme** : l'Edge Function `nir` (chiffrement AES-256-GCM + hash recherche HMAC-SHA256, Phase 1.5) répond `401 Unauthorized` sur tous les appels POST depuis les Server Actions `createPatient` / `updatePatient`. Le NIR ne peut donc pas être chiffré lors de la création/édition patient.
+
+**Diagnostic 2026-05-15** (lecture seule MCP, conforme DEC-032) :
+
+- Edge Function `nir` ACTIVE — `slug=nir`, `status=ACTIVE`, `version=3`
+- Logs `edge-function` : 401 systématiques sur tous les POST `/functions/v1/nir`
+- Auth API sain : `POST /auth/v1/token` 200 sur login, token refresh OK
+- Cause root probable côté Edge Function : `SUPABASE_URL` / `SUPABASE_ANON_KEY` env vars OU JWT chain Server Action → `supabase.functions.invoke()`
+
+**Hypothèses à creuser Phase 06** :
+
+- **H1** : env vars Edge Function pas configurées sur prod (`supabase secrets list nir`)
+- **H2** : `invoke()` côté Server Action passe `service_role` au lieu du JWT user — `createServerClient` utilise la clé anon, mais l'Edge Function attend peut-être un JWT user pour son `auth.uid()` ou `current_setting('request.jwt.claims')`
+- **H3** : Auth Edge Function header parsing buggé (regression Supabase CLI ou Functions runtime)
+
+**Workaround V1.5 ACCEPTÉ** :
+
+1. NIR rendu **optionnel** dans `patientSchema` (déjà le cas : `nir: nirFieldSchema.optional()`)
+2. Server Actions `createPatient` / `updatePatient` retournent un message d'erreur explicite et actionnable si le chiffrement échoue : *« Chiffrement NIR temporairement indisponible. Vous pouvez créer le patient sans NIR pour la démo, ou réessayer plus tard. »*
+3. La régulatrice peut créer un patient sans NIR. Le chiffrement reste **codé prêt** pour activation Phase 06
+4. Label UI : « NIR (optionnel en démo) » + helper text explicite
+
+**Action Phase 06 HDS** :
+
+- Reproduire en local avec `supabase functions serve nir` + appel curl avec JWT user récupéré via `supabase auth login`
+- Tester JWT chain `Server Action → invoke()` (logger les headers transmis depuis `supabase.functions.invoke('nir', {...})`)
+- Valider env vars Edge Function via `supabase secrets list` puis comparer avec `supabase/functions/nir/index.ts` (`Deno.env.get('SUPABASE_URL')`, etc.)
+- Estimation fix : **1-2 h**
+
+**Risque résiduel V1.5 démo** : les patients seedés démo ont `nir_encrypted = null` (cf. `seed.demo.sql`) — pas d'impact démo. Les patients réels créés en preview sans NIR auront aussi `nir_encrypted = null`, à compléter post-fix Phase 06 via une UI de mise à jour ciblée (ou re-saisie manuelle si le NIR n'a pas été conservé hors système).
+
+### Seed DEC-039 — ON CONFLICT DO UPDATE exhaustif (2026-05-15, leçon DEC-039-bis)
+
+**Issue** : le seed glissant DEC-039 (Wave A Phase 04.5) ne resetait pas TOUTES les colonnes runtime-mutables des rides au ré-application CD. Conséquence : après UAT manuelle (démarrer/clôturer une course), la ride avait un état hybride seed+runtime — `started_at=null` (reset par seed) mais `ended_at=2026-05-15 09:50:58` (PAS reset, oublié dans la liste DO UPDATE) — qui violait la contrainte CHECK `rides_ended_after_started` lors du seed suivant.
+
+**Symptôme observé** : CD GitHub Actions échec sur step « Application des migrations Supabase (production) » en 12-19 sec, message « new row for relation rides violates check constraint rides_ended_after_started ». 3 fails consécutifs sur 3 commits (`e3bb6d0`, `052c93c`, `fa50ae1`).
+
+**Diagnostic via Supabase MCP** (lecture seule, conforme DEC-032) :
+
+- Logs Postgres pointent la contrainte `rides_ended_after_started`
+- Ride `44444444-0000-0000-0000-000000000010` avait été démarrée + clôturée par le dirigeant lors de l'UAT du matin
+- Le seed visait `status='assignee', started_at=null, ended_at=null` mais seul `started_at` était dans la liste DO UPDATE — `ended_at` restait à la valeur de l'UAT
+- Recherche web (Crunchy Data, Vela, Supabase docs) confirme : les CHECK constraints sont évalués sur INSERT ET UPDATE — `ON CONFLICT DO UPDATE` doit lister TOUTES les colonnes mutables runtime pour vraie idempotence post-UAT
+
+**Fix** : élargir DO UPDATE des 3 blocs rides du seed (`supabase/seed.demo.sql`) pour reset exhaustivement TOUTES les colonnes runtime-mutables :
+
+- Contexte course : `scheduled_at`, `created_at`, `pickup_address`, `dropoff_address`, `transport_mode`, `urgency`, `driver_id`, `vehicle_id`
+- Workflow runtime : `status`, `started_at`, `ended_at`
+- Tarif runtime : `tarif_amount_eur`, `tarif_source`
+- Paiement runtime : `payment_status='non_concerne'`, `payment_method=null`, `payment_received_at=null`
+- Archive : `archive=false`
+- Annulation : `cancel_motif`
+- Notes : `notes_regulateur=null`
+
+Les colonnes absentes de la liste INSERT (ex : `ended_at` pour le bloc J0 qui seed des rides non démarrées) sont remises à leurs défauts table (`null` ou valeur fixe `'non_concerne'`/`false`) au lieu de `excluded.column`.
+
+**Leçon DEC-039-bis** : un seed idempotent qui touche des entités manipulées par les utilisateurs DOIT lister TOUTES les colonnes mutables dans son `ON CONFLICT DO UPDATE`. La liste partielle crée des états hybrides invalides vis-à-vis des contraintes cross-column (ici `rides_ended_after_started` = `ended_at IS NULL OR ended_at >= started_at`).
+
+**Mécanisme préventif** : à chaque ajout de colonne sur une table seedée, vérifier que le DO UPDATE du seed l'inclut. Test pgTAP `seed_demo_idempotent.sql` couvre désormais le cycle complet « seed initial → mutation UAT → re-seed exhaustif → état initial restauré » pour le bloc J0 (le bloc qui a déclenché le bug).
+
+**Tables potentiellement concernées par ce pattern** (à auditer Phase 06) :
+
+- `rides` ✅ corrigé hotfix DEC-039-bis
+- `patients` : vérifier que `seed.demo.sql` reset bien `archive`, `consentement_sms`, `notes_operationnelles`, etc. si patients démos sont mutés par UAT
+- `drivers` : vérifier que `actif`, `archive`, `archive_at` sont resetés
+- `pois_metier` (PR #84) : nouveau seed à auditer si UAT mutait `actif`
+
 ---
 
-*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15*
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15*

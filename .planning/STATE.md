@@ -6,6 +6,10 @@ status: Phase 04.5 livrée — démo design partner démontrable
 stopped_at: Phase 04.5 complete — ready Phase 04.7
 last_updated: "2026-05-15T09:35:00.000Z"
 last_activity: 2026-05-15 — Phase 04.5 clôturée, 11 PR mergées (#71 Discuss, #72 UI-SPEC, #73 Plans, #74 Wave A fix /conduite, #75 amendement T1.4, #76 Wave B.1 RLS chauffeur + DEC-041, #77 stratégie CI V1.5, #79 Wave B.2 E2E driver-workflow-complete, #80 Wave B.3 masques Zod + BAN, #81 Wave C.3 modal assign filtre, #82 Wave C.4 audit perms doc) + 2 PR en cours de merge (#83 Wave C.1 UI patient form, #84 Wave C.2 POI métier + AddressOrPOIPicker). Vélocité globale -73% (≈3h45 réel vs 14h estimé). Démo design partner démontrable (workflow chauffeur fonctionnel + masques RGPD + POI métier + filtre permis/véhicule). Items différés inscrits CONCERNS.md (T5.2 page audit-logs Phase 04.7, T5.3 + DEC-040 audit Server Actions legal Phase 06, D PLAN-6 découpes + refactor Phase 04.7+). Stratégie CI V1.5 maintenue (3 dettes pré-existantes reportées Phase 06 HDS).
+status: Phase 04.7 Discuss (checkpoint 1/5) — CD réparé, prêt /gsd-ui-phase 04.7
+stopped_at: Phase 04.7 Discuss approved + hotfix seed DEC-039-bis livré
+last_updated: "2026-05-15T11:00:00.000Z"
+last_activity: 2026-05-15 — Phase 04.7 Discuss livrée (PR #88, CONTEXT + DISCUSSION-LOG + audit codebase intelligent Tronc 4 caduc Tronc 3 simplifié, estimation révisée 4.5-7h / 1.5-2h réel). Hotfix seed DEC-039-bis (ON CONFLICT DO UPDATE exhaustif sur rides) — CD remis vert après 3 fails consécutifs liés à état hybride seed+UAT (violation rides_ended_after_started). Test pgTAP seed_demo_idempotent.sql ajouté pour prévenir récurrence. Prêt /gsd-ui-phase 04.7.
 progress:
   total_phases: 15
   completed_phases: 4
