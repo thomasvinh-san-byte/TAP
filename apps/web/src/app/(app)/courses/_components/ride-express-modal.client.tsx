@@ -17,7 +17,7 @@ import { useSmartDefaults } from './use-smart-defaults.client';
 import { useDuplicateCheck } from './use-duplicate-check.client';
 import { DuplicateBanner } from './duplicate-banner.client';
 import { PatientPickerField } from './ride-patient-picker.client';
-import { AddressPickerField } from './address-picker-field.client';
+import { AddressOrPOIPicker } from './address-or-poi-picker.client';
 import {
   DateTimeFields,
   ModeUrgencyFields,
@@ -214,7 +214,7 @@ export function RideExpressModal(props: Props): JSX.Element {
             error={fieldErrors.scheduled_at ?? null}
           />
 
-          <AddressPickerField
+          <AddressOrPOIPicker
             id="pickup"
             label="Adresse de prise en charge"
             ariaLabel="Adresse de prise en charge"
@@ -225,7 +225,7 @@ export function RideExpressModal(props: Props): JSX.Element {
             error={fieldErrors.pickup_address}
           />
 
-          <AddressPickerField
+          <AddressOrPOIPicker
             id="dropoff"
             label="Adresse de destination"
             ariaLabel="Adresse de destination"
