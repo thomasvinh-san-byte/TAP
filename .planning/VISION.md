@@ -54,6 +54,31 @@ rigoureuse. Mais à minimiser : Phase 03.2 (8 hotfixes) et Phase 04
 post-merge (5 hotfixes) ont révélé que c'est plus coûteux que cadrer
 en amont.
 
+## Politique d'abonnement PR et flux d'événements (2026-05-15)
+
+L'agent Claude Code ne s'abonne PAS automatiquement aux événements CI/Vercel/comments des PR ouvertes. Justification :
+
+- Le dirigeant reçoit déjà notifications GitHub par mail
+- Le pipeline GSD a un flux de checkpoints explicites (1/5 discuss → 2/5 UI → 3/5 plan → 4/5 execute → 5/5 verify)
+- Surveillance background consomme context sans valeur ajoutée
+- Risque de bruit sur dettes CI pré-existantes V1.5 documentées (Lint ESLint v10 / SIRET Carrefour / pgTAP env)
+
+**Comportement attendu de l'agent :**
+
+À NE PAS faire :
+- Abonnement automatique aux PR créées
+- Surveillance background des PR mergées
+- Signalement événements CI rouge sur dettes pré-existantes V1.5
+- Status updates non sollicités entre checkpoints GSD
+
+À faire :
+- Émettre checkpoint GSD explicite à chaque étape livrée
+- Signaler UNE FOIS quand l'agent ouvre une PR (numéro + URL)
+- Signaler UNE FOIS si CI échoue sur point NOUVEAU (pas V1.5 baseline)
+- Silence radio entre checkpoints
+
+Surveillance active possible sur demande explicite du dirigeant (genre migration BDD critique post-réparation CD).
+
 ## Métrique de succès business
 
 **À court terme** :
