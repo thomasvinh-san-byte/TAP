@@ -290,7 +290,19 @@ begin
      date_trunc('day', now() - interval '1 day') + interval '17 hours 50 minutes',
      32.00, 'manuel', null,
      now() - interval '1 day', regulateur_id, regulateur_id)
-  on conflict (id) do nothing;
+  -- DEC-039 : seed glissant — DO UPDATE limité aux rides démo 44444444-%
+  -- pour permettre le ré-application CD avec dates relatives ré-évaluées
+  -- (now() recalculé à chaque seed run). WARNING : écrase modifications
+  -- manuelles régulateur sur ces rides démo uniquement.
+  on conflict (id) do update set
+    scheduled_at = excluded.scheduled_at,
+    started_at = excluded.started_at,
+    ended_at = excluded.ended_at,
+    created_at = excluded.created_at,
+    status = excluded.status,
+    pickup_address = excluded.pickup_address,
+    dropoff_address = excluded.dropoff_address,
+    cancel_motif = excluded.cancel_motif;
 
   -- 4 courses du jour (J0) — mix assignee / en_cours / validee (non affectée)
   insert into public.rides (
@@ -335,7 +347,14 @@ begin
      'validee', 'taxi_conventionne', 'programmee',
      null, 'manuel',
      now() - interval '30 minutes', regulateur_id, regulateur_id)
-  on conflict (id) do nothing;
+  -- DEC-039 : seed glissant — DO UPDATE pour bloc J0 rides démo
+  on conflict (id) do update set
+    scheduled_at = excluded.scheduled_at,
+    started_at = excluded.started_at,
+    created_at = excluded.created_at,
+    status = excluded.status,
+    pickup_address = excluded.pickup_address,
+    dropoff_address = excluded.dropoff_address;
 
   -- 3 courses J+1 — préparation journée suivante (mix assignee / validee)
   insert into public.rides (
@@ -367,7 +386,13 @@ begin
      date_trunc('day', now()) + interval '1 day' + interval '7 hours',
      'validee', 'taxi_conventionne', 'programmee',
      'manuel', now() - interval '6 hours', regulateur_id, regulateur_id)
-  on conflict (id) do nothing;
+  -- DEC-039 : seed glissant — DO UPDATE pour bloc J+1 rides démo
+  on conflict (id) do update set
+    scheduled_at = excluded.scheduled_at,
+    created_at = excluded.created_at,
+    status = excluded.status,
+    pickup_address = excluded.pickup_address,
+    dropoff_address = excluded.dropoff_address;
 
   raise notice 'Seed démo : 12 courses fictives créées (5 historiques + 4 jour + 3 J+1)';
 end $$;

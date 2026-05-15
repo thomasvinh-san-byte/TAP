@@ -63,14 +63,30 @@ export type RideForDriverList = {
 type DriverIdRow = { id: string };
 
 async function resolveMyDriverId(ctx: AuthContext): Promise<string | null> {
-  const { data } = await ctx.supabase
+  const res = await ctx.supabase
     .from('drivers' as never)
     .select('id')
     .eq('profile_id', ctx.userId)
     .eq('organization_id', ctx.organizationId)
     .eq('archive', false)
     .maybeSingle();
-  return ((data as DriverIdRow | null) ?? null)?.id ?? null;
+
+  if (res.error) {
+    // Logging défensif pattern PR #63 (DEC-039 esprit defense in depth).
+    // Pas de PII : profile_id + organization_id = UUIDs non-PII (DEC-030
+    // conformité). Pas de NIR, pas de tokens, pas de notes médicales.
+    console.error('[conduite] resolveMyDriverId query failed', {
+      message: res.error.message,
+      code: res.error.code,
+      details: res.error.details,
+      hint: res.error.hint,
+      user_id: ctx.userId,
+      role: ctx.role,
+      organization_id: ctx.organizationId,
+    });
+  }
+
+  return ((res.data as DriverIdRow | null) ?? null)?.id ?? null;
 }
 
 /**
@@ -231,7 +247,24 @@ export async function listMyRidesUpcoming(): Promise<
     .eq('archive', false)
     .order('scheduled_at', { ascending: true })
     .limit(50);
-  if (error) throw new Error('Lecture des courses à venir impossible.');
+
+  if (error) {
+    // Logging défensif pattern PR #63 (DEC-039 esprit defense in depth).
+    // Visible Vercel Runtime logs. Pas de PII : driver_id = UUID non-PII.
+    console.error('[conduite] listMyRidesUpcoming rides query failed', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+      user_id: ctx.userId,
+      role: ctx.role,
+      organization_id: ctx.organizationId,
+      resolved_driver_id: myDriverId,
+      window_start: startIso,
+      window_end: endIso,
+    });
+    throw new Error('Lecture des courses à venir impossible.');
+  }
 
   const rides = (data ?? []) as unknown as RawRideRow[];
   const patientsById = await fetchPatientsByIds(
