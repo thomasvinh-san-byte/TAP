@@ -5,7 +5,7 @@ plan_number: 1
 slug: workflow-chauffeur
 type: execute
 status: draft
-estimated_hours: 2.5
+estimated_hours: 3
 wave: 1
 depends_on: []
 note_ordre_execution: |
@@ -231,6 +231,91 @@ Threat model ASVS L1 :
   </done>
   <rollback>
     `git revert` du commit. Test absent ≠ régression fonctionnelle, juste dette.
+  </rollback>
+</task>
+
+<task type="auto">
+  <name>Task 1.4 — Fix RLS rides_update chauffeur + row count check (mini-fix amendement)</name>
+  <files>
+    supabase/migrations/&lt;timestamp&gt;_rides_update_chauffeur_policy.sql
+    apps/web/src/app/(driver)/conduite/actions.ts
+  </files>
+  <action>
+**Wave B priorité MAX (avant T2.1 et T3.1).** Mini-fix introduit en amendement après UAT post-PR #74 a révélé que le chauffeur ne peut pas démarrer/clôturer ses courses : la policy RLS `rides_update_regulateur_dirigeant` exclut le rôle `chauffeur`. Symptôme : `startRideAction` / `endRideAction` retournent `{ success: true }` (pas d'erreur SQL) MAIS l'UPDATE est rejeté silencieusement par RLS (0 rows affected) → faux success affiché côté UI.
+
+Cause root (identifiée via Supabase MCP lecture seule, conforme DEC-032) : pas de policy `rides_update_chauffeur_*` autorisant un chauffeur à modifier SES propres rides.
+
+Scope **strict** : limité à la table `rides` et aux 2 Server Actions chauffeur (`startRideAction`, `endRideAction`). L'audit RLS systémique de toutes les tables + l'application du pattern row count check à toutes les Server Actions est **reporté Phase 06 HDS** (conformité production-grade — sa place naturelle).
+
+Étapes :
+
+1. **Nouvelle migration RLS** `supabase/migrations/&lt;timestamp&gt;_rides_update_chauffeur_policy.sql` :
+
+   ```sql
+   create policy rides_update_chauffeur_own_rides on public.rides
+     for update to authenticated
+     using (
+       organization_id = public.current_organization_id()
+       and public.has_role('chauffeur'::public.user_role)
+       and driver_id in (
+         select id from public.drivers
+         where profile_id = auth.uid()
+           and archive = false
+       )
+     )
+     with check (
+       organization_id = public.current_organization_id()
+       and public.has_role('chauffeur'::public.user_role)
+       and driver_id in (
+         select id from public.drivers
+         where profile_id = auth.uid()
+           and archive = false
+       )
+     );
+   ```
+
+   USING et WITH CHECK identiques pour empêcher transfert de course à un autre chauffeur via UPDATE driver_id.
+
+   Migration appliquée via CD `supabase db push` (DEC-032 LOCKED — **pas** via MCP).
+
+2. **Renforcer `startRideAction` + `endRideAction`** (`apps/web/src/app/(driver)/conduite/actions.ts`) avec pattern DEC-041 row count check :
+
+   ```typescript
+   const { data: updated, error } = await ctx.supabase
+     .from('rides')
+     .update(payload as never)
+     .eq('id', parsed.data)
+     .select('id');
+   if (error) return { error: 'Action impossible.' };
+   if (!updated || updated.length === 0) {
+     return {
+       error: 'Course non modifiée — vérifiez que vous êtes bien le chauffeur assigné.',
+     };
+   }
+   ```
+
+   **Ne PAS** appliquer ce pattern aux autres Server Actions (Phase 06 HDS s'en chargera).
+
+3. **Corriger le commentaire obsolète** ligne 12 de `actions.ts` qui mentait sur la policy RLS réelle (mentionnait `rides_update_regulateur_dirigeant` sans signaler que `chauffeur` n'avait aucune policy UPDATE).
+
+Threat model ASVS L1 :
+- T-04.5-04 (RLS bypass) : Mitigation = USING + WITH CHECK identiques empêchent transfert via UPDATE `driver_id`. Test pgTAP à ajouter : chauffeur A ne peut PAS UPDATE rides de chauffeur B (cross-driver isolation).
+- T-04.5-05 (False success) : Mitigation = `.select('id')` + check `data.length === 0` retourne erreur explicite UI au lieu de faux success. DEC-041 codifie le pattern.
+- T-04.5-06 (Privilege escalation) : Policy includes `has_role('chauffeur')` ET `driver_id IN (mes drivers)` — pas de chemin pour qu'un chauffeur prenne le contrôle d'une course d'un autre chauffeur.
+  </action>
+  <verify>
+    <automated>cd apps/web && pnpm typecheck</automated>
+    Migration vérifiée via CD verte au merge. Preview Vercel : login `chauffeur@demo.tap` → `/conduite` → démarrer course → vérifier statut `en_cours` en BDD via Supabase Studio lecture seule. Clôturer course → vérifier statut `terminee`. Test E2E T1.3 `driver-workflow-complete.spec.ts` couvre le golden path complet (assert toast success + bouton mute).
+  </verify>
+  <done>
+    - Migration `&lt;timestamp&gt;_rides_update_chauffeur_policy.sql` mergée + CD vert + schema_migrations aligné
+    - `startRideAction` et `endRideAction` retournent erreur explicite si row count = 0
+    - Commentaire obsolète ligne 12 `actions.ts` mis à jour
+    - Vergoz peut démarrer + clôturer ses courses en preview Vercel
+    - Test E2E T1.3 GREEN (workflow complet)
+  </done>
+  <rollback>
+    `git revert` du commit Server Actions. Pour la migration RLS : créer une nouvelle migration rollback `DROP POLICY rides_update_chauffeur_own_rides` (jamais touch direct prod).
   </rollback>
 </task>
 
