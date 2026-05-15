@@ -35,35 +35,58 @@ test.describe('Patient form — masques + validation Zod', () => {
     ).toBeVisible();
   });
 
-  test('S2 — NIR tronqué à 15 caractères et indicateur clé invalide', async ({
+  // Mode par défaut : NEXT_PUBLIC_NIR_CHECKSUM_STRICT non défini ou !=='true'
+  // → l'indicateur valide/invalide reflète le format seul, pas la clé.
+  // En mode strict (production), un test équivalent doit checker
+  // « Clé de contrôle NIR valide./invalide. » à la place de
+  // « Format NIR valide./invalide. ». La conditionnalité E2E sera ajoutée
+  // si la pré-prod active strict (cf. CONCERNS.md « Validation NIR »).
+  const isStrict = process.env.NEXT_PUBLIC_NIR_CHECKSUM_STRICT === 'true';
+  const liveValidMessage = isStrict
+    ? 'Clé de contrôle NIR valide.'
+    : 'Format NIR valide.';
+  const liveInvalidMessage = isStrict
+    ? 'Clé de contrôle NIR invalide.'
+    : 'Format NIR invalide.';
+
+  test('S2 — NIR tronqué à 15 caractères et indicateur reflète le format', async ({
     page,
   }) => {
     const nirInput = page.getByLabel('NIR');
     // Tape 20 chiffres : le masque doit tronquer à 15.
     await nirInput.fill('17605259740016912345');
-    // Le hidden input doit avoir 15 chars exactement (state interne)
-    // — vérifié indirectement via l'indicateur aria-live.
-    await expect(
-      page.locator('#nir-live'),
-    ).toContainText(/Clé de contrôle NIR (valide|invalide)/);
-  });
-
-  test('S6 — Indicateur clé NIR passe à « valide » sur un NIR INSEE correct', async ({
-    page,
-  }) => {
-    const nirInput = page.getByLabel('NIR');
-    // NIR valide : 1 76 05 25 974 001 69 (clé 69 calculée pour cette tête)
-    await nirInput.fill('176052597400169');
     await expect(page.locator('#nir-live')).toContainText(
-      'Clé de contrôle NIR valide.',
+      /Format NIR (valide|invalide)\.|Clé de contrôle NIR (valide|invalide)\./,
     );
   });
 
-  test('S6bis — NIR avec clé fausse → indicateur « invalide »', async ({
+  test('S6 — Mode démo (défaut) : NIR avec format INSEE correct → indicateur valide même si clé incohérente', async ({
     page,
   }) => {
     const nirInput = page.getByLabel('NIR');
-    await nirInput.fill('176052597400168'); // clé 68 au lieu de 69
+    // NIR avec format INSEE valide (sexe=1, année=76, mois=05, dept=25,
+    // commune=974, ordre=001, clé=68). En mode démo strict=false, on
+    // accepte sans vérifier la clé contrôle.
+    await nirInput.fill('176052597400168');
+    await expect(page.locator('#nir-live')).toContainText(liveValidMessage);
+  });
+
+  test('S6bis — NIR structure invalide (mois > 12) → indicateur invalide en démo comme en strict', async ({
+    page,
+  }) => {
+    const nirInput = page.getByLabel('NIR');
+    // Mois 13 = invalide en format INSEE (et donc aussi en strict).
+    await nirInput.fill('199133397490012');
+    await expect(page.locator('#nir-live')).toContainText(liveInvalidMessage);
+  });
+
+  test('S6ter — Strict only : NIR clé fausse refusé', async ({ page }) => {
+    test.skip(
+      !isStrict,
+      'Mode démo (NEXT_PUBLIC_NIR_CHECKSUM_STRICT≠true) — la clé contrôle n\'est pas vérifiée. Test pertinent uniquement en strict.',
+    );
+    const nirInput = page.getByLabel('NIR');
+    await nirInput.fill('176052597400100'); // clé 00, impossible mathématiquement
     await expect(page.locator('#nir-live')).toContainText(
       'Clé de contrôle NIR invalide.',
     );

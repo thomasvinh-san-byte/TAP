@@ -10,6 +10,8 @@ import {
   VILLES_974,
   cpDominantVille,
   isNirChecksumValid,
+  isNirChecksumStrict,
+  NIR_FORMAT_REGEX,
 } from '@tap/shared';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -136,7 +138,12 @@ export function NirField({ defaultValue }: NirFieldProps): JSX.Element {
   const canonical = raw.slice(0, 15);
   const length = canonical.length;
   const isComplete = length === 15;
-  const isValid = isComplete && isNirChecksumValid(canonical);
+  const isFormatOk = isComplete && NIR_FORMAT_REGEX.test(canonical);
+  const isChecksumOk = isComplete && isNirChecksumValid(canonical);
+
+  // Hotfix UX 2026-05-15 : en mode démo (strict=false), on traite « format OK »
+  // comme valide. En mode strict (production), il faut format + clé.
+  const isValid = isNirChecksumStrict ? isChecksumOk : isFormatOk;
 
   let indicator: 'pending' | 'valid' | 'invalid';
   if (!isComplete) indicator = 'pending';
@@ -148,10 +155,12 @@ export function NirField({ defaultValue }: NirFieldProps): JSX.Element {
     liveMessage = '';
   } else if (length < 15) {
     liveMessage = `${length} caractères saisis sur 15.`;
-  } else if (isValid) {
-    liveMessage = 'Clé de contrôle NIR valide.';
+  } else if (isNirChecksumStrict) {
+    liveMessage = isValid
+      ? 'Clé de contrôle NIR valide.'
+      : 'Clé de contrôle NIR invalide.';
   } else {
-    liveMessage = 'Clé de contrôle NIR invalide.';
+    liveMessage = isValid ? 'Format NIR valide.' : 'Format NIR invalide.';
   }
 
   return (
@@ -193,8 +202,9 @@ export function NirField({ defaultValue }: NirFieldProps): JSX.Element {
         </span>
       </div>
       <p id="nir-help" className="text-xs text-muted-foreground">
-        15 chiffres : sexe + année + mois + département + commune + ordre + clé.
-        Exemple : 1 76 05 25 974 001 12.
+        {isNirChecksumStrict
+          ? '15 chiffres + clé INSEE valide. Exemple : 1 76 05 25 974 001 69.'
+          : '15 chiffres : sexe + année + mois + département + commune + ordre + clé. Exemple : 1 76 05 25 974 001 12.'}
       </p>
       <p
         id="nir-live"

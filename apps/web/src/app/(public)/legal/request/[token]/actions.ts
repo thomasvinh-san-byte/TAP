@@ -7,7 +7,7 @@ import {
   verifyRequestToken,
   generatePatientDataExport,
   anonymizePatient,
-  nirFormatSchema,
+  nirFieldSchema,
 } from '@tap/shared';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@tap/database';
@@ -39,7 +39,7 @@ type DataRequestRow = {
 };
 
 const identitySchema = z.object({
-  nir: nirFormatSchema,
+  nir: nirFieldSchema,
   nom: z.string().trim().min(1, 'Nom requis.').max(80),
   date_naissance: z.coerce.date({
     errorMap: () => ({ message: 'Date de naissance invalide.' }),
