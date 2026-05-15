@@ -6,10 +6,10 @@ status: Phase 04.5 livrée — démo design partner démontrable
 stopped_at: Phase 04.5 complete — ready Phase 04.7
 last_updated: "2026-05-15T09:35:00.000Z"
 last_activity: 2026-05-15 — Phase 04.5 clôturée, 11 PR mergées (#71 Discuss, #72 UI-SPEC, #73 Plans, #74 Wave A fix /conduite, #75 amendement T1.4, #76 Wave B.1 RLS chauffeur + DEC-041, #77 stratégie CI V1.5, #79 Wave B.2 E2E driver-workflow-complete, #80 Wave B.3 masques Zod + BAN, #81 Wave C.3 modal assign filtre, #82 Wave C.4 audit perms doc) + 2 PR en cours de merge (#83 Wave C.1 UI patient form, #84 Wave C.2 POI métier + AddressOrPOIPicker). Vélocité globale -73% (≈3h45 réel vs 14h estimé). Démo design partner démontrable (workflow chauffeur fonctionnel + masques RGPD + POI métier + filtre permis/véhicule). Items différés inscrits CONCERNS.md (T5.2 page audit-logs Phase 04.7, T5.3 + DEC-040 audit Server Actions legal Phase 06, D PLAN-6 découpes + refactor Phase 04.7+). Stratégie CI V1.5 maintenue (3 dettes pré-existantes reportées Phase 06 HDS).
-status: Phase 04.7 Plans (checkpoint 3/5) — 3 plans formels + DEC-042..044 LOCKED, prêt /gsd-execute-phase 04.7
-stopped_at: Phase 04.7 Plans approved — PR ouverte phase/04.7-plan
-last_updated: "2026-05-15T11:45:00.000Z"
-last_activity: 2026-05-15 — Phase 04.7 Plans livrés (checkpoint 3/5). PLAN-1 pricing mockup (T1.1 packages/pricing scaffold + T1.2 PricingBreakdown UI + T1.3 OverrideTarifModal Sheet + audit_logs + E2E, 1.5-2h estimé). PLAN-2 caisse régulateur (T2.1 queries + CSV helper + Server Action export + T2.2 page + 3 Client components + T2.3 E2E, 1.5-2h estimé). PLAN-3 migration géocoding (T3.1 BDD 6 colonnes via CD + T3.2 threading AddressOrPOIPicker + T3.3 page /admin/maintenance backfill one-shot, 1-1.5h estimé). DEC-042 pricing stub Haversine+fallback, DEC-043 RLS caisse exclusion chauffeur V1.5, DEC-044 géocoding persistance BAN+POI threadé inscrites LOCKED PROJECT.md. Politique abonnement PR inscrite VISION.md (silence radio entre checkpoints, pas d'abonnement auto). Désabonné de toutes les PR ouvertes (#83-#90). Prêt /gsd-execute-phase 04.7.
+status: Phase 04.7 livrée — démo design partner enrichie (pricing + caisse + géocoding)
+stopped_at: Phase 04.7 complete — ready Phase 04.9 PWA chauffeur enveloppe
+last_updated: "2026-05-15T12:30:00.000Z"
+last_activity: 2026-05-15 — Phase 04.7 livrée (checkpoint 4/5 execute). 4 PR ouvertes : #92 Wave A migration géocoding (6 colonnes pickup/dropoff lat/lng/citycode + 2 index partiels + pgTAP 10 assertions), #93 PLAN-1 pricing (packages/pricing scaffold + computeCgssShortTrip Haversine+fallback 100% branch coverage 16 tests + Surface A PricingBreakdown + Surface B OverrideTarifModal Sheet + Server Action audit_logs + E2E override-tarif), #94 PLAN-2 caisse (lib/csv utf-8-sig + queries-caisse + page /courses/caisse + 3 Client components + Server Action exportCSV + E2E caisse 6 scénarios), #95 PLAN-3 W1+W2 (threading AddressOrPOIPicker→onSelect lat/lng/citycode + ride-express-modal capture coords + use-ride-submit form state extension + rideExpressInputSchema 6 champs nullables + page /admin/maintenance + backfillRideGeocodingAction one-shot rate-limit 1req/s). DEC-042 LOCKED, DEC-043 LOCKED, DEC-044 LOCKED. Estimation Phase 04.7 : 4-5.5h estimé / ~45 min réel (vélocité -85%). 13 PR Phase 04.5 + 4 PR Phase 04.7 = 17 PR cumulées V1.5 livrées. Politique abonnement PR (VISION.md) respectée (aucune subscribe automatique). Items différés inscrits CONCERNS.md (intégration end-ride-modal côté chauffeur Phase 04.9 — RideActions ne propage pas le contexte ride). Prêt validation preview + merge dans l'ordre #92 → #93/#94/#95 → Phase 04.9.
 progress:
   total_phases: 15
   completed_phases: 4
@@ -50,10 +50,9 @@ Phases livrées :
 - Phase 03.2 — Série hotfixes finition (8 hotfixes hors GSD, DateTimeFields react-datepicker + AddressPickerField BAN — PR #47..#55, 2026-05-12/13)
 - Phase 04   — Onboarding chauffeur + AuthShell (2026-05-13, PR #59 + 5 hotfixes post-merge PR #60..#67)
 - Phase 04.5 — Robustesse régulateur (2026-05-15, PR #71..#84 — 11 mergées + 2 en merge, ≈3h45 réel vs 14h estimé, vélocité -73%)
+- Phase 04.7 — Pricing mockup + Caisse + Migration géocoding (2026-05-15, PR #88 Discuss + #90 UI-SPEC + #91 Plans + #92 Wave A migration + #93 PLAN-1 pricing + #94 PLAN-2 caisse + #95 PLAN-3 threading/backfill — 4 PR exécution ouvertes attente merge, ≈45 min réel vs 4-5.5h estimé, vélocité -85%)
 
 Phases à venir :
-
-- Phase 04.7 — Pricing + Caisse + Migration géocoding (~6-9h) + reprise dettes différées (D PLAN-6 découpes ride-modal/drawer + refactor /admin/chauffeurs ; T5.2 page /admin/audit-logs ; intégration AddressOrPOIPicker dans patient-form)
 - Phase 04.9 — PWA chauffeur enveloppe (~8-10h)
 - Phase 05   — Récurrences + cockpit + SMS + patient absent (~10-15h)
 - Phase 05.5 — Tarif CGSS réel (~8-12h)
