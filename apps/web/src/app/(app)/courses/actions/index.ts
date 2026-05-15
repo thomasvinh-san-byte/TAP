@@ -23,6 +23,8 @@ export { checkDuplicateRideAction } from './check-duplicate';
 export { cancelRideAction } from './cancel';
 export { assignRideAction, unassignRideAction } from './assignment';
 export { updateRidePaymentAction } from './payment';
+export { overrideRideTarifAction } from './override';
+export type { OverrideTarifState } from './override';
 export {
   listRidesAction,
   listRidesEnrichedAction,
