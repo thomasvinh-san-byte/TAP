@@ -62,6 +62,9 @@ interface BanSuggestion {
   label: string;
   postcode: string;
   city: string;
+  lat: number;
+  lng: number;
+  citycode: string;
 }
 
 interface PoiSuggestion {
@@ -110,6 +113,9 @@ async function fetchBanSuggestions(q: string): Promise<BanSuggestion[]> {
       label: f.properties.label,
       postcode: f.properties.postcode ?? '',
       city: f.properties.city ?? '',
+      lat: f.geometry.coordinates[1],
+      lng: f.geometry.coordinates[0],
+      citycode: f.properties.citycode ?? '',
     }));
 }
 
@@ -138,6 +144,10 @@ export interface AddressOrPOIPickerSelection {
   city?: string;
   notesAcces?: string | null;
   poiId?: string;
+  /** Coordonnées WGS84 — propagées au parent pour persistance rides (DEC-044). */
+  lat?: number;
+  lng?: number;
+  citycode?: string;
 }
 
 interface Props {
@@ -229,6 +239,9 @@ export function AddressOrPOIPicker({
           city: s.poi.ville,
           notesAcces: s.poi.notes_acces,
           poiId: s.poi.id,
+          lat: s.poi.latitude ?? undefined,
+          lng: s.poi.longitude ?? undefined,
+          // POI : pas de citycode INSEE V1.5 (code_postal suffit)
         });
       } else {
         setPicked(true);
@@ -237,6 +250,9 @@ export function AddressOrPOIPicker({
           label: s.label,
           postcode: s.postcode,
           city: s.city,
+          lat: s.lat,
+          lng: s.lng,
+          citycode: s.citycode || undefined,
         });
       }
       onBlur?.();

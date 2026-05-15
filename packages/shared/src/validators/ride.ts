@@ -49,6 +49,13 @@ export const rideExpressInputSchema = z.object({
     .max(200),
   dropoff_postal_code: codePostalReunionSchema.optional(),
   dropoff_city: z.string().trim().max(80).optional(),
+  // Géocoding DEC-044 (Phase 04.7) — coordonnées BAN/POI optionnelles
+  pickup_lat: z.number().min(-90).max(90).nullable().optional(),
+  pickup_lng: z.number().min(-180).max(180).nullable().optional(),
+  pickup_citycode: z.string().max(10).nullable().optional(),
+  dropoff_lat: z.number().min(-90).max(90).nullable().optional(),
+  dropoff_lng: z.number().min(-180).max(180).nullable().optional(),
+  dropoff_citycode: z.string().max(10).nullable().optional(),
   transport_mode: rideTransportModeSchema.default('taxi_conventionne'),
   urgency: rideUrgencySchema.default('programmee'),
   notes_regulateur: z.string().trim().max(500).optional(),

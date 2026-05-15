@@ -22,6 +22,8 @@ export interface PoiMetierMin {
   code_postal: string;
   ville: string;
   notes_acces: string | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 interface PoiMetierRow {
@@ -34,6 +36,8 @@ interface PoiMetierRow {
   ville: string;
   notes_acces: string | null;
   actif: boolean;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 export async function listPoisMetierAction(): Promise<PoiMetierMin[]> {
@@ -42,7 +46,7 @@ export async function listPoisMetierAction(): Promise<PoiMetierMin[]> {
   const res = await supabase
     .from('pois_metier' as never)
     .select(
-      'id, nom_court, nom_long, type_poi, adresse, code_postal, ville, notes_acces, actif',
+      'id, nom_court, nom_long, type_poi, adresse, code_postal, ville, notes_acces, actif, latitude, longitude',
     )
     .eq('actif', true)
     .order('nom_court', { ascending: true })
@@ -63,5 +67,7 @@ export async function listPoisMetierAction(): Promise<PoiMetierMin[]> {
     code_postal: r.code_postal,
     ville: r.ville,
     notes_acces: r.notes_acces,
+    latitude: r.latitude,
+    longitude: r.longitude,
   }));
 }

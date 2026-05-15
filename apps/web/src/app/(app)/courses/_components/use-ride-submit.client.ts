@@ -19,6 +19,13 @@ export type RideSubmitFormState = {
   scheduled_at?: string;
   pickup_address?: string;
   dropoff_address?: string;
+  /** Coords géocoding DEC-044 (Phase 04.7) — null si saisie libre hors BAN/POI */
+  pickup_lat?: number | null;
+  pickup_lng?: number | null;
+  pickup_citycode?: string | null;
+  dropoff_lat?: number | null;
+  dropoff_lng?: number | null;
+  dropoff_citycode?: string | null;
   transport_mode?: TransportMode;
   urgency?: Urgency;
   notes_regulateur?: string;
@@ -43,6 +50,12 @@ export function useRideSubmit(args: {
         scheduled_at: next.scheduled_at,
         pickup_address: next.pickup_address,
         dropoff_address: next.dropoff_address,
+        pickup_lat: next.pickup_lat,
+        pickup_lng: next.pickup_lng,
+        pickup_citycode: next.pickup_citycode,
+        dropoff_lat: next.dropoff_lat,
+        dropoff_lng: next.dropoff_lng,
+        dropoff_citycode: next.dropoff_citycode,
         transport_mode: next.transport_mode ?? 'taxi_conventionne',
         urgency: next.urgency ?? 'programmee',
         notes_regulateur: next.notes_regulateur,
