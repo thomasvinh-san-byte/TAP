@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 04 plan-phase complete (5 plans W0..W4 APPROVED 10/10, 3 FLAGs patched)
-last_updated: "2026-05-13T07:18:34.009Z"
-last_activity: 2026-05-13 — Phase 04 livrée + hotfix permissions sémantique 4 actions (DEC-029) + audit FR rédac user-facing (DEC-030) + seed démo UAT multi-chauffeurs (DEC-031). Prêt UAT 3 chauffeurs connectables + 12 courses fictives peuplant le cockpit avant Phase 04.5.
+status: between-phases (Phase 04 livrée + 5 hotfixes mergés, Phase 04.5 cadrage en attente UAT court dirigeant)
+stopped_at: Phase 04 livrée + 5 hotfixes (DEC-029/030/031/032/033) mergés sur main
+last_updated: "2026-05-14T14:35:00.000Z"
+last_activity: 2026-05-14 — CD réparé vague 2 (reseed_patients_fictifs réconciliée via MCP), schema_migrations aligné, Phase 04 + 5 hotfixes mergés. Prêt UAT autonome dirigeant avant Phase 04.5.
 progress:
   total_phases: 14
-  completed_phases: 4
+  completed_phases: 9
   total_plans: 23
-  completed_plans: 29
+  completed_plans: 32
   percent: 100
 ---
 
@@ -18,48 +18,62 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-06)
+See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 03.1 close (PR #39 ouverte, 4 UAT humains pending preview Vercel) — Phase 04 PWA à discuter.
+**Current focus:** Phase 04 livrée + 5 hotfixes mergés. UAT autonome dirigeant avant Phase 04.5.
 
 ## Current Position
 
-Phase: refonte planning E2E (DEC-023) — god-phase 04 split en 4 sous-phases + insertion 05.5
-Phase next: Phase 04 redéfinie onboarding-only (workflow invitation chauffeur + AuthShell mode jour)
-Status: Between phases — refonte planning à merger puis `/gsd-discuss-phase 04` avec nouveau périmètre
-Last activity: 2026-05-13 — Refonte planning E2E (DEC-023 + DEC-021) après revue critique du périmètre Phase 04 (17-25h god-phase) face à ADR-003 pivot E2E
+Phase: 04 (livrée)
+Phase next: 04.5 (cadrage en attente UAT)
+Status: Between phases — UAT dirigeant à dérouler en autonomie (30-90 min) avant `/gsd-discuss-phase 04.5` avec frictions UAT en input.
+Last activity: 2026-05-14 — CD réparé vague 2 (reseed_patients_fictifs réconciliée via MCP), schema_migrations aligné, Phase 04 + 5 hotfixes mergés. Prêt UAT autonome dirigeant avant Phase 04.5.
 
 Progress: [██████████] 100%
 
 Phases livrées :
 
-- Phase 0   — Fondations Lot 0 (2026-05-06)
-- Phase 1   — Référentiel patients (2026-05-06)
-- Phase 1.5 — DPA + RGPD compliance
-- Phase 0.7 — Déploiement continu Vercel + démo seedée (2026-05-07)
-- Phase 2   — Saisie express course (2026-05-07)
-- Phase 03  — E2E Passe 1 squelette + clôture-bis (2026-05-12)
+- Phase 0    — Fondations Lot 0 (2026-05-06)
+- Phase 0.7  — Déploiement continu Vercel + démo seedée (2026-05-07)
+- Phase 1    — Référentiel patients (2026-05-06)
+- Phase 1.5  — DPA + RGPD compliance
+- Phase 2    — Saisie express course (2026-05-07)
+- Phase 03   — E2E Passe 1 squelette + clôture-bis (2026-05-12)
 - Phase 03.1 — Efficience saisie modal course (2026-05-12, PR #39 — 1ère phase pilotée par GSD)
-- Phase 03.2 — Série hotfixes finition (DateTimeFields react-datepicker + AddressPickerField BAN — PR #47..#55, 2026-05-12/13, hors GSD plan)
+- Phase 03.2 — Série hotfixes finition (8 hotfixes hors GSD, DateTimeFields react-datepicker + AddressPickerField BAN — PR #47..#55, 2026-05-12/13)
+- Phase 04   — Onboarding chauffeur + AuthShell (2026-05-13, PR #59 + 5 hotfixes post-merge PR #60..#67)
 
-Phases à venir (après refonte DEC-023) :
+Phases à venir :
 
-- Phase 04   — Onboarding chauffeur + AuthShell mode jour (~4-5h)
-- Phase 04.5 — Robustesse régulateur + dette CONCERNS (~4-6h)
-- Phase 04.7 — Pricing mockup + Caisse + Migration géocoding (~6-9h)
-- Phase 04.9 — PWA chauffeur enveloppe (Serwist + Dexie) (~8-10h)
-- Phase 05   — Récurrences + cockpit temps réel + SMS + patient absent
-- Phase 05.5 — Tarif CGSS réel (calcul réel + grille dirigeant) (~8-12h)
-- Phase 06   — HDS + OR-Tools + B2B + facturation CGSS PDF
+- Phase 04.5 — Robustesse régulateur + dette CONCERNS (~6-9h, prérequis UAT walkthrough dirigeant)
+- Phase 04.7 — Pricing + Caisse + Migration géocoding (~6-9h)
+- Phase 04.9 — PWA chauffeur enveloppe (~8-10h)
+- Phase 05   — Récurrences + cockpit + SMS + patient absent (~10-15h)
+- Phase 05.5 — Tarif CGSS réel (~8-12h)
+- Phase 06   — HDS + OR-Tools + B2B + facturation CGSS PDF (~15-25h)
+- Phase 07   — Mobile native chauffeur (optionnel, ~25-40h)
+
+## Hotfixes 2026-05-13/14 (Phase 04 post-merge)
+
+| PR | Décision | Sujet |
+|---|---|---|
+| #59 | — | Phase 04 onboarding chauffeur + AuthShell |
+| #60 | DEC-029 | Permissions chauffeurs 4 actions distinctes |
+| #61 | DEC-030 | Audit FR cadratins + anglicismes user-facing |
+| #62 | DEC-031 | Seed démo étendu (3 chauffeurs + 12 courses) |
+| #63 | — | /admin/chauffeurs vide régulateur (cause root schéma) |
+| #64+#66 | DEC-032 | CD réconcilié vague 1 + playbook schema_migrations |
+| #65 | DEC-033 | Clé React liste inclut champ mutable (4 listes) |
+| #67 | — | Push final commit cleanup `47c376b` |
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Phases livrées V1 : 7 (en 7 jours, 2026-05-06 → 2026-05-12)
-- Plans formels GSD complétés : 5 (Phase 03.1, première via pipeline GSD)
-- Average duration : ~5h pour Phase 03.1 (discuss à ship), dont ~1h execute parallel waves
+- Phases livrées V1 : 9 (en 8 jours, 2026-05-06 → 2026-05-14)
+- Plans formels GSD complétés : 10 (Phase 03.1 + Phase 04)
+- Phase 04 ratio : 135 min livrés vs 330 estimés (-59%) grâce à pipeline GSD discipliné
 
 **By Phase:**
 
@@ -72,35 +86,35 @@ Phases à venir (après refonte DEC-023) :
 | 2     | 6 (livrés en 22 commits)        | n/a | n/a |
 | 03    | n/a (sous-blocs 03-A à 03-cloture-bis) | n/a | n/a |
 | 03.1  | 5 (GSD pipeline complet, 16 commits + 2 docs) | ~1h execution | ~12 min |
+| 03.2  | n/a (8 hotfixes hors GSD)       | n/a | n/a |
+| 04    | 5 (GSD pipeline complet, ~135 min execution + 5 hotfixes post-merge) | ~135min | ~27 min |
 
-**Recent Trend:** Phase 03.1 = première donnée vélocité GSD. Phase 04 PWA permettra calibration.
+**Recent Trend:** Phase 04 confirme vélocité GSD à -59% vs estimation. Hotfixes post-merge plus coûteux que cadrage amont (leçon CONCERNS.md) — à minimiser en Phase 04.5.
 
 *Updated after each plan completion.*
-| Phase 04 P4 | ~50min | 9 tasks | 19 files |
 
 ## Accumulated Context
 
 ### Roadmap Evolution
 
-- Phase 03.1 inserted after Phase 03: Efficience saisie modal course — 3 patterns Doctolib/Uber Health/Onfleet (smart defaults, chips date, détection doublon) + re-seed patients fictifs (URGENT)
-- Phase 03.1 SHIPPED 2026-05-12 via PR #39 — 5 plans (rev 1 APPROVED), 16 commits + 2 docs commits MCP, UAT humain (4 tests) pending preview Vercel
+- Phase 03.1 inserted after Phase 03: Efficience saisie modal course — 3 patterns Doctolib/Uber Health/Onfleet
+- Phase 03.1 SHIPPED 2026-05-12 via PR #39
+- Phase 03.2 série hotfixes hors GSD (2026-05-12/13)
+- Phase 04 onboarding chauffeur SHIPPED 2026-05-13 via PR #59 + 5 hotfixes mergés (PR #60..#67)
+- Roadmap consolidée 2026-05-14 : Phases V1.5/V2/V3/V4 structurées avec estimations dans .planning/ROADMAP.md + .planning/VISION.md
 
 ### Decisions
 
-16 décisions verrouillées dans PROJECT.md (DEC-001 à DEC-016) — 2 ADRs
-formels + 14 décisions élevées par autorité du propriétaire projet sur
-CLAUDE.md. ADR-003 (pivot E2E par passes) est LOCKED dans `docs/adr/`
-mais pas encore listé dans le bloc PROJECT.md `<decisions>` — à ajouter
-en Phase 06 lors du nettoyage HDS.
+16 décisions verrouillées DEC-001..016 (2 ADRs + 14 décisions élevées sur CLAUDE.md).
+DEC-017..023 + ADR-003 LOCKED.
+19 décisions Phase 03.1 (D-A2/A3/B3/SEED).
+DEC-029..033 ajoutées 2026-05-13/14 (hotfixes Phase 04 post-merge) :
 
-19 décisions D-A2/A3/B3/SEED ajoutées par Phase 03.1 (cf. 03.1-CONTEXT.md).
-
-Décisions affectant le travail courant :
-
-- Phase 03.1 (close) : D-A2 smart defaults, D-A3 chips date, D-B3 banner doublon, D-SEED 5 sources alignées
-- Phase 04 (next) : DEC-007 (chiffrement NIR si carry-over PWA), DEC-008 (consentement SMS — préparation Passe 3), DEC-013 (couverture pricing 100%), DEC-014 (PWA hors-ligne)
-- [Phase ?]: PLAN-4 Route Handler deplace /accept-invite/verify (Rule 3 Next.js page+route conflict)
-- [Phase ?]: PLAN-4 Toaster Sonner monte au layout racine (Rule 3 coverage auth/driver)
+- DEC-029 : Sémantique 4 actions chauffeurs (Désactiver/Réactiver/Archiver/Désarchiver)
+- DEC-030 : Conventions rédactionnelles FR user-facing (Option β)
+- DEC-031 : Seed démo étendu UAT multi-chauffeurs
+- DEC-032 : Politique migrations Supabase via CD exclusivement + playbook reconcile
+- DEC-033 : Clés React listes composants client incluent champ mutable
 
 ### NFR (Non-Functional Requirements transverses)
 
@@ -117,16 +131,18 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ### Pending Todos
 
-- Inscrire DEC-017..023 + ADR-003 dans bloc `<decisions>` PROJECT.md (intégré refonte planning DEC-023)
+- UAT autonome dirigeant (30-90 min) avant `/gsd-discuss-phase 04.5`
 - Production des 10 captures Visible Progress Phase 03 dans `docs/showcase/03-e2e-passe1-squelette/` (livraison déplacée vers Phase 04.5)
-- Démarrer `/gsd-discuss-phase 04` avec nouveau périmètre onboarding-only après merge de la refonte planning
+- Inscrire ADR-003 dans bloc `<decisions>` PROJECT.md si pas déjà fait (à vérifier en Phase 04.5)
+- Régler CI ESLint v10 flat config (dette pré-existante, hors scope hotfixes)
 
 ### Blockers/Concerns
 
-- **CDC v2 binaire `.docx`** : 15 modules secondaires non extraits ; à reconvertir en `.md` puis ré-ingérer pour enrichir REQUIREMENTS.md (non bloquant V1, à anticiper avant Phase 06).
-- **HDS** : Supabase Cloud non certifié HDS — bêta privée acceptable sous DPA, migration vers OVHcloud / Scaleway HDS prévue Phase 06 (cf. CON-001).
-- **Verification debt Phase 01** : 5 items audit-uat pending (`/gsd-audit-uat`). Dette transverse, à régler avant Phase 07 commercialisation, NON bloquante pour Phases 04/05/06.
-- **Proxy git push 403** : intermittent (toute la session). Workaround via `mcp__github__push_files` pour les commits docs. À surveiller — si ça persiste Phase 04, signaler infra.
+- **RAS bloquant.** CD VERT après réconciliation vague 2. Supabase prod healthy. Preview Vercel multi-chauffeurs OK.
+- **CDC v2 binaire `.docx`** : 15 modules secondaires non extraits, à ré-ingérer avant Phase 06 (non bloquant V1).
+- **HDS** : Supabase Cloud non certifié HDS — bêta privée acceptable sous DPA, migration vers OVHcloud / Scaleway HDS prévue Phase 06.
+- **Verification debt Phase 01** : 5 items audit-uat pending, à régler avant Phase 07 commercialisation.
+- **CI ESLint** : workflow CI rouge sur dette ESLint v10 flat config pré-existante. CD vert (jobs CI ≠ CD).
 
 ## Deferred Items
 
@@ -140,13 +156,14 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 | Conformité réglementaire (alertes carte pro/CT) | V2 | Reporté pivot E2E v2 | 2026-05-11 |
 | Exports comptables FEC + Lomaco | V2 | Reporté pivot E2E v2 | 2026-05-11 |
 | Beta terrain chauffeur Hauts Réunion | V1.5 (après Phase 06) | Maintenu | 2026-05-06 |
+| Mobile native chauffeur (Phase 07) | V4 hypothétique | Décision business retour Phase 04.9 PWA | 2026-05-14 |
 
 ## Session Continuity
 
-Last session: 2026-05-13T07:18:19.354Z
-Stopped at: Phase 04 plan-phase complete (5 plans W0..W4 APPROVED 10/10, 3 FLAGs patched)
+Last session: 2026-05-14T14:35:00.000Z
+Stopped at: Phase 04 livrée + 5 hotfixes (DEC-029..033) mergés. Refactor état session terminé.
 Resume file: None
-Next command suggested: `/gsd-discuss-phase 04` (nouveau périmètre onboarding-only après refonte DEC-023)
+Next command suggested: UAT autonome dirigeant (30-90 min) → `/gsd-discuss-phase 04.5` avec frictions UAT en input
 
 ## Ingest Runs
 
