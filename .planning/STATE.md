@@ -6,10 +6,10 @@ status: Phase 04.5 livrée — démo design partner démontrable
 stopped_at: Phase 04.5 complete — ready Phase 04.7
 last_updated: "2026-05-15T09:35:00.000Z"
 last_activity: 2026-05-15 — Phase 04.5 clôturée, 11 PR mergées (#71 Discuss, #72 UI-SPEC, #73 Plans, #74 Wave A fix /conduite, #75 amendement T1.4, #76 Wave B.1 RLS chauffeur + DEC-041, #77 stratégie CI V1.5, #79 Wave B.2 E2E driver-workflow-complete, #80 Wave B.3 masques Zod + BAN, #81 Wave C.3 modal assign filtre, #82 Wave C.4 audit perms doc) + 2 PR en cours de merge (#83 Wave C.1 UI patient form, #84 Wave C.2 POI métier + AddressOrPOIPicker). Vélocité globale -73% (≈3h45 réel vs 14h estimé). Démo design partner démontrable (workflow chauffeur fonctionnel + masques RGPD + POI métier + filtre permis/véhicule). Items différés inscrits CONCERNS.md (T5.2 page audit-logs Phase 04.7, T5.3 + DEC-040 audit Server Actions legal Phase 06, D PLAN-6 découpes + refactor Phase 04.7+). Stratégie CI V1.5 maintenue (3 dettes pré-existantes reportées Phase 06 HDS).
-status: Phase 04.7 Discuss (checkpoint 1/5) — CD réparé, prêt /gsd-ui-phase 04.7
-stopped_at: Phase 04.7 Discuss approved + hotfix seed DEC-039-bis livré
-last_updated: "2026-05-15T11:00:00.000Z"
-last_activity: 2026-05-15 — Phase 04.7 Discuss livrée (PR #88, CONTEXT + DISCUSSION-LOG + audit codebase intelligent Tronc 4 caduc Tronc 3 simplifié, estimation révisée 4.5-7h / 1.5-2h réel). Hotfix seed DEC-039-bis (ON CONFLICT DO UPDATE exhaustif sur rides) — CD remis vert après 3 fails consécutifs liés à état hybride seed+UAT (violation rides_ended_after_started). Test pgTAP seed_demo_idempotent.sql ajouté pour prévenir récurrence. Prêt /gsd-ui-phase 04.7.
+status: Phase 04.7 Plans (checkpoint 3/5) — 3 plans formels + DEC-042..044 LOCKED, prêt /gsd-execute-phase 04.7
+stopped_at: Phase 04.7 Plans approved — PR ouverte phase/04.7-plan
+last_updated: "2026-05-15T11:45:00.000Z"
+last_activity: 2026-05-15 — Phase 04.7 Plans livrés (checkpoint 3/5). PLAN-1 pricing mockup (T1.1 packages/pricing scaffold + T1.2 PricingBreakdown UI + T1.3 OverrideTarifModal Sheet + audit_logs + E2E, 1.5-2h estimé). PLAN-2 caisse régulateur (T2.1 queries + CSV helper + Server Action export + T2.2 page + 3 Client components + T2.3 E2E, 1.5-2h estimé). PLAN-3 migration géocoding (T3.1 BDD 6 colonnes via CD + T3.2 threading AddressOrPOIPicker + T3.3 page /admin/maintenance backfill one-shot, 1-1.5h estimé). DEC-042 pricing stub Haversine+fallback, DEC-043 RLS caisse exclusion chauffeur V1.5, DEC-044 géocoding persistance BAN+POI threadé inscrites LOCKED PROJECT.md. Politique abonnement PR inscrite VISION.md (silence radio entre checkpoints, pas d'abonnement auto). Désabonné de toutes les PR ouvertes (#83-#90). Prêt /gsd-execute-phase 04.7.
 progress:
   total_phases: 15
   completed_phases: 4
