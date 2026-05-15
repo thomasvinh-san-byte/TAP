@@ -220,6 +220,21 @@ export function RideExpressModal(props: Props): JSX.Element {
             ariaLabel="Adresse de prise en charge"
             value={form.pickup_address ?? ''}
             onChange={(v) => updateField('pickup_address', v)}
+            onSelect={(sel) => {
+              // DEC-044 : threadage coords BAN/POI → persistance Server Action
+              updateField(
+                'pickup_lat' as keyof FormState,
+                (sel.lat ?? null) as never,
+              );
+              updateField(
+                'pickup_lng' as keyof FormState,
+                (sel.lng ?? null) as never,
+              );
+              updateField(
+                'pickup_citycode' as keyof FormState,
+                (sel.citycode ?? null) as never,
+              );
+            }}
             onBlur={() => void autosave.flushSave(form)}
             tabIndex={3}
             error={fieldErrors.pickup_address}
@@ -231,6 +246,20 @@ export function RideExpressModal(props: Props): JSX.Element {
             ariaLabel="Adresse de destination"
             value={form.dropoff_address ?? ''}
             onChange={(v) => updateField('dropoff_address', v)}
+            onSelect={(sel) => {
+              updateField(
+                'dropoff_lat' as keyof FormState,
+                (sel.lat ?? null) as never,
+              );
+              updateField(
+                'dropoff_lng' as keyof FormState,
+                (sel.lng ?? null) as never,
+              );
+              updateField(
+                'dropoff_citycode' as keyof FormState,
+                (sel.citycode ?? null) as never,
+              );
+            }}
             onBlur={() => void autosave.flushSave(form)}
             tabIndex={4}
             error={fieldErrors.dropoff_address}
