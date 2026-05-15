@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: between-phases (Phase 04 livrée + 5 hotfixes mergés, Phase 04.5 cadrage en attente UAT court dirigeant)
-stopped_at: Phase 04 livrée + 5 hotfixes (DEC-029/030/031/032/033) mergés sur main
-last_updated: "2026-05-14T14:35:00.000Z"
+status: Between phases — UAT dirigeant à dérouler en autonomie (30-90 min) avant `/gsd-discuss-phase 04.5` avec frictions UAT en input.
+stopped_at: Phase 04.5 context locked (assumptions mode) — 4 validations A-01..A-04
+last_updated: "2026-05-15T05:50:19.494Z"
 last_activity: 2026-05-14 — CD réparé vague 2 (reseed_patients_fictifs réconciliée via MCP), schema_migrations aligné, Phase 04 + 5 hotfixes mergés. Prêt UAT autonome dirigeant avant Phase 04.5.
 progress:
-  total_phases: 14
-  completed_phases: 9
+  total_phases: 15
+  completed_phases: 4
   total_plans: 23
-  completed_plans: 32
+  completed_plans: 31
   percent: 100
 ---
 
@@ -160,9 +160,9 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-05-14T14:35:00.000Z
-Stopped at: Phase 04 livrée + 5 hotfixes (DEC-029..033) mergés. Refactor état session terminé.
-Resume file: None
+Last session: 2026-05-15T05:50:19.472Z
+Stopped at: Phase 04.5 context locked (assumptions mode) — 4 validations A-01..A-04
+Resume file: .planning/phases/04.5-robustesse-regulateur/04.5-CONTEXT.md
 Next command suggested: UAT autonome dirigeant (30-90 min) → `/gsd-discuss-phase 04.5` avec frictions UAT en input
 
 ## Ingest Runs
