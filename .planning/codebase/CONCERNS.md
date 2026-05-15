@@ -409,6 +409,51 @@ ORDER BY version DESC;
   - `apps/web/src/app/(driver)/conduite/actions.ts` (startRide ✓ Phase 04.5, endRide ✓ Phase 04.5 — reste : éventuelles actions futures)
   - Inventaire exhaustif à compiler via `grep -rn "'use server'" apps/web/src/`
 
+### Audit permissions Server Actions modules admin — disparité d'application DEC-029
+
+Audit conduit Phase 04.5 Wave C.4 (PR à venir) sur `apps/web/src/app/(admin)/`. Comparaison du pattern « defense in depth » (UI cachée + guard Server Action + RLS) appliqué uniformément ou non par module.
+
+**Pattern de référence DEC-029** (`/admin/chauffeurs`) — **3 couches** :
+- UI : bouton Archiver caché côté régulateur
+- Server Action : `requireAdminOrRegulateur` OU `requireDirigeant` (helpers partagés `@/lib/auth/`)
+- RLS : politique Postgres restreint sur rôle
+
+**État réel des autres modules** :
+
+| Module | UI | Server Action guard | RLS | Layers |
+|---|---|---|---|---|
+| `/admin/chauffeurs` | ✅ | ✅ helpers partagés | ✅ | 3 (référence) |
+| `/admin/vehicules` | ✅ | ⚠️ `requireDirigeant` LOCAL (duplication, devrait réutiliser `@/lib/auth/require-dirigeant`) | ✅ | 3 (mais code dupliqué) |
+| `/admin/legal/*` (registre, dpia, dpa, breaches, requests, dpo) | ✅ `requireDirigeantPage` | ❌ **AUCUN** `require*` dans les Server Actions | ✅ D-18 | **2** seulement |
+
+**Risque T-04.5-27 (Privilege gap legal/*)** :
+Les Server Actions des 6 modules legal ne valident PAS le rôle côté serveur applicatif — elles reposent ENTIÈREMENT sur RLS Postgres D-18. Si la policy RLS est mal calibrée (ex : oubli sur INSERT cross-org) OU si un utilisateur forge une requête (T-04.5-23 bypass UI), la défense applicative manque.
+
+**Severité** : majeur en pré-production (RLS reste un filet réel). Bloquant en production HDS V3 (audit conformité exigera 2 couches minimum sur les modules données santé / juridiques).
+
+**DEC-040 candidate** (à promouvoir LOCKED si validé) :
+> Pattern obligatoire pour toute Server Action modifiant des données admin :
+> ```ts
+> 'use server';
+> const ctx = await requireDirigeant();
+> if (!ctx) return { error: 'Action réservée au dirigeant.' };
+> ```
+> Helpers partagés : `@/lib/auth/require-dirigeant`, `@/lib/auth/require-admin-or-regulateur`. Pas de fonction `requireX` locale (duplication interdite).
+
+**Phase de résolution** : Phase 06 HDS (audit RLS systémique + audit Server Actions row count check DEC-041 + audit guards `require*` consolidés au même moment). Ne pas patcher en Phase 04.5 (V5 anti-scope creep).
+
+**Items factuels à traiter Phase 06** :
+1. Remplacer `requireDirigeant` local de `/admin/vehicules/actions.ts:23` par import du helper partagé
+2. Ajouter `requireDirigeant()` (ou équivalent) en tête de chaque export `'use server'` de :
+   - `/admin/legal/registre/actions.ts`
+   - `/admin/legal/dpia/actions.ts`
+   - `/admin/legal/dpa/actions.ts`
+   - `/admin/legal/breaches/actions.ts`
+   - `/admin/legal/requests/actions.ts`
+   - `/admin/legal/dpo/actions.ts`
+3. Inscrire DEC-040 LOCKED dans PROJECT.md
+4. Tests E2E permissions cross-rôle Playwright (régulateur tente d'invoquer une action legal → assert refus serveur, pas seulement UI)
+
 ### Dette CI rouge constante sur main (Lint + Tests unitaires + pgTAP) — depuis ≥ PR #75
 
 Diagnostic réalisé Phase 04.5 Wave B (PR #76, 2026-05-15). Trois jobs CI échouent systématiquement sur main et sur toutes les PRs récentes, dont PR #75 (docs-only) déjà mergée. Reproduit local sur checkout `origin/main` propre. Aucun lien avec les diffs des PR concernées — ce sont des dettes d'environnement / lockfile pré-existantes.
