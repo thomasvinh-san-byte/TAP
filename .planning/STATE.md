@@ -2,6 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
+status: Phase 04.5 livrée — démo design partner démontrable
+stopped_at: Phase 04.5 complete — ready Phase 04.7
+last_updated: "2026-05-15T09:35:00.000Z"
+last_activity: 2026-05-15 — Phase 04.5 clôturée, 11 PR mergées (#71 Discuss, #72 UI-SPEC, #73 Plans, #74 Wave A fix /conduite, #75 amendement T1.4, #76 Wave B.1 RLS chauffeur + DEC-041, #77 stratégie CI V1.5, #79 Wave B.2 E2E driver-workflow-complete, #80 Wave B.3 masques Zod + BAN, #81 Wave C.3 modal assign filtre, #82 Wave C.4 audit perms doc) + 2 PR en cours de merge (#83 Wave C.1 UI patient form, #84 Wave C.2 POI métier + AddressOrPOIPicker). Vélocité globale -73% (≈3h45 réel vs 14h estimé). Démo design partner démontrable (workflow chauffeur fonctionnel + masques RGPD + POI métier + filtre permis/véhicule). Items différés inscrits CONCERNS.md (T5.2 page audit-logs Phase 04.7, T5.3 + DEC-040 audit Server Actions legal Phase 06, D PLAN-6 découpes + refactor Phase 04.7+). Stratégie CI V1.5 maintenue (3 dettes pré-existantes reportées Phase 06 HDS).
 status: Phase 04.7 Discuss (checkpoint 1/5) — CD réparé, prêt /gsd-ui-phase 04.7
 stopped_at: Phase 04.7 Discuss approved + hotfix seed DEC-039-bis livré
 last_updated: "2026-05-15T11:00:00.000Z"
@@ -21,13 +25,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 04 livrée + 5 hotfixes mergés. UAT autonome dirigeant avant Phase 04.5.
+**Current focus:** Phase 04.5 clôturée — démo design partner démontrable. Prêt Phase 04.7 (pricing + caisse + géocoding).
 
 ## Current Position
 
-Phase: 04.5 (Wave B.1 livrée)
-Phase next: 04.5 Wave B.2 (PLAN-1 T1.3 E2E driver-workflow-complete) après validation preview T1.4
-Status: Phase 04.5 Wave B.1 livrée (PR #76), validation preview T1.4 en attente avant Wave B.2
+Phase: 04.5 (livrée)
+Phase next: 04.7 — pricing + caisse + géocoding
+Status: Phase 04.5 livrée — démo design partner démontrable
+Blockers: aucun bloquant ; 2 PR en cours de merge (#83 UI patient form, #84 POI picker)
 Last activity: 2026-05-15 — Phase 04.5 Wave A (PR #74, fix /conduite + seed glissant) + Wave B.1 (PR #76, RLS chauffeur + DEC-041 row count check) livrées et mergées. Migration RLS appliquée BDD prod (premier test CD post-vague 2 réussi). Validation preview manuelle T1.4 en attente avant démarrage Wave B.2 (PLAN-1 T1.3 E2E driver-workflow-complete). Stratégie CI V1.5 acceptée VISION.md (3 dettes pré-existantes reportées Phase 06 HDS).
 Blockers: Validation preview manuelle T1.4 par dirigeant requise avant Wave B.2
 
@@ -44,11 +49,11 @@ Phases livrées :
 - Phase 03.1 — Efficience saisie modal course (2026-05-12, PR #39 — 1ère phase pilotée par GSD)
 - Phase 03.2 — Série hotfixes finition (8 hotfixes hors GSD, DateTimeFields react-datepicker + AddressPickerField BAN — PR #47..#55, 2026-05-12/13)
 - Phase 04   — Onboarding chauffeur + AuthShell (2026-05-13, PR #59 + 5 hotfixes post-merge PR #60..#67)
+- Phase 04.5 — Robustesse régulateur (2026-05-15, PR #71..#84 — 11 mergées + 2 en merge, ≈3h45 réel vs 14h estimé, vélocité -73%)
 
 Phases à venir :
 
-- Phase 04.5 — Robustesse régulateur + dette CONCERNS (~6-9h, prérequis UAT walkthrough dirigeant)
-- Phase 04.7 — Pricing + Caisse + Migration géocoding (~6-9h)
+- Phase 04.7 — Pricing + Caisse + Migration géocoding (~6-9h) + reprise dettes différées (D PLAN-6 découpes ride-modal/drawer + refactor /admin/chauffeurs ; T5.2 page /admin/audit-logs ; intégration AddressOrPOIPicker dans patient-form)
 - Phase 04.9 — PWA chauffeur enveloppe (~8-10h)
 - Phase 05   — Récurrences + cockpit + SMS + patient absent (~10-15h)
 - Phase 05.5 — Tarif CGSS réel (~8-12h)
@@ -117,6 +122,17 @@ DEC-029..033 ajoutées 2026-05-13/14 (hotfixes Phase 04 post-merge) :
 - DEC-032 : Politique migrations Supabase via CD exclusivement + playbook reconcile
 - DEC-033 : Clés React listes composants client incluent champ mutable
 
+DEC-035..039 + DEC-041 LOCKED Phase 04.5 :
+
+- DEC-035 : POI métier (table pois_metier + AddressOrPOIPicker)
+- DEC-036 : Masques saisie patient (NIR clé INSEE + villes 974 enum + téléphone Réunion + DatePicker FR)
+- DEC-037 : Logging défensif Server Components (pattern PR #63 généralisé)
+- DEC-038 : Filtre compatibilité chauffeur ↔ véhicule modal assignation
+- DEC-039 : Seed démo glissant ON CONFLICT DO UPDATE (dates relatives idempotentes)
+- DEC-041 : Server Action row count check (defense in depth post-RLS update)
+
+DEC-040 candidate (Phase 06 HDS) — Server Actions admin obligatoirement gardées par requireDirigeant/requireAdminOrRegulateur côté serveur (pas seulement RLS) : reportée audit systémique Phase 06.
+
 ### NFR (Non-Functional Requirements transverses)
 
 6 NFR ajoutés en REQUIREMENTS.md (run ingest 2026-05-12) :
@@ -132,18 +148,21 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ### Pending Todos
 
-- UAT autonome dirigeant (30-90 min) avant `/gsd-discuss-phase 04.5`
-- Production des 10 captures Visible Progress Phase 03 dans `docs/showcase/03-e2e-passe1-squelette/` (livraison déplacée vers Phase 04.5)
-- Inscrire ADR-003 dans bloc `<decisions>` PROJECT.md si pas déjà fait (à vérifier en Phase 04.5)
-- Régler CI ESLint v10 flat config (dette pré-existante, hors scope hotfixes)
+- Validation preview Phase 04.5 (3 surfaces UI : AddressOrPOIPicker, formulaire patient masques, modal assignation filtre)
+- Captures preview à archiver dans `.planning/phases/04.5-robustesse-regulateur/captures/`
+- Démarrage Phase 04.7 (pricing + caisse + géocoding + reprise dettes Phase 04.5 différées)
+- Intégration AddressOrPOIPicker dans patient-form `adresse_ligne1` (PR de suivi court post-merge #83 + #84)
+- Production des 10 captures Visible Progress Phase 03 dans `docs/showcase/03-e2e-passe1-squelette/` (reportée Phase 04.7)
 
 ### Blockers/Concerns
 
-- **Validation preview T1.4 dirigeant requise** avant démarrage Wave B.2. CD VERT après PR #76 merge (premier test post-vague 2 réussi).
+- **RAS bloquant Phase 04.5.** Démo design partner démontrable.
+- 2 PR en cours de merge : #83 (Wave C.1 UI patient form) + #84 (Wave C.2 POI métier). Migration `pois_metier` appliquée via `cd.yml` post-merge #84 (DEC-032).
 - **CDC v2 binaire `.docx`** : 15 modules secondaires non extraits, à ré-ingérer avant Phase 06 (non bloquant V1).
 - **HDS** : Supabase Cloud non certifié HDS — bêta privée acceptable sous DPA, migration vers OVHcloud / Scaleway HDS prévue Phase 06.
 - **Verification debt Phase 01** : 5 items audit-uat pending, à régler avant Phase 07 commercialisation.
-- **3 dettes CI V1.5 acceptées** (cf. VISION.md « Stratégie CI/qualité V1.5 → V3 ») : Lint ESLint v10 flat config + test SIRET Carrefour Luhn + pgTAP env runner — reportées Phase 06 HDS. Précédents PR #75 et #76 mergées sur cette baseline.
+- **3 dettes CI V1.5 acceptées** (cf. VISION.md « Stratégie CI/qualité V1.5 → V3 ») : Lint ESLint v10 flat config + test SIRET Carrefour Luhn + pgTAP env runner — reportées Phase 06 HDS. 13 PR Phase 04.5 mergées/en merge sur cette baseline.
+- **Items différés Phase 04.5 inscrits CONCERNS.md** : T5.2 page `/admin/audit-logs` à créer (Phase 04.7) ; T5.3 + DEC-040 audit Server Actions legal/* sans `require*` (Phase 06) ; D PLAN-6 découpes `ride-modal`/`ride-drawer` + refactor visuel `/admin/chauffeurs` (Phase 04.7+).
 
 ## Deferred Items
 
