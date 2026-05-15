@@ -569,6 +569,42 @@ Pas de modification code requise au passage prod.
 
 **Risque résiduel V1.5 démo** : les patients seedés démo ont `nir_encrypted = null` (cf. `seed.demo.sql`) — pas d'impact démo. Les patients réels créés en preview sans NIR auront aussi `nir_encrypted = null`, à compléter post-fix Phase 06 via une UI de mise à jour ciblée (ou re-saisie manuelle si le NIR n'a pas été conservé hors système).
 
+### Seed DEC-039 — ON CONFLICT DO UPDATE exhaustif (2026-05-15, leçon DEC-039-bis)
+
+**Issue** : le seed glissant DEC-039 (Wave A Phase 04.5) ne resetait pas TOUTES les colonnes runtime-mutables des rides au ré-application CD. Conséquence : après UAT manuelle (démarrer/clôturer une course), la ride avait un état hybride seed+runtime — `started_at=null` (reset par seed) mais `ended_at=2026-05-15 09:50:58` (PAS reset, oublié dans la liste DO UPDATE) — qui violait la contrainte CHECK `rides_ended_after_started` lors du seed suivant.
+
+**Symptôme observé** : CD GitHub Actions échec sur step « Application des migrations Supabase (production) » en 12-19 sec, message « new row for relation rides violates check constraint rides_ended_after_started ». 3 fails consécutifs sur 3 commits (`e3bb6d0`, `052c93c`, `fa50ae1`).
+
+**Diagnostic via Supabase MCP** (lecture seule, conforme DEC-032) :
+
+- Logs Postgres pointent la contrainte `rides_ended_after_started`
+- Ride `44444444-0000-0000-0000-000000000010` avait été démarrée + clôturée par le dirigeant lors de l'UAT du matin
+- Le seed visait `status='assignee', started_at=null, ended_at=null` mais seul `started_at` était dans la liste DO UPDATE — `ended_at` restait à la valeur de l'UAT
+- Recherche web (Crunchy Data, Vela, Supabase docs) confirme : les CHECK constraints sont évalués sur INSERT ET UPDATE — `ON CONFLICT DO UPDATE` doit lister TOUTES les colonnes mutables runtime pour vraie idempotence post-UAT
+
+**Fix** : élargir DO UPDATE des 3 blocs rides du seed (`supabase/seed.demo.sql`) pour reset exhaustivement TOUTES les colonnes runtime-mutables :
+
+- Contexte course : `scheduled_at`, `created_at`, `pickup_address`, `dropoff_address`, `transport_mode`, `urgency`, `driver_id`, `vehicle_id`
+- Workflow runtime : `status`, `started_at`, `ended_at`
+- Tarif runtime : `tarif_amount_eur`, `tarif_source`
+- Paiement runtime : `payment_status='non_concerne'`, `payment_method=null`, `payment_received_at=null`
+- Archive : `archive=false`
+- Annulation : `cancel_motif`
+- Notes : `notes_regulateur=null`
+
+Les colonnes absentes de la liste INSERT (ex : `ended_at` pour le bloc J0 qui seed des rides non démarrées) sont remises à leurs défauts table (`null` ou valeur fixe `'non_concerne'`/`false`) au lieu de `excluded.column`.
+
+**Leçon DEC-039-bis** : un seed idempotent qui touche des entités manipulées par les utilisateurs DOIT lister TOUTES les colonnes mutables dans son `ON CONFLICT DO UPDATE`. La liste partielle crée des états hybrides invalides vis-à-vis des contraintes cross-column (ici `rides_ended_after_started` = `ended_at IS NULL OR ended_at >= started_at`).
+
+**Mécanisme préventif** : à chaque ajout de colonne sur une table seedée, vérifier que le DO UPDATE du seed l'inclut. Test pgTAP `seed_demo_idempotent.sql` couvre désormais le cycle complet « seed initial → mutation UAT → re-seed exhaustif → état initial restauré » pour le bloc J0 (le bloc qui a déclenché le bug).
+
+**Tables potentiellement concernées par ce pattern** (à auditer Phase 06) :
+
+- `rides` ✅ corrigé hotfix DEC-039-bis
+- `patients` : vérifier que `seed.demo.sql` reset bien `archive`, `consentement_sms`, `notes_operationnelles`, etc. si patients démos sont mutés par UAT
+- `drivers` : vérifier que `actif`, `archive`, `archive_at` sont resetés
+- `pois_metier` (PR #84) : nouveau seed à auditer si UAT mutait `actif`
+
 ---
 
-*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15*
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15*

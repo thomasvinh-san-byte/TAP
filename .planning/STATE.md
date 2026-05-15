@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 04.5 Wave B.1 livrée (PR #76), validation preview T1.4 en attente avant Wave B.2
-stopped_at: Phase 04.5 Wave B.1 mergée — preview manual validation pending
-last_updated: "2026-05-15T07:30:00.000Z"
-last_activity: 2026-05-15 — Phase 04.5 Wave A (PR #74, fix /conduite + seed glissant) + Wave B.1 (PR #76, RLS chauffeur + DEC-041 row count check) livrées et mergées. Migration RLS appliquée BDD prod (premier test CD post-vague 2 réussi). Validation preview manuelle T1.4 en attente avant démarrage Wave B.2 (PLAN-1 T1.3 E2E driver-workflow-complete). Stratégie CI V1.5 acceptée VISION.md (3 dettes pré-existantes reportées Phase 06 HDS). Hotfix UX NIR — validation strict INSEE désactivée par défaut (env var NEXT_PUBLIC_NIR_CHECKSUM_STRICT=true pour production). Démo design partner débloquée. Hotfix NIR optionnel V1.5 — chiffrement Edge Function 401 reporté Phase 06 HDS (diagnostic auth chain complet, env vars Edge Function ou JWT chain Server Action → invoke à investiguer). Démo design partner débloquée : régulatrice peut créer patients avec ou sans NIR.
+status: Phase 04.7 Discuss (checkpoint 1/5) — CD réparé, prêt /gsd-ui-phase 04.7
+stopped_at: Phase 04.7 Discuss approved + hotfix seed DEC-039-bis livré
+last_updated: "2026-05-15T11:00:00.000Z"
+last_activity: 2026-05-15 — Phase 04.7 Discuss livrée (PR #88, CONTEXT + DISCUSSION-LOG + audit codebase intelligent Tronc 4 caduc Tronc 3 simplifié, estimation révisée 4.5-7h / 1.5-2h réel). Hotfix seed DEC-039-bis (ON CONFLICT DO UPDATE exhaustif sur rides) — CD remis vert après 3 fails consécutifs liés à état hybride seed+UAT (violation rides_ended_after_started). Test pgTAP seed_demo_idempotent.sql ajouté pour prévenir récurrence. Prêt /gsd-ui-phase 04.7.
 progress:
   total_phases: 15
   completed_phases: 4
