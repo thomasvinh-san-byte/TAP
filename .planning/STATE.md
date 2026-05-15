@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Between phases — UAT dirigeant à dérouler en autonomie (30-90 min) avant `/gsd-discuss-phase 04.5` avec frictions UAT en input.
-stopped_at: Phase 04.5 UI-SPEC approved (6/6 dimensions PASS, 4 recommandations non bloquantes)
-last_updated: "2026-05-15T06:06:00.275Z"
-last_activity: 2026-05-14 — CD réparé vague 2 (reseed_patients_fictifs réconciliée via MCP), schema_migrations aligné, Phase 04 + 5 hotfixes mergés. Prêt UAT autonome dirigeant avant Phase 04.5.
+status: Phase 04.5 Wave B.1 livrée (PR #76), validation preview T1.4 en attente avant Wave B.2
+stopped_at: Phase 04.5 Wave B.1 mergée — preview manual validation pending
+last_updated: "2026-05-15T07:30:00.000Z"
+last_activity: 2026-05-15 — Phase 04.5 Wave A (PR #74, fix /conduite + seed glissant) + Wave B.1 (PR #76, RLS chauffeur + DEC-041 row count check) livrées et mergées. Migration RLS appliquée BDD prod (premier test CD post-vague 2 réussi). Validation preview manuelle T1.4 en attente avant démarrage Wave B.2 (PLAN-1 T1.3 E2E driver-workflow-complete). Stratégie CI V1.5 acceptée VISION.md (3 dettes pré-existantes reportées Phase 06 HDS).
 progress:
   total_phases: 15
   completed_phases: 4
@@ -25,10 +25,11 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 
 ## Current Position
 
-Phase: 04 (livrée)
-Phase next: 04.5 (cadrage en attente UAT)
-Status: Between phases — UAT dirigeant à dérouler en autonomie (30-90 min) avant `/gsd-discuss-phase 04.5` avec frictions UAT en input.
-Last activity: 2026-05-14 — CD réparé vague 2 (reseed_patients_fictifs réconciliée via MCP), schema_migrations aligné, Phase 04 + 5 hotfixes mergés. Prêt UAT autonome dirigeant avant Phase 04.5.
+Phase: 04.5 (Wave B.1 livrée)
+Phase next: 04.5 Wave B.2 (PLAN-1 T1.3 E2E driver-workflow-complete) après validation preview T1.4
+Status: Phase 04.5 Wave B.1 livrée (PR #76), validation preview T1.4 en attente avant Wave B.2
+Last activity: 2026-05-15 — Phase 04.5 Wave A (PR #74, fix /conduite + seed glissant) + Wave B.1 (PR #76, RLS chauffeur + DEC-041 row count check) livrées et mergées. Migration RLS appliquée BDD prod (premier test CD post-vague 2 réussi). Validation preview manuelle T1.4 en attente avant démarrage Wave B.2 (PLAN-1 T1.3 E2E driver-workflow-complete). Stratégie CI V1.5 acceptée VISION.md (3 dettes pré-existantes reportées Phase 06 HDS).
+Blockers: Validation preview manuelle T1.4 par dirigeant requise avant Wave B.2
 
 Progress: [██████████] 100%
 
@@ -138,11 +139,11 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ### Blockers/Concerns
 
-- **RAS bloquant.** CD VERT après réconciliation vague 2. Supabase prod healthy. Preview Vercel multi-chauffeurs OK.
+- **Validation preview T1.4 dirigeant requise** avant démarrage Wave B.2. CD VERT après PR #76 merge (premier test post-vague 2 réussi).
 - **CDC v2 binaire `.docx`** : 15 modules secondaires non extraits, à ré-ingérer avant Phase 06 (non bloquant V1).
 - **HDS** : Supabase Cloud non certifié HDS — bêta privée acceptable sous DPA, migration vers OVHcloud / Scaleway HDS prévue Phase 06.
 - **Verification debt Phase 01** : 5 items audit-uat pending, à régler avant Phase 07 commercialisation.
-- **CI ESLint** : workflow CI rouge sur dette ESLint v10 flat config pré-existante. CD vert (jobs CI ≠ CD).
+- **3 dettes CI V1.5 acceptées** (cf. VISION.md « Stratégie CI/qualité V1.5 → V3 ») : Lint ESLint v10 flat config + test SIRET Carrefour Luhn + pgTAP env runner — reportées Phase 06 HDS. Précédents PR #75 et #76 mergées sur cette baseline.
 
 ## Deferred Items
 

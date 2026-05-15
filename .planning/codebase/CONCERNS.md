@@ -409,6 +409,34 @@ ORDER BY version DESC;
   - `apps/web/src/app/(driver)/conduite/actions.ts` (startRide ✓ Phase 04.5, endRide ✓ Phase 04.5 — reste : éventuelles actions futures)
   - Inventaire exhaustif à compiler via `grep -rn "'use server'" apps/web/src/`
 
+### Dettes CI V1.5 — stratégie acceptée 2026-05-15
+
+Stratégie inscrite VISION.md « Stratégie CI/qualité V1.5 → V3 ».
+
+Les 3 dettes ci-dessous restent ROUGES sur la CI jusqu'à Phase 06 HDS. Documentées comme acceptables V1.5 car n'impactent ni la démo design partner ni le périmètre métier des phases.
+
+**Dette 1 — ESLint v10 flat config (~30 min Phase 06)**
+
+- Configs manquantes : `packages/database`, `packages/shared`
+- Fix : créer `eslint.config.js` dans chaque package
+
+**Dette 2 — SIRET Carrefour test Luhn (~15 min Phase 06)**
+
+- Fichier : `packages/shared/src/validators/__tests__/common.test.ts`
+- Fix : remplacer `40483304800010` par SIRET fictif Luhn-valide
+
+**Dette 3 — pgTAP env CI runner (~1-2 h Phase 06)**
+
+- Diagnostic à faire : pourquoi pgTAP fail même sur PR sans SQL
+- Suspicion : installation pgTAP côté runner GitHub Actions ou configuration Supabase CLI tests
+
+**Précédents PR qui ont mergé avec ces 3 dettes** :
+
+- PR #75 (docs-only amendement Phase 04.5)
+- PR #76 (Wave B.1 RLS chauffeur)
+
+Phase 04.5 Wave B.2..D continueront avec cette baseline.
+
 ---
 
-*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15*
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15*
