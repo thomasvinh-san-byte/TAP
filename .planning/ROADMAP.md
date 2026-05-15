@@ -27,18 +27,21 @@ Sources de vérité de ce séquencement : ADR-003 (LOCKED) +
 - Phases 03-06 : passes E2E v2 (alignement ADR-003).
 
 - [x] **Phase 0: Fondations Lot 0** - Monorepo, RLS multi-tenant, migrations, CI/CD (livré commit `f68b1d2`)
-- [x] **Phase 1: Référentiel patients** - Fiche patient avec NIR chiffré, recherche fuzzy, préférences (livré 16 commits, 5/5 SC + 7/7 PAT delivered, runtime CI human_needed)
-- [x] **Phase 1.5: DPA + RGPD compliance** - Registre traitements, DPA Supabase, DPIA santé, portail droits patient (livré 28 commits, 8/8 DPA delivered, runtime CI human_needed)
 - [x] **Phase 0.7: Déploiement continu Vercel + démo seedée** - Visible Progress Mandate (Vercel preview + seed démo 974 + showcase/ + smoke test cloud) — livrée 2026-05-07
+- [x] **Phase 1: Référentiel patients** - Fiche patient avec NIR chiffré, recherche fuzzy, préférences (livré 16 commits, 5/5 SC + 7/7 PAT delivered)
+- [x] **Phase 1.5: DPA + RGPD compliance** - Registre traitements, DPA Supabase, DPIA santé, portail droits patient (livré 28 commits, 8/8 DPA delivered)
 - [x] **Phase 2: Saisie express course** - Saisie < 30 s, raccourci `Cmd/Ctrl+Shift+K`, brouillons, multi-saisies (livré 22 commits, 6/6 SAIS delivered, 2026-05-07)
 - [x] **Phase 03: E2E Passe 1 — Squelette + clôture-bis** - 6 maillons reliés bout-à-bout (chauffeurs/véhicules/assignation/exécution/tarif manuel/encaissement) + édition course + role guards + 48h chauffeur + annulation + CRUD admin (livré 2026-05-12 sur branches `claude/consolidate-phase-3-validation-9Tzax` + `feat/03-cloture-bis-annulation-crud-admin`)
-- [ ] **Phase 04: Onboarding chauffeur + AuthShell mode jour** - Workflow invitation chauffeur via magic link Supabase Auth + `<AuthShell>` réutilisable (refonte light `/login` `/welcome` `/setup` + `/accept-invite`) + DemoCredentials cliquables + premier RHF du repo (DEC-018). Mode nuit reporté Phase UI dédiée. **(DEC-023 god-phase split)**
-- [ ] **Phase 04.5: Robustesse régulateur + dette CONCERNS** - Filtrage type_permis↔vehicle.type modal assignation + audit logs nom acteur + découpe ride-express-modal/ride-drawer + types Supabase regen + livraison 10 captures showcase Phase 03
-- [ ] **Phase 04.7: Pricing mockup + Caisse + Migration géocoding** - `packages/pricing` stub DEMO + PricingBreakdown UI + OverrideTarifModal + page `/courses/caisse` style Stripe Balance + export CSV utf-8-sig + migration BDD lat/lng/citycode threadée depuis BAN. **Pricing réel reporté Phase 05.5 (DEC-021)**
-- [ ] **Phase 04.9: PWA chauffeur enveloppe** - Serwist + Dexie 4.x (DEC-019) + manifest + icônes maskable + splash iOS DPR + ConnectionStatus 4 cas + sync engine + persistence storage warning > 7j (DEC-022) + transitions fade-in template.tsx (DEC-020)
-- [ ] **Phase 05: E2E Passe 3 — Récurrences + cockpit temps réel + SMS + patient absent** - `packages/recurrence` 100% (dialyse 3×/sem, exceptions jours fériés 974) + cockpit régulateur Realtime Supabase + SMS rappel J-1 et J-2h via Twilio + workflow patient absent au pickup
-- [ ] **Phase 05.5: Tarif CGSS réel** - Implémentation calcul réel `computeCgssShortTrip` (remplace stub Phase 04.7), décision distance tranchée en discuss préalable, validation grille dirigeant 5+ cas, 100% branch coverage Vitest (DEC-021)
-- [ ] **Phase 06: E2E Passe 4 — HDS + OR-Tools + B2B + facturation** - Migration HDS production (Scaleway/OVHcloud) + microservice Python OR-Tools tournée + portail B2B dirigeant + facturation CGSS mensuelle PDF
+- [x] **Phase 03.1: Efficience saisie modal course** — 3 patterns Doctolib/Uber Health/Onfleet (smart defaults, chips date, banner doublon) + re-seed patients fictifs (livré 2026-05-12 sur PR #39 — 5 plans GSD pipeline complet)
+- [x] **Phase 03.2: Série hotfixes finition (hors GSD)** — 8 hotfixes DateTimeFields react-datepicker + AddressPickerField BAN (PR #47..#55, 2026-05-12/13). Pattern incremental hors GSD documenté en CONCERNS.md.
+- [x] **Phase 04: Onboarding chauffeur + AuthShell** — Workflow invitation magic link Supabase + AuthShell réutilisable + DemoCredentials cliquables + premier RHF + zodResolver du repo (DEC-018). Livré 2026-05-13 sur PR #59 + 5 hotfixes post-merge (PR #60..#67, DEC-029..033).
+- [ ] **Phase 04.5: Robustesse régulateur + dette CONCERNS** — Filtrage type_permis↔vehicle.type modal assignation + audit logs nom acteur + découpe `ride-express-modal.client.tsx` (384L) + `ride-drawer.client.tsx` (337L) + types Supabase regen + livraison 10 captures showcase Phase 03 + audit permissions autres modules admin (vehicules, legal/*) + workflow patient absent. **Estimation : 6-9 h. Prérequis : UAT walkthrough dirigeant terminé.**
+- [ ] **Phase 04.7: Pricing mockup + Caisse + Migration géocoding** — `packages/pricing` stub DEMO + PricingBreakdown UI + OverrideTarifModal + page `/courses/caisse` style Stripe Balance + export CSV utf-8-sig + migration BDD lat/lng/citycode threadée BAN + anonymisation seed profiles. **Pricing réel reporté Phase 05.5 (DEC-021). Estimation : 6-9 h.**
+- [ ] **Phase 04.9: PWA chauffeur enveloppe** — Serwist + Dexie 4.x (DEC-019) + manifest + icônes maskable + splash iOS DPR + ConnectionStatus 4 cas + sync engine + persistence storage warning > 7j (DEC-022) + transitions fade-in template.tsx (DEC-020) + iOS PWA quirks documentés CONCERNS.md. **Estimation : 8-10 h.**
+- [ ] **Phase 05: E2E Passe 3 — Récurrences + cockpit + SMS + patient absent** — `packages/recurrence` 100% (dialyse 3×/sem, exceptions jours fériés 974) + cockpit régulateur Realtime Supabase + SMS rappel J-1 et J-2h via Twilio + workflow patient absent au pickup + logique no-show vs annulation patient + tableau de bord pilotage dirigeant. **Estimation : 10-15 h.**
+- [ ] **Phase 05.5: Tarif CGSS réel** — Implémentation calcul réel `computeCgssShortTrip` (remplace stub Phase 04.7), grille tarif CGSS 2026 (forfait/km/majo nuit/dim/férié/supp TPMR), mode debug override dirigeant, page grille active + historique + simulation, recalcul rétroactif courses historiques. 100% branch coverage Vitest (DEC-021). **Estimation : 8-12 h.**
+- [ ] **Phase 06: E2E Passe 4 — HDS + OR-Tools + B2B + facturation CGSS PDF** — Migration HDS production (Scaleway/OVHcloud OU validation Supabase EU conforme HDS V1) + OR-Tools tournée (TSP/VRP Google) + portail B2B multi-tenant complet (signup Stripe, isolation tenant) + facturation CGSS PDF mensuelle + 2FA TOTP dirigeant + rotation tokens Supabase auto + résolution 30+ warnings security advisors + pen test externe. **Estimation : 15-25 h.**
+- [ ] **Phase 07: Mobile native chauffeur (OPTIONNEL — décision business V2)** — App native iOS + Android (React Native ou Capacitor) + géoloc continue + mode hors-ligne complet + reconnaissance vocale + push natives + mode lecture seule chauffeur. Phase 04.9 PWA peut suffire si business case mobile natif non validé (coût 10× inférieur, même périmètre fonctionnel). **Estimation : 25-40 h.**
 
 ## Phase Details
 
@@ -169,59 +172,46 @@ Plans:
 
 > **Phase 03.1.1 supprimée (DEC-023)** : stub jamais utilisé, travail absorbé par la série PR #47..#55 Phase 03.2 (DateTimeFields finalisé + AddressPickerField BAN).
 
-### Phase 04: Onboarding chauffeur + AuthShell mode jour (REFACTOR DEC-023)
-**Goal fonctionnel**: Le dirigeant invite un chauffeur par email. Le chauffeur active son compte via un magic link Supabase Auth, est rattaché à sa fiche `drivers` existante, puis peut se connecter via `/login` refondu.
+### Phase 04: Onboarding chauffeur + AuthShell — LIVRÉE 2026-05-13
+**Goal fonctionnel**: Le dirigeant ET le régulateur invitent un chauffeur par email. Le chauffeur active son compte via un magic link Supabase Auth, est rattaché à sa fiche `drivers` existante, puis peut se connecter via `/login` refondu.
 **Goal UX**: `<AuthShell>` réutilisable — layout split desktop, single column mobile. `/login` + `/welcome` + `/setup` refondus en mode jour, captures publiables. `DemoCredentials` cards cliquables qui prefill le form si `NEXT_PUBLIC_SHOW_DEMO_CREDENTIALS === '1'`. Premier RHF + `zodResolver` du repo (DEC-018).
-**Depends on**: Phase 03 (squelette E2E + CRUD admin chauffeurs déjà livrés)
-**Requirements**: CHAUF-01..04 (workflow invitation), NFR-001..006
-**Périmètre — dans**:
-- Migration BDD : table `driver_invitations` (token UUID, status `pending|accepted|expired`, expiry 48h, RLS organization_id)
-- Server Action `inviteDriverAction` depuis `/admin/chauffeurs`
-- Supabase Auth magic link (template SES par défaut — Resend/Brevo reporté Phase 06)
-- Page `/accept-invite?token=...` avec RHF + zodResolver (création password + activation)
-- Rattachement `drivers.profile_id = auth.uid()` à l'activation
-- Composant `<AuthShell>` extrait dans `apps/web/src/app/(auth)/_components/`
-- `DemoCredentials` converti Server → Client, cards cliquables, prefill email + password si flag
-**Périmètre — hors** (Phase UI dédiée post-Passe 2):
-- Mode nuit toggle complet (spec UI prête dans 04-UI-SPEC.md § 4)
-- Refonte visuelle complète logo/baseline (logo TAP existant conservé en Phase 04)
-- Slide bidirectionnel iOS-style PWA Driver (DEC-020 — bug Next.js #42658)
-**Success Criteria** (what must be TRUE):
-  1. Le dirigeant invite un humain réel via `/admin/chauffeurs` sans intervention dev
-  2. L'humain reçoit un email magic link et active son compte sur `/accept-invite`
-  3. `drivers.profile_id` rattaché correctement à l'activation (cohérent base)
-  4. `/login` refondue, capture publiable mode jour
-  5. `DemoCredentials` cards prefill le form si flag actif
-**Plans**: TBD — voir `/gsd-discuss-phase 04` puis `/gsd-plan-phase 04`
-**Captures Visible Progress**: 2 (`/login` jour, `/accept-invite`)
-**Estimation**: 4-5 h
-**UI hint**: yes (refonte light auth pages + AuthShell)
-**Canonical refs**: `.planning/phases/04-onboarding-chauffeur-authshell/04-CONTEXT.md`, `04-UI-SPEC.md` (§ 7.6 AuthShell + § 7.7 DemoCredentials + § 7.8 /accept-invite)
+**Depends on**: Phase 03.2 (squelette E2E + CRUD admin chauffeurs + hotfixes finition)
+**Plans**: 5 plans GSD pipeline complet (livrés sur PR #59).
+**Status**: Complete (2026-05-13) — 135 min execution vs 330 estimés (-59%).
+**Hotfixes post-merge** (PR #60..#67, 5 hotfixes mergés 2026-05-13/14) :
+- PR #60 DEC-029 : sémantique 4 actions chauffeurs (Désactiver / Réactiver / Archiver / Désarchiver) avec 3 lignes de défense (Server Action + RLS + trigger column-level)
+- PR #61 DEC-030 : audit FR rédac user-facing (cadratins articulation/définition → `:`, anglicismes `assigner→affecter`)
+- PR #62 DEC-031 : seed démo étendu UAT multi-chauffeurs (3 chauffeurs auth + 12 courses fictives)
+- PR #63 : /admin/chauffeurs vide régulateur (cause root schéma — colonne `archive_motif` manquante preview)
+- PR #64+#66 DEC-032 : CD réconcilié + playbook schema_migrations drift
+- PR #65 DEC-033 : clé React listes composants client inclut champ mutable (4 listes)
+- PR #67 : push final cleanup commit
+**Captures Visible Progress**: 2 livrées (`/login` jour, `/accept-invite`)
+**UI hint**: yes
 
-### Phase 04.5: Robustesse régulateur + dette CONCERNS (INSERTED DEC-023)
-**Goal fonctionnel**: Frictions et risques opérationnels documentés `CONCERNS.md` levés. La régulatrice ne peut plus mismatcher permis/véhicule. La timeline audit affiche le nom de l'acteur. Modals dépassant 300L découpées proprement.
-**Goal UX**: Aucun nouvel écran. Amélioration ciblée modal assignation. Livraison en retard des 10 captures showcase Phase 03 (Visible Progress § 13.5).
-**Depends on**: Phase 04
-**Requirements**: NFR-006 + dette CONCERNS.md
-**Périmètre — dans**:
-- Filtrage `type_permis` ↔ `vehicle.type` modal assignation (CONCERNS.md severity major)
-- Audit logs enrichissement nom acteur (join `profiles.first_name + last_name` OU dénormalisation)
-- Découpe `ride-express-modal.client.tsx` (384L → <200L orchestrateur fin)
-- Découpe `ride-drawer.client.tsx` (337L → <200L)
-- Régénération types Supabase (`pnpm db:types`) + suppression des 5 `TODO(types)`
-- Production des 10 captures showcase Phase 03 pending (`docs/showcase/03-e2e-passe1-squelette/`)
-**Périmètre — hors**: Aucun nouvel écran, aucun nouveau flow.
-**Success Criteria** (what must be TRUE):
-  1. Modal assignation refuse le couplage permis B + minibus (validation form bloquante)
-  2. Timeline audit (`ride-drawer` historique) affiche prénom/nom au lieu de "regulateur" générique
-  3. Aucun fichier `apps/web/src/app/**/_components/*.tsx` > 300L (`wc -l`)
-  4. `grep -rn "TODO(types)" apps/web/src` retourne 0
-  5. 10 captures Phase 03 livrées dans `docs/showcase/03-e2e-passe1-squelette/`
+### Phase 04.5: Robustesse régulateur + dette CONCERNS
+**Goal fonctionnel**: Frictions et risques opérationnels documentés `CONCERNS.md` levés. La régulatrice ne peut plus mismatcher permis/véhicule. La timeline audit affiche le nom de l'acteur. Modals dépassant 300L découpées proprement. Audit permissions étendu aux autres modules admin selon leçon DEC-029. Workflow patient absent (cas métier ressorti UAT).
+**Goal UX**: Aucun nouvel écran majeur. Amélioration ciblée modal assignation + workflow patient absent. Livraison en retard des 10 captures showcase Phase 03 (Visible Progress § 13.5).
+**Depends on**: Phase 04 + UAT walkthrough dirigeant terminé (frictions UAT en input pour ajuster périmètre)
+**Requirements**: NFR-006 + dette CONCERNS.md + frictions UAT
+**Périmètre cadré CONCERNS.md (à valider contre UAT)** :
+1. Filtrage `type_permis` ↔ `vehicle.type` modal assignation (CONCERNS.md severity major)
+2. Audit logs enrichissement nom acteur (join `profiles.first_name + last_name` OU dénormalisation)
+3. Découpe `ride-express-modal.client.tsx` (384L → <300L orchestrateur fin)
+4. Découpe `ride-drawer.client.tsx` (337L → <300L)
+5. Régénération types Supabase (`pnpm db:types`) + suppression des 5 `TODO(types)`
+6. Production des 10 captures showcase Phase 03 pending (`docs/showcase/03-e2e-passe1-squelette/`)
+7. Audit permissions autres modules admin (vehicules, legal/*) selon leçon DEC-029
+8. Workflow patient absent (cas métier ressorti UAT)
+
+**Note** : périmètre 8 items potentiellement à réorienter selon frictions UAT remontées par dirigeant.
+
+**Périmètre — hors**: Aucun écran fonctionnel majeur nouveau (les hotfixes UAT Phase 04 ont déjà absorbé ce qui était urgent).
 **Plans**: TBD — voir `/gsd-discuss-phase 04.5` puis `/gsd-plan-phase 04.5`
 **Captures Visible Progress**: 0 nouvelles (livraison 10 captures Phase 03 en retard)
-**Estimation**: 4-6 h
-**UI hint**: no (dette technique + showcase)
-**Canonical refs**: `.planning/phases/04.5-robustesse-regulateur/04.5-CONTEXT.md`
+**Estimation**: 6-9 h
+**UI hint**: no (dette technique + showcase + workflow ponctuel)
+**Canonical refs**: `.planning/phases/04.5-robustesse-regulateur/04.5-CONTEXT.md` (à créer en discuss)
 
 ### Phase 04.7: Pricing mockup + Caisse + Migration géocoding (INSERTED DEC-023)
 **Goal fonctionnel**: La chaîne pricing UI est en place sans calcul réel. `packages/pricing` exporte un **stub** `computeCgssShortTrip` retournant des valeurs hardcodées clairement « DEMO ». `PricingBreakdown` UI réel à la clôture. `OverrideTarifModal` fonctionnel et tracé `audit_logs`. Page `/courses/caisse` avec totaux et export CSV. Migration BDD préparée pour `lat/lng/citycode` mais **non consommée** par le pricing.
@@ -401,6 +391,23 @@ conformité, exports) enrichissent cette base, ils ne la déverrouillent
 pas. Trade-off : delivery V1 plus rapide vs périmètre V1 réduit. Adopté
 par ADR-003.
 
+### Phase 07: Mobile native chauffeur (OPTIONNEL — décision business V2)
+**Goal fonctionnel**: App native iOS + Android pour les chauffeurs si la PWA Phase 04.9 ne couvre pas le périmètre offline / GPS continu attendu en production sur le terrain 974.
+**Depends on**: Phase 06 livrée + décision business sur retour Phase 04.9 PWA
+**Périmètre — à confirmer business case** :
+1. App native iOS + Android (React Native ou Capacitor)
+2. Géolocalisation continue avec consentement
+3. Mode hors-ligne complet (Dexie + sync IndexedDB)
+4. Reconnaissance vocale (annonce arrivée patient)
+5. Notifications push natives
+6. Mode lecture seule chauffeur (visualisation tournée)
+
+**Note** : Phase 04.9 PWA peut suffire si business case mobile natif n'est pas validé. PWA = même périmètre fonctionnel avec coût 10× inférieur.
+
+**Estimation**: 25-40 h
+**UI hint**: yes (UI native différente de la PWA)
+**Plans**: TBD — phase déclenchée seulement après décision business explicite post-Phase 06
+
 ---
 *Roadmap initialisée : 2026-05-06*
-*Dernière mise à jour : 2026-05-12 — réécriture passes 03-06 alignées ADR-003 + pivot E2E v2 (ingest run 2026-05-12, manifest 3 SPECs).*
+*Dernière mise à jour : 2026-05-14 — Phase 04 marquée livrée + 5 hotfixes post-merge (DEC-029..033) + Phase 03.2 inscrite + Phase 07 mobile natif ajoutée + estimations alignées avec vision macro VISION.md.*

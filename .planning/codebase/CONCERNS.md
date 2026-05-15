@@ -319,6 +319,48 @@ Les items « Phase de résolution : Passe 2 (Phase 04) » référencés ci-desso
 - **Leçon** : `mcp__supabase__apply_migration` est utile en hotfix urgent quand le CD est défaillant ou la BDD est désynchronisée, mais ne doit jamais être utilisé en lieu et place du flux `git → CD → supabase db push` quand celui-ci marche. La signature de la version posée par MCP est une violation silencieuse du protocole de versioning Supabase CLI.
 - **Mécanisme préventif futur** : après tout `apply_migration` sur une migration qui a aussi un fichier disque correspondant, immédiatement `UPDATE schema_migrations.version` pour aligner. Idéalement, automatiser cette réconciliation côté MCP (issue upstream à ouvrir Supabase) ; en attendant, le geste manuel est inscrit dans le playbook ci-dessus.
 
+### Vague 2 — 2026-05-14 : reseed_patients_fictifs oubliée
+
+Le batch initial DEC-032 (vague 1) avait identifié 3 migrations dérivées : `driver_invitations`, `drivers_perm_regulateur`, `drivers_archive_dirigeant_only`. Une 4e migration `reseed_patients_fictifs` (version Supabase `20260512060210`, version repo `20260513000003`) avait également été appliquée en MCP plus tôt dans la semaine mais n'avait pas été listée dans la première réconciliation.
+
+Le CD du 2026-05-14 (run `40502f9`) a échoué sur :
+
+```
+Remote migration versions not found in local migrations directory. […]
+try repairing the migration history table:
+supabase migration repair --status reverted 20260512060210
+```
+
+**Fix appliqué** :
+
+```sql
+UPDATE supabase_migrations.schema_migrations
+SET version = '20260513000003'
+WHERE name = 'reseed_patients_fictifs';
+```
+
+**Leçon pour les prochaines récurrences** : la requête de diagnostic doit être **exhaustive**, comparant TOUS les noms de `schema_migrations` prod avec TOUS les noms de fichiers dans `supabase/migrations/`. Un drift orphelin invisible suffit à bloquer le CD.
+
+```sql
+-- Requête de diagnostic exhaustive (utiliser en cas de drift) :
+-- Remplacer les listes par les valeurs réelles du repo au moment du diagnostic.
+SELECT version, name FROM supabase_migrations.schema_migrations
+WHERE name NOT IN (
+  -- Liste à actualiser depuis : ls supabase/migrations | sed 's/^[0-9]*_//; s/\.sql$//'
+  'foundations', 'rls_foundations', 'patients',
+  'search_patients_rpc', 'legal_compliance',
+  -- …etc, à jour au moment du diagnostic
+)
+OR (version, name) NOT IN (
+  -- Liste à actualiser depuis : ls supabase/migrations | sed -E 's/^([0-9]+)_(.+)\.sql$/(\x27\1\x27, \x27\2\x27),/'
+  ('20260506000001', 'foundations'),
+  -- …etc, à jour au moment du diagnostic
+)
+ORDER BY version DESC;
+```
+
+**Idéalement** : automatiser cette comparaison via un script de pré-flight check intégré au CD lui-même (dette future Phase 04.5+). Le script lirait `ls supabase/migrations/` côté repo, ferait `SELECT version, name FROM schema_migrations` côté prod, et flaggerait toute entrée drift ou orpheline avant que `supabase db push` ne parte.
+
 ---
 
-*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13*
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14*
