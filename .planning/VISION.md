@@ -30,9 +30,11 @@ l'outil 8 h/jour, 220 j/an, sans jamais le subir.
   Métier de fond : récurrences dialyse, cockpit, SMS, patient absent
   Tarif CGSS calculé automatiquement
 
-**V3 (Phase 06)** — HDS + B2B + facturation
+**V3 (Phase 06)** — HDS + B2B + facturation + audit RLS systémique
   Production-grade : conformité HDS, multi-tenant payant,
-  facturation CGSS PDF
+  facturation CGSS PDF + audit RLS systémique de toutes les tables
+  + audit Server Actions row count check (DEC-041)
+  + tests E2E permissions cross-org / cross-driver
 
 **V4 (Phase 07, optionnel)** — Mobile native
   Si business case validé sur retour Phase 04.9 PWA

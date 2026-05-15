@@ -372,6 +372,43 @@ ORDER BY version DESC;
   - `/admin/legal/*` : auditer cohérence avec le pattern
   - Hors scope strict Phase 04.5 selon priorisation UAT dirigeant
 
+### Audit RLS systémique reporté Phase 06 HDS
+
+- **Incident 2026-05-15** : post-merge PR #74 (Wave A Phase 04.5), l'UAT a révélé que le chauffeur ne peut pas démarrer/clôturer ses courses. Cause root : policy RLS `rides_update_regulateur_dirigeant` exclut le rôle `chauffeur` ; aucune policy `rides_update_chauffeur_*` n'existe. UPDATE silencieusement rejeté par RLS (0 rows affected, pas d'erreur SQL) → faux success affiché côté UI.
+- **Fix appliqué Phase 04.5 T1.4 (mini scope)** : nouvelle policy `rides_update_chauffeur_own_rides` autorise un chauffeur à UPDATE ses propres rides (`driver_id IN (mes drivers)`). USING + WITH CHECK identiques pour empêcher transfert. Migration via CD `supabase db push` (DEC-032). Pattern Server Action row count check (DEC-041) appliqué à `startRideAction` + `endRideAction` uniquement.
+- **Risque résiduel V1.5** : d'autres trous similaires peuvent exister sur d'autres tables (patients, vehicles, pois_metier, audit_logs, legal_*). Acceptable en pré-production démo (utilisateurs internes test seulement). **Inacceptable en production commerciale HDS**.
+- **Reporté Phase 06 HDS** (conformité production-grade, sa place naturelle) :
+  - Inventaire complet policies RLS de TOUTES les tables (`patients`, `rides`, `drivers`, `vehicles`, `audit_logs`, `organizations`, `legal_*`, `pois_metier`, etc.)
+  - Matrice rôle × table × action `[SELECT, INSERT, UPDATE, DELETE]` attendu vs actuel
+  - Migrations correctives par table
+  - Tests pgTAP exhaustifs (cross-org isolation, cross-driver isolation, role escalation)
+  - Tests E2E Playwright sur permissions (au-delà du smoke V1)
+
+### Server Actions row count check (DEC-041)
+
+- **Pattern documenté DEC-041** (PROJECT.md) appliqué Phase 04.5 UNIQUEMENT à `startRideAction` et `endRideAction` :
+  ```typescript
+  const { data, error } = await supabase
+    .from('table')
+    .update(payload)
+    .eq('id', id)
+    .select('id');
+  if (error) return { error: '...' };
+  if (!data || data.length === 0) {
+    return { error: 'Modification refusée — droits insuffisants.' };
+  }
+  ```
+- **Justification** : RLS rejette silencieusement les UPDATE qui ne match aucune ligne. Sans `.select()` + check `length`, l'application affiche un faux success.
+- **Audit complet reporté Phase 06** : inventaire de TOUTES les Server Actions du repo + application systématique du pattern + tests E2E error path (RLS blocking) + migration documentaire.
+- **Liste actions à auditer Phase 06** (à compléter à l'inventaire exhaustif) :
+  - `apps/web/src/app/(admin)/admin/chauffeurs/actions.ts` (createDriver, updateDriver, archiveDriver, deactivateDriver, reactivateDriver, unarchiveDriver, inviteDriver, resendInvitation)
+  - `apps/web/src/app/(admin)/admin/vehicules/actions.ts` (createVehicle, updateVehicle, archiveVehicle, …)
+  - `apps/web/src/app/(app)/courses/actions/*.ts` (createRide, editRide, cancelRide, assignment, …)
+  - `apps/web/src/app/(app)/patients/actions/*.ts` (createPatient, updatePatient, archivePatient, …)
+  - `apps/web/src/app/(admin)/admin/legal/*/actions.ts` (registre, dpia, dpa, breaches, requests, dpo)
+  - `apps/web/src/app/(driver)/conduite/actions.ts` (startRide ✓ Phase 04.5, endRide ✓ Phase 04.5 — reste : éventuelles actions futures)
+  - Inventaire exhaustif à compiler via `grep -rn "'use server'" apps/web/src/`
+
 ---
 
-*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14*
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15*
