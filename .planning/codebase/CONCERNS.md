@@ -361,6 +361,17 @@ ORDER BY version DESC;
 
 **Idéalement** : automatiser cette comparaison via un script de pré-flight check intégré au CD lui-même (dette future Phase 04.5+). Le script lirait `ls supabase/migrations/` côté repo, ferait `SELECT version, name FROM schema_migrations` côté prod, et flaggerait toute entrée drift ou orpheline avant que `supabase db push` ne parte.
 
+### Audit visuel pages admin (Phase 04.5+, DEC-034)
+
+- **Issue** : la PR #60 (hotfix DEC-029 sémantique 4 actions chauffeurs) a introduit un nouveau pattern de liste sur `/admin/chauffeurs` (cards aérées, badges multiples, toggle Actifs/Archivés, avatars colorés) sans aligner `/admin/vehicules` ni `/admin/legal/*` qui restent sur l'ancien pattern (`divide-y` dense, Sheet édition, badge unique).
+- **Conséquence** : visuellement, le SaaS se présente comme deux apps différentes pour un utilisateur naviguant entre `/admin/chauffeurs` et `/admin/vehicules`.
+- **Décision** : codifier le pattern dans `.planning/UI-PATTERNS.md` (Linear/Stripe-like dense `divide-y` + Sheet édition + filtres pills + spacing 8 px scale + color = signal), refactor progressif des pages admin en Phase 04.5 ou ultérieure (DEC-034).
+- **Priorité** : minor (pas bloquant fonctionnellement, dette UX visible mais sans impact métier immédiat).
+- **Cible refactor** :
+  - `/admin/chauffeurs` : aligner vers densité Linear (conserver le toggle Actifs/Archivés mais en pill discret), conserver les actions inline DEC-029, retirer les cards aérées
+  - `/admin/legal/*` : auditer cohérence avec le pattern
+  - Hors scope strict Phase 04.5 selon priorisation UAT dirigeant
+
 ---
 
-*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14*
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14*
