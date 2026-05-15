@@ -79,6 +79,48 @@ L'agent Claude Code ne s'abonne PAS automatiquement aux événements CI/Vercel/c
 
 Surveillance active possible sur demande explicite du dirigeant (genre migration BDD critique post-réparation CD).
 
+## Pipeline GSD étendu — UAT informel obligatoire (2026-05-15)
+
+Entre `/gsd-execute-phase` et `/gsd-verify-work`, le dirigeant doit faire un **UAT informel preview (~15-30 min)** pour identifier les frictions invisibles à la spec.
+
+**Étape ajoutée au pipeline GSD :**
+
+```
+1/5 discuss → 2/5 UI → 3/5 plan → 4/5 execute → [UAT informel preview] → [hotfix-bis si frictions] → 5/5 verify
+```
+
+**Si frictions trouvées :**
+
+- Inscrire en `CONCERNS.md` (sévérité démo + usage)
+- Évaluer **hotfix-bis** (si fix court < 1 h estimé) vs report Phase suivante
+- Le `verify-work` formel intervient APRÈS hotfix-bis le cas échéant, couvrant phase + hotfix-bis ensemble
+
+**Pattern observé Phase 04.7 (2026-05-15)** :
+
+UAT informel post-execute Phase 04.7 a révélé **3 frictions non spec'd** :
+
+- Modal de saisie course sans `max-width` → POI long (« CHU Félix Guyon — Allée des Topazes, Bellepierre, 97400 Saint-Denis ») débordait visuellement
+- Page `/courses` sans filtre date → liste mélange J-3 / J0 / J+1, perte de focus régulatrice
+- Page `/courses` sans pagination → scroll infini sur démo > 30 rides
+
+**Hotfix 04.7-bis livré en ~15 min réel.** Démo régulatrice ensuite sans friction visuelle.
+
+**Justification de la nouvelle étape pipeline** :
+
+- La spec UI-SPEC ne peut pas anticiper les **bugs visuels de combinaison** (POI long + modal sans `max-width`) — les composants individuellement passent la review, mais leur intégration révèle des manques
+- L'UAT informel rend visibles les **manques UX révélés par usage réel** (filtre date, pagination courses) que la spec avait sous-estimés
+- Le `verify-work` documentaire formel valide le périmètre spec'd ; il NE détecte PAS les frictions « invisibles à la spec » qui pourtant cassent la démo
+- Coût UAT informel : 15-30 min × 1 personne (dirigeant) = négligeable face au coût de découvrir une friction démo en live design partner
+
+**Critères de qualification d'une « friction » (≠ scope creep)** :
+
+- Visible en moins de 5 min d'usage normal
+- Bloque ou ralentit notablement le parcours principal de la phase
+- Peut être fixée sans modifier UI-SPEC ni plans verrouillés (sinon = phase suivante)
+- N'introduit pas de nouvelle dépendance ni nouveau pattern hors UI-PATTERNS DEC-034
+
+Si une friction trouvée nécessite plus que 1 h ou un nouveau pattern → CONCERNS.md + report phase suivante (V5 verrou anti-scope creep maintenu).
+
 ## Métrique de succès business
 
 **À court terme** :
