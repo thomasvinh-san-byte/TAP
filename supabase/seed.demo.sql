@@ -294,15 +294,36 @@ begin
   -- pour permettre le ré-application CD avec dates relatives ré-évaluées
   -- (now() recalculé à chaque seed run). WARNING : écrase modifications
   -- manuelles régulateur sur ces rides démo uniquement.
+  -- DEC-039-bis (hotfix 2026-05-15) : reset EXHAUSTIF de toutes les
+  -- colonnes runtime-mutables pour éviter l'état hybride seed+UAT qui
+  -- violait rides_ended_after_started après démarrage/clôture manuelle.
   on conflict (id) do update set
+    -- Contexte course
     scheduled_at = excluded.scheduled_at,
-    started_at = excluded.started_at,
-    ended_at = excluded.ended_at,
     created_at = excluded.created_at,
-    status = excluded.status,
     pickup_address = excluded.pickup_address,
     dropoff_address = excluded.dropoff_address,
-    cancel_motif = excluded.cancel_motif;
+    transport_mode = excluded.transport_mode,
+    urgency = excluded.urgency,
+    driver_id = excluded.driver_id,
+    vehicle_id = excluded.vehicle_id,
+    -- Workflow runtime
+    status = excluded.status,
+    started_at = excluded.started_at,
+    ended_at = excluded.ended_at,
+    -- Tarif runtime
+    tarif_amount_eur = excluded.tarif_amount_eur,
+    tarif_source = excluded.tarif_source,
+    -- Paiement runtime (réinit aux défauts table)
+    payment_status = 'non_concerne',
+    payment_method = null,
+    payment_received_at = null,
+    -- Archive runtime (réinit défaut)
+    archive = false,
+    -- Annulation runtime
+    cancel_motif = excluded.cancel_motif,
+    -- Notes runtime (réinit null)
+    notes_regulateur = null;
 
   -- 4 courses du jour (J0) — mix assignee / en_cours / validee (non affectée)
   insert into public.rides (
@@ -347,14 +368,40 @@ begin
      'validee', 'taxi_conventionne', 'programmee',
      null, 'manuel',
      now() - interval '30 minutes', regulateur_id, regulateur_id)
-  -- DEC-039 : seed glissant — DO UPDATE pour bloc J0 rides démo
+  -- DEC-039 : seed glissant — DO UPDATE pour bloc J0 rides démo.
+  -- DEC-039-bis (hotfix 2026-05-15) : reset EXHAUSTIF — colonnes
+  -- absentes de l'INSERT (ended_at, tarif_amount_eur, cancel_motif,
+  -- payment_*) explicitement remises à leurs défauts table pour
+  -- corriger l'état hybride post-UAT qui violait
+  -- rides_ended_after_started.
   on conflict (id) do update set
+    -- Contexte course
     scheduled_at = excluded.scheduled_at,
-    started_at = excluded.started_at,
     created_at = excluded.created_at,
-    status = excluded.status,
     pickup_address = excluded.pickup_address,
-    dropoff_address = excluded.dropoff_address;
+    dropoff_address = excluded.dropoff_address,
+    transport_mode = excluded.transport_mode,
+    urgency = excluded.urgency,
+    driver_id = excluded.driver_id,
+    vehicle_id = excluded.vehicle_id,
+    -- Workflow runtime
+    status = excluded.status,
+    started_at = excluded.started_at,
+    ended_at = null,
+    -- Tarif runtime (réinit défauts — INSERT ne fournit pas
+    -- tarif_amount_eur pour les rides J0 non terminées)
+    tarif_amount_eur = null,
+    tarif_source = excluded.tarif_source,
+    -- Paiement runtime (réinit défauts table)
+    payment_status = 'non_concerne',
+    payment_method = null,
+    payment_received_at = null,
+    -- Archive runtime (réinit défaut)
+    archive = false,
+    -- Annulation runtime (J0 jamais annulée par seed)
+    cancel_motif = null,
+    -- Notes runtime
+    notes_regulateur = null;
 
   -- 3 courses J+1 — préparation journée suivante (mix assignee / validee)
   insert into public.rides (
@@ -386,13 +433,38 @@ begin
      date_trunc('day', now()) + interval '1 day' + interval '7 hours',
      'validee', 'taxi_conventionne', 'programmee',
      'manuel', now() - interval '6 hours', regulateur_id, regulateur_id)
-  -- DEC-039 : seed glissant — DO UPDATE pour bloc J+1 rides démo
+  -- DEC-039 : seed glissant — DO UPDATE pour bloc J+1 rides démo.
+  -- DEC-039-bis (hotfix 2026-05-15) : reset EXHAUSTIF — les rides
+  -- J+1 sont seedées en 'assignee'/'validee' sans started_at ni
+  -- ended_at ; reset forcé à null pour éviter état hybride
+  -- post-UAT.
   on conflict (id) do update set
+    -- Contexte course
     scheduled_at = excluded.scheduled_at,
     created_at = excluded.created_at,
-    status = excluded.status,
     pickup_address = excluded.pickup_address,
-    dropoff_address = excluded.dropoff_address;
+    dropoff_address = excluded.dropoff_address,
+    transport_mode = excluded.transport_mode,
+    urgency = excluded.urgency,
+    driver_id = excluded.driver_id,
+    vehicle_id = excluded.vehicle_id,
+    -- Workflow runtime (réinit complet — J+1 jamais démarrée par seed)
+    status = excluded.status,
+    started_at = null,
+    ended_at = null,
+    -- Tarif runtime (réinit défauts)
+    tarif_amount_eur = null,
+    tarif_source = excluded.tarif_source,
+    -- Paiement runtime (réinit défauts table)
+    payment_status = 'non_concerne',
+    payment_method = null,
+    payment_received_at = null,
+    -- Archive runtime (réinit défaut)
+    archive = false,
+    -- Annulation runtime
+    cancel_motif = null,
+    -- Notes runtime
+    notes_regulateur = null;
 
   raise notice 'Seed démo : 12 courses fictives créées (5 historiques + 4 jour + 3 J+1)';
 end $$;
