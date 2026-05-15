@@ -48,13 +48,52 @@ export function normalizePhone(input: string): string {
   return input.trim().replace(/[\s.-]/g, '');
 }
 
+const nameRegex = /^[A-Za-zÀ-ÿ\s'-]+$/;
+const nameMessage =
+  'Lettres uniquement (accents, tirets et apostrophes autorisés).';
+
+function isPlausibleBirthDate(value: string): boolean {
+  const m = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.exec(value);
+  if (!m) return false;
+  const year = Number.parseInt(m[1]!, 10);
+  const month = Number.parseInt(m[2]!, 10);
+  const day = Number.parseInt(m[3]!, 10);
+  if (month < 1 || month > 12 || day < 1 || day > 31) return false;
+  const d = new Date(value + 'T00:00:00Z');
+  if (Number.isNaN(d.getTime())) return false;
+  // Date doit round-trip (refuse 30/02 → roule à 02/03)
+  if (
+    d.getUTCFullYear() !== year ||
+    d.getUTCMonth() + 1 !== month ||
+    d.getUTCDate() !== day
+  ) {
+    return false;
+  }
+  const ageYears = (Date.now() - d.getTime()) / (365.25 * 24 * 3600 * 1000);
+  return ageYears >= 0 && ageYears <= 130;
+}
+
 export const patientSchema = z
   .object({
-    prenom: z.string().trim().min(1, 'Prénom requis').max(80),
-    nom: z.string().trim().min(1, 'Nom requis').max(80),
+    prenom: z
+      .string()
+      .trim()
+      .min(1, 'Prénom requis')
+      .max(80)
+      .regex(nameRegex, nameMessage),
+    nom: z
+      .string()
+      .trim()
+      .min(1, 'Nom requis')
+      .max(80)
+      .regex(nameRegex, nameMessage),
     date_naissance: z
       .string()
-      .regex(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/, 'Format attendu : AAAA-MM-JJ'),
+      .regex(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/, 'Format attendu : AAAA-MM-JJ')
+      .refine(isPlausibleBirthDate, {
+        message:
+          'Date invalide. Format attendu : JJ/MM/AAAA, âge entre 0 et 130 ans.',
+      }),
     genre: genreSchema.optional(),
     telephone: telephoneReunionSchema.optional(),
     // NIR optionnel : peut être saisi plus tard, chiffré côté serveur.

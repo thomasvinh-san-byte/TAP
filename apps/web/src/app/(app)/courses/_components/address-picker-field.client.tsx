@@ -63,14 +63,25 @@ interface BanSuggestion {
 const BAN_REUNION_LAT = -21.115;
 const BAN_REUNION_LON = 55.536;
 const MIN_QUERY_LENGTH = 3;
-const MIN_SCORE = 0.4;
+// Score plancher BAN — calibration Phase 04.5 (UAT Réunion : 0.4 acceptait
+// trop d'adresses métropole avec préfixe similaire). 0.5 = compromis
+// précision / rappel sur les noms de rue 974.
+const MIN_SCORE = 0.5;
+// Limite remontée à 10 (vs 8) : 974 a beaucoup d'homonymies entre communes
+// (ex : « Rue de la Paix » présent à Saint-Denis, Saint-Pierre, Le Tampon),
+// 10 résultats permettent à la régulatrice de discriminer sans scroll.
+const BAN_LIMIT = 10;
 const REUNION_POSTCODE_PREFIX = '974';
+// Debounce 200 ms : équilibre entre fluidité (saisie rapide) et coût réseau.
+// L'API BAN gouv.fr est gratuite mais sa latence peut atteindre 800 ms à
+// l'heure de pointe — moins on hit, plus la liste de résultats est stable.
+const DEBOUNCE_MS = 200;
 
 async function fetchBanSuggestions(q: string): Promise<BanSuggestion[]> {
   if (q.trim().length < MIN_QUERY_LENGTH) return [];
   const url = new URL('https://api-adresse.data.gouv.fr/search/');
   url.searchParams.set('q', q);
-  url.searchParams.set('limit', '8');
+  url.searchParams.set('limit', String(BAN_LIMIT));
   url.searchParams.set('autocomplete', '1');
   url.searchParams.set('lat', String(BAN_REUNION_LAT));
   url.searchParams.set('lon', String(BAN_REUNION_LON));
@@ -92,6 +103,21 @@ async function fetchBanSuggestions(q: string): Promise<BanSuggestion[]> {
       lng: f.geometry.coordinates[0],
       score: f.properties.score ?? 0,
     }));
+}
+
+/**
+ * Debounce simple sur une valeur React : ne renvoie la nouvelle valeur que
+ * lorsque l'utilisateur n'a pas tapé depuis `delay` ms. Réduit la pression
+ * sur l'API BAN gouv.fr et stabilise la liste de résultats pendant la
+ * frappe.
+ */
+function useDebouncedValue<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+  return debounced;
 }
 
 interface Props {
@@ -119,11 +145,12 @@ export function AddressPickerField({
   // avec une adresse déjà posée au mount. L'utilisateur peut revenir en
   // mode recherche via le bouton Changer.
   const [picked, setPicked] = useState<boolean>(value.length > 0);
+  const debouncedQuery = useDebouncedValue(value, DEBOUNCE_MS);
 
   const results = useQuery({
-    queryKey: ['ban-search', value],
-    queryFn: () => fetchBanSuggestions(value),
-    enabled: !picked && value.trim().length >= MIN_QUERY_LENGTH,
+    queryKey: ['ban-search', debouncedQuery],
+    queryFn: () => fetchBanSuggestions(debouncedQuery),
+    enabled: !picked && debouncedQuery.trim().length >= MIN_QUERY_LENGTH,
     staleTime: 10_000,
     retry: false,
   });

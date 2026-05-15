@@ -1,4 +1,12 @@
 import { z } from 'zod';
+import {
+  VILLES_974,
+  cpDominantVille,
+  type Ville974,
+} from '../constants/villes-974';
+import { isNirChecksumValid } from '../utils/nir-checksum';
+
+export { VILLES_974, cpDominantVille, type Ville974 };
 
 /**
  * Téléphone réunionnais accepté :
@@ -16,7 +24,10 @@ export const telephoneReunionSchema = z
     (value) =>
       /^0(?:262|263|692|693)[0-9]{6}$/.test(value) ||
       /^\+262(?:62|63|92|93)[0-9]{6}$/.test(value),
-    { message: 'Numéro de téléphone réunionnais invalide.' },
+    {
+      message:
+        'Le numéro doit commencer par 0262, 0263, 0692 ou 0693 (10 chiffres).',
+    },
   );
 
 /**
@@ -25,7 +36,9 @@ export const telephoneReunionSchema = z
 export const codePostalReunionSchema = z
   .string()
   .trim()
-  .regex(/^974[0-9]{2}$/, { message: 'Code postal invalide (974xx attendu).' });
+  .regex(/^974[0-9]{2}$/, {
+    message: 'Code postal Réunion : 974 + 2 chiffres (ex : 97400).',
+  });
 
 /**
  * SIRET : 14 chiffres + checksum Luhn.
@@ -55,12 +68,26 @@ function verifyLuhn(siret: string): boolean {
  * La validation complète de la clé se fait côté serveur uniquement,
  * pour éviter d'exposer la logique côté client.
  */
+/**
+ * NIR strict avec clé de contrôle INSEE.
+ *
+ * - 15 chiffres au total (sexe + année + mois + département + commune + ordre + clé)
+ * - Premier chiffre 1 ou 2 (sexe administratif)
+ * - Corse : positions 6-7 peuvent être '2A' ou '2B' (remplacement avant calcul clé)
+ * - La clé est validée par isNirChecksumValid (algo INSEE)
+ *
+ * Refs : PLAN-2 Task 2.1, D-04, DEC-036.
+ */
 export const nirFormatSchema = z
   .string()
   .trim()
-  .transform((value) => value.replace(/\s/g, ''))
-  .refine((value) => /^[12][0-9]{14}$/.test(value), {
-    message: 'NIR : 15 chiffres attendus, commence par 1 ou 2.',
+  .transform((value) => value.replace(/\s/g, '').toUpperCase())
+  .refine((value) => /^[12](?:[0-9]{4}(?:[0-9]{2}|2A|2B)[0-9]{8})$/.test(value), {
+    message:
+      'Le NIR doit comporter 15 chiffres : sexe, année, mois, département, commune, ordre, clé. Exemple : 1 76 05 25 974 001 12.',
+  })
+  .refine(isNirChecksumValid, {
+    message: 'La clé de contrôle du NIR est invalide. Vérifiez la saisie.',
   });
 
 /**
@@ -70,7 +97,11 @@ export const adresseSchema = z.object({
   ligne1: z.string().trim().min(3).max(120),
   ligne2: z.string().trim().max(120).optional(),
   code_postal: codePostalReunionSchema,
-  ville: z.string().trim().min(2).max(80),
+  ville: z.enum(VILLES_974, {
+    errorMap: () => ({
+      message: 'Sélectionnez une commune dans la liste (24 communes Réunion).',
+    }),
+  }),
 });
 
 export type Adresse = z.infer<typeof adresseSchema>;
