@@ -3,6 +3,12 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { PatientFormDefaults } from './patient-form-types';
+import {
+  BirthDateField,
+  CityPostalCodeField,
+  NirField,
+  TelField,
+} from './patient-form-fields.client';
 
 export type { PatientFormDefaults };
 
@@ -15,22 +21,31 @@ export function IdentitySection({ dv }: { dv: PatientFormDefaults }) {
       <div className="grid grid-cols-2 gap-12">
         <div className="space-y-8">
           <Label htmlFor="nom">Nom</Label>
-          <Input id="nom" name="nom" required defaultValue={dv.nom} />
+          <Input
+            id="nom"
+            name="nom"
+            required
+            defaultValue={dv.nom}
+            autoComplete="family-name"
+            className="capitalize"
+            aria-describedby="nom-help"
+          />
+          <p id="nom-help" className="text-xs text-muted-foreground">
+            Lettres, accents, tirets et apostrophes autorisés.
+          </p>
         </div>
         <div className="space-y-8">
           <Label htmlFor="prenom">Prénom</Label>
-          <Input id="prenom" name="prenom" required defaultValue={dv.prenom} />
-        </div>
-        <div className="space-y-8">
-          <Label htmlFor="date_naissance">Date de naissance</Label>
           <Input
-            id="date_naissance"
-            name="date_naissance"
-            type="date"
+            id="prenom"
+            name="prenom"
             required
-            defaultValue={dv.date_naissance}
+            defaultValue={dv.prenom}
+            autoComplete="given-name"
+            className="capitalize"
           />
         </div>
+        <BirthDateField name="date_naissance" defaultValue={dv.date_naissance} required />
         <div className="space-y-8">
           <Label htmlFor="genre">Genre</Label>
           <select
@@ -46,19 +61,7 @@ export function IdentitySection({ dv }: { dv: PatientFormDefaults }) {
           </select>
         </div>
       </div>
-      <div className="space-y-8">
-        <Label htmlFor="nir">NIR</Label>
-        <Input
-          id="nir"
-          name="nir"
-          placeholder="13 chiffres + clé"
-          defaultValue={dv.nir}
-          aria-describedby="nir-help"
-        />
-        <p id="nir-help" className="text-xs text-muted-foreground">
-          Stocké chiffré, jamais en clair en base.
-        </p>
-      </div>
+      <NirField defaultValue={dv.nir} />
     </section>
   );
 }
@@ -69,15 +72,7 @@ export function CoordinatesSection({ dv }: { dv: PatientFormDefaults }) {
       <h2 className="text-sm font-semibold uppercase text-muted-foreground">
         Coordonnées
       </h2>
-      <div className="space-y-8">
-        <Label htmlFor="telephone">Téléphone</Label>
-        <Input
-          id="telephone"
-          name="telephone"
-          type="tel"
-          defaultValue={dv.telephone}
-        />
-      </div>
+      <TelField defaultValue={dv.telephone} />
       <div className="space-y-8">
         <Label htmlFor="adresse_ligne1">Adresse</Label>
         <Input
@@ -85,6 +80,7 @@ export function CoordinatesSection({ dv }: { dv: PatientFormDefaults }) {
           name="adresse_ligne1"
           required
           defaultValue={dv.adresse_ligne1}
+          autoComplete="address-line1"
         />
       </div>
       <div className="space-y-8">
@@ -93,23 +89,13 @@ export function CoordinatesSection({ dv }: { dv: PatientFormDefaults }) {
           id="adresse_ligne2"
           name="adresse_ligne2"
           defaultValue={dv.adresse_ligne2}
+          autoComplete="address-line2"
         />
       </div>
-      <div className="grid grid-cols-2 gap-12">
-        <div className="space-y-8">
-          <Label htmlFor="code_postal">Code postal</Label>
-          <Input
-            id="code_postal"
-            name="code_postal"
-            required
-            defaultValue={dv.code_postal}
-          />
-        </div>
-        <div className="space-y-8">
-          <Label htmlFor="ville">Ville</Label>
-          <Input id="ville" name="ville" required defaultValue={dv.ville} />
-        </div>
-      </div>
+      <CityPostalCodeField
+        defaultCp={dv.code_postal}
+        defaultVille={dv.ville}
+      />
     </section>
   );
 }
