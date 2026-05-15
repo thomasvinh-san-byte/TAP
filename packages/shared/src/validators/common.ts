@@ -64,31 +64,67 @@ function verifyLuhn(siret: string): boolean {
 }
 
 /**
- * NIR (numéro de sécurité sociale français, 13 chiffres + clé sur 2).
- * La validation complète de la clé se fait côté serveur uniquement,
- * pour éviter d'exposer la logique côté client.
- */
-/**
- * NIR strict avec clé de contrôle INSEE.
+ * NIR — validation à deux niveaux (Phase 04.5 hotfix UX 2026-05-15).
  *
- * - 15 chiffres au total (sexe + année + mois + département + commune + ordre + clé)
- * - Premier chiffre 1 ou 2 (sexe administratif)
- * - Corse : positions 6-7 peuvent être '2A' ou '2B' (remplacement avant calcul clé)
- * - La clé est validée par isNirChecksumValid (algo INSEE)
+ * `nirFormatSchema` : structure INSEE 15 chiffres uniquement
+ *   - sexe ∈ {1, 2}
+ *   - année 2 chiffres
+ *   - mois 01-12
+ *   - département 2 chiffres ou 2A/2B (Corse)
+ *   - commune + ordre + clé : 8 chiffres (sans validation de la clé)
  *
- * Refs : PLAN-2 Task 2.1, D-04, DEC-036.
+ * `nirChecksumSchema` : `nirFormatSchema` + vérification clé INSEE
+ *   `(97 - N mod 97)` via `isNirChecksumValid` (algo INSEE complet,
+ *   tests 100 % branch dans `utils/nir-checksum.test.ts`).
+ *
+ * `nirFieldSchema` : sélection runtime selon `NEXT_PUBLIC_NIR_CHECKSUM_STRICT`.
+ *   - `'true'` → `nirChecksumSchema` (production)
+ *   - autres → `nirFormatSchema` (défaut démo design partner)
+ *
+ * L'algorithme INSEE et ses tests unitaires sont livrés en permanence
+ * (PR #80 + #83) — seule l'activation au runtime change via env var.
+ * À l'arrivée en production réelle : positionner
+ * `NEXT_PUBLIC_NIR_CHECKSUM_STRICT=true` sur Vercel et redéployer.
+ *
+ * Refs : PR #80, PR #83, hotfix UX 2026-05-15, DEC-036.
  */
+export const NIR_FORMAT_REGEX =
+  /^[12][0-9]{2}(0[1-9]|1[0-2])([0-9]{2}|2A|2B)[0-9]{8}$/;
+
+export const isNirChecksumStrict =
+  process.env.NEXT_PUBLIC_NIR_CHECKSUM_STRICT === 'true';
+
+const NIR_FORMAT_MESSAGE =
+  'Le NIR doit comporter 15 chiffres : sexe, année, mois, département, commune, ordre, clé. Exemple : 1 76 05 25 974 001 12.';
+
+const NIR_CHECKSUM_MESSAGE =
+  'La clé de contrôle du NIR est invalide. Vérifiez la saisie.';
+
+const nirNormalize = (value: string) =>
+  value.replace(/\s/g, '').toUpperCase();
+
+/** Format INSEE structurel — pas de vérif clé. Suffit pour la démo. */
 export const nirFormatSchema = z
   .string()
   .trim()
-  .transform((value) => value.replace(/\s/g, '').toUpperCase())
-  .refine((value) => /^[12](?:[0-9]{4}(?:[0-9]{2}|2A|2B)[0-9]{8})$/.test(value), {
-    message:
-      'Le NIR doit comporter 15 chiffres : sexe, année, mois, département, commune, ordre, clé. Exemple : 1 76 05 25 974 001 12.',
-  })
-  .refine(isNirChecksumValid, {
-    message: 'La clé de contrôle du NIR est invalide. Vérifiez la saisie.',
-  });
+  .transform(nirNormalize)
+  .refine((value) => NIR_FORMAT_REGEX.test(value), { message: NIR_FORMAT_MESSAGE });
+
+/** Format INSEE + clé contrôle (97 − N mod 97) — production. */
+export const nirChecksumSchema = z
+  .string()
+  .trim()
+  .transform(nirNormalize)
+  .refine((value) => NIR_FORMAT_REGEX.test(value), { message: NIR_FORMAT_MESSAGE })
+  .refine(isNirChecksumValid, { message: NIR_CHECKSUM_MESSAGE });
+
+/**
+ * Schéma effectif consommé par `patientSchema` — résolu au build/runtime.
+ * Démo (défaut) : format only. Production : strict avec clé INSEE.
+ */
+export const nirFieldSchema = isNirChecksumStrict
+  ? nirChecksumSchema
+  : nirFormatSchema;
 
 /**
  * Adresse minimale postale Réunion.

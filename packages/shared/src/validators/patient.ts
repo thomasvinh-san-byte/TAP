@@ -2,7 +2,7 @@ import { z } from 'zod';
 import {
   adresseSchema,
   telephoneReunionSchema,
-  nirFormatSchema,
+  nirFieldSchema,
 } from './common';
 
 export const canalContactSchema = z.enum(['sms', 'appel', 'aucun']);
@@ -97,7 +97,9 @@ export const patientSchema = z
     genre: genreSchema.optional(),
     telephone: telephoneReunionSchema.optional(),
     // NIR optionnel : peut être saisi plus tard, chiffré côté serveur.
-    nir: nirFormatSchema.optional(),
+    // Phase 04.5 hotfix : nirFieldSchema résout strict/format au runtime
+    // via NEXT_PUBLIC_NIR_CHECKSUM_STRICT (cf. common.ts).
+    nir: nirFieldSchema.optional(),
     adresse: adresseSchema,
     contact_urgence: contactUrgenceSchema.optional(),
     canal_contact_prefere: canalContactSchema.default('appel'),

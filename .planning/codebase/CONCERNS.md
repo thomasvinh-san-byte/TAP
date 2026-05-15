@@ -515,6 +515,27 @@ Les 3 dettes ci-dessous restent ROUGES sur la CI jusqu'à Phase 06 HDS. Document
 
 Phase 04.5 Wave B.2..D continueront avec cette baseline.
 
+### Validation NIR — strict vs format (2026-05-15)
+
+Hotfix UX post-PR #83 : l'UAT a révélé que la validation stricte de la clé contrôle INSEE bloque la démo (impossible de saisir un NIR fictif sans calculer la vraie clé à la main). Décision dirigeant : conserver le code de validation INSEE mais le désactiver par défaut, activable via env var pour la production.
+
+Le formulaire patient supporte 2 modes de validation NIR :
+
+- **Format only (défaut, démo)** : 15 chiffres + structure INSEE (sexe ∈ {1,2}, mois 01-12, département 2 chiffres ou 2A/2B, commune + ordre + clé en chiffres) mais clé contrôle non vérifiée. Suffisant pour démo design partner.
+
+- **Strict (production)** : tout ce qui précède + calcul clé contrôle INSEE (`97 − N mod 97`). Activé via env var `NEXT_PUBLIC_NIR_CHECKSUM_STRICT=true`.
+
+L'algorithme INSEE et ses tests unitaires sont livrés en permanence (PR #80 + PR #83), seule l'activation au runtime change via env var. Côté code : `nirFormatSchema`, `nirChecksumSchema` et `nirFieldSchema` (sélection runtime) exportés depuis `@tap/shared`.
+
+À l'arrivée en production réelle :
+1. Activer `NEXT_PUBLIC_NIR_CHECKSUM_STRICT=true` sur Vercel
+2. Redéployer
+3. Vérifier la preview de l'environnement strict (test E2E `S6ter` skip → run en strict)
+
+Pas de modification code requise au passage prod.
+
+**Vercel preview courant** : `NEXT_PUBLIC_NIR_CHECKSUM_STRICT=false` (ou non défini, défaut équivalent). Demo design partner débloquée.
+
 ---
 
-*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15*
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15*
