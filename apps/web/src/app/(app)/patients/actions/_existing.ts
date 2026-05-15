@@ -100,8 +100,16 @@ export async function createPatientAction(
       nirEncrypted = enc.nir_encrypted;
       nirHash = enc.nir_search_hash;
       nirLast4 = enc.nir_last4;
-    } catch {
-      return { error: 'Chiffrement NIR impossible.' };
+    } catch (err) {
+      // Reporté Phase 06 HDS : diagnostic 401 Edge Function nir
+      // (env vars Edge Function ou JWT chain Server Action → invoke).
+      // Workaround V1.5 : le NIR est optionnel, la régulatrice peut
+      // créer le patient sans NIR et le compléter plus tard.
+      console.error('[patient] NIR encryption failed (V1.5 deferred Phase 06):', err);
+      return {
+        error:
+          "Chiffrement NIR temporairement indisponible. Vous pouvez créer le patient sans NIR pour la démo, ou réessayer plus tard.",
+      };
     }
   }
 
@@ -207,8 +215,13 @@ export async function updatePatientAction(
       update.nir_encrypted = enc.nir_encrypted;
       update.nir_search_hash = enc.nir_search_hash;
       update.nir_last4 = enc.nir_last4;
-    } catch {
-      return { error: 'Chiffrement NIR impossible.' };
+    } catch (err) {
+      // Reporté Phase 06 HDS (cf. CONCERNS.md — NIR Edge Function 401).
+      console.error('[patient] NIR encryption failed (V1.5 deferred Phase 06):', err);
+      return {
+        error:
+          "Chiffrement NIR temporairement indisponible. Vous pouvez enregistrer le patient sans modifier le NIR, ou réessayer plus tard.",
+      };
     }
   }
 
