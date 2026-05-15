@@ -90,6 +90,37 @@ patient)
 - Anonymisation patients RGPD via RPC `rgpd_anonymize_patient`
 - Audit logs sur toutes mutations (depuis Phase 2)
 
+## Stratégie CI/qualité V1.5 → V3
+
+**Position acceptée 2026-05-15 (Phase 04.5 Wave B).**
+
+La CI GitHub Actions sur main porte 3 dettes pré-existantes qui restent
+ROUGES jusqu'à Phase 06 HDS. Précédent : PR #75 (docs-only) et PR #76
+(RLS Wave B.1) mergées dans cet état.
+
+| Dette | Job CI affecté | Diagnostic | Phase de résolution |
+|---|---|---|---|
+| D1 — ESLint v10 flat config absent | Lint (`@tap/database`, `@tap/shared`) | ESLint 10 a retiré `.eslintrc.*`, packages pas migrés vers `eslint.config.js` | Phase 06 (~30 min) |
+| D2 — SIRET Carrefour Luhn-invalide | Tests unitaires (`@tap/shared`) | `40483304800010` rejeté par contrôle Luhn dans `siretSchema` | Phase 06 (~15 min) |
+| D3 — pgTAP runner cassé | Tests RLS pgTAP | Drift `supabase/setup-cli@latest` — affecte aussi PR sans SQL | Phase 06 (~1-2 h diagnostic) |
+
+**Pourquoi accepter une CI rouge V1.5** :
+
+- Aucun des 3 jobs rouges ne reflète une régression du code applicatif livré dans les phases V1.5
+- Le job `Vérification des types` (TypeScript) reste vert sur chaque PR — c'est le filet réel de qualité applicative à ce stade
+- Préview Vercel + validation manuelle dirigeant = preuve fonctionnelle (Visible Progress Mandate CLAUDE.md § 13.5)
+- Fixer les 3 dettes consommerait 2-3h de scope qui ne livre aucune valeur métier visible aux design partners
+- Phase 06 est le créneau naturel : audit RLS systémique + Server Actions + sécurité production-grade rassemblés au même endroit, l'environnement CI sera durci en même temps
+
+**Ce que cette stratégie N'autorise PAS** :
+
+- Ignorer un échec CI causé par les changements d'une PR (typecheck rouge = blocage strict, idem nouveau test métier rouge)
+- Étendre la liste des dettes acceptées au-delà de D1/D2/D3 (toute nouvelle dette → PR séparée immédiate)
+- Merger une PR dont la migration BDD échoue au `cd.yml` post-merge (DEC-032 reste strict)
+- Reporter D1/D2/D3 au-delà de Phase 06 (verrou commercial — premier client payant exige CI verte)
+
+**Re-évaluation** : à V1.0 commerciale. Si la CI verte devient prérequis design partner (ex : audit externe), accélérer le fix D1/D2/D3 hors Phase 06.
+
 ## Risques identifiés
 
 | Risque | Impact | Mitigation |
@@ -112,4 +143,5 @@ patient)
 ---
 
 *Vision consolidée 2026-05-14 après livraison Phase 04 + 5 hotfixes (DEC-029..033).*
+*Mise à jour 2026-05-15 : section « Stratégie CI/qualité V1.5 → V3 » ajoutée (Phase 04.5 Wave B, dettes D1/D2/D3 reportées Phase 06).*
 *Mise à jour : à chaque inflexion stratégique (changement séquencement V1.5/V2/V3, pivot business case mobile, etc.).*
