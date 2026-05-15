@@ -536,6 +536,39 @@ Pas de modification code requise au passage prod.
 
 **Vercel preview courant** : `NEXT_PUBLIC_NIR_CHECKSUM_STRICT=false` (ou non défini, défaut équivalent). Demo design partner débloquée.
 
+### NIR Edge Function chiffrement 401 — diagnostic Phase 06
+
+**Symptôme** : l'Edge Function `nir` (chiffrement AES-256-GCM + hash recherche HMAC-SHA256, Phase 1.5) répond `401 Unauthorized` sur tous les appels POST depuis les Server Actions `createPatient` / `updatePatient`. Le NIR ne peut donc pas être chiffré lors de la création/édition patient.
+
+**Diagnostic 2026-05-15** (lecture seule MCP, conforme DEC-032) :
+
+- Edge Function `nir` ACTIVE — `slug=nir`, `status=ACTIVE`, `version=3`
+- Logs `edge-function` : 401 systématiques sur tous les POST `/functions/v1/nir`
+- Auth API sain : `POST /auth/v1/token` 200 sur login, token refresh OK
+- Cause root probable côté Edge Function : `SUPABASE_URL` / `SUPABASE_ANON_KEY` env vars OU JWT chain Server Action → `supabase.functions.invoke()`
+
+**Hypothèses à creuser Phase 06** :
+
+- **H1** : env vars Edge Function pas configurées sur prod (`supabase secrets list nir`)
+- **H2** : `invoke()` côté Server Action passe `service_role` au lieu du JWT user — `createServerClient` utilise la clé anon, mais l'Edge Function attend peut-être un JWT user pour son `auth.uid()` ou `current_setting('request.jwt.claims')`
+- **H3** : Auth Edge Function header parsing buggé (regression Supabase CLI ou Functions runtime)
+
+**Workaround V1.5 ACCEPTÉ** :
+
+1. NIR rendu **optionnel** dans `patientSchema` (déjà le cas : `nir: nirFieldSchema.optional()`)
+2. Server Actions `createPatient` / `updatePatient` retournent un message d'erreur explicite et actionnable si le chiffrement échoue : *« Chiffrement NIR temporairement indisponible. Vous pouvez créer le patient sans NIR pour la démo, ou réessayer plus tard. »*
+3. La régulatrice peut créer un patient sans NIR. Le chiffrement reste **codé prêt** pour activation Phase 06
+4. Label UI : « NIR (optionnel en démo) » + helper text explicite
+
+**Action Phase 06 HDS** :
+
+- Reproduire en local avec `supabase functions serve nir` + appel curl avec JWT user récupéré via `supabase auth login`
+- Tester JWT chain `Server Action → invoke()` (logger les headers transmis depuis `supabase.functions.invoke('nir', {...})`)
+- Valider env vars Edge Function via `supabase secrets list` puis comparer avec `supabase/functions/nir/index.ts` (`Deno.env.get('SUPABASE_URL')`, etc.)
+- Estimation fix : **1-2 h**
+
+**Risque résiduel V1.5 démo** : les patients seedés démo ont `nir_encrypted = null` (cf. `seed.demo.sql`) — pas d'impact démo. Les patients réels créés en preview sans NIR auront aussi `nir_encrypted = null`, à compléter post-fix Phase 06 via une UI de mise à jour ciblée (ou re-saisie manuelle si le NIR n'a pas été conservé hors système).
+
 ---
 
-*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15*
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15*

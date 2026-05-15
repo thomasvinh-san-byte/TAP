@@ -165,7 +165,12 @@ export function NirField({ defaultValue }: NirFieldProps): JSX.Element {
 
   return (
     <div className="space-y-8">
-      <Label htmlFor="nir">NIR</Label>
+      <Label htmlFor="nir">
+        NIR{' '}
+        <span className="font-normal text-muted-foreground">
+          (optionnel en démo)
+        </span>
+      </Label>
       <div className="relative max-w-[320px]">
         <Input
           id="nir"
@@ -205,6 +210,11 @@ export function NirField({ defaultValue }: NirFieldProps): JSX.Element {
         {isNirChecksumStrict
           ? '15 chiffres + clé INSEE valide. Exemple : 1 76 05 25 974 001 69.'
           : '15 chiffres : sexe + année + mois + département + commune + ordre + clé. Exemple : 1 76 05 25 974 001 12.'}
+      </p>
+      <p className="text-xs text-muted-foreground">
+        Le NIR peut être laissé vide. Si renseigné, il sera chiffré et stocké
+        conformément RGPD. Si le chiffrement échoue, vous pouvez créer le
+        patient sans NIR et le compléter plus tard.
       </p>
       <p
         id="nir-live"

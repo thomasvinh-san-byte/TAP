@@ -5,7 +5,7 @@ milestone_name: milestone
 status: Phase 04.5 Wave B.1 livrée (PR #76), validation preview T1.4 en attente avant Wave B.2
 stopped_at: Phase 04.5 Wave B.1 mergée — preview manual validation pending
 last_updated: "2026-05-15T07:30:00.000Z"
-last_activity: 2026-05-15 — Phase 04.5 Wave A (PR #74, fix /conduite + seed glissant) + Wave B.1 (PR #76, RLS chauffeur + DEC-041 row count check) livrées et mergées. Migration RLS appliquée BDD prod (premier test CD post-vague 2 réussi). Validation preview manuelle T1.4 en attente avant démarrage Wave B.2 (PLAN-1 T1.3 E2E driver-workflow-complete). Stratégie CI V1.5 acceptée VISION.md (3 dettes pré-existantes reportées Phase 06 HDS). Hotfix UX NIR — validation strict INSEE désactivée par défaut (env var NEXT_PUBLIC_NIR_CHECKSUM_STRICT=true pour production). Démo design partner débloquée.
+last_activity: 2026-05-15 — Phase 04.5 Wave A (PR #74, fix /conduite + seed glissant) + Wave B.1 (PR #76, RLS chauffeur + DEC-041 row count check) livrées et mergées. Migration RLS appliquée BDD prod (premier test CD post-vague 2 réussi). Validation preview manuelle T1.4 en attente avant démarrage Wave B.2 (PLAN-1 T1.3 E2E driver-workflow-complete). Stratégie CI V1.5 acceptée VISION.md (3 dettes pré-existantes reportées Phase 06 HDS). Hotfix UX NIR — validation strict INSEE désactivée par défaut (env var NEXT_PUBLIC_NIR_CHECKSUM_STRICT=true pour production). Démo design partner débloquée. Hotfix NIR optionnel V1.5 — chiffrement Edge Function 401 reporté Phase 06 HDS (diagnostic auth chain complet, env vars Edge Function ou JWT chain Server Action → invoke à investiguer). Démo design partner débloquée : régulatrice peut créer patients avec ou sans NIR.
 progress:
   total_phases: 15
   completed_phases: 4
