@@ -720,6 +720,40 @@ Hotfix UX livré 2026-05-15 post UAT informel Phase 04.7 élargi (3 problèmes U
 
 **Coût hotfix élargi** : ~50 min réel (vs ~2h estimé prompt), vélocité maintenue.
 
+### Hotfix Vercel + Supabase URLs custom domain (2026-05-18)
+
+Hotfix URGENT post-Phase 04.7 complète. UAT dirigeant a constaté que `tap-web-brown.vercel.app/login` provoque :
+- « Application error: client-side exception »
+- « Too many calls to Location or History APIs within a short timeframe »
+- `DOMException: The operation is insecure`
+
+Alors que `tap-h7wqj3vl8-tvss-projects-07aa3591.vercel.app/login` répond 200 OK normalement (même `deploymentId`).
+
+**Cause root double** :
+
+1. **Supabase Site URL désaligné** : pointait vers `tap-web-tvss-projects-07aa3591.vercel.app` au lieu du custom domain `tap-web-brown.vercel.app`. Les cookies de session Supabase étaient rejetés sur le domaine custom (mismatch SameSite/origin) → middleware Next.js redirige en boucle → `router.push()` en boucle côté client → exception navigateur.
+
+2. **vercel.json override Project Settings dashboard** : `outputDirectory: ".next"` incompatible avec Root Directory `apps/web` (devrait être `apps/web/.next`). Conflit visible bannière jaune Vercel dashboard (« Configuration Settings differ from Project Settings »). Empêche les Project Settings correctement configurés de prendre effet.
+
+**Fixes appliqués** :
+
+1. Supabase Auth Site URL → `https://tap-web-brown.vercel.app` (manuel dirigeant via dashboard Supabase)
+2. Supabase Auth Redirect URLs : ajout 4 wildcards `tap-*-tvss-projects-07aa3591.vercel.app/**` pour preview PR futurs (manuel dirigeant — réajout après suppression accidentelle)
+3. `vercel.json` simplifié : `framework` + `regions` uniquement. Project Settings dashboard deviennent source de vérité.
+4. `ignoreCommand` supprimé : permet PR previews de se déployer pour UAT futur (coût Vercel marginal).
+
+**Pattern méta inscrit** :
+
+- **Custom domain Vercel** → MAJ Supabase Auth Site URL + Redirect URLs **systématique** dès l'ajout du domaine. Sinon cookies session rejetés → boucle middleware infinie.
+- **Monorepo + vercel.json** : garder vercel.json minimal (`framework` + `regions`). Project Settings dashboard pour Build/Output/Root/Install/Ignore. Surcharger vercel.json = source de conflits sans bénéfice.
+- **UAT informel obligatoire (PR #97)** doit tester sur le **domaine final** de la démo (custom), pas URLs auto-générées Vercel. La méthodologie inscrite VISION.md a manqué cette friction parce que les tests précédents passaient sur les URLs alternatives où le Supabase Site URL était aligné.
+
+**Items différés Phase 06 production-grade** :
+
+- `NEXT_PUBLIC_APP_URL` env var Vercel manquante (utile pour magic links chauffeur si `headers().origin` indisponible). Ajout post Phase 04.9 PWA.
+- `ignoreCommand` intelligent monorepo si volume builds Vercel devient critique : `git diff --quiet HEAD^ HEAD -- apps/web/ packages/` (skip si rien n'a changé dans le code applicatif).
+- Documentation interne « checklist nouveau domaine Vercel » inscrite UI-PATTERNS.md section déploiement.
+
 ---
 
-*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis élargi Courses truncation+Chauffeurs layout+Patients archivage ajouté 2026-05-15*
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis élargi Courses truncation+Chauffeurs layout+Patients archivage ajouté 2026-05-15 — Hotfix Vercel + Supabase URLs custom domain ajouté 2026-05-18*

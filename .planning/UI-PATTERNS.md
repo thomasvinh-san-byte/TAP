@@ -380,6 +380,29 @@ Pattern shadcn/ui 2024+ : un seul layout shell principal, navigation config-driv
 - **Sous-routes `/admin/legal/*` = exception justifiée** (dirigeant only, conformité RGPD séparée). Pour le reste, viser cohérence
 - **Déplacement physique des routes différé Phase 06 HDS** : nécessite audit complet + refactor tests, hors scope hotfix-bis. Refactor du `(admin)/layout.tsx` pour réutiliser le shell de `(app)/layout.tsx` = mitigation pragmatique V1.5
 
+## Déploiement custom domain Vercel (Hotfix 2026-05-18)
+
+Pattern obligatoire dès ajout d'un nouveau domaine custom sur Vercel :
+
+- **Supabase Auth Site URL** = URL du domaine final où les cookies de session doivent fonctionner. Sans cet alignement, les sessions sont rejetées sur le custom domain → boucle middleware infinie.
+- **Supabase Auth Redirect URLs** : ajouter wildcards pour les URLs auto-générées Vercel (`tap-*-tvss-projects-XXX.vercel.app/**`) pour ne pas casser les preview PR.
+- **vercel.json en monorepo** : minimal absolu. Garder uniquement `framework` + `regions` + éventuellement `headers/rewrites`. Toute configuration Build/Output/Root/Install/Ignore appartient aux Project Settings dashboard.
+- **Pas d'`ignoreCommand`** sauf besoin avéré et testé. Le pattern standard `if branch = main then build else skip` est trop agressif pour les workflows GSD qui utilisent les PR previews pour UAT.
+
+Anti-patterns interdits :
+
+- ❌ `vercel.json` avec `buildCommand` + `outputDirectory` quand Project Settings sont déjà configurés (conflit garanti, bannière jaune dashboard)
+- ❌ `ignoreCommand` non testé (peut bloquer Production sans warning)
+- ❌ Ajouter custom domain Vercel sans MAJ Supabase Site URL
+- ❌ Tester UAT uniquement sur URLs auto-générées Vercel (manque les bugs domain custom comme cookie session rejeté)
+
+Checklist nouveau domaine Vercel :
+
+1. Ajouter le domaine dans Vercel Project Settings → Domains
+2. Mettre à jour Supabase Auth Site URL → nouveau domaine
+3. Garder dans Supabase Auth Redirect URLs les wildcards des URLs auto-générées Vercel (`tap-*-tvss-projects-XXX.vercel.app/**`)
+4. Tester en navigation privée sur le nouveau domaine : `/login` doit servir page (200), login doit redirect `/patients`, navigation doit être fluide
+
 ---
 
-*Last updated : 2026-05-14 — DEC-034 inscrite, codification post-audit visuel Phase 04. 2026-05-15 — 3 sections ajoutées Hotfix 04.7-bis élargi (tables denses overflow + soft-delete healthcare + layout unique config-driven).*
+*Last updated : 2026-05-14 — DEC-034 inscrite, codification post-audit visuel Phase 04. 2026-05-15 — 3 sections ajoutées Hotfix 04.7-bis élargi (tables denses overflow + soft-delete healthcare + layout unique config-driven). 2026-05-18 — section « Déploiement custom domain Vercel » ajoutée Hotfix Vercel + Supabase URLs.*
