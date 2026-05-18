@@ -754,6 +754,49 @@ Alors que `tap-h7wqj3vl8-tvss-projects-07aa3591.vercel.app/login` répond 200 OK
 - `ignoreCommand` intelligent monorepo si volume builds Vercel devient critique : `git diff --quiet HEAD^ HEAD -- apps/web/ packages/` (skip si rien n'a changé dans le code applicatif).
 - Documentation interne « checklist nouveau domaine Vercel » inscrite UI-PATTERNS.md section déploiement.
 
+### Régression RLS récursive PR #101 (2026-05-18)
+
+Hotfix CRITIQUE post-merge PR #101 (commit `d45ec0a`, migration `20260516000006_perf_rls_wrapping_and_fk_indexes.sql`). Symptôme apparent : boucle infinie redirect côté client Firefox avec « Too many calls to Location or History APIs ». Cause réelle : erreurs 500 systématiques côté BDD masquées par le middleware Next.js qui interprète l'absence de profil comme un échec auth.
+
+**Cause root mécanique** :
+
+Migration 20260516000006 a remplacé `SECURITY DEFINER` par `SECURITY INVOKER` sur `current_organization_id()` (et `current_user_role()`) lors du wrapping perf. La fonction SELECT depuis `profiles` table qui est elle-même protégée par RLS policy invoquant `current_organization_id()`. Récursion infinie → Postgres 500 stack overflow.
+
+Commentaire dans `foundations.sql` ligne 125-126 (préventif mais ignoré lors de la PR #101) :
+> « SECURITY DEFINER permet de lire profiles sans déclencher les policies récursivement. »
+
+Logs Supabase API confirmation (06:30 UTC 2026-05-18) :
+- `GET /rest/v1/profiles` → status 500 (répété)
+- `GET /rest/v1/patients_safe` → status 500 (répété)
+- `GET /auth/v1/user` → status 200 (auth marche)
+- `POST /auth/v1/token` → status 200 (login marche)
+
+**Fix appliqué** :
+
+Migration `20260518000001_hotfix_rls_recursion_security_definer.sql` restaure `SECURITY DEFINER` en gardant le wrapping interne `(SELECT auth.uid())` pour préserver le bénéfice initPlan PostgreSQL. Les 21 policies wrappées et 5 FK indexes de PR #101 sont préservés. Bénéfice perf attendu intact.
+
+**Pattern méta inscrit** :
+
+1. **SECURITY DEFINER pour fonctions appelées dans policies RLS** : toute fonction qui lit une table protégée par RLS et qui est elle-même appelée dans une policy de cette table DOIT être `SECURITY DEFINER`. Sinon récursion garantie.
+
+2. **Lecture pré-merge obligatoire des commentaires de `foundations.sql`** : les fonctions de fondation contiennent souvent des commentaires explicitant les contraintes d'architecture. Les ignorer = régression.
+
+3. **UAT informel doit inclure tests CRUD basiques post-migration** pas juste tests UI. Une migration RLS qui casse `SELECT profiles` ne se voit pas si on ne fait pas un login + tentative d'accès données après. La méthodologie inscrite VISION.md PR #97 doit être étendue : *test login + 1 navigation page liste après chaque migration RLS*.
+
+4. **Audit migration RLS** : avant tout merge de migration qui redéfinit `current_organization_id()` ou fonctions similaires, vérifier que toutes les policies qui les appellent restent sémantiquement correctes ET ne créent pas de récursion.
+
+**Items différés Phase 06 production-grade** :
+
+- Test automatisé pgTAP : assertion « SELECT count(*) FROM profiles WHERE id = auth.uid() returns 1 » après login regulateur@demo.tap. Détecte régression similaire en CI.
+- Schema d'analyse statique : détecter automatiquement les fonctions `security invoker` qui SELECT depuis tables RLS qu'elles policy-protègent.
+- Sentry alert : monitoring 500 BDD côté Vercel function logs + alert Slack/email.
+
+**Items différés Vercel deployment cleanup** :
+
+- Vercel Project Settings Override toggles : valider qu'ils sont bien désactivés après ce hotfix
+- `vercel.json` minimal validé par PR #102
+- Pattern A (Vercel auto-détection) appliqué
+
 ---
 
-*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis élargi Courses truncation+Chauffeurs layout+Patients archivage ajouté 2026-05-15 — Hotfix Vercel + Supabase URLs custom domain ajouté 2026-05-18*
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis élargi Courses truncation+Chauffeurs layout+Patients archivage ajouté 2026-05-15 — Hotfix Vercel + Supabase URLs custom domain ajouté 2026-05-18 — Régression RLS récursive PR #101 ajoutée 2026-05-18*
