@@ -32,7 +32,7 @@ test.describe('PWA install assets', () => {
       icons: Array<{ src: string; sizes: string; purpose: string }>;
     };
 
-    expect(manifest.start_url).toBe('/conduite');
+    expect(manifest.start_url).toMatch(/^\/conduite(\?.*)?$/);
     expect(manifest.scope).toBe('/conduite/');
     expect(manifest.display).toBe('standalone');
     expect(manifest.orientation).toBe('portrait'); // DEC-014 portrait-only

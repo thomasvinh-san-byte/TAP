@@ -6,6 +6,14 @@ export const metadata: Metadata = {
   title: 'TAP Réunion — Régulation',
   description:
     'Régulation, optimisation et communication patient pour TAP et taxis conventionnés CGSS.',
+  icons: {
+    icon: [
+      { url: '/icons/icon-192-any.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/icon-512-any.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: '/icons/apple-touch-icon-180.png',
+    shortcut: '/icons/icon-192-any.png',
+  },
 };
 
 export const viewport: Viewport = {
@@ -48,7 +56,6 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="TAP Chauffeur" />
-        <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png" />
         <link rel="manifest" href="/manifest.json" />
         <link
           rel="apple-touch-startup-image"

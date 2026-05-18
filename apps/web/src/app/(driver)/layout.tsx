@@ -5,6 +5,7 @@ import { UserMenu } from '@/components/user-menu';
 import { SWRegister } from './_components/sw-register.client';
 import { ConnectionStatusBadge } from './_components/connection-status-badge.client';
 import { WarningBannerInactivity } from './_components/warning-banner-inactivity.client';
+import { InstallPwaBanner } from './_components/install-pwa-banner.client';
 
 /**
  * Layout authentifié — shell chauffeur (CLAUDE.md § 5 PWA chauffeur).
@@ -59,6 +60,7 @@ export default async function DriverLayout({
         style={{ backgroundColor: 'hsl(var(--driver-surface, var(--background)))' }}
       >
         <WarningBannerInactivity />
+        <InstallPwaBanner />
         {children}
       </main>
     </div>
