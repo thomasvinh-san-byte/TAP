@@ -4,7 +4,7 @@
   "description": "Application chauffeur taxi conventionné 974",
   "lang": "fr-FR",
   "dir": "ltr",
-  "start_url": "/conduite",
+  "start_url": "/conduite?source=pwa",
   "scope": "/conduite/",
   "display": "standalone",
   "orientation": "portrait",
