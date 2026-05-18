@@ -797,6 +797,70 @@ Migration `20260518000001_hotfix_rls_recursion_security_definer.sql` restaure `S
 - `vercel.json` minimal validé par PR #102
 - Pattern A (Vercel auto-détection) appliqué
 
+### Retour aux affaires + leçons marathon Vercel custom domain (2026-05-18)
+
+Session marathon ~4h sur custom domain Vercel cassé. Résolution finale en cumul :
+- PR #100 — Hotfix UX élargi (modal+filtre+pagination+chauffeurs+archivage)
+- PR #101 — Hotfix perf BDD (RLS wrapping + FK indexes hot path)
+- PR #102 — `vercel.json` minimal (Project Settings dashboard source de vérité)
+- PR #103 — Restauration SECURITY DEFINER (théorie sur-diagnostiquée, voir items annulés ci-dessous)
+- PR #104 — Page racine redirect (cette PR)
+
+Fix Vercel custom domain réel : combinaison de
+1. `vercel.json` minimal (`framework` + `regions` uniquement)
+2. Vercel Project Settings Override toggles désactivés (Pattern A officiel)
+3. Supabase Auth Site URL aligné `tap-web-brown.vercel.app`
+4. Force redeploy sans cache (Build Cache reset)
+
+**Leçons méta retenues** :
+
+1. **Diagnostic Linus measure-first non respecté** : 3 hypothèses fausses bouclées (cookies `@supabase/ssr`, MetaMask extension, migration RLS récursion) avant d'auditer ce que dirigeant avait demandé dès le début : Vercel build logs + Supabase logs API en parallèle. La vérité était dans 2 captures dashboard Vercel + 1 set de logs Supabase Auth qui montraient login 200 OK.
+
+2. **Sur-diagnostic après lecture logs partiels** : 500 sur `/profiles` vus dans logs Supabase API → théorie SECURITY DEFINER vs INVOKER inventée alors que la migration n'avait probablement pas encore été appliquée en prod (timing incertain). La vérité : pas eu besoin du hotfix migration, l'app marche sans.
+
+3. **Pattern « bouclage IA » à interrompre** : dirigeant a dû plusieurs fois dire « arrête de boucler » pour réorienter l'analyse. Signal méta. Règle GSD à inscrire : *si une session diagnostic dépasse 3 hypothèses sans convergence, STOP, demander audit fresh par dirigeant avec captures dashboards + logs en parallèle.*
+
+4. **Tester systématiquement le custom domain post-deploy** : la méthodologie UAT informel PR #97 doit inscrire le custom domain comme test obligatoire. Les URLs auto-générées Vercel marchent souvent quand le custom domain est cassé (différence d'attachement deployment), donc tester l'un sans l'autre est trompeur.
+
+5. **`vercel.json` en monorepo : MINIMAL absolu**. Pattern A officiel Vercel = laisser Project Settings dashboard gérer Build/Output/Install. `vercel.json` ne contient que `framework` + `regions` (+ headers/rewrites si nécessaire). Tout autre override = source de conflit dashboard et bannière jaune « Configuration differs ».
+
+6. **Auth Supabase custom domain checklist** (inscrite UI-PATTERNS.md) :
+   - Site URL = domaine custom final (pas l'URL Vercel auto-générée)
+   - Redirect URLs = liste autorisée + wildcards pour previews PR
+   - Cookies SSR posés sur le domain de la requête (pas explicite)
+   - Tester en navigation privée après changement Site URL
+
+**Items différés Phase 06 production-grade** :
+
+- Sentry monitoring + alerte 500 BDD (aurait détecté le cas des 500 sur `/profiles` si réellement causé par migration)
+- Lighthouse audit automatisé sur `tap-web-brown.vercel.app` post-deploy (détecte régressions perf)
+- Test E2E « racine redirect » pour valider `page.tsx`
+- pgTAP test « login + SELECT profiles working » pour détecter régressions RLS récursion
+
+**Items annulés (théories fausses du marathon)** :
+
+- Migration `20260518000001` hotfix SECURITY DEFINER (PR #103) : **ANNULÉE conceptuellement**, la régression supposée n'existait pas (les 500 logs Supabase API étaient probablement liés au déploiement intermédiaire ou autre cause non investiguée). Migration restée mergée car restaure l'état foundations.sql original — sans effet de bord négatif. Si symptôme revient : réactiver l'investigation avec audit migration vivante en BDD via MCP avant de coder.
+- Hotfix `@supabase/ssr` v0.5 → v0.6 cookie chunking : non requis pour ce bug. À considérer Phase 06 pour stabilité long terme.
+- Désactivation MetaMask Firefox : CONCERN compatibilité Web3 noté mais non bloquant (l'app marche avec extension active).
+
+**Analyse perf post-PR #101** :
+
+Mesures Firefox Network tab observées par dirigeant après fix custom domain :
+- `POST /patients` RSC : 686-977ms (médiane ~820ms)
+- `GET /<id-patient>` : 777-878ms
+
+Baseline avant PR #101 perf : Navigation `/patients` 721ms, Recherche patient 828-1214ms.
+
+Verdict : aucun gain perf observé. Cible Phase 04.7-bis-perf (<300ms navigation, <100ms recherche) NON ATTEINTE.
+
+Hypothèses à investiguer **en Phase 04.7-perf-v2 séparée** :
+- H1 — Cold start Vercel Edge (refaire mesure après 1 min usage)
+- H2 — Optimisations « select ciblé + Suspense » annoncées par commit `d45ec0a` PAS COMMITÉES (commit n'a touché que docs + 1 migration SQL, pas de code app)
+- H3 — Migration appliquée mais initPlan PostgreSQL pas réutilisé à cause de planner cache stale
+- H4 — Le bottleneck n'est pas RLS récursion mais autre chose (Vercel Edge → Supabase round-trip, payload size, etc.)
+
+Action : ouvrir Phase 04.7-perf-v2 plan dédié SANS modification code cette session. Analyse à froid avec `EXPLAIN ANALYZE` Postgres + Vercel function logs + Network timing détaillé.
+
 ---
 
-*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis élargi Courses truncation+Chauffeurs layout+Patients archivage ajouté 2026-05-15 — Hotfix Vercel + Supabase URLs custom domain ajouté 2026-05-18 — Régression RLS récursive PR #101 ajoutée 2026-05-18*
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis élargi Courses truncation+Chauffeurs layout+Patients archivage ajouté 2026-05-15 — Hotfix Vercel + Supabase URLs custom domain ajouté 2026-05-18 — Régression RLS récursive PR #101 ajoutée 2026-05-18 — Leçons marathon Vercel custom domain + items annulés + analyse perf ajoutés 2026-05-18*
