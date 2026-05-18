@@ -861,6 +861,34 @@ Hypothèses à investiguer **en Phase 04.7-perf-v2 séparée** :
 
 Action : ouvrir Phase 04.7-perf-v2 plan dédié SANS modification code cette session. Analyse à froid avec `EXPLAIN ANALYZE` Postgres + Vercel function logs + Network timing détaillé.
 
+### Dette API adresse — Migration Géoplateforme IGN (différée Phase 06)
+
+Constat 2026-05-18 : `api-adresse.data.gouv.fr` est officiellement **DÉPRÉCIÉE depuis fin janvier 2026**. Le service est intégré dans la Géoplateforme IGN (`geoservices.ign.fr` / `data.geopf.fr`). L'ancienne URL doit être décommissionnée à terme par data.gouv.fr.
+
+TAP utilise encore l'ancienne URL dans 3 fichiers :
+- `apps/web/src/app/(app)/courses/_components/address-picker-field.client.tsx:82`
+- `apps/web/src/app/(app)/courses/_components/address-or-poi-picker.client.tsx:96`
+- `apps/web/src/app/(admin)/admin/maintenance/actions.ts:65`
+
+**Impact actuel** : l'ancienne URL répond encore (sans garantie de durée). Pas bloquant pour démo design partner. Le composant `AddressPickerField` est maintenant réutilisé sur le formulaire patient (PR #105) — la dette s'étend donc à la création patient en plus de la création course.
+
+**Risque futur** : si l'URL devient instable ou 410 Gone, l'autocomplete adresse cassera silencieusement dans tout le produit (courses + patient form). Le fallback saisie libre du composant atténue mais la friction UX devient permanente.
+
+**Migration cible** :
+- Ancienne URL : `https://api-adresse.data.gouv.fr/search/?q=...`
+- Nouvelle URL : `https://data.geopf.fr/geocodage/search?q=...`
+- Doc IGN : https://geoservices.ign.fr/documentation/services/services-geoplateforme/geocodage
+
+**Plans possibles** :
+- Plan-A — Migration ciblée 1 endpoint (3 fichiers, ~2h)
+- Plan-B — Wrapper unifié `@tap/address-api` package (Phase 06, déduplication propre)
+
+**Items différés Phase 06** :
+- Tester l'ancienne URL périodiquement (E2E weekly) pour détecter la décommission effective
+- Sentry alert sur 410/404 Gone côté autocomplete adresse
+- Wrapper `@tap/address-api` avec retry + fallback + transformation shape unique
+- Test BAN/Géoplateforme cohérence avec captures Wave 2 géocoding existant
+
 ---
 
-*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis élargi Courses truncation+Chauffeurs layout+Patients archivage ajouté 2026-05-15 — Hotfix Vercel + Supabase URLs custom domain ajouté 2026-05-18 — Régression RLS récursive PR #101 ajoutée 2026-05-18 — Leçons marathon Vercel custom domain + items annulés + analyse perf ajoutés 2026-05-18*
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis élargi Courses truncation+Chauffeurs layout+Patients archivage ajouté 2026-05-15 — Hotfix Vercel + Supabase URLs custom domain ajouté 2026-05-18 — Régression RLS récursive PR #101 ajoutée 2026-05-18 — Leçons marathon Vercel custom domain + items annulés + analyse perf ajoutés 2026-05-18 — Dette migration Géoplateforme IGN ajoutée 2026-05-18*

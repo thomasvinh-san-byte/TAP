@@ -452,6 +452,40 @@ Anti-patterns interdits :
 - ❌ Site URL Supabase pointant vers URL auto-générée Vercel
 - ❌ Pas de page racine (404 brut UX inacceptable)
 
+## Terminologie médicale française (Hotfix 2026-05-18)
+
+Pour TAP CGSS Réunion (santé/social FR), conventions terminologie :
+
+- **« Sexe »** (pas « genre ») : donnée administrative liée au remboursement sécu sociale, conforme NIR / HAS / CNIL.
+- **Options Select sexe** : F / M / Non précisé (pas « Autre » ambigu).
+- **« État civil »** pour la section identité (pas « Identity »).
+- **« Date de naissance »** (pas « Date naissance » ni « Naissance » seul).
+
+Anti-patterns interdits :
+
+- ❌ « Genre » dans formulaires médicaux/santé/sécu (anglicisme tech)
+- ❌ « Autre » comme option de sexe (ambigu, préférer « Non précisé »)
+- ❌ Champs identité sans label clair (« First name » au lieu de « Prénom »)
+
+Note implémentation : le label visible change, mais le `name`/`id` HTML peut rester historique (`genre`) si la colonne BDD s'appelle ainsi — pas de refactor schéma forcé pour UX.
+
+## Autocomplete adresse (Hotfix 2026-05-18)
+
+Pattern obligatoire pour tous les champs adresse dans le produit :
+
+- **Autocomplete BAN / Géoplateforme** sur la saisie ligne 1 (composant partagé `AddressPickerField`)
+- **Fallback saisie libre** si l'API ne trouve pas l'adresse (ne JAMAIS bloquer la création patient/course — saisie de noms de rues exotiques 974 fréquente)
+- **Auto-remplissage code postal + ville** après sélection adresse (UX bonus terrain, à implémenter Phase 06)
+- **Validation côté serveur** : re-géocoder l'adresse via API au moment du save (cohérence + détection adresses fantaisistes, Phase 06)
+- **Réutilisation du composant** : pour les formulaires natifs Server Action / FormData, wrapper local avec hidden `<input name="...">` qui mirror la valeur (pattern `PatientAddressField`)
+
+Anti-patterns interdits :
+
+- ❌ Input HTML brut sans autocomplete pour adresses françaises
+- ❌ Bloquer la création si BAN ne trouve pas
+- ❌ Stocker l'adresse en string libre sans normalisation BAN
+- ❌ Dupliquer la logique BAN dans chaque formulaire (utiliser `AddressPickerField` partagé)
+
 ---
 
-*Last updated : 2026-05-14 — DEC-034 inscrite, codification post-audit visuel Phase 04. 2026-05-15 — 3 sections ajoutées Hotfix 04.7-bis élargi (tables denses overflow + soft-delete healthcare + layout unique config-driven). 2026-05-18 — section « Déploiement custom domain Vercel » ajoutée Hotfix Vercel + Supabase URLs. 2026-05-18 — section « Migrations RLS récursion » ajoutée Hotfix régression PR #101. 2026-05-18 — section « Custom domain Vercel + Supabase Auth » ajoutée Hotfix racine PR #104 + leçons marathon.*
+*Last updated : 2026-05-14 — DEC-034 inscrite, codification post-audit visuel Phase 04. 2026-05-15 — 3 sections ajoutées Hotfix 04.7-bis élargi (tables denses overflow + soft-delete healthcare + layout unique config-driven). 2026-05-18 — section « Déploiement custom domain Vercel » ajoutée Hotfix Vercel + Supabase URLs. 2026-05-18 — section « Migrations RLS récursion » ajoutée Hotfix régression PR #101. 2026-05-18 — section « Custom domain Vercel + Supabase Auth » ajoutée Hotfix racine PR #104 + leçons marathon. 2026-05-18 — sections « Terminologie médicale française » + « Autocomplete adresse » ajoutées Hotfix patient form PR #105.*

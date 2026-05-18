@@ -9,6 +9,7 @@ import {
   NirField,
   TelField,
 } from './patient-form-fields.client';
+import { PatientAddressField } from './patient-address-field.client';
 
 export type { PatientFormDefaults };
 
@@ -47,7 +48,7 @@ export function IdentitySection({ dv }: { dv: PatientFormDefaults }) {
         </div>
         <BirthDateField name="date_naissance" defaultValue={dv.date_naissance} required />
         <div className="space-y-8">
-          <Label htmlFor="genre">Genre</Label>
+          <Label htmlFor="genre">Sexe</Label>
           <select
             id="genre"
             name="genre"
@@ -57,7 +58,7 @@ export function IdentitySection({ dv }: { dv: PatientFormDefaults }) {
             <option value="">—</option>
             <option value="M">M</option>
             <option value="F">F</option>
-            <option value="X">X</option>
+            <option value="X">Non précisé</option>
           </select>
         </div>
       </div>
@@ -73,16 +74,7 @@ export function CoordinatesSection({ dv }: { dv: PatientFormDefaults }) {
         Coordonnées
       </h2>
       <TelField defaultValue={dv.telephone} />
-      <div className="space-y-8">
-        <Label htmlFor="adresse_ligne1">Adresse</Label>
-        <Input
-          id="adresse_ligne1"
-          name="adresse_ligne1"
-          required
-          defaultValue={dv.adresse_ligne1}
-          autoComplete="address-line1"
-        />
-      </div>
+      <PatientAddressField defaultValue={dv.adresse_ligne1} />
       <div className="space-y-8">
         <Label htmlFor="adresse_ligne2">Complément</Label>
         <Input
