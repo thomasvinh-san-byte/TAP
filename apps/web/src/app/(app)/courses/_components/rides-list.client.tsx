@@ -59,16 +59,32 @@ function truncate(s: string, max = 60): string {
  * une ligne non assignée court-circuite le drawer pour passer direct à la
  * modal (gain de clic régulatrice 8h/jour).
  */
+const PAGE_SIZE = 50;
+
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 export function RidesList(): JSX.Element {
   const [q, setQ] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [modeFilter, setModeFilter] = useState<string>('all');
+  // Hotfix 04.7-bis : filtre date — défaut aujourd'hui pour focus régulatrice
+  const [dateFilter, setDateFilter] = useState<string>(todayIso());
+  // Hotfix 04.7-bis : pagination simple — offset cumulatif via bouton Voir plus
+  const [pageOffset, setPageOffset] = useState<number>(0);
   const [openRideId, setOpenRideId] = useState<string | null>(null);
   const [assignRideId, setAssignRideId] = useState<string | null>(null);
   const dq = useDeferredValue(q);
 
+  // Reset offset quand un filtre change (sinon on perd la cohérence pagination)
+  const resetOffset = () => setPageOffset(0);
+
   const { data, isPending } = useQuery({
-    queryKey: ['rides', { status: statusFilter, mode: modeFilter }],
+    queryKey: [
+      'rides',
+      { status: statusFilter, mode: modeFilter, date: dateFilter, limit: pageOffset + PAGE_SIZE },
+    ],
     queryFn: () =>
       listRidesEnrichedAction({
         status:
@@ -77,12 +93,16 @@ export function RidesList(): JSX.Element {
           modeFilter === 'all'
             ? undefined
             : (modeFilter as RideTransportMode),
+        date: dateFilter || undefined,
+        limit: pageOffset + PAGE_SIZE,
+        offset: 0,
       }),
     placeholderData: (prev) => prev,
     staleTime: 5_000,
   });
 
   const rides = (data ?? []) as RideRowEnriched[];
+  const hasMore = rides.length === pageOffset + PAGE_SIZE;
   const filtered = rides.filter((r) => {
     if (!dq) return true;
     const lower = dq.toLowerCase();
@@ -106,17 +126,49 @@ export function RidesList(): JSX.Element {
             onChange={(e) => setQ(e.target.value)}
           />
         </div>
+        <div className="flex items-end gap-8">
+          <Input
+            type="date"
+            value={dateFilter}
+            onChange={(e) => {
+              setDateFilter(e.target.value);
+              resetOffset();
+            }}
+            aria-label="Filtre date des courses"
+            className="h-10 w-[160px] tabular-nums"
+          />
+          {dateFilter && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setDateFilter('');
+                resetOffset();
+              }}
+              aria-label="Effacer le filtre date"
+            >
+              Effacer
+            </Button>
+          )}
+        </div>
         <Select
           ariaLabel="Filtre statut"
           value={statusFilter}
-          onChange={setStatusFilter}
+          onChange={(v) => {
+            setStatusFilter(v);
+            resetOffset();
+          }}
           items={[...STATUS_FILTERS]}
           triggerClassName="min-w-[180px]"
         />
         <Select
           ariaLabel="Filtre mode de transport"
           value={modeFilter}
-          onChange={setModeFilter}
+          onChange={(v) => {
+            setModeFilter(v);
+            resetOffset();
+          }}
           items={[...MODE_FILTERS]}
           triggerClassName="min-w-[180px]"
         />
@@ -133,6 +185,15 @@ export function RidesList(): JSX.Element {
       {!isPending && filtered.length === 0 && (
         <div className="rounded-md border border-border p-32 text-center text-sm text-muted-foreground">
           Aucune course ne correspond aux critères.
+        </div>
+      )}
+
+      {!isPending && filtered.length > 0 && (
+        <div className="flex items-center justify-between text-xs text-muted-foreground tabular-nums">
+          <span>
+            {filtered.length} course{filtered.length > 1 ? 's' : ''} affichée
+            {filtered.length > 1 ? 's' : ''}
+          </span>
         </div>
       )}
 
@@ -167,6 +228,18 @@ export function RidesList(): JSX.Element {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {!isPending && filtered.length > 0 && hasMore && (
+        <div className="flex justify-center">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setPageOffset((o) => o + PAGE_SIZE)}
+          >
+            Voir plus ({PAGE_SIZE} de plus)
+          </Button>
         </div>
       )}
 

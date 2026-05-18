@@ -16,6 +16,10 @@ const listRidesParamsSchema = z.object({
   status: z.string().optional(),
   transport_mode: z.string().optional(),
   urgency: z.string().optional(),
+  // Hotfix 04.7-bis : filtre date + pagination simple
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  limit: z.number().int().min(1).max(200).optional(),
+  offset: z.number().int().min(0).optional(),
 });
 
 /** RidesList Wave 4 (Phase 2) — version simple (sans jointures). */
