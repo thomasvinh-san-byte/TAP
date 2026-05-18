@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { endRideAction } from '../actions';
+import { enqueue } from '@/lib/offline/sync-engine';
 
 type PaymentMethod = 'cash' | 'cb' | 'cheque' | 'cgss_differe';
 
@@ -84,20 +84,55 @@ export function EndRideModal({
       return;
     }
     setPending(true);
-    const res = await endRideAction({
-      rideId,
+
+    const payload = {
       tarif_amount_eur: numeric,
       payment_status: encaisseNow ? 'encaisse' : 'a_encaisser',
       payment_method: method,
-    });
-    setPending(false);
-    if (res.error) {
-      toast.error(res.error);
-      return;
+    };
+    const idempotency_key = crypto.randomUUID();
+
+    try {
+      if (!navigator.onLine) {
+        throw new Error('offline');
+      }
+
+      const res = await fetch(`/api/driver/rides/${rideId}/end`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idempotency_key, ...payload }),
+      });
+
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        const errorMsg = data.error ?? `HTTP ${res.status}`;
+
+        if (res.status >= 400 && res.status < 500) {
+          toast.error(errorMsg);
+          setPending(false);
+          return;
+        }
+
+        throw new Error(errorMsg);
+      }
+
+      toast.success('Course clôturée.');
+      onOpenChange(false);
+      router.refresh();
+    } catch {
+      await enqueue({
+        type: 'end_ride',
+        resource_id: rideId,
+        payload,
+      });
+      toast.warning('Clôture enregistrée — sync au retour réseau');
+      onOpenChange(false);
+      router.refresh();
+    } finally {
+      setPending(false);
     }
-    toast.success('Course clôturée.');
-    onOpenChange(false);
-    router.refresh();
   };
 
   return (

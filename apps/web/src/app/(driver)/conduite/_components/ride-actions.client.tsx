@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { startRideAction } from '../actions';
+import { enqueue } from '@/lib/offline/sync-engine';
 import { formatTimeFr } from '@/lib/dates-fr';
 import { EndRideModal } from './end-ride-modal.client';
 
@@ -42,14 +42,49 @@ export function RideActions({
 
   const onStart = async () => {
     setPending(true);
-    const res = await startRideAction(rideId);
-    setPending(false);
-    if (res.error) {
-      toast.error(res.error);
-      return;
+    const idempotency_key = crypto.randomUUID();
+
+    try {
+      if (!navigator.onLine) {
+        throw new Error('offline');
+      }
+
+      const res = await fetch(`/api/driver/rides/${rideId}/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idempotency_key }),
+      });
+
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        const errorMsg = data.error ?? `HTTP ${res.status}`;
+
+        // Erreurs métier (4xx) : afficher sans enqueue (retry serait vain)
+        if (res.status >= 400 && res.status < 500) {
+          toast.error(errorMsg);
+          setPending(false);
+          return;
+        }
+
+        // 5xx : enqueue pour retry au retour
+        throw new Error(errorMsg);
+      }
+
+      toast.success('Course démarrée.');
+      router.refresh();
+    } catch {
+      await enqueue({
+        type: 'start_ride',
+        resource_id: rideId,
+        payload: {},
+      });
+      toast.warning('Mutation enregistrée — sync au retour réseau');
+      router.refresh();
+    } finally {
+      setPending(false);
     }
-    toast.success('Course démarrée.');
-    router.refresh();
   };
 
   if (status === 'terminee') {

@@ -189,3 +189,15 @@
 .react-datepicker-popper {
   z-index: 80;
 }
+
+/* PWA chauffeur safe-area utilities — Phase 04.9 Wave 5.
+ * Alternative au plugin tailwindcss-safe-area (zero-dep, env() natif).
+ * Handles iOS notch / Dynamic Island (header) + home indicator (main). */
+@layer utilities {
+  .pt-safe { padding-top: env(safe-area-inset-top); }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
+  .pl-safe { padding-left: env(safe-area-inset-left); }
+  .pr-safe { padding-right: env(safe-area-inset-right); }
+  .mt-safe { margin-top: env(safe-area-inset-top); }
+  .mb-safe { margin-bottom: env(safe-area-inset-bottom); }
+}
