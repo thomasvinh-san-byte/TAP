@@ -121,6 +121,36 @@ UAT informel post-execute Phase 04.7 a révélé **3 frictions non spec'd** :
 
 Si une friction trouvée nécessite plus que 1 h ou un nouveau pattern → CONCERNS.md + report phase suivante (V5 verrou anti-scope creep maintenu).
 
+**Audit UI consolidé pré-démo (extension 2026-05-18, marathon 04.7-bis)**
+
+Le marathon Phase 04.7-bis (2026-05-18, 7 PR mergées en ~4h) a révélé un pattern complémentaire à l'UAT informel : quand UAT pré-démo révèle **plusieurs frictions cohérentes** (terminologie, autocomplete, propagations), il vaut mieux **regrouper en un audit UI consolidé** plutôt que multiplier les PR hotfix isolées (PR #100 truncation, PR #105 sexe+BAN, PR #107 propagation CP/ville, etc.).
+
+**Pourquoi grouper** :
+- Chaque PR isolée coûte ~30 min (branche + commit + push + PR + merge + redeploy Vercel + validation manuelle)
+- 7 PR fragmentées = ~3 h overhead vs ~1 h pour 1 PR groupée
+- Les frictions cohérentes (ex : terminologie médicale FR sur label + options Select + REQUIREMENTS) sont solidaires : les séparer fragmente la doc et le testing
+- Vercel cumule des builds Skipped/Error sur les commits intermédiaires
+
+**Quand grouper vs splitter** :
+
+Grouper si :
+- Les frictions partagent un même composant / une même section
+- Les frictions partagent un même thème métier (UX patient, UX courses, UX terminologie médicale)
+- Le fix groupé reste sous 1 h et un seul reviewer humain
+
+Splitter si :
+- Les frictions touchent des couches très différentes (auth + BDD + UI)
+- Une friction nécessite un audit profond séparé (ex : régression PR #101 RLS récursion, marathon Vercel custom domain)
+- Le scope risque de déborder en hotfix-bis (> 1 h)
+
+**Pattern observé qui aurait été mieux groupé Phase 04.7-bis** :
+
+Friction terminologie médicale + autocomplete adresse patient + propagation CP/ville auraient pu être 1 seule PR (PR #105 groupée) au lieu de 3 PR séparées (PR #105 sexe + adresse, PR #107 propagation). Coût économisé : ~30-45 min overhead PR.
+
+**Inscription pour V2+ phases** :
+
+Lors de l'UAT informel pré-démo phase, faire un balayage UI complet (5-10 min) avec liste écrite des frictions observées AVANT de lancer le premier hotfix. Puis regrouper les frictions cohérentes en 1-3 PR maximum (au lieu de 1 PR par friction).
+
 ## Métrique de succès business
 
 **À court terme** :
