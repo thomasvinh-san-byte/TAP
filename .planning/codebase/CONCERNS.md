@@ -914,4 +914,58 @@ Hotfix BAN propagation code postal + ville (PR #107) utilise un workaround React
 
 ---
 
-*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis élargi Courses truncation+Chauffeurs layout+Patients archivage ajouté 2026-05-15 — Hotfix Vercel + Supabase URLs custom domain ajouté 2026-05-18 — Régression RLS récursive PR #101 ajoutée 2026-05-18 — Leçons marathon Vercel custom domain + items annulés + analyse perf ajoutés 2026-05-18 — Dette migration Géoplateforme IGN ajoutée 2026-05-18 — Dette refactor forms composants contrôlés ajoutée 2026-05-18*
+### Dette technique — Duplication composants adresse (alignement doc PR #108)
+
+Constat post-marathon 04.7-bis : le produit utilise actuellement deux composants distincts pour l'autocomplete adresse BAN :
+
+**`AddressPickerField`** (`apps/web/src/app/(app)/courses/_components/address-picker-field.client.tsx`) :
+- Conçu Phase 03.2.7 (D-ADDR-06)
+- V1 : remontait juste le label (string)
+- V2 PR #107 : ajout callback optionnel `onSelect: (BanSuggestion) => void`
+- Utilisé par patient form via wrapper `PatientAddressField`
+
+**`AddressOrPOIPicker`** (`apps/web/src/app/(app)/courses/_components/address-or-poi-picker.client.tsx`) :
+- Conçu pour `ride-express-modal`
+- V2 native dès l'origine : callback `onSelect` propage `AddressOrPOIPickerSelection` (label + postcode + city + notesAcces + poiId + lat + lng + citycode)
+- Gère aussi les POI (EHPAD, cliniques) en plus des adresses BAN
+- Utilisé par courses création/édition (`pickup_address` + `dropoff_address`)
+
+**Impact actuel** : aucun bug fonctionnel. Les 2 composants fonctionnent correctement dans leurs contextes respectifs.
+
+**Dette technique** :
+- Logique BAN dupliquée (fetch + debounce + suggestions + score threshold + filtrage 974)
+- Patterns UI similaires (pill + bouton Changer) maintenus en double
+- Évolutions futures (ex : migration `api-adresse.data.gouv.fr` → Géoplateforme IGN, cf section précédente) à appliquer sur les 2 composants
+
+**Cible Phase 06 — 2 plans de consolidation** :
+
+*Plan A — Étendre `AddressPickerField` avec support POI optionnel* :
+- Ajouter prop `enablePOI?: boolean` (default false)
+- Si true, fetch BAN + POI (comme `AddressOrPOIPicker`)
+- Migrer `ride-express-modal` pour utiliser le composant unifié
+- Supprimer `AddressOrPOIPicker`
+
+*Plan B — Étendre `AddressOrPOIPicker` pour usage sans POI* :
+- Composant accepte prop `mode: 'address-only' | 'address-or-poi'` (default `'address-or-poi'`)
+- Si `'address-only'`, skip le fetch POI + masque le toggle
+- Migrer patient form pour utiliser le composant unifié
+- Supprimer `AddressPickerField`
+
+Plan A est plus simple côté API publique. Plan B préserve les use cases ride avec une API plus riche dès le départ. Décision à prendre au moment de Phase 06 selon évolution du produit (migration Géoplateforme IGN à coupler dans la consolidation).
+
+**Tests E2E à prévoir Phase 06** :
+- patient form : sélection BAN propage CP + ville (acquis PR #107)
+- course form : sélection BAN propage lat + lng + citycode (acquis pre-Phase 04.7)
+- course form : sélection POI propage `notesAcces` + `poiId` (acquis pre-Phase 04.7)
+- cohérence : suppression composant V1 ne casse aucun consommateur
+
+**Refs** :
+- PR #106 : ajout `AddressPickerField` sur patient form (Sexe + adresse)
+- PR #107 : extension `AddressPickerField` avec `onSelect` (propagation CP/ville)
+- foundations courses `ride-express-modal` : `AddressOrPOIPicker` dès origine
+- DEC-044 : threading lat/lng dans rides
+- Migration Géoplateforme IGN (CONCERNS section précédente, Phase 06)
+
+---
+
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis élargi Courses truncation+Chauffeurs layout+Patients archivage ajouté 2026-05-15 — Hotfix Vercel + Supabase URLs custom domain ajouté 2026-05-18 — Régression RLS récursive PR #101 ajoutée 2026-05-18 — Leçons marathon Vercel custom domain + items annulés + analyse perf ajoutés 2026-05-18 — Dette migration Géoplateforme IGN ajoutée 2026-05-18 — Dette refactor forms composants contrôlés ajoutée 2026-05-18 — Dette duplication composants adresse ajoutée 2026-05-18 (PR #108 alignement)*

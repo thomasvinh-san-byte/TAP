@@ -29,7 +29,7 @@ design partners). Chaque requirement mappe vers exactement une phase.
 
 ### Référentiel patients (PAT)
 
-- [ ] **PAT-01** : Régulatrice peut créer une fiche patient avec coordonnées, NIR, date de naissance, genre
+- [ ] **PAT-01** : Régulatrice peut créer une fiche patient avec coordonnées, NIR, date de naissance, sexe
 - [ ] **PAT-02** : NIR chiffré applicativement (AES-256-GCM), clé hors Supabase, jamais loggué
 - [ ] **PAT-03** : Régulatrice peut consulter une fiche patient en < 1 clic depuis la recherche
 - [ ] **PAT-04** : Recherche patient fuzzy à partir de 2 caractères (nom, prénom, téléphone)
