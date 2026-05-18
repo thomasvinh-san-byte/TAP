@@ -2,10 +2,12 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { enqueue } from '@/lib/offline/sync-engine';
+import { getDb } from '@/lib/offline/dexie-instance';
 import { formatTimeFr } from '@/lib/dates-fr';
 import { EndRideModal } from './end-ride-modal.client';
 
@@ -39,6 +41,25 @@ export function RideActions({
   const router = useRouter();
   const [pending, setPending] = React.useState(false);
   const [endOpen, setEndOpen] = React.useState(false);
+
+  // Track mutations en queue Dexie pour ce ride (Phase 04.9-bis #3).
+  // Pattern industry 2026 : « track pending operations with visible
+  // status line » (tasking.space PWA Edge Sync 2026, TanStack Query
+  // useMutation isPending). Évite la duplication enqueue post-refresh
+  // quand state local pending est reset par router.refresh().
+  const pendingForThisRide = useLiveQuery(
+    () => {
+      if (typeof window === 'undefined') return 0;
+      return getDb()
+        .mutations_queue.where('resource_id')
+        .equals(rideId)
+        .filter((m) => m.status !== 'dead')
+        .count();
+    },
+    [rideId],
+    0,
+  );
+  const hasPendingSync = (pendingForThisRide ?? 0) > 0;
 
   const onStart = async () => {
     setPending(true);
@@ -115,9 +136,12 @@ export function RideActions({
           <Button
             type="button"
             onClick={() => setEndOpen(true)}
-            className="h-14 w-full text-base font-semibold bg-warning text-white hover:bg-warning/90 focus-visible:ring-warning"
+            disabled={hasPendingSync}
+            className="h-14 w-full text-base font-semibold bg-warning text-white hover:bg-warning/90 focus-visible:ring-warning disabled:opacity-60"
           >
-            Clôturer la course
+            {hasPendingSync
+              ? 'Clôture en attente de sync…'
+              : 'Clôturer la course'}
           </Button>
         </div>
         <EndRideModal
@@ -135,7 +159,7 @@ export function RideActions({
       <Button
         type="button"
         onClick={onStart}
-        disabled={pending}
+        disabled={pending || hasPendingSync}
         className="h-14 w-full text-base font-semibold"
       >
         {pending ? (
@@ -143,6 +167,8 @@ export function RideActions({
             <Loader2 className="mr-8 h-16 w-16 animate-spin" aria-hidden />
             Démarrage…
           </>
+        ) : hasPendingSync ? (
+          'Démarrage en attente de sync…'
         ) : (
           'Démarrer la course'
         )}
