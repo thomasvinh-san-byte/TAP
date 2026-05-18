@@ -418,6 +418,40 @@ Anti-patterns interdits :
 - ❌ Ignorer les commentaires de `foundations.sql` qui documentent pourquoi une fonction est `security definer`
 - ❌ UAT post-migration limité à UI sans validation logs Supabase API
 
+## Custom domain Vercel + Supabase Auth (Pattern validé 2026-05-18)
+
+Checklist obligatoire dès l'ajout d'un nouveau domaine custom :
+
+1. **Vercel Project Settings** :
+   - Root Directory = `apps/web` (pour monorepo)
+   - Framework Preset = Next.js
+   - Build / Output / Install Command : Override **DÉSACTIVÉ** (Pattern A officiel Vercel = auto-détection)
+   - Include files outside Root Directory : Enabled
+   - `vercel.json` racine repo : minimal (`framework` + `regions`)
+
+2. **Supabase Auth URL Configuration** :
+   - Site URL = domaine custom final (`https://tap-web-brown.vercel.app`, pas l'URL auto-générée `tap-web-xxx-tvss-projects.vercel.app`)
+   - Redirect URLs : ajouter 6+ entrées :
+     - Custom domain + `/**`
+     - Wildcard URLs Vercel auto-générées (`tap-*-tvss-projects.vercel.app/**`)
+
+3. **Trigger redeploy après changements config** :
+   - Force redeploy via Vercel dashboard, sans cache
+   - Vérifier bannière jaune « Configuration differs » disparue
+   - Tester en navigation PRIVÉE le custom domain `/login`
+
+4. **Page racine `/` requise** :
+   - Sans `page.tsx` racine, Next.js retourne 404 brut sur `/`
+   - Solution : `page.tsx` Server Component qui redirige selon auth (`user` → `/patients`, sinon `/login`)
+   - Pattern SaaS B2B standard (Linear / Notion / Stripe)
+
+Anti-patterns interdits :
+
+- ❌ `vercel.json` override Project Settings dashboard
+- ❌ `ignoreCommand` non testé (peut bloquer Production)
+- ❌ Site URL Supabase pointant vers URL auto-générée Vercel
+- ❌ Pas de page racine (404 brut UX inacceptable)
+
 ---
 
-*Last updated : 2026-05-14 — DEC-034 inscrite, codification post-audit visuel Phase 04. 2026-05-15 — 3 sections ajoutées Hotfix 04.7-bis élargi (tables denses overflow + soft-delete healthcare + layout unique config-driven). 2026-05-18 — section « Déploiement custom domain Vercel » ajoutée Hotfix Vercel + Supabase URLs. 2026-05-18 — section « Migrations RLS récursion » ajoutée Hotfix régression PR #101.*
+*Last updated : 2026-05-14 — DEC-034 inscrite, codification post-audit visuel Phase 04. 2026-05-15 — 3 sections ajoutées Hotfix 04.7-bis élargi (tables denses overflow + soft-delete healthcare + layout unique config-driven). 2026-05-18 — section « Déploiement custom domain Vercel » ajoutée Hotfix Vercel + Supabase URLs. 2026-05-18 — section « Migrations RLS récursion » ajoutée Hotfix régression PR #101. 2026-05-18 — section « Custom domain Vercel + Supabase Auth » ajoutée Hotfix racine PR #104 + leçons marathon.*
