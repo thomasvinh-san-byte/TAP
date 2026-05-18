@@ -966,6 +966,24 @@ Plan A est plus simple côté API publique. Plan B préserve les use cases ride 
 - DEC-044 : threading lat/lng dans rides
 - Migration Géoplateforme IGN (CONCERNS section précédente, Phase 06)
 
+### Optimistic UI miroir Dexie (Phase 06 — origine Phase 04.9 Wave 6)
+
+**Origine** : Phase 04.9 Wave 6 — test E2E `driver-offline-flow.spec.ts`.
+
+**Constat** : après enqueue d'une mutation `start_ride` offline, le state local du ride reste `status='assignee'` (le serveur n'a pas confirmé). Le composant `ride-actions.client.tsx` continue d'afficher le bouton « Démarrer » au lieu de « Terminer ». Impossible de tester un flow Démarrer→Terminer offline en chaîne Phase 04.9.
+
+**Solution Phase 06** : implémenter un miroir Dexie côté client qui mute optimistiquement le state local après enqueue :
+- `enqueue('start_ride')` → `rides_mirror.update(id, { status: 'en_cours' })`
+- `enqueue('end_ride')` → `rides_mirror.update(id, { status: 'terminee' })`
+- Si mutation sync fail (4xx) : rollback du state local + toast erreur
+- Si mutation sync OK : reconcile avec data serveur (refresh RSC)
+
+**Trade-off** : complexité +N (gestion rollback + reconcile + invariants UI ↔ serveur). Reporté Phase 06 (PWA full offline + cache régulateur). Phase 04.9 livre le scaffold suffisant pour démo design partner.
+
+**Impact démo design partner** : limité. La PWA fonctionne correctement pour le cas nominal (1 mutation offline puis retour réseau). Le cas avancé (multiple mutations en chaîne offline) reste à valider Phase 06. UAT informel pré-démo Wave 6 valide via Démarrer offline + check badge + online + check sync sans chainage Terminer.
+
+**Refs** : PLAN-6 PR #111, Waves 4+5 PR #114 (`ride-actions.client.tsx`, `end-ride-modal.client.tsx`), `rides_mirror` table Dexie schema Wave 3 PR #113.
+
 ---
 
-*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis élargi Courses truncation+Chauffeurs layout+Patients archivage ajouté 2026-05-15 — Hotfix Vercel + Supabase URLs custom domain ajouté 2026-05-18 — Régression RLS récursive PR #101 ajoutée 2026-05-18 — Leçons marathon Vercel custom domain + items annulés + analyse perf ajoutés 2026-05-18 — Dette migration Géoplateforme IGN ajoutée 2026-05-18 — Dette refactor forms composants contrôlés ajoutée 2026-05-18 — Dette duplication composants adresse ajoutée 2026-05-18 (PR #108 alignement)*
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis élargi Courses truncation+Chauffeurs layout+Patients archivage ajouté 2026-05-15 — Hotfix Vercel + Supabase URLs custom domain ajouté 2026-05-18 — Régression RLS récursive PR #101 ajoutée 2026-05-18 — Leçons marathon Vercel custom domain + items annulés + analyse perf ajoutés 2026-05-18 — Dette migration Géoplateforme IGN ajoutée 2026-05-18 — Dette refactor forms composants contrôlés ajoutée 2026-05-18 — Dette duplication composants adresse ajoutée 2026-05-18 (PR #108 alignement) — Dette optimistic UI miroir Dexie Phase 06 ajoutée 2026-05-18 (Wave 6 Phase 04.9)*
