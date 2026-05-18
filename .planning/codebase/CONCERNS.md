@@ -631,6 +631,59 @@ Hotfix UX livré 2026-05-15 post UAT informel Phase 04.7 (méthodologie pipeline
 
 **Test E2E** : `courses-pagination-filter-modal.spec.ts` — 4 scénarios (F1 width, F2 date présent, F2bis Effacer, F3 compteur).
 
+### Hotfix Phase 04.7-bis-perf — BDD indexes + RLS wrapping initPlan (2026-05-15)
+
+Hotfix performance livré 2026-05-15. **Baseline mesurée Firefox Network tab preview Vercel** par dirigeant :
+
+| Action | Avant | Cible |
+|---|---|---|
+| Recherche patient autocomplete | 828, 850, 1214ms par keystroke | <100ms (idéal 30-50ms) |
+| Navigation `/patients` | 721ms | <300ms |
+| Navigation `/courses` (GET + POST) | 865ms + 794-1021ms | <300ms combinés |
+
+Contrôles déjà rapides (préservés) : création course modal, fetch détail patient par ID → asymétrie diagnostique = cause BDD (pas global cold start/network/bundle).
+
+**Phase A diagnostic Supabase MCP (lecture seule, DEC-032)** :
+
+- ❌ **25 FKs sans index** — dont **5 hot path** (`rides.vehicle_id`, `ride_draft.organization_id`, `ride_draft.patient_id`, `patient_constraint.organization_id`, `patient_operational_note.organization_id`). Les 20 autres = `created_by`/`updated_by` audit, rarement requêtés
+- ✅ **pg_trgm extension active** + **index trigram patients déjà en place** (Phase 1 — `patients_search_trgm_idx ON patients USING gin (search_text gin_trgm_ops)`). Pas la cause Friction 1.
+- ❌ **Cause root découverte** : **44 policies sur 18 tables** utilisent `current_organization_id()` SANS wrapping `(SELECT ...)`. La fonction est STABLE mais re-évaluée per-row par RLS sans initPlan. Combinée à un appel `auth.uid()` interne, chaque row examine entraîne :
+  1. Lookup `profiles WHERE id = auth.uid()` (cascade RLS)
+  2. Re-évaluation par row de l'organization_id
+
+  Pattern standard Supabase recommande `(SELECT current_organization_id())` pour bénéficier de l'initPlan PostgreSQL (sous-requête évaluée UNE FOIS par statement). Speedup jusqu'à 100x sur tables denses.
+
+**Fixes appliqués** (migration `20260516000006_perf_rls_wrapping_and_fk_indexes.sql`) :
+
+1. **Section A** — 5 indexes FK hot path additifs (rides.vehicle_id, ride_draft.*, patient_constraint.organization_id, patient_operational_note.organization_id)
+2. **Section B** — `current_organization_id()` modifie pour wrapper `(SELECT auth.uid())` interne
+3. **Section C** — 21 policies hot path wrappées avec `(SELECT current_organization_id())` (DROP + CREATE sémantique préservée, tables patients/rides/drivers/vehicles/pois_metier/patient_constraint/patient_operational_note)
+4. **Section D** — RPC `search_patients` wrappée + opérateur trigram `%` ajouté en complément ILIKE (utilise les 2 index gin_trgm)
+
+**Sémantique préservée** : aucune politique modifiée dans son comportement, uniquement le wrapping fonctions stables pour initPlan. Les rows visibles avant/après sont identiques pour un utilisateur donné (V3 verrou).
+
+**Hors scope hotfix-perf** (différé Phase 06 HDS) :
+
+- 23 policies autres tables (legal/*, dpia/dpa, audit_logs) — wrapping systémique avec audit RLS complet
+- 20 FKs audit (created_by/updated_by) sans index — gain marginal sur listes hot path
+- Connection pooling Vercel — à vérifier mais probablement déjà OK (DATABASE_URL pooler:6543)
+- Sentry observability + Web Vitals + Lighthouse audit complet
+- VACUUM + ANALYZE planning + partial indexes additionnels
+
+**SSR optimizations non requises V1.5** : audit a confirmé que `select()` est déjà ciblé dans toutes les pages liste (`RIDE_COLUMNS` constant, `patients_safe` colonnes explicites). `Promise.all` déjà utilisé dans `listRidesEnriched`. Le gain principal vient des indexes BDD + RLS wrapping, pas du code Server Component.
+
+**Résultats attendus post-merge** (validation Firefox Network tab par dirigeant) :
+
+- Recherche patient : 828-1214ms → 30-50ms (gain ~95%)
+- Navigation `/patients` : 721ms → 200-300ms (gain ~60%)
+- Navigation `/courses` : 865ms + 794-1021ms → 200-300ms combinés (gain ~70%)
+- Contrôles rapides préservés (création course, fetch détail patient)
+
+**Pattern méta** : Linus measure-first respecté — Phase A diagnostic MCP a sourcé la cause root (RLS wrapping) AVANT l'optimisation. La friction « recherche patient lente » n'était PAS due à un index trigram manquant (déjà en place) mais à `current_organization_id()` per-row. Sans diagnostic, l'optimisation aveugle aurait recréé un index existant et raté la vraie cause.
+
+---
+
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis-perf RLS wrapping + FK indexes ajouté 2026-05-15*
 ### Hotfix Phase 04.7-bis élargi — 3 problèmes UX (patterns industrie 2026-05-15)
 
 Hotfix UX livré 2026-05-15 post UAT informel Phase 04.7 élargi (3 problèmes UX critiques au-delà des 3 frictions initiales). Recherches patterns industrie effectuées avant fix.
