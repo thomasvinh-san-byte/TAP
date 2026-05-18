@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getAuthContext } from '@/lib/auth/get-auth-context';
 import { UserMenu } from '@/components/user-menu';
+import { SWRegister } from './_components/sw-register.client';
 
 /**
  * Layout authentifié — shell chauffeur (CLAUDE.md § 5 PWA chauffeur).
@@ -28,6 +29,7 @@ export default async function DriverLayout({
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <SWRegister />
       <header
         className={
           'sticky top-0 z-40 h-14 w-full border-b border-border ' +
