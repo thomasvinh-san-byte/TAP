@@ -12,3 +12,4 @@
  */
 export * from './_existing';
 export * from './get-ride-defaults';
+export * from './archive';
