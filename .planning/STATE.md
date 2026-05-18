@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 04.7-bis FINALE livrée — démo design partner opérationnelle custom domain
-stopped_at: Phase 04.7-bis complete (PR #98-#104) — ready Phase 04.9 PWA chauffeur enveloppe
-last_updated: "2026-05-18T08:00:00.000Z"
-last_activity: 2026-05-18 — PR #108 alignement doc post-marathon 04.7-bis (doc-only, zéro code) : REQUIREMENTS PAT-01 sexe (cohérence PR #106), UI-PATTERNS ligne 478 auto-remplissage livré PR #107 (contradiction Phase 06 retirée), CONCERNS dette duplication composants adresse AddressPickerField + AddressOrPOIPicker (cible Phase 06 consolidation, 2 plans A/B), VISION pattern méta audit UI consolidé pré-démo (leçon marathon : 7 PR fragmentées = ~3h overhead vs ~1h grouped, critères grouper/splitter inscrits). Précédent : Hotfix UX patient form V2 livré (PR #107) BAN auto-remplissage code postal + ville après sélection adresse. Architecture AddressPickerField étendue avec callback onSelect optionnel (V1 backward compatible courses, export type BanSuggestion). PatientAddressField expose onAddressPick au parent. CoordinatesSection lift state postcode/ville partagé + key remount workaround sur CityPostalCodeField. Patient form complet : Sexe FR médical + autocomplete BAN + auto-remplissage CP/ville.
+status: Phase 04.9 — discuss en cours
+stopped_at: Phase 04.9 discuss complete — ready /gsd-ui-phase 04.9
+last_updated: "2026-05-18T10:30:00.000Z"
+last_activity: 2026-05-18 — Discuss Phase 04.9 PWA chauffeur enveloppe démarré (étape 1/5 pipeline GSD). CONTEXT étoffé (49→~300 lignes), Success Criteria étendus (5→8 critères : ajout idempotency + UAT informel cross-platform + audit logs cohérents). DEC-045 LOCKED inscrite PROJECT.md : Route Handlers explicites `/api/driver/rides/[id]/start|end` (Alt A préféré par dirigeant) — visibilité endpoints + Serwist offline cache standard + debugging device réel facilité. Stratégie cross-platform Option A LOCKED : iOS Safari (apple-touch-startup-image 3 DPR + apple-touch-icon 180) + Android (manifest 192/512 maskable auto-généré) testés parallèle Wave 6 sur 2 devices réels. 6 risques identifiés (iOS IndexedDB purge ~2sem + 3G/4G Hauts + manifest Safari rejet + background sync iOS + cookies auth perdus + Serwist offline cache compat). 7 questions discuss Q1-Q7 (Q1 Route Handlers tranché, Q2 cross-platform tranché, Q7 hors périmètre tranché, Q3-Q6 à affiner ui/plan-phase). Estimation détaillée 7 waves ~9.5h estimé, vélocité projetée 2-3h réel. Prêt /gsd-ui-phase 04.9 puis /gsd-plan-phase 04.9. Précédent : PR #108 alignement doc post-marathon 04.7-bis.
 progress:
   total_phases: 15
   completed_phases: 4
