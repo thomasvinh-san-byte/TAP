@@ -966,6 +966,30 @@ Plan A est plus simple côté API publique. Plan B préserve les use cases ride 
 - DEC-044 : threading lat/lng dans rides
 - Migration Géoplateforme IGN (CONCERNS section précédente, Phase 06)
 
+### Items différés Phase 04.9 → 05 / 06 (consolidation clôture)
+
+Phase 04.9 PWA chauffeur enveloppe livrée 2026-05-18 (8 PR #109-#116, ~1h40 wall-clock, -82% vélocité). Items hors périmètre reportés selon ROADMAP + découvertes execute :
+
+**Phase 05 (récurrences + cockpit régulatrice)** :
+- Cache PWA régulateur `/courses` : équivalent PWA chauffeur côté cockpit. À planifier après livraison cockpit Realtime.
+
+**Phase 06 (production-grade + HDS)** :
+- **Optimistic UI miroir Dexie** (NEW Wave 6, section ci-dessous) : flow Démarrer→Terminer offline en chaîne.
+- **Hors-ligne > 1h** : sync delta + cache complet courses du jour (chauffeurs en zones Hauts blanches).
+- **Web Push notifications VAPID** : iOS 16.4+ supporté, alertes régulatrice patient absent.
+- **Géolocalisation temps réel** : tracking position chauffeur pour cockpit régulateur live map.
+- **Idempotency cleanup pg_cron** : `DELETE FROM idempotency_keys WHERE expires_at < now()` (table créée Wave 1).
+- **Réplication initiale `rides_mirror`** : sync delta serveur → IndexedDB au mount online.
+- **Vitest setup `apps/web`** : config + mocks `next/headers` + Supabase server client. Deferred Waves 1-6 V1.5 (CLAUDE.md § 9 tests pragmatic). ~30-60 min isolé.
+- **Sentry observability service worker** : tracking erreurs `flushQueue` + Serwist runtime + manifest errors.
+- **Background Sync API** : quand iOS Safari supporte (fallback `window.addEventListener('online')` Phase 04.9).
+
+**Phase UI dédiée (post-Passe 2)** :
+- **Slide bidirectionnel iOS-style** : transitions page driver. DEC-020 LOCKED fade-in `template.tsx` pour Phase 04.9 (bug `vercel/next.js#42658`).
+
+**Hors PWA chauffeur (déjà inscrit ailleurs)** :
+- Migration `api-adresse.data.gouv.fr` → Géoplateforme IGN (déprécié fin janvier 2026 — déjà inscrit CONCERNS PR #105). Impact PWA chauffeur = nul (pas d'autocomplete côté driver).
+
 ### Optimistic UI miroir Dexie (Phase 06 — origine Phase 04.9 Wave 6)
 
 **Origine** : Phase 04.9 Wave 6 — test E2E `driver-offline-flow.spec.ts`.
@@ -986,4 +1010,4 @@ Plan A est plus simple côté API publique. Plan B préserve les use cases ride 
 
 ---
 
-*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis élargi Courses truncation+Chauffeurs layout+Patients archivage ajouté 2026-05-15 — Hotfix Vercel + Supabase URLs custom domain ajouté 2026-05-18 — Régression RLS récursive PR #101 ajoutée 2026-05-18 — Leçons marathon Vercel custom domain + items annulés + analyse perf ajoutés 2026-05-18 — Dette migration Géoplateforme IGN ajoutée 2026-05-18 — Dette refactor forms composants contrôlés ajoutée 2026-05-18 — Dette duplication composants adresse ajoutée 2026-05-18 (PR #108 alignement) — Dette optimistic UI miroir Dexie Phase 06 ajoutée 2026-05-18 (Wave 6 Phase 04.9)*
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis élargi Courses truncation+Chauffeurs layout+Patients archivage ajouté 2026-05-15 — Hotfix Vercel + Supabase URLs custom domain ajouté 2026-05-18 — Régression RLS récursive PR #101 ajoutée 2026-05-18 — Leçons marathon Vercel custom domain + items annulés + analyse perf ajoutés 2026-05-18 — Dette migration Géoplateforme IGN ajoutée 2026-05-18 — Dette refactor forms composants contrôlés ajoutée 2026-05-18 — Dette duplication composants adresse ajoutée 2026-05-18 (PR #108 alignement) — Dette optimistic UI miroir Dexie Phase 06 ajoutée 2026-05-18 (Wave 6 Phase 04.9) — Items différés Phase 04.9 → 05/06 consolidés 2026-05-18 (Wave 7 clôture)*
