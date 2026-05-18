@@ -279,4 +279,56 @@ Ces pages utilisent l'ancien pattern et devraient être alignées en Phase 04.5 
 
 ---
 
-*Last updated : 2026-05-14 — DEC-034 inscrite, codification post-audit visuel Phase 04.*
+## Performance BDD — indexes obligatoires (Phase 04.7-bis-perf 2026-05-15)
+
+Patterns Supabase + PostgreSQL pour éviter les frictions performance UAT :
+
+- **Toute FK doit avoir un index B-tree** : Supabase ne crée pas auto, contrairement à certains ORMs. Sans index, les jointures et `ON DELETE CASCADE` font un seq scan
+- **Toute colonne dans `WHERE`/`JOIN`/`ORDER BY` fréquent doit avoir un index** : `(organization_id, status)`, `(scheduled_at desc)`, `(patient_id)` etc.
+- **Toute recherche fuzzy `ILIKE '%x%'`** nécessite **`pg_trgm` extension + index GIN** `gin (col gin_trgm_ops)`. Sans index, le full table scan donne 100-1000ms typique selon volume
+- **Toute RLS policy utilisant `auth.uid()` ou `current_organization_id()`** doit le wrapper en **`(SELECT auth.uid())`** ou **`(SELECT public.current_organization_id())`**. La sous-requête simple est traitée comme initPlan PostgreSQL — évaluée UNE FOIS par statement au lieu de per-row. **Speedup jusqu'à 100x sur tables denses**
+- **Tester perf via Supabase Query Performance Dashboard** régulièrement (pg_stat_statements visible dans dashboard)
+- **EXPLAIN ANALYZE** en cas de doute sur une query lente : confirme l'utilisation des indexes
+
+Anti-patterns interdits :
+- ❌ Créer une FK sans index sur la colonne référençante
+- ❌ Recherche fuzzy `ILIKE %x%` sans index trigram
+- ❌ RLS policy avec `column = auth.uid()` direct (per-row eval)
+- ❌ Optimiser aveuglément sans diagnostic Phase A préalable (mesure first)
+
+## Performance SSR — Server Components patterns (Phase 04.7-bis-perf)
+
+Patterns Next.js 14 App Router pour pages liste avec données serveur :
+
+- **`select()` ciblé** sur colonnes effectivement utilisées dans le rendu. `RIDE_COLUMNS` constant string réutilisé entre queries enrichies (`queries-enriched.ts`). Évite `select('*')` qui transporte des colonnes inutiles
+- **Suspense streaming** sur pages avec queries lourdes : shell de page (header + toolbar) s'affiche immédiatement, la table arrive ensuite. UX perçue beaucoup plus rapide. Skeleton component minimaliste en fallback
+- **`Promise.all` pour queries indépendantes** : `[patientsRes, driversRes, vehiclesRes] = await Promise.all([...])`. Gain -50% temps si queries vraiment indépendantes (pas de dépendance de données)
+- **`'use client'` au plus petit composant interactif** : pas sur la page entière. La page reste Server Component, seuls les sous-composants interactifs sont Client
+- **Pas de fetch dans loops (N+1)** : utiliser jointures Supabase `select('id, patient:patients!inner(nom)')` ou `in('id', ids)` avec aggregation JS
+
+Anti-patterns interdits :
+- ❌ `select('*')` sur table dense (paiement, audit_logs, etc.)
+- ❌ Queries séquentielles si indépendantes (gâche temps)
+- ❌ `'use client'` sur page entière (perd SSR streaming)
+- ❌ Fetch dans `.map()` ou loop (N+1 latencies cumulées)
+
+## Mesure performance — outils minimaux V1.5 (Phase 04.7-bis-perf)
+
+Pour valider les optimisations avant/après sans Sentry/Web Vitals (Phase 06) :
+
+- **Firefox/Chrome DevTools → Network tab** : durées HTTP per request, baseline mesurable
+- **Cocher « Persist Logs » + « Disable Cache »** pour éliminer le cache navigateur
+- **Supabase Query Performance dashboard** : top slow queries, fréquence, p95/p99 (déjà disponible cloud)
+- **EXPLAIN ANALYZE** sur queries suspectes via Supabase SQL Editor : confirme plan d'exécution
+- **Procédure baseline → fix → mesure** : documenter baseline AVANT optim dans CONCERNS.md, mesurer APRÈS sur même environnement, calculer gain %
+
+Outils différés Phase 06 production-grade :
+
+- Sentry performance monitoring (web vitals automatique)
+- Log drain Supabase → datadog/grafana
+- Index Advisor périodique automatisé
+- Lighthouse audit complet pages publiques + privées
+
+---
+
+*Last updated : 2026-05-14 — DEC-034 inscrite, codification post-audit visuel Phase 04. 2026-05-15 — 3 sections ajoutées Phase 04.7-bis-perf (Performance BDD indexes obligatoires + Performance SSR patterns + Mesure performance outils minimaux V1.5).*
