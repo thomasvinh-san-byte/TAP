@@ -403,6 +403,21 @@ Checklist nouveau domaine Vercel :
 3. Garder dans Supabase Auth Redirect URLs les wildcards des URLs auto-générées Vercel (`tap-*-tvss-projects-XXX.vercel.app/**`)
 4. Tester en navigation privée sur le nouveau domaine : `/login` doit servir page (200), login doit redirect `/patients`, navigation doit être fluide
 
+## Migrations RLS récursion (Hotfix 2026-05-18)
+
+Pattern obligatoire pour toute migration qui redéfinit une fonction appelée dans des policies RLS :
+
+- **SECURITY DEFINER obligatoire** si la fonction `SELECT` depuis une table protégée par RLS qui invoque cette fonction dans sa policy. Sinon récursion infinie → erreur 500.
+- **Conserver les commentaires explicitant** la raison du `SECURITY DEFINER` (cf `foundations.sql` ligne 125-126).
+- **Wrapping interne `(SELECT auth.uid())` compatible avec `SECURITY DEFINER`** : la combinaison apporte le double bénéfice (bypass RLS + initPlan PostgreSQL).
+
+Anti-patterns interdits :
+
+- ❌ Migration redéfinissant une fonction `security definer` en `security invoker` sans audit récursion
+- ❌ Wrapping policies sans tester CRUD basiques post-application
+- ❌ Ignorer les commentaires de `foundations.sql` qui documentent pourquoi une fonction est `security definer`
+- ❌ UAT post-migration limité à UI sans validation logs Supabase API
+
 ---
 
-*Last updated : 2026-05-14 — DEC-034 inscrite, codification post-audit visuel Phase 04. 2026-05-15 — 3 sections ajoutées Hotfix 04.7-bis élargi (tables denses overflow + soft-delete healthcare + layout unique config-driven). 2026-05-18 — section « Déploiement custom domain Vercel » ajoutée Hotfix Vercel + Supabase URLs.*
+*Last updated : 2026-05-14 — DEC-034 inscrite, codification post-audit visuel Phase 04. 2026-05-15 — 3 sections ajoutées Hotfix 04.7-bis élargi (tables denses overflow + soft-delete healthcare + layout unique config-driven). 2026-05-18 — section « Déploiement custom domain Vercel » ajoutée Hotfix Vercel + Supabase URLs. 2026-05-18 — section « Migrations RLS récursion » ajoutée Hotfix régression PR #101.*
