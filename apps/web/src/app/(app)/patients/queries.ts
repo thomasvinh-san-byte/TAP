@@ -41,31 +41,40 @@ export interface PatientListItem {
  * (migration coûteuse pour Passe 1) en faisant 2 requêtes paginées sur
  * `rides` (RLS-filtré same-org) puis aggregation JS.
  */
+export type PatientArchiveScope = 'active' | 'archived';
+
 export async function searchPatients(
   query: string,
+  scope: PatientArchiveScope = 'active',
 ): Promise<PatientListItem[]> {
   const trimmed = query.trim();
   // Garde côté serveur : recherche < 2 chars retourne vide (D-10).
   if (trimmed.length > 0 && trimmed.length < 2) return [];
 
   const supabase = createClient();
+  const wantArchived = scope === 'archived';
   let items: PatientListItem[];
 
   if (trimmed.length >= 2) {
+    // Hotfix 04.7-bis élargi : la RPC search_patients ne discrimine pas
+    // par archive. On filtre en post-fetch côté JS pour cohérence rapide
+    // (volume résultats < 50, négligeable).
     const { data, error } = await supabase.rpc(
       'search_patients',
       { q: trimmed } as never,
     );
     if (error) throw new Error('Recherche impossible');
     const rows = (data ?? []) as PatientSafeRow[];
-    items = rows.map(toListItem);
+    items = rows
+      .filter((r) => (r.archive ?? false) === wantArchived)
+      .map(toListItem);
   } else {
     const { data, error } = await supabase
       .from('patients_safe')
       .select(
         'id, nom, prenom, telephone, canal_contact_prefere, archive',
       )
-      .eq('archive', false)
+      .eq('archive', wantArchived)
       .order('nom', { ascending: true })
       .limit(20);
     if (error) throw new Error('Recherche impossible');

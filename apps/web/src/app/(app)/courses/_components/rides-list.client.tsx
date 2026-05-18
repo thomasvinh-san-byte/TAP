@@ -52,6 +52,24 @@ function truncate(s: string, max = 60): string {
 }
 
 /**
+ * Hotfix 04.7-bis élargi : raccourcir une adresse complète à son préfixe
+ * « avant la virgule » pour confiner le scroll horizontal de la table
+ * Courses (pattern Linear/Stripe/Notion — truncation + tooltip).
+ *
+ * Exemples :
+ *   « EHPAD Les Lataniers, 97419 La Possession » → « EHPAD Les Lataniers »
+ *   « CHU Sud Saint-Pierre — Avenue du Président Mitterrand, … » → « CHU Sud Saint-Pierre — Avenue du Président Mitterrand »
+ *   « 12 Rue de Paris, 97400 Saint-Denis » → « 12 Rue de Paris »
+ *
+ * Si pas de virgule, retourne tel quel (saisie libre ultra-courte).
+ */
+function shortAddress(full: string): string {
+  const idx = full.indexOf(',');
+  if (idx === -1) return full;
+  return full.slice(0, idx).trim();
+}
+
+/**
  * RidesList enrichi (Phase 3 / 03-D).
  *
  * Pré-fetch RSC via /courses/page.tsx (clé identique, queryFn pointe sur la
@@ -291,17 +309,23 @@ function RideRowView({ ride, onOpen, onAssign }: RideRowProps): JSX.Element {
           <span className="truncate max-w-[180px]">{patientName}</span>
         </div>
       </td>
-      <td className="px-12 py-12 align-top">
-        <div className="flex items-center gap-8 text-sm">
-          <span className="truncate max-w-[220px]">
-            {truncate(ride.pickup_address)}
+      <td className="px-12 py-12 align-top min-w-0">
+        <div className="flex items-center gap-8 text-sm min-w-0">
+          <span
+            className="truncate max-w-[180px]"
+            title={ride.pickup_address}
+          >
+            {shortAddress(ride.pickup_address)}
           </span>
           <ArrowRight
             className="h-12 w-12 shrink-0 text-muted-foreground"
             aria-hidden
           />
-          <span className="truncate max-w-[220px]">
-            {truncate(ride.dropoff_address)}
+          <span
+            className="truncate max-w-[180px]"
+            title={ride.dropoff_address}
+          >
+            {shortAddress(ride.dropoff_address)}
           </span>
         </div>
       </td>

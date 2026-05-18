@@ -631,6 +631,42 @@ Hotfix UX livré 2026-05-15 post UAT informel Phase 04.7 (méthodologie pipeline
 
 **Test E2E** : `courses-pagination-filter-modal.spec.ts` — 4 scénarios (F1 width, F2 date présent, F2bis Effacer, F3 compteur).
 
+### Hotfix Phase 04.7-bis élargi — 3 problèmes UX (patterns industrie 2026-05-15)
+
+Hotfix UX livré 2026-05-15 post UAT informel Phase 04.7 élargi (3 problèmes UX critiques au-delà des 3 frictions initiales). Recherches patterns industrie effectuées avant fix.
+
+**Fix 1 — Courses scroll horizontal inévitable**
+
+- Cause : colonne TRAJET affichait 2 adresses complètes (« EHPAD Les Lataniers, 97419 La Possession » + « Centre de dialyse Nord, 97400 Saint-Denis »), table 8 colonnes débordait 1280px viewport
+- Patterns appliqués : truncation + tooltip (Linear/Stripe/Notion). Pas de stack mobile (SaaS desktop-first régulatrice). Pas de sticky first column V1 (truncation suffit)
+- Solution : helper `shortAddress(full)` = préfixe avant la virgule + `max-w-[180px] truncate` + `title={fullAddress}` tooltip + `min-w-0` sur td/wrapper. Container `overflow-x-auto` déjà en place
+- Inscrit UI-PATTERNS.md section « Tables denses — gestion overflow »
+
+**Fix 2 — /admin/chauffeurs « pas raccroché » au layout app**
+
+- Cause : `(admin)/layout.tsx` avait son propre header « TAP Administration » disjoint du shell `(app)` (« TAP Régulation »). Nav admin minimale (Chauffeurs / Véhicules / Registre / Violations) sans accès Patients/Courses/Caisse
+- Pattern appliqué : sidebar layout unique config-driven (shadcn/ui 2024+ recommandation). Layout admin refactor pour réutiliser le shell `(app)` (header sticky + NavTabs + UserMenu) avec ajout extensions admin pour dirigeant (`ADMIN_EXTRAS`)
+- **Décision pragmatique** : refactor `(admin)/layout.tsx` au lieu de déplacement physique des routes `/admin/*` → `/`. Le move physique nécessite audit complet + refactor 5+ fichiers + tests, hors scope hotfix-bis time-cap 2h. Reporté Phase 06 HDS (audit RLS systémique + restructuration routes au même moment)
+- Inscrit UI-PATTERNS.md section « Layout unique config-driven »
+
+**Fix 3 — Archivage Patients (soft-delete healthcare)**
+
+- Cause : pas de mécanisme d'archivage côté UI. Régulatrice ne peut pas masquer un patient (déménagement, fin de prise en charge, etc.) sans hard-delete. RGPD/HDS exigent conservation 5-10 ans des dossiers santé
+- Découverte audit : colonne `archive boolean` + `archive_at timestamptz` **déjà en place** sur table `patients` (migration Phase 1 `20260507000001_patients.sql:59`). Pas de nouvelle migration nécessaire — juste Server Actions + UI
+- Pattern appliqué : soft-delete healthcare (HSE/HIPAA/GDPR). archived_at timestamp. Réactivation possible. Hard-delete réservé Phase 06 HDS sur demande RGPD explicite
+- Solution :
+  - `actions/archive.ts` : `archivePatientAction` (régulateur+) + `unarchivePatientAction` (dirigeant only — DEC-029 sémantique 4 actions) avec pattern DEC-041 row count check + audit_logs explicite
+  - UI tabs Actifs/Archivés réutilisable pattern Chauffeurs Phase 04
+  - Boutons « Archiver » (icône `Archive`) / « Réactiver » (icône `ArchiveRestore`) avec confirmation native `window.confirm` (ConfirmDialog shadcn différé V2)
+  - Wording RGPD/HDS explicite dans confirmation
+  - `searchPatients(q, scope)` étendu pour filtrer `archive=true|false` selon tab
+  - Picker patient saisie course : `searchPatientsAction(q)` défaut scope='active' → patients archivés exclus automatiquement
+- Inscrit UI-PATTERNS.md section « Soft-delete healthcare »
+
+**Pattern méta** : recherches patterns industrie (Linear, Stripe, Notion, shadcn/ui, HSE/HIPAA/GDPR) faites AVANT fix code. Évite l'invention de patterns ad-hoc qui dévieraient du design system documenté DEC-034. 3 sections nouvelles inscrites UI-PATTERNS.md = patrimoine méthodologique hérité phases futures.
+
+**Coût hotfix élargi** : ~50 min réel (vs ~2h estimé prompt), vélocité maintenue.
+
 ---
 
-*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15*
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis élargi Courses truncation+Chauffeurs layout+Patients archivage ajouté 2026-05-15*
