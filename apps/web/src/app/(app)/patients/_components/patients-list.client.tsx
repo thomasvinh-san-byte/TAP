@@ -1,14 +1,21 @@
 'use client';
 
 import { useState, useDeferredValue } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { MessageSquare, Phone, X } from 'lucide-react';
-import { searchPatientsAction } from '../actions';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Archive, ArchiveRestore, MessageSquare, Phone, X } from 'lucide-react';
+import { toast } from 'sonner';
+import {
+  archivePatientAction,
+  searchPatientsAction,
+  unarchivePatientAction,
+} from '../actions';
 import { PatientSearch } from './patient-search.client';
 import { PatientDrawer } from './patient-drawer.client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
+import { cn } from '@/lib/utils';
 import {
   daysFromNow,
   formatShortDateFr,
@@ -74,22 +81,110 @@ function describeRides(p: PatientListItem): string {
  *   - placeholderData prev : pas de flash skeleton entre frappes
  *   - Hover ligne bg-muted/50 — clic → drawer patient existant (Phase 1)
  */
+type Scope = 'active' | 'archived';
+
 export function PatientsList() {
   const [q, setQ] = useState('');
   const dq = useDeferredValue(q);
+  const [scope, setScope] = useState<Scope>('active');
   const [openId, setOpenId] = useState<string | null>(null);
+  const [pendingArchive, setPendingArchive] = useState<string | null>(null);
+  const qc = useQueryClient();
 
   const { data, isPending, isFetching } = useQuery({
-    queryKey: ['patients', { q: dq }],
-    queryFn: () => searchPatientsAction(dq),
+    queryKey: ['patients', { q: dq, scope }],
+    queryFn: () => searchPatientsAction(dq, scope),
     enabled: dq.length === 0 || dq.length >= 2,
     placeholderData: (prev) => prev,
     staleTime: 5_000,
   });
 
+  const handleArchive = async (
+    patientId: string,
+    fullName: string,
+  ): Promise<void> => {
+    // Confirmation native (V1.5 — ConfirmDialog shadcn différé V2)
+    if (
+      !window.confirm(
+        `Archiver le patient « ${fullName} » ? Le dossier sera masqué des listes actives mais conservé conformément aux obligations RGPD/HDS. Cette action est réversible (dirigeant uniquement).`,
+      )
+    ) {
+      return;
+    }
+    setPendingArchive(patientId);
+    const res = await archivePatientAction(patientId);
+    setPendingArchive(null);
+    if (res.error) {
+      toast.error(res.error);
+      return;
+    }
+    toast.success(`« ${fullName} » archivé.`);
+    void qc.invalidateQueries({ queryKey: ['patients'] });
+  };
+
+  const handleUnarchive = async (
+    patientId: string,
+    fullName: string,
+  ): Promise<void> => {
+    if (
+      !window.confirm(
+        `Réactiver le patient « ${fullName} » ? Le dossier redeviendra visible dans les listes actives.`,
+      )
+    ) {
+      return;
+    }
+    setPendingArchive(patientId);
+    const res = await unarchivePatientAction(patientId);
+    setPendingArchive(null);
+    if (res.error) {
+      toast.error(res.error);
+      return;
+    }
+    toast.success(`« ${fullName} » réactivé.`);
+    void qc.invalidateQueries({ queryKey: ['patients'] });
+  };
+
   return (
     <div className="space-y-16">
-      <PatientSearch value={q} onChange={setQ} />
+      <div className="flex flex-wrap items-center gap-12">
+        <div
+          className="inline-flex rounded-md border border-border bg-muted/40 p-2"
+          role="tablist"
+          aria-label="Filtre archive patients"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={scope === 'active'}
+            onClick={() => setScope('active')}
+            className={cn(
+              'px-12 py-6 text-sm rounded-sm transition-colors',
+              scope === 'active'
+                ? 'bg-background shadow-sm text-foreground'
+                : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            Actifs
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={scope === 'archived'}
+            onClick={() => setScope('archived')}
+            className={cn(
+              'px-12 py-6 text-sm rounded-sm transition-colors',
+              scope === 'archived'
+                ? 'bg-background shadow-sm text-foreground'
+                : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            Archivés
+          </button>
+        </div>
+        <div className="flex-1 min-w-[240px]">
+          <PatientSearch value={q} onChange={setQ} />
+        </div>
+      </div>
 
       {q.length === 1 && (
         <p className="text-sm text-muted-foreground">
@@ -120,12 +215,13 @@ export function PatientsList() {
         >
           {data.map((p: PatientListItem) => {
             const fullName = `${p.nom} ${p.prenom}`.trim();
+            const isPending = pendingArchive === p.id;
             return (
-              <li key={p.id}>
+              <li key={p.id} className="flex items-stretch">
                 <button
                   type="button"
                   onClick={() => setOpenId(p.id)}
-                  className="flex w-full items-center gap-16 px-16 py-12 text-left transition-colors duration-150 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                  className="flex flex-1 items-center gap-16 px-16 py-12 text-left transition-colors duration-150 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
                 >
                   <InitialsAvatar name={fullName} size={32} />
                   <span className="flex-1 min-w-0 flex flex-col gap-4">
@@ -141,6 +237,41 @@ export function PatientsList() {
                     <span>{CANAL_LABEL[p.canal_contact_prefere]}</span>
                   </Badge>
                 </button>
+                <div className="flex items-center px-12">
+                  {scope === 'active' ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void handleArchive(p.id, fullName);
+                      }}
+                      disabled={isPending}
+                      aria-label={`Archiver ${fullName}`}
+                      className="gap-4"
+                    >
+                      <Archive className="h-12 w-12" aria-hidden />
+                      Archiver
+                    </Button>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void handleUnarchive(p.id, fullName);
+                      }}
+                      disabled={isPending}
+                      aria-label={`Réactiver ${fullName}`}
+                      className="gap-4"
+                    >
+                      <ArchiveRestore className="h-12 w-12" aria-hidden />
+                      Réactiver
+                    </Button>
+                  )}
+                </div>
               </li>
             );
           })}

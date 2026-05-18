@@ -332,3 +332,54 @@ Outils différés Phase 06 production-grade :
 ---
 
 *Last updated : 2026-05-14 — DEC-034 inscrite, codification post-audit visuel Phase 04. 2026-05-15 — 3 sections ajoutées Phase 04.7-bis-perf (Performance BDD indexes obligatoires + Performance SSR patterns + Mesure performance outils minimaux V1.5).*
+## Tables denses — gestion overflow (Phase 04.7-bis hotfix UX élargi)
+
+Pattern Linear/Stripe/Notion pour confiner le scroll horizontal des tables denses SaaS B2B :
+
+- **Truncation cellules longues** : `max-w-[180px] truncate` + `title={value}` attribute pour tooltip natif au hover
+- **Short-form pour adresses** : afficher uniquement le préfixe « avant la virgule » (« EHPAD Les Lataniers » au lieu de « EHPAD Les Lataniers, 97419 La Possession »). Helper `shortAddress(full)` réutilisable
+- **Container parent** : `min-w-0` permet le shrink, `overflow-x-auto` sur le wrapper table confine le scroll H résiduel à la table (pas à la page entière)
+- **Pas de stack mobile** : SaaS desktop-first régulatrice 8h/jour. La table reste table. Mobile view dédiée différée Phase 06+ si feedback terrain
+- **Pas de sticky first column V1** : truncation devrait suffire. Sticky col réservé scroll H résiduel inévitable (Phase 06+)
+
+Anti-patterns interdits :
+- ❌ Forcer `white-space: nowrap` sur cellule sans `truncate + title` (texte coupé sans tooltip = perte d'info)
+- ❌ Stack mobile pour table SaaS B2B (le user déroule horizontalement comme Excel)
+- ❌ Refonte responsive complexe (breakpoints multiples = maintenance lourde, hors pattern Linear/Stripe)
+
+## Soft-delete healthcare (Phase 04.7-bis hotfix UX élargi)
+
+Pattern HSE/HIPAA/GDPR pour archivage avec conservation obligatoire 5-10 ans (dossiers santé) :
+
+- **Schéma BDD** : `archive boolean default false` + `archive_at timestamptz NULL`. Pas de hard-delete V1.5
+- **Tabs Actifs / Archivés** dans la liste (déjà pattern Chauffeurs Phase 04). Default = Actifs
+- **Permissions asymétriques** :
+  - Archiver = régulateur + dirigeant (action courante)
+  - Réactiver = dirigeant uniquement (action sensible, contrôle hiérarchique)
+- **Confirmation modale wording RGPD/HDS explicite** :
+  - Archiver : « ... masqué des listes actives mais conservé conformément aux obligations RGPD/HDS. Cette action est réversible. »
+  - Réactiver : « ... redeviendra visible dans les listes actives. »
+- **Server Action** :
+  - `archive*Action` : `requireAdminOrRegulateur` + UPDATE + DEC-041 row count check + audit_logs `entity.archived`
+  - `unarchive*Action` : `requireDirigeant` + UPDATE + DEC-041 + audit_logs `entity.unarchived`
+- **Pickers / sélecteurs** : filtrer `archive=false` par défaut (le picker patient pour saisie course ne propose pas les archivés)
+- **Hard-delete** : Phase 06 HDS uniquement sur demande RGPD explicite (droit à l'effacement) — pas de bouton « Supprimer » côté UI
+
+## Layout unique config-driven (Phase 04.7-bis hotfix UX élargi)
+
+Pattern shadcn/ui 2024+ : un seul layout shell principal, navigation config-driven avec roles[] pour RBAC.
+
+- **Un seul header sticky** : titre « TAP Régulation » + nav tabs + UserMenu. Pas de header alternatif « TAP Administration » disjoint
+- **Nav config** : `BASE_TABS` + extension conditionnelle selon rôle :
+  ```ts
+  const BASE_TABS = [{ href: '/patients', label: 'Patients' }, ...];
+  const ADMIN_EXTRAS = [{ href: '/admin/vehicules', label: 'Véhicules' }, ...];
+  const tabs = isDirigeant ? [...BASE_TABS, ...ADMIN_EXTRAS] : BASE_TABS;
+  ```
+- **Route groups Next.js `(admin)` acceptables** UNIQUEMENT s'ils partagent le shell visuel avec `(app)`. Pas 2 shells disjoints
+- **Sous-routes `/admin/legal/*` = exception justifiée** (dirigeant only, conformité RGPD séparée). Pour le reste, viser cohérence
+- **Déplacement physique des routes différé Phase 06 HDS** : nécessite audit complet + refactor tests, hors scope hotfix-bis. Refactor du `(admin)/layout.tsx` pour réutiliser le shell de `(app)/layout.tsx` = mitigation pragmatique V1.5
+
+---
+
+*Last updated : 2026-05-14 — DEC-034 inscrite, codification post-audit visuel Phase 04. 2026-05-15 — 3 sections ajoutées Hotfix 04.7-bis élargi (tables denses overflow + soft-delete healthcare + layout unique config-driven).*

@@ -297,8 +297,11 @@ export async function decryptNirAction(
 // QUERY WRAPPERS (callable depuis Client Components via Server Actions)
 // --------------------------------------------------------------------------
 
-export async function searchPatientsAction(q: string) {
-  return searchPatients(q);
+export async function searchPatientsAction(
+  q: string,
+  scope: 'active' | 'archived' = 'active',
+) {
+  return searchPatients(q, scope);
 }
 
 export async function getPatientByIdAction(id: string) {
