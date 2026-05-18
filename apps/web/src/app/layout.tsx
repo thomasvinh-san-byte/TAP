@@ -1,11 +1,18 @@
 import './globals.css';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Toaster } from 'sonner';
 
 export const metadata: Metadata = {
   title: 'TAP Réunion — Régulation',
   description:
     'Régulation, optimisation et communication patient pour TAP et taxis conventionnés CGSS.',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#0944a0',
 };
 
 /**
@@ -37,6 +44,27 @@ export default function RootLayout({
     <html lang="fr" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeBootstrap }} />
+        {/* PWA meta tags — Phase 04.9 Wave 2, Option A cross-platform LOCKED */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="TAP Chauffeur" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon-180.png" />
+        <link rel="manifest" href="/manifest.json" />
+        <link
+          rel="apple-touch-startup-image"
+          href="/splash/apple-launch-750x1334.png"
+          media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          href="/splash/apple-launch-1170x2532.png"
+          media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+        />
+        <link
+          rel="apple-touch-startup-image"
+          href="/splash/apple-launch-1290x2796.png"
+          media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)"
+        />
       </head>
       <body>
         {children}
