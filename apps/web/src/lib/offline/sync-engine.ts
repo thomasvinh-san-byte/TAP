@@ -97,7 +97,36 @@ export async function flushQueue(): Promise<FlushResult> {
       if (res.ok) {
         await db.mutations_queue.delete(m.id!);
         flushed++;
+      } else if (res.status >= 400 && res.status < 500) {
+        // 4xx : erreur métier définitive → dead immédiat avec message
+        // précis depuis body.error. Retry serait vain (validation,
+        // ownership, status conflict 409, not found 404).
+        //
+        // Pattern industry 2026 : ne JAMAIS retry 4xx sauf 408/429.
+        // Notre Route Handler n'émet jamais 408/429 V1.5 (auth → 401,
+        // validation → 400, ownership → 403, not found → 404, status
+        // conflict → 409). Si futurs codes Phase 06, ajuster ici.
+        //
+        // Refs : Google Cloud Vertex AI retry strategy, oneuptime
+        // network retry strategies 2026, hookdeck DLQ failure
+        // categorization, boldsign API retry best practices.
+        const body = (await res.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        const errorMsg = body.error ?? `HTTP ${res.status}`;
+
+        await db.mutations_queue.update(m.id!, {
+          status: 'dead',
+          attempts: MAX_ATTEMPTS,
+          last_error: errorMsg,
+        });
+        dead++;
+        toast.error('Synchronisation impossible', {
+          description: errorMsg,
+        });
+        continue;
       } else {
+        // 5xx ou autre : erreur serveur → retry exponentiel
         throw new Error(`HTTP ${res.status}`);
       }
     } catch (err) {

@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { toast } from 'sonner';
 import {
   Banknote,
@@ -20,6 +21,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { enqueue } from '@/lib/offline/sync-engine';
+import { getDb } from '@/lib/offline/dexie-instance';
 
 type PaymentMethod = 'cash' | 'cb' | 'cheque' | 'cgss_differe';
 
@@ -63,6 +65,22 @@ export function EndRideModal({
   const [encaisseNow, setEncaisseNow] = React.useState(true);
   const [pending, setPending] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement | null>(null);
+
+  // Track mutations en queue Dexie pour ce ride (Phase 04.9-bis #3).
+  // Cf ride-actions.client.tsx, même pattern industry 2026.
+  const pendingForThisRide = useLiveQuery(
+    () => {
+      if (typeof window === 'undefined') return 0;
+      return getDb()
+        .mutations_queue.where('resource_id')
+        .equals(rideId)
+        .filter((m) => m.status !== 'dead')
+        .count();
+    },
+    [rideId],
+    0,
+  );
+  const hasPendingSync = (pendingForThisRide ?? 0) > 0;
 
   React.useEffect(() => {
     if (open) {
@@ -253,7 +271,7 @@ export function EndRideModal({
         <Button
           type="button"
           onClick={submit}
-          disabled={pending || !amount}
+          disabled={pending || !amount || hasPendingSync}
           className="h-14 w-full text-base font-semibold"
         >
           {pending ? (
@@ -261,6 +279,8 @@ export function EndRideModal({
               <Loader2 className="mr-8 h-16 w-16 animate-spin" aria-hidden />
               Clôture…
             </>
+          ) : hasPendingSync ? (
+            'Clôture en attente de sync…'
           ) : (
             'Clôturer la course'
           )}

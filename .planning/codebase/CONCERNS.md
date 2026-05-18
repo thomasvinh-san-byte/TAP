@@ -966,6 +966,123 @@ Plan A est plus simple côté API publique. Plan B préserve les use cases ride 
 - DEC-044 : threading lat/lng dans rides
 - Migration Géoplateforme IGN (CONCERNS section précédente, Phase 06)
 
+### Items revue technique post-merge Phase 04.9 (Phase 06)
+
+Découverts lors de la revue approfondie du code livré après PR #116. Patterns industry 2026 confirmés pour chaque item. Patchs #1 et #3 livrés en hotfix-04.9-bis (PR #117) ; #2, #4, #5, #6, #7, #8 inscrits ici pour Phase 06.
+
+#### #2 Sync engine — Promise singleton mutex (Critique)
+
+**Constat** : `flushQueue()` peut être appelée concurremment quand le toggle offline/online est rapide (online event listener + premier flush au mount dans `network-listener.client.ts`). Mitigation serveur via `idempotency_keys` évite la double-application BDD mais round-trips réseau gaspillés + race sur `status='in_flight'`.
+
+**Pattern industry 2026 confirmé** :
+- atomicobject : Promise singleton mutex pattern (spin.atomicobject.com)
+- es-toolkit `Mutex.acquire()` (es-toolkit.dev 2026)
+- async-mutex npm DirtyHairy/async-mutex
+
+**Patch Phase 06 recommandé** (zero-dep, simple Promise singleton) :
+```ts
+let flushPromise: Promise<FlushResult> | null = null;
+
+export async function flushQueue(): Promise<FlushResult> {
+  if (flushPromise) return flushPromise;
+  flushPromise = (async () => {
+    try {
+      return await doFlush();
+    } finally {
+      flushPromise = null;
+    }
+  })();
+  return flushPromise;
+}
+```
+
+Refs : `apps/web/src/lib/offline/sync-engine.ts`, `apps/web/src/lib/offline/network-listener.client.ts`.
+
+#### #4 Idempotency atomic SQL (Important)
+
+**Constat** : `withIdempotency()` dans `apps/web/src/lib/api/idempotency.ts` fait SELECT → fn() → INSERT non atomique. 2 requêtes simultanées avec la même `key` peuvent passer le SELECT en MISS et appliquer la mutation 2×. Mitigation actuelle par UI `disabled={pending}` + check `useLiveQuery` (hotfix-bis #3 PR #117) insuffisante en cas de double-fetch concurrent réseau (rare mais possible).
+
+**Pattern industry 2026 confirmé** :
+- PostgreSQL 18+ : `INSERT ... ON CONFLICT DO NOTHING RETURNING *` atomic (postgresql.org)
+- PostgreSQL 19 (à venir) : `ON CONFLICT DO SELECT` primitif idempotent dédié (neon.com 2026)
+- dzone Phantom Write Problem 2026 : pattern « act-first-then-check » au lieu de « check-then-act »
+- glukhov.org : `SELECT FOR UPDATE SKIP LOCKED` non-blocking pour retry après conflit
+
+**Patch Phase 06 recommandé** :
+```ts
+const { data: inserted } = await supabase
+  .from('idempotency_keys')
+  .insert({ key, user_id, mutation_type, resource_id, response_json: { status: 0, body: {} } })
+  .select()
+  .single();
+
+if (inserted) {
+  const result = await fn();
+  await supabase
+    .from('idempotency_keys')
+    .update({ response_json: result })
+    .eq('key', key);
+  return result;
+} else {
+  const { data: cached } = await supabase
+    .from('idempotency_keys')
+    .select('response_json')
+    .eq('key', key)
+    .single();
+  return cached.response_json;
+}
+```
+
+Refs : `apps/web/src/lib/api/idempotency.ts`, `supabase/migrations/20260518000002_idempotency_keys.sql`.
+
+#### #5 WarningBanner dismiss flag reset (Important)
+
+**Constat** : `warning-banner-inactivity.client.tsx` pose `DISMISSED_KEY=true` lors du click « Compris » mais ce flag n'est jamais reset. Si le chauffeur revient 30 jours plus tard, le warning ne s'affiche pas (logique inversée : devrait être éphémère).
+
+**Pattern UX** : dismiss flags doivent être reset à chaque session active (cohérent Material Design 3 transient snackbar dismiss).
+
+**Patch Phase 06 recommandé** : dans `apps/web/src/lib/offline/sw-register.client.ts`, après update `lastUsedAt`, ajouter :
+```ts
+db.app_meta.delete('warningInactivityDismissed').catch(() => {});
+```
+
+Refs : `apps/web/src/app/(driver)/_components/warning-banner-inactivity.client.tsx`, `apps/web/src/lib/offline/sw-register.client.ts`.
+
+#### #6 `in_flight` orphelins cleanup au mount (Important)
+
+**Constat** : `sync-engine.ts` filtre `anyOf('pending', 'failed')` qui skip les `in_flight`. Si crash browser pendant fetch (rare mais réel), mutation bloquée définitivement.
+
+**Pattern industry 2026 confirmé** :
+- tasking.space PWA Edge Sync 2026 : « Write a deterministic queue with idempotent operations + simple recovery UI »
+- wild.codes PWA architecture : « When the server rejects a write, the engine rolls back or merges using deterministic rules »
+
+**Patch Phase 06 recommandé** : au début de `flushQueue()` :
+```ts
+await db.mutations_queue
+  .where('status').equals('in_flight')
+  .modify({ status: 'pending' });
+```
+
+Refs : `apps/web/src/lib/offline/sync-engine.ts`.
+
+#### #7 `useIsStandalone` consumer (Mineur)
+
+**Constat** : `apps/web/src/app/(driver)/_lib/use-is-standalone.ts` livré Wave 5 mais aucun composant ne l'appelle. Dette d'usage.
+
+**Patch Phase 05/06** : utiliser dans `(driver)/layout.tsx` pour masquer/afficher certains éléments selon contexte PWA installée vs browser tab (ex : bouton « Installer » seulement si `!standalone`).
+
+Refs : `apps/web/src/app/(driver)/_lib/use-is-standalone.ts`.
+
+#### #8 Manifest `start_url` role-aware (Mineur)
+
+**Constat** : `apps/web/public/manifest.json` `start_url: /conduite`. Si non-chauffeur installe la PWA (cas marginal), chaque lancement → redirect `/patients`. Acceptable V1.5 mais peu propre.
+
+**Patch Phase 06 (optionnel)** : `start_url: /` ou utiliser `client_mode` manifest field (futur standard) pour role-based routing. Acceptable de laisser tel quel.
+
+Refs : `apps/web/public/manifest.json`.
+
+---
+
 ### Items différés Phase 04.9 → 05 / 06 (consolidation clôture)
 
 Phase 04.9 PWA chauffeur enveloppe livrée 2026-05-18 (8 PR #109-#116, ~1h40 wall-clock, -82% vélocité). Items hors périmètre reportés selon ROADMAP + découvertes execute :
@@ -1010,4 +1127,4 @@ Phase 04.9 PWA chauffeur enveloppe livrée 2026-05-18 (8 PR #109-#116, ~1h40 wal
 
 ---
 
-*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis élargi Courses truncation+Chauffeurs layout+Patients archivage ajouté 2026-05-15 — Hotfix Vercel + Supabase URLs custom domain ajouté 2026-05-18 — Régression RLS récursive PR #101 ajoutée 2026-05-18 — Leçons marathon Vercel custom domain + items annulés + analyse perf ajoutés 2026-05-18 — Dette migration Géoplateforme IGN ajoutée 2026-05-18 — Dette refactor forms composants contrôlés ajoutée 2026-05-18 — Dette duplication composants adresse ajoutée 2026-05-18 (PR #108 alignement) — Dette optimistic UI miroir Dexie Phase 06 ajoutée 2026-05-18 (Wave 6 Phase 04.9) — Items différés Phase 04.9 → 05/06 consolidés 2026-05-18 (Wave 7 clôture)*
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis élargi Courses truncation+Chauffeurs layout+Patients archivage ajouté 2026-05-15 — Hotfix Vercel + Supabase URLs custom domain ajouté 2026-05-18 — Régression RLS récursive PR #101 ajoutée 2026-05-18 — Leçons marathon Vercel custom domain + items annulés + analyse perf ajoutés 2026-05-18 — Dette migration Géoplateforme IGN ajoutée 2026-05-18 — Dette refactor forms composants contrôlés ajoutée 2026-05-18 — Dette duplication composants adresse ajoutée 2026-05-18 (PR #108 alignement) — Dette optimistic UI miroir Dexie Phase 06 ajoutée 2026-05-18 (Wave 6 Phase 04.9) — Items différés Phase 04.9 → 05/06 consolidés 2026-05-18 (Wave 7 clôture) — 6 items revue technique post-merge Phase 04.9 ajoutés 2026-05-18 (hotfix-bis #1+#3 livré PR #117, #2/#4-#8 inscrits Phase 06)*
