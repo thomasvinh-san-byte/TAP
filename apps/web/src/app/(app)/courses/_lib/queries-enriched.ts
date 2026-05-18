@@ -40,18 +40,32 @@ export async function listRidesEnriched(
     status?: RideStatus;
     transport_mode?: RideTransportMode;
     urgency?: RideUrgency;
+    /** Hotfix 04.7-bis : filtre date scheduled_at (YYYY-MM-DD, jour entier). */
+    date?: string;
+    /** Hotfix 04.7-bis : pagination simple — défaut 50, max 200. */
+    limit?: number;
+    /** Hotfix 04.7-bis : offset pour bouton « Voir plus ». */
+    offset?: number;
   } = {},
 ): Promise<RideRowEnriched[]> {
   const supabase = createClient();
+  const limit = Math.min(Math.max(params.limit ?? 50, 1), 200);
+  const offset = Math.max(params.offset ?? 0, 0);
   let q = supabase
     .from('rides')
     .select(RIDE_COLUMNS)
     .eq('archive', false)
     .order('scheduled_at', { ascending: false })
-    .limit(100);
+    .range(offset, offset + limit - 1);
   if (params.status) q = q.eq('status', params.status);
   if (params.transport_mode) q = q.eq('transport_mode', params.transport_mode);
   if (params.urgency) q = q.eq('urgency', params.urgency);
+  if (params.date && /^\d{4}-\d{2}-\d{2}$/.test(params.date)) {
+    // Filtre jour entier : scheduled_at ∈ [date 00:00:00 UTC, date 23:59:59 UTC]
+    const dateStart = `${params.date}T00:00:00.000Z`;
+    const dateEnd = `${params.date}T23:59:59.999Z`;
+    q = q.gte('scheduled_at', dateStart).lte('scheduled_at', dateEnd);
+  }
   const { data, error } = await q;
   if (error) throw new Error('Lecture courses impossible.');
   const rides = (data ?? []) as unknown as RideRow[];

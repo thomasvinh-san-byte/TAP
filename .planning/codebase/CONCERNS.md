@@ -605,6 +605,32 @@ Les colonnes absentes de la liste INSERT (ex : `ended_at` pour le bloc J0 qui se
 - `drivers` : vérifier que `actif`, `archive`, `archive_at` sont resetés
 - `pois_metier` (PR #84) : nouveau seed à auditer si UAT mutait `actif`
 
+### Hotfix Phase 04.7-bis — Modal + filtre date + pagination Courses (2026-05-15)
+
+Hotfix UX livré 2026-05-15 post UAT informel Phase 04.7 (méthodologie pipeline GSD étendu inscrite VISION.md PR #97 « UAT informel obligatoire »). 3 frictions identifiées par dirigeant sur preview, confirmées par code analysis :
+
+**Fix 1 — Modal « Nouvelle course » largeur cassée avec POI long**
+
+- Cause : `DialogContent` `max-w-[600px]` sans `w-[calc(100vw-32px)]` ni `overflow-x-hidden` → débordement sur viewport tight
+- Fix : `w-[calc(100vw-32px)] max-w-[640px] max-h-[90vh] overflow-y-auto overflow-x-hidden`
+- `AddressOrPOIPicker` pill mode : ajout `flex-1` sur container `min-w-0` (renforce contrainte truncate) + `title={value}` (tooltip valeur complète au hover)
+
+**Fix 2 — Page /courses sans filtre date**
+
+- Cause : `rides-list.client.tsx` n'avait que statusFilter + modeFilter, pas de dateFilter
+- Fix : Input `type="date"` avec valeur défaut aujourd'hui (`todayIso()`) + bouton « Effacer » conditionnel
+- Backend : `listRidesEnriched` étendu avec param `date?: 'YYYY-MM-DD'` → filtre `scheduled_at >= dateStart && <= dateEnd`
+
+**Fix 3 — Page /courses sans pagination**
+
+- Cause : `listRidesEnriched` retournait `.limit(100)` sans offset ni feedback UI
+- Fix : pagination simple V1.5 — `PAGE_SIZE=50`, query `.range(offset, offset + limit - 1)`, state `pageOffset` cumulatif, bouton « Voir plus (50 de plus) » si `rides.length === pageOffset + PAGE_SIZE`. Compteur « X courses affichées » en haut de table.
+- Pagination cursor/offset complète (avec total count, pages navigables, deep-link) **reportée Phase 06**
+
+**Pattern méta confirmé** : UAT informel post-execute révèle les frictions invisibles à la spec. Premier cas concret de validation de la méthodologie VISION.md inscrite PR #97. Coût total hotfix : ~25 min (vs estimation 15 min — légère sur-estimation mais reste sous time-cap 1h).
+
+**Test E2E** : `courses-pagination-filter-modal.spec.ts` — 4 scénarios (F1 width, F2 date présent, F2bis Effacer, F3 compteur).
+
 ---
 
-*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15*
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15*

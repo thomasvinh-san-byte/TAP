@@ -191,7 +191,7 @@ export function RideExpressModal(props: Props): JSX.Element {
   return (
     <Dialog open onOpenChange={handleOpenChange}>
       <DialogContent
-        className="max-w-[600px]"
+        className="w-[calc(100vw-32px)] max-w-[640px] max-h-[90vh] overflow-y-auto overflow-x-hidden"
         aria-label="Saisie express d'une course"
       >
         <DialogHeader>
