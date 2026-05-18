@@ -889,6 +889,29 @@ TAP utilise encore l'ancienne URL dans 3 fichiers :
 - Wrapper `@tap/address-api` avec retry + fallback + transformation shape unique
 - Test BAN/Géoplateforme cohérence avec captures Wave 2 géocoding existant
 
+### Dette refactor forms — Composants contrôlés (PR #107 V2)
+
+Hotfix BAN propagation code postal + ville (PR #107) utilise un workaround React `key={postcode + '|' + ville}` pour forcer le remontage de `CityPostalCodeField` quand le state parent change. Le composant utilise actuellement `defaultValue` (uncontrolled) pour des raisons historiques (state interne useState avec normalisation préfixe 974).
+
+**Pattern actuel (V2 hotfix)** :
+- `CoordinatesSection` tient le state `postcode` + `ville`
+- `PatientAddressField` propage la sélection BAN au parent via `onAddressPick`
+- `CityPostalCodeField` reçoit `defaultCp` / `defaultVille` et remonte avec `key={...}` quand le parent change
+
+**Limitation** : si l'utilisateur tape manuellement code postal PUIS sélectionne une nouvelle adresse BAN, le remontage perd la saisie manuelle (UX OK pour V1.5 mais pas idéal long terme).
+
+**Cible Phase 06 refactor forms** :
+- `CityPostalCodeField` devient composant contrôlé pur : `props: { cp, ville, onCpChange, onVilleChange }`
+- State unique dans `CoordinatesSection` (lift state complet)
+- Pas de `key` workaround
+- Tests E2E forms patient (saisie BAN puis override manuel)
+
+**Refs** :
+- PR #106 patient form BAN branché
+- PR #107 patient form BAN propagation code postal + ville (cette dette)
+- `AddressPickerField` `onSelect` callback (extension V2 PR #107)
+- React docs : controlled vs uncontrolled inputs
+
 ---
 
-*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis élargi Courses truncation+Chauffeurs layout+Patients archivage ajouté 2026-05-15 — Hotfix Vercel + Supabase URLs custom domain ajouté 2026-05-18 — Régression RLS récursive PR #101 ajoutée 2026-05-18 — Leçons marathon Vercel custom domain + items annulés + analyse perf ajoutés 2026-05-18 — Dette migration Géoplateforme IGN ajoutée 2026-05-18*
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis élargi Courses truncation+Chauffeurs layout+Patients archivage ajouté 2026-05-15 — Hotfix Vercel + Supabase URLs custom domain ajouté 2026-05-18 — Régression RLS récursive PR #101 ajoutée 2026-05-18 — Leçons marathon Vercel custom domain + items annulés + analyse perf ajoutés 2026-05-18 — Dette migration Géoplateforme IGN ajoutée 2026-05-18 — Dette refactor forms composants contrôlés ajoutée 2026-05-18*

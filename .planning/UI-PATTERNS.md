@@ -486,6 +486,28 @@ Anti-patterns interdits :
 - ❌ Stocker l'adresse en string libre sans normalisation BAN
 - ❌ Dupliquer la logique BAN dans chaque formulaire (utiliser `AddressPickerField` partagé)
 
+## Autocomplete adresse — Propagation détails (Hotfix 2026-05-18 V2)
+
+Pattern étendu pour l'autocomplete BAN :
+
+- **Remonter la suggestion complète au parent** via callback optionnel `onSelect: (BanSuggestion) => void`
+- **Pré-remplir les champs liés** : code postal, ville, lat/lng quand l'utilisateur sélectionne (réduction erreurs saisie)
+- **Override manuel toujours possible** : l'auto-remplissage est un point de départ, pas un blocage
+- **Fallback saisie libre** : si l'utilisateur tape une adresse hors BAN (lieu-dit, exploitation agricole), pas de pré-remplissage mais la création reste possible
+
+Architecture pour partager le state entre composants liés :
+
+- **Lift state up** au parent de la section qui contient les champs liés (ex : `CoordinatesSection` pour adresse + CP + ville)
+- **Callback `onSelect`** sur le composant adresse, qui set le state parent
+- **Composants enfants contrôlés** ou **key-remount** (`key={cp + '|' + ville}`) pour forcer le re-render après set parent (workaround V1.5 si refactor composant contrôlé reporté)
+
+Anti-patterns interdits :
+
+- ❌ Autocomplete adresse qui ne remonte que le label (perd CP + ville → utilisateur ressaisit)
+- ❌ Champs liés indépendants (utilisateur doit ressaisir)
+- ❌ Bloquer la saisie si BAN ne trouve pas (perte de productivité)
+- ❌ Breaking change sur composant partagé (préférer callback optionnel pour préserver les consommateurs V1)
+
 ---
 
-*Last updated : 2026-05-14 — DEC-034 inscrite, codification post-audit visuel Phase 04. 2026-05-15 — 3 sections ajoutées Hotfix 04.7-bis élargi (tables denses overflow + soft-delete healthcare + layout unique config-driven). 2026-05-18 — section « Déploiement custom domain Vercel » ajoutée Hotfix Vercel + Supabase URLs. 2026-05-18 — section « Migrations RLS récursion » ajoutée Hotfix régression PR #101. 2026-05-18 — section « Custom domain Vercel + Supabase Auth » ajoutée Hotfix racine PR #104 + leçons marathon. 2026-05-18 — sections « Terminologie médicale française » + « Autocomplete adresse » ajoutées Hotfix patient form PR #105.*
+*Last updated : 2026-05-14 — DEC-034 inscrite, codification post-audit visuel Phase 04. 2026-05-15 — 3 sections ajoutées Hotfix 04.7-bis élargi (tables denses overflow + soft-delete healthcare + layout unique config-driven). 2026-05-18 — section « Déploiement custom domain Vercel » ajoutée Hotfix Vercel + Supabase URLs. 2026-05-18 — section « Migrations RLS récursion » ajoutée Hotfix régression PR #101. 2026-05-18 — section « Custom domain Vercel + Supabase Auth » ajoutée Hotfix racine PR #104 + leçons marathon. 2026-05-18 — sections « Terminologie médicale française » + « Autocomplete adresse » ajoutées Hotfix patient form PR #105. 2026-05-18 — section « Autocomplete adresse — Propagation détails V2 » ajoutée Hotfix patient form V2 PR #107.*

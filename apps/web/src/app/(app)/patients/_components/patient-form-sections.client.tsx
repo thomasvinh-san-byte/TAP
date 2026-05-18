@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { PatientFormDefaults } from './patient-form-types';
@@ -68,13 +69,22 @@ export function IdentitySection({ dv }: { dv: PatientFormDefaults }) {
 }
 
 export function CoordinatesSection({ dv }: { dv: PatientFormDefaults }) {
+  const [postcode, setPostcode] = useState(dv.code_postal ?? '');
+  const [ville, setVille] = useState(dv.ville ?? '');
+
   return (
     <section className="space-y-12">
       <h2 className="text-sm font-semibold uppercase text-muted-foreground">
         Coordonnées
       </h2>
       <TelField defaultValue={dv.telephone} />
-      <PatientAddressField defaultValue={dv.adresse_ligne1} />
+      <PatientAddressField
+        defaultValue={dv.adresse_ligne1}
+        onAddressPick={(s) => {
+          if (s.postcode) setPostcode(s.postcode);
+          if (s.city) setVille(s.city);
+        }}
+      />
       <div className="space-y-8">
         <Label htmlFor="adresse_ligne2">Complément</Label>
         <Input
@@ -85,8 +95,9 @@ export function CoordinatesSection({ dv }: { dv: PatientFormDefaults }) {
         />
       </div>
       <CityPostalCodeField
-        defaultCp={dv.code_postal}
-        defaultVille={dv.ville}
+        key={`${postcode}|${ville}`}
+        defaultCp={postcode}
+        defaultVille={ville}
       />
     </section>
   );

@@ -60,6 +60,8 @@ interface BanSuggestion {
   score: number;
 }
 
+export type { BanSuggestion };
+
 const BAN_REUNION_LAT = -21.115;
 const BAN_REUNION_LON = 55.536;
 const MIN_QUERY_LENGTH = 3;
@@ -126,6 +128,14 @@ interface Props {
   ariaLabel: string;
   value: string;
   onChange: (label: string) => void;
+  /**
+   * Callback optionnel appelé en plus de `onChange` quand l'utilisateur
+   * sélectionne une suggestion BAN. Remonte la suggestion complète
+   * (postcode + city + lat + lng) pour permettre au parent de pré-remplir
+   * d'autres champs liés (code postal, ville). Pas appelé en mode saisie
+   * libre (D-ADDR-04 fallback).
+   */
+  onSelect?: (suggestion: BanSuggestion) => void;
   onBlur?: () => void;
   tabIndex?: number;
   error?: string | null;
@@ -137,6 +147,7 @@ export function AddressPickerField({
   ariaLabel,
   value,
   onChange,
+  onSelect,
   onBlur,
   tabIndex,
   error,
@@ -252,6 +263,7 @@ export function AddressPickerField({
                 onClick={() => {
                   setPicked(true);
                   onChange(s.label);
+                  onSelect?.(s);
                   onBlur?.();
                 }}
                 className="flex w-full items-center gap-12 px-12 py-12 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
