@@ -65,6 +65,9 @@ importers:
       '@tap/pricing':
         specifier: workspace:*
         version: link:../../packages/pricing
+      '@tap/recurrence':
+        specifier: workspace:*
+        version: link:../../packages/recurrence
       '@tap/shared':
         specifier: workspace:*
         version: link:../../packages/shared

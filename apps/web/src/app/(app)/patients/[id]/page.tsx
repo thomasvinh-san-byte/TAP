@@ -3,8 +3,11 @@ import { notFound } from 'next/navigation';
 import { Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { maskNir } from '@/lib/utils';
+import { createClient } from '@/lib/supabase/server';
+import type { RideRecurrence } from '@/types/recurrence-temp';
 import { getPatientById } from '../queries';
 import { PatientNirDisplay } from '../_components/patient-nir-display.client';
+import { RecurrencesSection } from './_components/recurrences-section.client';
 
 interface PageProps {
   params: { id: string };
@@ -38,6 +41,33 @@ export default async function PatientPage({ params }: PageProps) {
     consentement_sms: boolean;
     consentement_sms_at: string | null;
   };
+
+  // Récurrences actives (Phase 05 Wave 3) + counts rides futures non démarrées
+  // pour la cascade DEC-048 dans le modal édition.
+  const supabase = createClient();
+  const recurrencesRes = await supabase
+    .from('ride_recurrences' as never)
+    .select('*')
+    .eq('patient_id', p.id)
+    .is('archived_at', null)
+    .order('created_at', { ascending: false });
+  const recurrences = (recurrencesRes.data as RideRecurrence[] | null) ?? [];
+
+  const futureCounts: Record<string, number> = {};
+  if (recurrences.length > 0) {
+    const nowIso = new Date().toISOString();
+    await Promise.all(
+      recurrences.map(async (rec) => {
+        const countRes = await supabase
+          .from('rides')
+          .select('id', { count: 'exact', head: true })
+          .eq('ride_recurrence_id' as never, rec.id)
+          .in('status', ['validee', 'assignee'])
+          .gt('scheduled_at', nowIso);
+        futureCounts[rec.id] = countRes.count ?? 0;
+      }),
+    );
+  }
 
   return (
     <div className="space-y-24">
@@ -75,6 +105,12 @@ export default async function PatientPage({ params }: PageProps) {
           {p.code_postal} {p.ville}
         </p>
       </section>
+
+      <RecurrencesSection
+        patientId={p.id}
+        recurrences={recurrences}
+        futureCounts={futureCounts}
+      />
 
       <section className="space-y-8">
         <h2 className="text-sm font-semibold uppercase text-muted-foreground">
