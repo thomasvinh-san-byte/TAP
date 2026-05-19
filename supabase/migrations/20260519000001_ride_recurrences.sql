@@ -5,7 +5,7 @@ create table public.ride_recurrences (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations(id) on delete cascade,
   patient_id uuid not null references public.patients(id) on delete cascade,
-  prescription_id uuid null references public.prescriptions(id),
+  prescription_id uuid null, -- FK reportée Phase 06 (table prescriptions non créée V1.5, cf CONCERNS)
   rrule_str text not null,
   start_date date not null,
   end_date date null,
