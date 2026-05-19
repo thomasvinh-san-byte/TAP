@@ -50,6 +50,16 @@ export function useServiceWorkerRegister(): void {
         .catch((error) => {
           console.warn('[PWA] Failed to update lastUsedAt:', error);
         });
+
+      // Reset dismiss flag à chaque session active — Phase 04.9-ter #5.
+      // Pattern UX 2026 : dismiss éphémère par session (Material
+      // Design 3 transient snackbar) vs permanent (cookie consent).
+      // Si chauffeur revient après >7j, le warning doit ré-apparaître
+      // (mitigation iOS purge IndexedDB ~2 semaines, DEC-022 LOCKED).
+      // Refs : CONCERNS #5 Phase 04.9.
+      db.app_meta.delete('warningInactivityDismissed').catch((error) => {
+        console.warn('[PWA] Failed to reset dismiss flag:', error);
+      });
     } catch (error) {
       console.warn('[PWA] Dexie instance unavailable:', error);
     }

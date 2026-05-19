@@ -65,6 +65,22 @@ export interface FlushResult {
 
 export async function flushQueue(): Promise<FlushResult> {
   const db = getDb();
+
+  // Cleanup in_flight orphelins — Phase 04.9-ter #6.
+  // Si crash browser pendant fetch précédent, des mutations restent
+  // status='in_flight' et seraient skipped par le filter anyOf(
+  // 'pending', 'failed') ci-dessous. Reset → 'pending' au début de
+  // chaque flush pour permettre retry. attempts préservé donc le
+  // backoff exponentiel reprend où il s'est arrêté. Si MAX_ATTEMPTS,
+  // skipped par `if (m.attempts >= MAX_ATTEMPTS) continue` plus bas.
+  // Pattern industry 2026 : tasking.space PWA Edge Sync "deterministic
+  // queue + recovery logic at startup", wild.codes "engine detect/reset
+  // stale state at boot". Refs : CONCERNS #6 Phase 04.9.
+  await db.mutations_queue
+    .where('status')
+    .equals('in_flight')
+    .modify({ status: 'pending' });
+
   const pending = await db.mutations_queue
     .where('status')
     .anyOf('pending', 'failed')
