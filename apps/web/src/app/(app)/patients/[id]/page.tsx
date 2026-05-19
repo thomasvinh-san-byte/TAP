@@ -4,7 +4,7 @@ import { Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { maskNir } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/server';
-import type { RideRecurrence } from '@/types/recurrence-temp';
+import type { RideRecurrence } from '@/types/recurrence';
 import { getPatientById } from '../queries';
 import { PatientNirDisplay } from '../_components/patient-nir-display.client';
 import { RecurrencesSection } from './_components/recurrences-section.client';

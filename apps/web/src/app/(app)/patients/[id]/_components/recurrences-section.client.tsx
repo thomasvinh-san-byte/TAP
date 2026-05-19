@@ -4,7 +4,7 @@ import { useState, useTransition } from 'react';
 import { Calendar, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cancelRecurrenceAction } from '../../actions/recurrences';
-import type { RideRecurrence } from '@/types/recurrence-temp';
+import type { RideRecurrence } from '@/types/recurrence';
 import { RecurrenceCreateModal } from './recurrence-create-modal.client';
 import { RecurrenceEditModal } from './recurrence-edit-modal.client';
 

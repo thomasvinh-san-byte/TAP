@@ -14,7 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { updateRecurrenceAction } from '../../actions/recurrences';
-import type { RideRecurrence } from '@/types/recurrence-temp';
+import type { RideRecurrence } from '@/types/recurrence';
 import { useHolidays974 } from '../_lib/use-holidays-974';
 import { RecurrencePreview } from './recurrence-preview.client';
 
