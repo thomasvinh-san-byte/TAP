@@ -1,5 +1,12 @@
+import 'server-only';
+
 /**
  * Wrapper Twilio SDK pour envoi SMS sortant.
+ *
+ * `import 'server-only'` (Next.js 14 natif) — défense en profondeur :
+ * tout composant client qui tenterait d'importer ce module obtiendrait
+ * une erreur de compilation explicite. Le hotfix `@tap/sms/templates`
+ * sub-path expose la partie browser-safe (template-renderer pur JS).
  *
  * Env vars requises (Server Action / Route Handler côté serveur) :
  *   - TWILIO_ACCOUNT_SID

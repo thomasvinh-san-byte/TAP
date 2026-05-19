@@ -1236,4 +1236,33 @@ Consolidation post-Phase 05 LIVRÉE (PR #121-#133, clôture 2026-05-19).
 
 ---
 
-*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis élargi Courses truncation+Chauffeurs layout+Patients archivage ajouté 2026-05-15 — Hotfix Vercel + Supabase URLs custom domain ajouté 2026-05-18 — Régression RLS récursive PR #101 ajoutée 2026-05-18 — Leçons marathon Vercel custom domain + items annulés + analyse perf ajoutés 2026-05-18 — Dette migration Géoplateforme IGN ajoutée 2026-05-18 — Dette refactor forms composants contrôlés ajoutée 2026-05-18 — Dette duplication composants adresse ajoutée 2026-05-18 (PR #108 alignement) — Dette optimistic UI miroir Dexie Phase 06 ajoutée 2026-05-18 (Wave 6 Phase 04.9) — Items différés Phase 04.9 → 05/06 consolidés 2026-05-18 (Wave 7 clôture) — 6 items revue technique post-merge Phase 04.9 ajoutés 2026-05-18 (hotfix-bis #1+#3 livré PR #117, #2/#4-#8 inscrits Phase 06) — Table prescriptions à créer Phase 06 (RECU-04) ajoutée 2026-05-19 (mini-PR fix/05-w1-prescriptions-fk débloque CD push Phase 05 Wave 1) — Items différés Phase 05 → Phase 06 consolidés 2026-05-19 (Wave 7 clôture Phase 05)*
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis élargi Courses truncation+Chauffeurs layout+Patients archivage ajouté 2026-05-15 — Hotfix Vercel + Supabase URLs custom domain ajouté 2026-05-18 — Régression RLS récursive PR #101 ajoutée 2026-05-18 — Leçons marathon Vercel custom domain + items annulés + analyse perf ajoutés 2026-05-18 — Dette migration Géoplateforme IGN ajoutée 2026-05-18 — Dette refactor forms composants contrôlés ajoutée 2026-05-18 — Dette duplication composants adresse ajoutée 2026-05-18 (PR #108 alignement) — Dette optimistic UI miroir Dexie Phase 06 ajoutée 2026-05-18 (Wave 6 Phase 04.9) — Items différés Phase 04.9 → 05/06 consolidés 2026-05-18 (Wave 7 clôture) — 6 items revue technique post-merge Phase 04.9 ajoutés 2026-05-18 (hotfix-bis #1+#3 livré PR #117, #2/#4-#8 inscrits Phase 06) — Table prescriptions à créer Phase 06 (RECU-04) ajoutée 2026-05-19 (mini-PR fix/05-w1-prescriptions-fk débloque CD push Phase 05 Wave 1) — Items différés Phase 05 → Phase 06 consolidés 2026-05-19 (Wave 7 clôture Phase 05) — Pattern packages workspace split client/server exports ajouté 2026-05-19 (hotfix `@tap/sms` split exports post-#133)*
+
+---
+
+### Pattern packages workspace — split client/server exports
+
+Post-hotfix build Vercel 2026-05-19 (bug introduit Wave 4 PR #130, révélé post-Wave 7 PR #133 par invalidation cache build incremental).
+
+**Règle** : tout package workspace exposant du code Node-only (`fs`/`net`/`tls`, SDK serveur tiers, etc.) DOIT séparer ses exports en sub-paths via le champ `exports` de `package.json` :
+
+```json
+"exports": {
+  ".":          "./src/index.ts",          // server-only, re-export tout
+  "./templates": "./src/template-renderer.ts"  // browser-safe pur JS
+}
+```
+
+et ajouter `import 'server-only'` (Next.js 14 natif) en tête des fichiers Node-only pour défense en profondeur — erreur build explicite si un composant client tente l'import.
+
+**Pourquoi** : `await import('xxx')` lazy/dynamique ne suffit PAS. Webpack/Turbopack résolvent l'arbre d'imports statique au moment du bundle, indépendamment du fait que l'import soit dynamique. Un composant `'use client'` qui importe `@tap/sms` (entry barrel) tire TOUTE la transitive deps incluant twilio Node SDK → erreur `Module not found: fs/net/tls` côté browser bundle.
+
+**Cas appliqués dans le repo** :
+
+- Phase 02 Wave 3 : Wrapper Server Action `listDraftsAction` pour éviter l'import `server-only` RSC dans `DraftQueue` `useQuery` (`02-03-SUMMARY.md`).
+- Phase 04 : `createAdminClient()` confiné server-only — pas de cache module-level pour préserver le scope server-only (`04-PLAN-3-SUMMARY.md`).
+- Phase 05 hotfix : `@tap/sms` split en `.` + `./templates` (`hotfix/sms-split-exports-fix-build`, post-#133).
+
+**Pourquoi le bug a survécu jusqu'à Wave 7** : tree-shaking webpack éliminait `twilio-adapter` du bundle client tant que l'arbre touché par chaque PR n'avait pas besoin de re-link cette branche. Wave 7 (suppression `recurrence-temp.ts` + add `recurrence.ts`) a invalidé le cache → rebuild from scratch a révélé l'erreur.
+
+**Vigilance Phase 06+** : à appliquer dès la conception d'un nouveau package workspace exposant du code mixed-runtime. Inscrire dans le PLAN d'architecture la séparation client/server avant écriture.

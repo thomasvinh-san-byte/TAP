@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { TEMPLATE_VARIABLES, renderTemplate, type TemplateVars } from '@tap/sms';
+import { TEMPLATE_VARIABLES, renderTemplate, type TemplateVars } from '@tap/sms/templates';
 import { saveTemplateAction } from '../actions';
 import { TemplateTestModal } from './template-test-modal.client';
 
