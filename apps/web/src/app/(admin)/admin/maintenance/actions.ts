@@ -17,11 +17,8 @@
 
 import { requireDirigeant } from '@/lib/auth/require-dirigeant';
 import { createClient } from '@/lib/supabase/server';
+import { geocodeBanSearch } from '@/lib/geocoding/ban';
 
-const BAN_REUNION_LAT = -21.115;
-const BAN_REUNION_LON = 55.536;
-const REUNION_POSTCODE_PREFIX = '974';
-const MIN_SCORE = 0.5;
 const RATE_LIMIT_MS = 1000;
 const MAX_PER_RUN = 200;
 
@@ -38,21 +35,6 @@ interface BanGeocode {
   citycode: string;
 }
 
-interface BanFeature {
-  geometry: { coordinates: [number, number] };
-  properties: {
-    label: string;
-    postcode?: string;
-    city?: string;
-    citycode?: string;
-    score?: number;
-  };
-}
-
-interface BanResponse {
-  features: BanFeature[];
-}
-
 interface RideRow {
   id: string;
   pickup_address: string;
@@ -62,24 +44,15 @@ interface RideRow {
 async function geocodeBan(address: string): Promise<BanGeocode | null> {
   if (!address || address.trim().length < 3) return null;
   try {
-    const url = new URL('https://api-adresse.data.gouv.fr/search/');
-    url.searchParams.set('q', address);
-    url.searchParams.set('limit', '1');
-    url.searchParams.set('lat', String(BAN_REUNION_LAT));
-    url.searchParams.set('lon', String(BAN_REUNION_LON));
-    const res = await fetch(url.toString());
-    if (!res.ok) return null;
-    const json = (await res.json()) as BanResponse;
-    const f = json.features.find(
-      (feat) =>
-        feat.properties.postcode?.startsWith(REUNION_POSTCODE_PREFIX) &&
-        (feat.properties.score ?? 0) >= MIN_SCORE,
-    );
+    // Helper applique bias Réunion + filtre 974 + score >= 0.5 par défaut.
+    // Phase 04.9-quater #120 : migration vers Géoplateforme IGN.
+    const results = await geocodeBanSearch(address, { limit: 1 });
+    const f = results[0];
     if (!f) return null;
     return {
-      lat: f.geometry.coordinates[1],
-      lng: f.geometry.coordinates[0],
-      citycode: f.properties.citycode ?? '',
+      lat: f.lat,
+      lng: f.lng,
+      citycode: f.citycode,
     };
   } catch {
     return null;

@@ -8,6 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import {
+  geocodeBanSearch,
+  type BanSuggestion,
+} from '@/lib/geocoding/ban';
 
 /**
  * Sélecteur d'adresse — autocomplétion via Base Adresse Nationale gouv.fr
@@ -35,76 +39,26 @@ import { cn } from '@/lib/utils';
  * Phase 4 CGSS).
  */
 
-interface BanFeature {
-  geometry: { coordinates: [number, number] };
-  properties: {
-    label: string;
-    postcode?: string;
-    city?: string;
-    citycode?: string;
-    score?: number;
-  };
-}
-
-interface BanResponse {
-  features: BanFeature[];
-}
-
-interface BanSuggestion {
-  label: string;
-  postcode: string;
-  city: string;
-  citycode: string;
-  lat: number;
-  lng: number;
-  score: number;
-}
-
+// Re-export rétro-compat : patient-address-field importe BanSuggestion
+// depuis ce fichier (wrapper Phase 04.7-bis). Le type vient désormais
+// du helper centralisé @/lib/geocoding/ban (Phase 04.9-quater #120).
 export type { BanSuggestion };
 
-const BAN_REUNION_LAT = -21.115;
-const BAN_REUNION_LON = 55.536;
 const MIN_QUERY_LENGTH = 3;
-// Score plancher BAN — calibration Phase 04.5 (UAT Réunion : 0.4 acceptait
-// trop d'adresses métropole avec préfixe similaire). 0.5 = compromis
-// précision / rappel sur les noms de rue 974.
-const MIN_SCORE = 0.5;
-// Limite remontée à 10 (vs 8) : 974 a beaucoup d'homonymies entre communes
-// (ex : « Rue de la Paix » présent à Saint-Denis, Saint-Pierre, Le Tampon),
-// 10 résultats permettent à la régulatrice de discriminer sans scroll.
+// Limite remontée à 10 (vs 8 du picker mixte) : 974 a beaucoup
+// d'homonymies entre communes (ex : « Rue de la Paix » présent à
+// Saint-Denis, Saint-Pierre, Le Tampon), 10 résultats permettent à la
+// régulatrice de discriminer sans scroll.
 const BAN_LIMIT = 10;
-const REUNION_POSTCODE_PREFIX = '974';
-// Debounce 200 ms : équilibre entre fluidité (saisie rapide) et coût réseau.
-// L'API BAN gouv.fr est gratuite mais sa latence peut atteindre 800 ms à
-// l'heure de pointe — moins on hit, plus la liste de résultats est stable.
+// Debounce 200 ms : équilibre entre fluidité (saisie rapide) et coût
+// réseau. Géoplateforme IGN est gratuite mais sa latence peut atteindre
+// 800 ms à l'heure de pointe — moins on hit, plus la liste de résultats
+// est stable.
 const DEBOUNCE_MS = 200;
 
 async function fetchBanSuggestions(q: string): Promise<BanSuggestion[]> {
   if (q.trim().length < MIN_QUERY_LENGTH) return [];
-  const url = new URL('https://api-adresse.data.gouv.fr/search/');
-  url.searchParams.set('q', q);
-  url.searchParams.set('limit', String(BAN_LIMIT));
-  url.searchParams.set('autocomplete', '1');
-  url.searchParams.set('lat', String(BAN_REUNION_LAT));
-  url.searchParams.set('lon', String(BAN_REUNION_LON));
-  const res = await fetch(url.toString());
-  if (!res.ok) throw new Error('BAN unavailable');
-  const json = (await res.json()) as BanResponse;
-  return json.features
-    .filter(
-      (f) =>
-        f.properties.postcode?.startsWith(REUNION_POSTCODE_PREFIX) ?? false,
-    )
-    .filter((f) => (f.properties.score ?? 0) >= MIN_SCORE)
-    .map((f) => ({
-      label: f.properties.label,
-      postcode: f.properties.postcode ?? '',
-      city: f.properties.city ?? '',
-      citycode: f.properties.citycode ?? '',
-      lat: f.geometry.coordinates[1],
-      lng: f.geometry.coordinates[0],
-      score: f.properties.score ?? 0,
-    }));
+  return geocodeBanSearch(q, { limit: BAN_LIMIT });
 }
 
 /**
