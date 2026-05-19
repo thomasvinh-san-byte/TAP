@@ -10,6 +10,7 @@ import { enqueue } from '@/lib/offline/sync-engine';
 import { getDb } from '@/lib/offline/dexie-instance';
 import { formatTimeFr } from '@/lib/dates-fr';
 import { EndRideModal } from './end-ride-modal.client';
+import { NoShowButton } from './no-show-button.client';
 
 /**
  * CTA contextuel d'une course (Phase 3 / 03-E).
@@ -156,23 +157,26 @@ export function RideActions({
   // assignee (par défaut)
   return (
     <div className={stickyCls}>
-      <Button
-        type="button"
-        onClick={onStart}
-        disabled={pending || hasPendingSync}
-        className="h-14 w-full text-base font-semibold"
-      >
-        {pending ? (
-          <>
-            <Loader2 className="mr-8 h-16 w-16 animate-spin" aria-hidden />
-            Démarrage…
-          </>
-        ) : hasPendingSync ? (
-          'Démarrage en attente de sync…'
-        ) : (
-          'Démarrer la course'
-        )}
-      </Button>
+      <div className="space-y-12">
+        <Button
+          type="button"
+          onClick={onStart}
+          disabled={pending || hasPendingSync}
+          className="h-14 w-full text-base font-semibold"
+        >
+          {pending ? (
+            <>
+              <Loader2 className="mr-8 h-16 w-16 animate-spin" aria-hidden />
+              Démarrage…
+            </>
+          ) : hasPendingSync ? (
+            'Démarrage en attente de sync…'
+          ) : (
+            'Démarrer la course'
+          )}
+        </Button>
+        <NoShowButton rideId={rideId} />
+      </div>
     </div>
   );
 }

@@ -99,7 +99,12 @@ export async function flushQueue(): Promise<FlushResult> {
     });
 
     try {
-      const path = m.type === 'start_ride' ? 'start' : 'end';
+      const path =
+        m.type === 'start_ride'
+          ? 'start'
+          : m.type === 'end_ride'
+            ? 'end'
+            : 'no-show';
       const endpoint = `/api/driver/rides/${m.resource_id}/${path}`;
       const res = await fetch(endpoint, {
         method: 'POST',

@@ -21,7 +21,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 export interface IdempotencyParams<T> {
   key: string;
   userId: string;
-  mutationType: 'start_ride' | 'end_ride';
+  mutationType: 'start_ride' | 'end_ride' | 'no_show_ride';
   resourceId: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: SupabaseClient<any, 'public', any>;
