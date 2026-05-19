@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { renderTemplate, TEMPLATE_VARIABLES, type TemplateVars } from '@tap/sms';
+import { renderTemplate, TEMPLATE_VARIABLES, type TemplateVars } from '@tap/sms/templates';
 import { testSendSmsAction } from '../actions';
 
 const DEFAULT_VARS: TemplateVars = {
