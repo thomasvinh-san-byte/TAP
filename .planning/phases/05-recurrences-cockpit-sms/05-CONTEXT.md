@@ -36,7 +36,7 @@ Cockpit Realtime Supabase : courses en cours, retards, alertes. SMS rappel J-1 1
 - **Décrément bon de transport `prescription`** à chaque occurrence générée
 - **Cockpit régulatrice `/cockpit`** : Realtime Supabase `postgres_changes` (DEC-049), courses en cours, alertes retard
 - **`packages/sms`** : Twilio adapter, templates Mustache custom (DEC-051), consentement strict DEC-008
-- **SMS rappel J-1 18h00 + J-2h** via Vercel Cron jobs (DEC-050)
+- **SMS rappel J-1 18h00 + J-2h** via pg_cron Supabase + pg_net HTTP call vers Route Handler Next.js (DEC-050 RÉVISÉ UI-SPEC 2026-05-18)
 - **Tracking delivery status** (`sent` / `delivered` / `failed`) dans `sms_message`, webhook Twilio HMAC (DEC-052)
 - **Workflow patient absent** : chauffeur PWA déclare via Route Handler `POST /api/driver/rides/[id]/no-show` (DEC-053 cohérent DEC-045 pattern), régulatrice reçoit alerte cockpit, modal décision (reprog / annulation), `audit_logs`
 - **Landing page régulatrice** : redirect login → `/cockpit` (DEC-054)
@@ -80,7 +80,7 @@ Cockpit Realtime Supabase : courses en cours, retards, alertes. SMS rappel J-1 1
 - **C2.** `packages/sms` design : adapter interface `SmsAdapter { send(to, body, idempotencyKey): Promise<SmsResult> }` + impl Twilio.
 - **C3.** Templates : **DEC-051** Mustache-like custom léger 5 variables (`{{patient_prenom}}`, `{{patient_nom}}`, `{{heure}}`, `{{date}}`, `{{chauffeur_prenom}}`). Implémentation ~20 lignes, pas de dépendance Handlebars.
 - **C4.** Préférence patient `preferred_contact_method` (SMS-06) : déjà en BDD `patients.preferred_contact_method enum('sms', 'appel', 'aucun')` (à vérifier Wave 1 migration).
-- **C5.** Cron J-1 18h + J-2h : **DEC-050** Vercel Cron jobs. Limite Pro 100 invocations/jour : suffisant TAP (~50-200 courses/jour ≈ 100-400 SMS si J-1+J-2h × patients consentants).
+- **C5.** Cron J-1 18h + J-2h : **DEC-050 RÉVISÉ** pg_cron Supabase + pg_net HTTP call vers Route Handler Next.js. pg_cron 1.6.4 déjà activé, pg_net à activer Wave 1. Coût 0€, timezone Réunion native, cohérent CONCERNS architecture portable Phase 06 HDS (zero reconfiguration). Logique métier TypeScript préservée (Route Handler `/api/cron/sms-reminders-j1` + `/api/cron/sms-reminders-j2h` auth Bearer + Twilio + tracking).
 - **C6.** Numéro expéditeur (SMS-03) : 1 numéro Twilio dédié au tenant régie via env var `TWILIO_PHONE_FROM`. Multi-tenant futur Phase 06 (1 numéro par org).
 - **C7.** Webhook delivery status : **DEC-052** Route Handler `/api/sms/webhook/twilio` + vérification `X-Twilio-Signature` HMAC avec `TWILIO_AUTH_TOKEN` env var. Sécurité standard Twilio.
 - **C8.** Consentement DEC-008 strict : check actif horodaté **avant chaque envoi** (PAS de cache « vu il y a 5 min »). Si patient révoque consentement entre génération récurrence et envoi SMS J-1 → SKIP silencieux + log `sms_message.status = 'skipped_consent_revoked'`.
@@ -118,7 +118,7 @@ Cockpit Realtime Supabase : courses en cours, retards, alertes. SMS rappel J-1 1
 | DEC-047 | Génération occurrences | Eager batch 3 mois + cron mensuel extension |
 | DEC-048 | Modification récurrence active | Modal confirm + regen futures non-démarrées |
 | DEC-049 | Channel Realtime cockpit | Global `cockpit:rides` MVP (scoping multi-tenant Phase 06+) |
-| DEC-050 | Cron jobs SMS | Vercel Cron (vs Supabase pg_cron) |
+| DEC-050 | Cron jobs SMS | **pg_cron Supabase + pg_net** → Route Handler Next.js (révisé UI-SPEC) |
 | DEC-051 | Templates SMS personnalisation | Mustache-like custom 5 variables |
 | DEC-052 | Webhook Twilio delivery | Route Handler HMAC `X-Twilio-Signature` |
 | DEC-053 | Endpoint patient absent | Route Handler `/api/driver/rides/[id]/no-show` cohérent DEC-045 |
