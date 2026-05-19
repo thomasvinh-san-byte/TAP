@@ -1086,6 +1086,51 @@ export type Database = {
           },
         ]
       }
+      ride_events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          event_type: string
+          id: string
+          organization_id: string
+          payload: Json | null
+          ride_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          event_type: string
+          id?: string
+          organization_id: string
+          payload?: Json | null
+          ride_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          event_type?: string
+          id?: string
+          organization_id?: string
+          payload?: Json | null
+          ride_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ride_events_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ride_recurrence_exceptions: {
         Row: {
           created_at: string
@@ -1231,6 +1276,7 @@ export type Database = {
           no_show_motif: string | null
           notes_regulateur: string | null
           organization_id: string
+          original_ride_id: string | null
           patient_id: string
           payment_method: string | null
           payment_received_at: string | null
@@ -1271,6 +1317,7 @@ export type Database = {
           no_show_motif?: string | null
           notes_regulateur?: string | null
           organization_id: string
+          original_ride_id?: string | null
           patient_id: string
           payment_method?: string | null
           payment_received_at?: string | null
@@ -1311,6 +1358,7 @@ export type Database = {
           no_show_motif?: string | null
           notes_regulateur?: string | null
           organization_id?: string
+          original_ride_id?: string | null
           patient_id?: string
           payment_method?: string | null
           payment_received_at?: string | null
@@ -1346,6 +1394,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rides_original_ride_id_fkey"
+            columns: ["original_ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
             referencedColumns: ["id"]
           },
           {
