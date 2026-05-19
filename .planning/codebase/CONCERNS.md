@@ -217,6 +217,50 @@ Les items « Phase de résolution : Passe 2 (Phase 04) » référencés ci-desso
 - Phase de résolution : phase UI/UX dédiée post-Passe 2 PWA, à traiter en bloc avec autres polishes accumulés (refonte login + welcome + setup, alignements généraux design system)
 - Workaround : aucun. **Interdit de faire un fix cosmétique opportuniste dans Phase 04** — sortir de la passe pour polisher cassera la cadence E2E (ADR-003).
 
+#### Modal RideExpressModal — alignement cassé sur adresse longue (constat 2026-05-18)
+
+**Origine** : capture utilisateur session 2026-05-18 (chat dirigeant) lors de la revue post-merge Phase 04.9 + #117 + #118.
+
+**Constat reproductible** : quand le champ « Adresse de prise en charge » est rempli avec une adresse longue (ex : `CHU Félix Guyon — Allée des Topazes, Bellepierre, 97400 Saint-Denis`), tout le modal `RideExpressModal` casse son alignement avec overflow horizontal :
+- Pill adresse coupé : `× Changer` apparaît `× Ch`
+- Champ `hh:mm` du `DateTimeFields` coupé : `hh:m`
+- Numéros téléphone PatientPicker tronqués droite (`02 62`, `06 92`)
+- Bouton submit coupé : `Créer la course` apparaît `Créer la`
+
+**3 suspects identifiés** (analyse statique, à confirmer en local) :
+
+1. `DateTimeFields` (`ride-express-form-fields.client.tsx:316`) : `grid grid-cols-2 gap-12` sans `min-w-0` sur enfants. Chaque cellule grid utilise `minmax(auto, 1fr)` qui peut excéder `1fr` si le DatePicker calendar interne force un `min-content > 320px`.
+2. `ModeUrgencyFields` (`ride-express-form-fields.client.tsx:430`) : même pattern `grid grid-cols-2 gap-16` sans contrainte enfants.
+3. `DialogContent` (`ride-express-modal.client.tsx:194`) `overflow-x-hidden` masque visuellement mais ne contraint pas la largeur intrinsèque interne du modal.
+
+**Pill `AddressOrPOIPicker`** (`address-or-poi-picker.client.tsx:282-328`) : pattern truncate **correct** (`min-w-0 flex-1` + `truncate` + `shrink-0` sur bouton). Le pill n'est pas la cause directe — il est victime du grid parent qui s'élargit au-delà de `max-w-[640px]`.
+
+**Patch candidat Niveau 1** (~5 lignes, ~10 min, à valider local) :
+```diff
+- <div className="grid grid-cols-2 gap-12">
++ <div className="grid grid-cols-2 gap-12 [&>*]:min-w-0">
+
+- wrapperClassName="w-full"
++ wrapperClassName="w-full min-w-0"
+
+- <form className="space-y-12" noValidate>
++ <form className="space-y-12 min-w-0" noValidate>
+```
+
+**Patch Niveau 2** (Phase UI dédiée) : refactor 384 lignes `ride-express-modal.client.tsx` en sub-composants (`DateField`, `TimeField`, `PatientField`, `ActionsBar`) + audit `min-w-0` cascade systémique + tests visuels Storybook ou Playwright avec adresses longues (CHU, Centre Hospitalier Universitaire, etc.) + bottom-sheet mobile pattern (cohérent `EndRideModal` Phase 04.9 lignes 138-149).
+
+**Pattern industry 2026 confirmé** :
+- Tailwind CSS docs 2026 : grid items default to `min-content = auto`, peut excéder `1fr` si contenu intrinsèque > col width
+- css-tricks 2026 : « `min-w-0` + `flex-1` cascade required for `truncate` to work inside grid/flex parents »
+
+**Décision dirigeant 2026-05-18** : reporté Phase UI dédiée post-Passe 2. La démo design partner peut se faire en évitant les adresses très longues OU en acceptant l'overflow visuel temporaire.
+
+**Refs** :
+- `apps/web/src/app/(app)/courses/_components/ride-express-modal.client.tsx:193-194`
+- `apps/web/src/app/(app)/courses/_components/ride-express-form-fields.client.tsx:316,430`
+- `apps/web/src/app/(app)/courses/_components/address-or-poi-picker.client.tsx:282-328`
+- Capture session 2026-05-18 (chat dirigeant)
+
 ### Manifest PWA + offline chauffeur
 
 - Issue : PWA chauffeur (Passe 1 livrée en web responsive) sans manifest installable ni service worker offline. CLAUDE.md § 5 exige mode hors-ligne fonctionnel (démarrage / clôture course, scan BT).
