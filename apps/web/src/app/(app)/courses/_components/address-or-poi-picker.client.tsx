@@ -12,6 +12,7 @@ import {
   listPoisMetierAction,
   type PoiMetierMin,
 } from '@/lib/pois/actions';
+import { geocodeBanSearch } from '@/lib/geocoding/ban';
 
 /**
  * AddressOrPOIPicker — Phase 04.5 Wave C.2 (PLAN-3 T3.2).
@@ -41,21 +42,10 @@ import {
  * Refs : PLAN-3 T3.2, D-09, DEC-035, UI-SPEC Surface A.
  */
 
-interface BanFeature {
-  geometry: { coordinates: [number, number] };
-  properties: {
-    label: string;
-    postcode?: string;
-    city?: string;
-    citycode?: string;
-    score?: number;
-  };
-}
-
-interface BanResponse {
-  features: BanFeature[];
-}
-
+// BanSuggestion étendue (kind/id) reste locale car spécifique au mixage
+// BAN+POI de ce picker. Le shape sous-jacent (label/postcode/city/...)
+// est mappé depuis le BanSuggestion du helper @/lib/geocoding/ban
+// (Phase 04.9-quater #120).
 interface BanSuggestion {
   kind: 'ban';
   id: string;
@@ -75,14 +65,10 @@ interface PoiSuggestion {
 
 type Suggestion = PoiSuggestion | BanSuggestion;
 
-const BAN_REUNION_LAT = -21.115;
-const BAN_REUNION_LON = 55.536;
 const MIN_QUERY_LENGTH = 2; // POI peuvent matcher dès 2 chars (« HG », « CHU »)
 const BAN_MIN_QUERY_LENGTH = 3;
-const MIN_SCORE = 0.5;
 const BAN_LIMIT = 8;
 const DEBOUNCE_MS = 200;
-const REUNION_POSTCODE_PREFIX = '974';
 
 function normalize(s: string): string {
   return s
@@ -93,30 +79,18 @@ function normalize(s: string): string {
 
 async function fetchBanSuggestions(q: string): Promise<BanSuggestion[]> {
   if (q.trim().length < BAN_MIN_QUERY_LENGTH) return [];
-  const url = new URL('https://api-adresse.data.gouv.fr/search/');
-  url.searchParams.set('q', q);
-  url.searchParams.set('limit', String(BAN_LIMIT));
-  url.searchParams.set('autocomplete', '1');
-  url.searchParams.set('lat', String(BAN_REUNION_LAT));
-  url.searchParams.set('lon', String(BAN_REUNION_LON));
-  const res = await fetch(url.toString());
-  if (!res.ok) throw new Error('BAN unavailable');
-  const json = (await res.json()) as BanResponse;
-  return json.features
-    .filter((f) =>
-      f.properties.postcode?.startsWith(REUNION_POSTCODE_PREFIX) ?? false,
-    )
-    .filter((f) => (f.properties.score ?? 0) >= MIN_SCORE)
-    .map((f, i) => ({
-      kind: 'ban' as const,
-      id: `ban-${f.properties.citycode ?? 'x'}-${i}`,
-      label: f.properties.label,
-      postcode: f.properties.postcode ?? '',
-      city: f.properties.city ?? '',
-      lat: f.geometry.coordinates[1],
-      lng: f.geometry.coordinates[0],
-      citycode: f.properties.citycode ?? '',
-    }));
+  const results = await geocodeBanSearch(q, { limit: BAN_LIMIT });
+  // Mapping vers la variante locale avec kind + id (mixage POI).
+  return results.map((r, i) => ({
+    kind: 'ban' as const,
+    id: `ban-${r.citycode || 'x'}-${i}`,
+    label: r.label,
+    postcode: r.postcode,
+    city: r.city,
+    lat: r.lat,
+    lng: r.lng,
+    citycode: r.citycode,
+  }));
 }
 
 function useDebouncedValue<T>(value: T, delay: number): T {
