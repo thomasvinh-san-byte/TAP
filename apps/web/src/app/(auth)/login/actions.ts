@@ -54,9 +54,31 @@ export async function signInAction(
     return { error: 'Identifiants invalides ou compte inexistant.' };
   }
 
+  // Open redirect protection : `next` doit commencer par `/`, pas par `//`.
   const next = parsed.data.next;
-  const safeNext =
-    next && next.startsWith('/') && !next.startsWith('//') ? next : '/patients';
+  if (next && next.startsWith('/') && !next.startsWith('//')) {
+    redirect(next);
+  }
 
-  redirect(safeNext);
+  // DEC-054 — redirect role-aware (régulateur+dirigeant → /cockpit,
+  // chauffeur → /conduite, fallback /patients pour rétro-compat).
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) {
+    const profileRes = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+    const profile = profileRes.data as { role: string | null } | null;
+    if (profile?.role === 'regulateur' || profile?.role === 'dirigeant') {
+      redirect('/cockpit');
+    }
+    if (profile?.role === 'chauffeur') {
+      redirect('/conduite');
+    }
+  }
+
+  redirect('/patients');
 }

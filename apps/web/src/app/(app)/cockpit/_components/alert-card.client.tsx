@@ -1,0 +1,51 @@
+'use client';
+
+import { AlertTriangle, Clock, MessageSquareWarning } from 'lucide-react';
+import type { CockpitAlert, CockpitAlertType } from '../_lib/types';
+
+const TITLES: Record<CockpitAlertType, string> = {
+  patient_no_show: 'Patient absent',
+  sms_failed: 'SMS non délivré',
+  ride_delayed: 'Course en retard',
+};
+
+function iconFor(type: CockpitAlertType): JSX.Element {
+  const cls = 'h-16 w-16 shrink-0';
+  if (type === 'patient_no_show')
+    return <AlertTriangle aria-hidden className={`${cls} text-destructive`} />;
+  if (type === 'sms_failed')
+    return <MessageSquareWarning aria-hidden className={`${cls} text-destructive`} />;
+  return <Clock aria-hidden className={`${cls} text-amber-600`} />;
+}
+
+function formatRelativeTime(iso: string): string {
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return '';
+  const diffMs = Date.now() - then;
+  const diffMin = Math.round(diffMs / 60_000);
+  if (diffMin < 1) return "à l'instant";
+  if (diffMin < 60) return `il y a ${diffMin} min`;
+  const diffH = Math.round(diffMin / 60);
+  if (diffH < 24) return `il y a ${diffH} h`;
+  const diffD = Math.round(diffH / 24);
+  return `il y a ${diffD} j`;
+}
+
+export function AlertCard({ alert }: { alert: CockpitAlert }): JSX.Element {
+  const tone =
+    alert.event_type === 'ride_delayed'
+      ? 'border-amber-200 bg-amber-50'
+      : 'border-destructive/30 bg-destructive/5';
+  return (
+    <article
+      className={`flex items-start gap-12 rounded-md border p-12 ${tone}`}
+      aria-label={TITLES[alert.event_type]}
+    >
+      {iconFor(alert.event_type)}
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-medium text-foreground">{TITLES[alert.event_type]}</p>
+        <p className="mt-2 text-xs text-muted-foreground">{formatRelativeTime(alert.created_at)}</p>
+      </div>
+    </article>
+  );
+}

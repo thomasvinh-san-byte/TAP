@@ -20,6 +20,7 @@ import { DraftQueue } from './courses/_components/draft-queue.client';
  *   - rôle chauffeur : redirect /conduite (zone régulateur interdite)
  */
 const BASE_TABS = [
+  { href: '/cockpit', label: 'Cockpit' },
   { href: '/patients', label: 'Patients' },
   { href: '/courses', label: 'Courses' },
   { href: '/courses/caisse', label: 'Caisse' },
