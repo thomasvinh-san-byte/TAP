@@ -230,7 +230,23 @@
 
 @media (prefers-reduced-motion: reduce) {
   .cockpit-row-fade-in,
-  .cockpit-status-pulse {
+  .cockpit-status-pulse,
+  .cockpit-noshow-slide-in {
     animation: none;
   }
+}
+
+/* Phase 05 Wave 6 — Slide-in droite alerte patient absent (NFR-004). */
+@keyframes cockpit-noshow-slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+.cockpit-noshow-slide-in {
+  animation: cockpit-noshow-slide-in 220ms ease-out both;
 }

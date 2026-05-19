@@ -13,7 +13,7 @@
 
 import Dexie, { type Table } from 'dexie';
 
-export type MutationType = 'start_ride' | 'end_ride';
+export type MutationType = 'start_ride' | 'end_ride' | 'no_show_ride';
 export type MutationStatus = 'pending' | 'in_flight' | 'failed' | 'dead';
 
 export interface PendingMutation {
