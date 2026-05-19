@@ -1169,6 +1169,46 @@ Phase 04.9 PWA chauffeur enveloppe livrée 2026-05-18 (8 PR #109-#116, ~1h40 wal
 
 **Refs** : PLAN-6 PR #111, Waves 4+5 PR #114 (`ride-actions.client.tsx`, `end-ride-modal.client.tsx`), `rides_mirror` table Dexie schema Wave 3 PR #113.
 
+### Table `prescriptions` à créer Phase 06 (RECU-04)
+
+**Origine** : Mini-PR fix `fix/05-w1-prescriptions-fk` 2026-05-19 (post-merge #124 Wave 1 Phase 05). La migration `20260519000001_ride_recurrences.sql` ligne 8 référençait initialement `prescription_id uuid null references public.prescriptions(id)`, mais la table `prescriptions` n'a jamais été créée — déjà commentée dans `20260509000001_rides.sql` ligne 58 en Phase 02. Le CD push a échoué 2× consécutivement (`relation "public.prescriptions" does not exist`), bloquant l'application des 7 migrations Wave 1 et la régénération de `types.gen.ts`.
+
+**Constat** : trou de plan non détecté à la review de PR #124. PLAN-1 mentionnait `prescription_id` sans clarifier la dépendance à une table absente.
+
+**Décision V1.5** : retirer la FK (colonne `prescription_id uuid null` préservée, réversible), créer la table `prescriptions` Phase 06 quand RECU-04 (décrément automatique du bon de transport) sera implémenté.
+
+**Schéma proposé Phase 06** :
+
+```sql
+create table public.prescriptions (
+  id uuid primary key default gen_random_uuid(),
+  organization_id uuid not null references public.organizations(id) on delete cascade,
+  patient_id uuid not null references public.patients(id) on delete cascade,
+  doctor_name text,
+  prescription_date date not null,
+  expiry_date date,
+  transport_count_total integer not null,
+  transport_count_used integer not null default 0,
+  diagnosis_code text,
+  archived_at timestamptz,
+  created_by uuid not null references auth.users(id),
+  created_at timestamptz not null default now()
+);
+
+-- Ajout FK retroactive sur ride_recurrences :
+alter table public.ride_recurrences
+  add constraint ride_recurrences_prescription_id_fkey
+  foreign key (prescription_id) references public.prescriptions(id);
+```
+
+**RLS** : lecture régulatrice/dirigeant org-scoped, écriture dirigeant only.
+
+**Logique métier Phase 06** : trigger ou Server Action qui incrémente `transport_count_used` à chaque génération d'occurrence depuis `ride_recurrences` (RECU-04).
+
+**Impact actuel** : aucun. La colonne `prescription_id` existe en BDD sans contrainte référentielle — les récurrences peuvent référencer un UUID arbitraire jusqu'à création de la table Phase 06. RECU-04 reste `Pending` dans REQUIREMENTS.md (déjà inscrit).
+
+**Refs** : RECU-04 (REQUIREMENTS.md ligne 65), `supabase/migrations/20260519000001_ride_recurrences.sql` ligne 8, `supabase/migrations/20260509000001_rides.sql` ligne 58.
+
 ---
 
-*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis élargi Courses truncation+Chauffeurs layout+Patients archivage ajouté 2026-05-15 — Hotfix Vercel + Supabase URLs custom domain ajouté 2026-05-18 — Régression RLS récursive PR #101 ajoutée 2026-05-18 — Leçons marathon Vercel custom domain + items annulés + analyse perf ajoutés 2026-05-18 — Dette migration Géoplateforme IGN ajoutée 2026-05-18 — Dette refactor forms composants contrôlés ajoutée 2026-05-18 — Dette duplication composants adresse ajoutée 2026-05-18 (PR #108 alignement) — Dette optimistic UI miroir Dexie Phase 06 ajoutée 2026-05-18 (Wave 6 Phase 04.9) — Items différés Phase 04.9 → 05/06 consolidés 2026-05-18 (Wave 7 clôture) — 6 items revue technique post-merge Phase 04.9 ajoutés 2026-05-18 (hotfix-bis #1+#3 livré PR #117, #2/#4-#8 inscrits Phase 06)*
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis élargi Courses truncation+Chauffeurs layout+Patients archivage ajouté 2026-05-15 — Hotfix Vercel + Supabase URLs custom domain ajouté 2026-05-18 — Régression RLS récursive PR #101 ajoutée 2026-05-18 — Leçons marathon Vercel custom domain + items annulés + analyse perf ajoutés 2026-05-18 — Dette migration Géoplateforme IGN ajoutée 2026-05-18 — Dette refactor forms composants contrôlés ajoutée 2026-05-18 — Dette duplication composants adresse ajoutée 2026-05-18 (PR #108 alignement) — Dette optimistic UI miroir Dexie Phase 06 ajoutée 2026-05-18 (Wave 6 Phase 04.9) — Items différés Phase 04.9 → 05/06 consolidés 2026-05-18 (Wave 7 clôture) — 6 items revue technique post-merge Phase 04.9 ajoutés 2026-05-18 (hotfix-bis #1+#3 livré PR #117, #2/#4-#8 inscrits Phase 06) — Table prescriptions à créer Phase 06 (RECU-04) ajoutée 2026-05-19 (mini-PR fix/05-w1-prescriptions-fk débloque CD push Phase 05 Wave 1)*
