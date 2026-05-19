@@ -3,6 +3,12 @@
 out/
 build/
 
+# Serwist service worker (généré par `pnpm build` apps/web — ne pas commiter)
+/public/sw.js
+/public/sw.js.map
+/public/swe-worker-*.js
+/public/swe-worker-*.js.map
+
 # Tests
 /test-results/
 /playwright-report/
