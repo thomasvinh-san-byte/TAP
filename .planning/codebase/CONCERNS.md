@@ -1209,6 +1209,31 @@ alter table public.ride_recurrences
 
 **Refs** : RECU-04 (REQUIREMENTS.md ligne 65), `supabase/migrations/20260519000001_ride_recurrences.sql` ligne 8, `supabase/migrations/20260509000001_rides.sql` ligne 58.
 
+### Items différés Phase 05 → Phase 06
+
+Consolidation post-Phase 05 LIVRÉE (PR #121-#133, clôture 2026-05-19).
+
+#### Architecture
+- **rrule-temporal Temporal API maturity** : V1.5 rrule.js DEC-046 LOCKED (mature RFC 5545). Phase 06 réévaluer si Temporal API stable avec polyfill léger OU Node 22+ disponible (gestion timezone DST 974 cleaner).
+- **Multi-tenant Realtime channel scoping** : V1.5 channel global `cockpit:rides` DEC-049 MVP. Phase 06+ HDS = scoping par `organization_id` via Supabase publication `filter_row` (isolation stricte multi-tenant).
+- **pg_net extension schéma déplacement** : actuellement schéma `public` (advisor warning Wave 1). Phase 06 déplacer vers schéma `extensions` ou `net` (best practices Supabase 2026).
+- **ADR Phase 06 Stack BDD long terme** : Supabase self-hosted vs Turso+Better-Auth+Convex vs Postgres self-hosted (cf section architecture codebase PR #119).
+
+#### Fonctionnalités reportées
+- **Notification famille patient absent (DEC-055 LOCKED Phase 06)** : consentement tiers RGPD complexe (CNIL guidelines = famille tiers non-patient). Phase 06 implémenter avec consentement explicite famille via portail dédié OU sous délégation patient (RGPD art. 7).
+- **Twilio Content API multi-channel WhatsApp/RCS** : V1.5 SMS standard DEC-051 Mustache custom. Phase 06 si besoin business WhatsApp (Réunion = forte adoption).
+- **2-way SMS confirmation Y/C/R** : Passe 4 réception patient SMS inbound → fiche patient (cf 05-CONTEXT.md DANS/HORS).
+- **Cron monitoring Sentry** : Phase 06 alerting cron jobs SMS échec ou volume anormal.
+- **Imprévus complexes** : panne véhicule, multi-patient absent auto, drag-drop Gantt cockpit régulatrice (Passe 4).
+- **KPIs dirigeant tableau de bord pilotage** : Phase 06 dashboard metrics (taux no-show, SMS delivery rate, courses/jour).
+- **Cache PWA régulateur `/courses` + `/cockpit`** : équivalent PWA chauffeur Phase 04.9 (cohérent CONCERNS Phase 04.9 PR #116).
+- **Table `prescriptions` + RECU-04 décrément bon de transport** : V1.5 table absente (cf fix #126 FK retirée). Phase 06 créer table avec schéma proposé (cf section "Table `prescriptions` à créer Phase 06" plus haut) + ALTER `ride_recurrences` ADD CONSTRAINT FK retroactive.
+
+#### Améliorations UX
+- **`AddressOrPOIPicker` dans modal récurrence** : V1.5 input text simple Wave 3. Phase 06 réutiliser pattern `AddressOrPOIPicker` du modal RideExpress pour validation BAN + lat/lng/citycode.
+- **Modal `RideExpressModal` alignement refactor Niveau 2** : 384 lignes + bottom-sheet mobile pattern (cf CONCERNS H4 PR #119).
+- **Imports types — cleanup cohérence path** : Wave 7 a refactor `recurrence-temp.ts` vers `@tap/database` types officiels alias dans `apps/web/src/types/recurrence.ts`. Phase 06 vérifier que toutes les autres imports types (Phase 04.9, autres consommateurs Phase 05) sont cohérentes (cleanup transverse possible).
+
 ---
 
-*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis élargi Courses truncation+Chauffeurs layout+Patients archivage ajouté 2026-05-15 — Hotfix Vercel + Supabase URLs custom domain ajouté 2026-05-18 — Régression RLS récursive PR #101 ajoutée 2026-05-18 — Leçons marathon Vercel custom domain + items annulés + analyse perf ajoutés 2026-05-18 — Dette migration Géoplateforme IGN ajoutée 2026-05-18 — Dette refactor forms composants contrôlés ajoutée 2026-05-18 — Dette duplication composants adresse ajoutée 2026-05-18 (PR #108 alignement) — Dette optimistic UI miroir Dexie Phase 06 ajoutée 2026-05-18 (Wave 6 Phase 04.9) — Items différés Phase 04.9 → 05/06 consolidés 2026-05-18 (Wave 7 clôture) — 6 items revue technique post-merge Phase 04.9 ajoutés 2026-05-18 (hotfix-bis #1+#3 livré PR #117, #2/#4-#8 inscrits Phase 06) — Table prescriptions à créer Phase 06 (RECU-04) ajoutée 2026-05-19 (mini-PR fix/05-w1-prescriptions-fk débloque CD push Phase 05 Wave 1)*
+*Concerns audit : 2026-05-12 — re-mapping 2026-05-13 post-DEC-023 — leçons DEC-029 + DEC-030 ajoutées 2026-05-13 (hotfix-bis) — DEC-032 playbook CD schema_migrations ajouté 2026-05-13 — Vague 2 reseed_patients_fictifs ajoutée 2026-05-14 — DEC-034 audit visuel pages admin ajouté 2026-05-14 — DEC-041 amendement RLS chauffeur + audit systémique Phase 06 ajouté 2026-05-15 — Dettes CI V1.5 (D1/D2/D3) stratégie acceptée ajoutée 2026-05-15 — Hotfix UX NIR (strict/format env toggle) ajouté 2026-05-15 — NIR Edge Function 401 reporté Phase 06 ajouté 2026-05-15 — DEC-039-bis seed ON CONFLICT exhaustif ajouté 2026-05-15 — Hotfix 04.7-bis Modal+filtre+pagination Courses ajouté 2026-05-15 — Hotfix 04.7-bis élargi Courses truncation+Chauffeurs layout+Patients archivage ajouté 2026-05-15 — Hotfix Vercel + Supabase URLs custom domain ajouté 2026-05-18 — Régression RLS récursive PR #101 ajoutée 2026-05-18 — Leçons marathon Vercel custom domain + items annulés + analyse perf ajoutés 2026-05-18 — Dette migration Géoplateforme IGN ajoutée 2026-05-18 — Dette refactor forms composants contrôlés ajoutée 2026-05-18 — Dette duplication composants adresse ajoutée 2026-05-18 (PR #108 alignement) — Dette optimistic UI miroir Dexie Phase 06 ajoutée 2026-05-18 (Wave 6 Phase 04.9) — Items différés Phase 04.9 → 05/06 consolidés 2026-05-18 (Wave 7 clôture) — 6 items revue technique post-merge Phase 04.9 ajoutés 2026-05-18 (hotfix-bis #1+#3 livré PR #117, #2/#4-#8 inscrits Phase 06) — Table prescriptions à créer Phase 06 (RECU-04) ajoutée 2026-05-19 (mini-PR fix/05-w1-prescriptions-fk débloque CD push Phase 05 Wave 1) — Items différés Phase 05 → Phase 06 consolidés 2026-05-19 (Wave 7 clôture Phase 05)*
