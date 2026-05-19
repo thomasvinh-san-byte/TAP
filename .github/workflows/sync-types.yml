@@ -18,6 +18,13 @@ jobs:
   sync:
     name: Régénérer types.gen.ts
     runs-on: ubuntu-latest
+    # Permissions explicites requises par peter-evans/create-pull-request@v6.
+    # Default policy GitHub depuis 2023 = contents: read partout sauf
+    # explicite. Sans ces permissions, peter-evans échoue silencieusement
+    # 403 sur GitHub API (pas de PR auto créée).
+    permissions:
+      contents: write
+      pull-requests: write
     # workflow_run se déclenche peu importe succès/échec — filtrer ici.
     # workflow_dispatch et schedule passent toujours (event_name différent).
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}

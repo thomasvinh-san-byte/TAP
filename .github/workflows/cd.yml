@@ -109,3 +109,48 @@ jobs:
   # besoin de doublonner avec un job CI. L'ancien job échouait sur "Multiple
   # versions of pnpm specified" car packageManager dans package.json (9.12.0)
   # entrait en conflit avec version: 9 dans pnpm/action-setup@v4.
+
+  sync-types:
+    name: Régénérer types.gen.ts post-migrations
+    needs: deploy-migrations
+    runs-on: ubuntu-latest
+    # Commit direct sur main via GITHUB_TOKEN — pas de boucle cd.yml car
+    # GITHUB_TOKEN ne déclenche pas de workflows secondaires (cf doc
+    # github.com/en/actions/security-guides/automatic-token-authentication).
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Régénérer les types depuis le projet Supabase de production
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase gen types typescript \
+            --project-id ${{ secrets.SUPABASE_PROJECT_REF }} \
+            > packages/database/src/types.gen.ts
+      - name: Commit + push si diff
+        run: |
+          if git diff --quiet packages/database/src/types.gen.ts; then
+            echo "✓ types.gen.ts déjà à jour — pas de commit nécessaire"
+            exit 0
+          fi
+
+          echo "→ Diff détecté, commit + push direct sur main"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add packages/database/src/types.gen.ts
+          git commit -m "chore(database): sync types Supabase [auto post-CD]
+
+          Régénération automatique depuis le projet Supabase de production
+          post-application des migrations dans le job deploy-migrations.
+
+          Commit direct sur main via GITHUB_TOKEN (pas de boucle cd.yml :
+          GITHUB_TOKEN ne déclenche pas de workflows secondaires)."
+          git push origin HEAD:main
+          echo "✓ types.gen.ts mis à jour automatiquement"
