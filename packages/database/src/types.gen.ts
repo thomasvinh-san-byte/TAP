@@ -1,957 +1,1888 @@
-// =============================================================================
-// types.gen.ts — Types Supabase générés depuis le schéma local
-// =============================================================================
-// Ce fichier reproduit le format émis par `supabase gen types typescript
-// --local` pour les migrations Phase 1 + Phase 1.5. Régénération impossible
-// dans la sandbox CI (Docker registry public.ecr.aws bloqué — voir SUMMARY
-// 01-2). En production, exécuter `pnpm db:types` après chaque migration
-// appliquée pour réécrire ce fichier depuis le schéma réel.
-//
-// Phase 1.5 ajoute :
-//   - 5 tables RGPD : data_processing_register, dpa_record, dpia_record,
-//     data_breach_incident, patient_data_request
-//   - 3 tables additionnelles : cgu_acceptance, cookie_consent_log,
-//     legal_request_attempts
-//   - 5 colonnes DPO sur organizations + 2 colonnes CGU sur profiles
-//   - patients : prenom/nom/date_naissance/adresse_ligne1/code_postal/ville
-//     deviennent nullable (Rule 2 — anonymisation art. 17)
-//   - 4 nouvelles fonctions RPC : check_breach_deadlines,
-//     purge_legal_request_attempts, rgpd_anonymize_patient,
-//     nir_match_patient_for_legal_request
-//
-// Phase 2 (Plan 02-02) ajoute :
-//   - 2 tables : rides (saisie express V1) + ride_draft (brouillons RGPD)
-//   - 3 enums : ride_transport_mode (4) + ride_urgency (3) + ride_status (8)
-//   - Régénération CI cloud bloquée (Docker registry public.ecr.aws —
-//     dette tracée CLAUDE.md § 14). Types ajoutés manuellement en miroir
-//     de la migration 20260509000001_rides.sql, à confirmer par CI cloud.
-// =============================================================================
-
 export type Json =
   | string
   | number
   | boolean
   | null
   | { [key: string]: Json | undefined }
-  | Json[];
+  | Json[]
 
-export interface Database {
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.5"
+  }
   public: {
     Tables: {
-      organizations: {
-        Row: {
-          id: string;
-          nom: string;
-          siret: string | null;
-          adresse: string | null;
-          code_postal: string | null;
-          ville: string | null;
-          telephone: string | null;
-          email: string | null;
-          numero_agrement_cgss: string | null;
-          date_creation: string;
-          date_archivage: string | null;
-          created_at: string;
-          updated_at: string;
-          dpo_contact_email: string | null;
-          dpo_contact_phone: string | null;
-          dpo_contact_address: string | null;
-          dpo_external: boolean;
-          dpo_updated_at: string | null;
-        };
-        Insert: {
-          id?: string;
-          nom: string;
-          siret?: string | null;
-          adresse?: string | null;
-          code_postal?: string | null;
-          ville?: string | null;
-          telephone?: string | null;
-          email?: string | null;
-          numero_agrement_cgss?: string | null;
-          date_creation?: string;
-          date_archivage?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          dpo_contact_email?: string | null;
-          dpo_contact_phone?: string | null;
-          dpo_contact_address?: string | null;
-          dpo_external?: boolean;
-          dpo_updated_at?: string | null;
-        };
-        Update: {
-          id?: string;
-          nom?: string;
-          siret?: string | null;
-          adresse?: string | null;
-          code_postal?: string | null;
-          ville?: string | null;
-          telephone?: string | null;
-          email?: string | null;
-          numero_agrement_cgss?: string | null;
-          date_creation?: string;
-          date_archivage?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          dpo_contact_email?: string | null;
-          dpo_contact_phone?: string | null;
-          dpo_contact_address?: string | null;
-          dpo_external?: boolean;
-          dpo_updated_at?: string | null;
-        };
-        Relationships: [];
-      };
-      profiles: {
-        Row: {
-          id: string;
-          organization_id: string;
-          role: Database['public']['Enums']['user_role'];
-          prenom: string;
-          nom: string;
-          telephone: string | null;
-          email: string;
-          actif: boolean;
-          date_archivage: string | null;
-          created_at: string;
-          updated_at: string;
-          cgu_version_accepted: string | null;
-          cgu_accepted_at: string | null;
-        };
-        Insert: {
-          id: string;
-          organization_id: string;
-          role: Database['public']['Enums']['user_role'];
-          prenom: string;
-          nom: string;
-          telephone?: string | null;
-          email: string;
-          actif?: boolean;
-          date_archivage?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          cgu_version_accepted?: string | null;
-          cgu_accepted_at?: string | null;
-        };
-        Update: {
-          id?: string;
-          organization_id?: string;
-          role?: Database['public']['Enums']['user_role'];
-          prenom?: string;
-          nom?: string;
-          telephone?: string | null;
-          email?: string;
-          actif?: boolean;
-          date_archivage?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          cgu_version_accepted?: string | null;
-          cgu_accepted_at?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'profiles_organization_id_fkey';
-            columns: ['organization_id'];
-            referencedRelation: 'organizations';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
       audit_logs: {
         Row: {
-          id: string;
-          organization_id: string;
-          actor_id: string | null;
-          actor_role: Database['public']['Enums']['user_role'] | null;
-          action: string;
-          entity_type: string;
-          entity_id: string | null;
-          metadata: Json;
-          created_at: string;
-        };
+          action: string
+          actor_id: string | null
+          actor_role: Database["public"]["Enums"]["user_role"] | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          metadata: Json
+          organization_id: string
+        }
         Insert: {
-          id?: string;
-          organization_id: string;
-          actor_id?: string | null;
-          actor_role?: Database['public']['Enums']['user_role'] | null;
-          action: string;
-          entity_type: string;
-          entity_id?: string | null;
-          metadata?: Json;
-          created_at?: string;
-        };
-        Update: never;
-        Relationships: [];
-      };
-      patients: {
-        Row: {
-          id: string;
-          organization_id: string;
-          prenom: string | null;
-          nom: string | null;
-          date_naissance: string | null;
-          genre: string | null;
-          telephone: string | null;
-          telephone_normalized: string | null;
-          adresse_ligne1: string | null;
-          adresse_ligne2: string | null;
-          code_postal: string | null;
-          ville: string | null;
-          contact_urgence_nom: string | null;
-          contact_urgence_telephone: string | null;
-          nir_encrypted: string | null;
-          nir_search_hash: string | null;
-          nir_last4: string | null;
-          canal_contact_prefere: Database['public']['Enums']['canal_contact_prefere'];
-          consentement_sms: boolean;
-          consentement_sms_at: string | null;
-          archive: boolean;
-          archive_at: string | null;
-          archive_reason: string | null;
-          created_at: string;
-          updated_at: string;
-          created_by: string | null;
-          updated_by: string | null;
-          search_text: string | null;
-        };
-        Insert: {
-          id?: string;
-          organization_id: string;
-          prenom?: string | null;
-          nom?: string | null;
-          date_naissance?: string | null;
-          genre?: string | null;
-          telephone?: string | null;
-          telephone_normalized?: string | null;
-          adresse_ligne1?: string | null;
-          adresse_ligne2?: string | null;
-          code_postal?: string | null;
-          ville?: string | null;
-          contact_urgence_nom?: string | null;
-          contact_urgence_telephone?: string | null;
-          nir_encrypted?: string | null;
-          nir_search_hash?: string | null;
-          nir_last4?: string | null;
-          canal_contact_prefere?: Database['public']['Enums']['canal_contact_prefere'];
-          consentement_sms?: boolean;
-          consentement_sms_at?: string | null;
-          archive?: boolean;
-          archive_at?: string | null;
-          archive_reason?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          created_by?: string | null;
-          updated_by?: string | null;
-        };
+          action: string
+          actor_id?: string | null
+          actor_role?: Database["public"]["Enums"]["user_role"] | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          metadata?: Json
+          organization_id: string
+        }
         Update: {
-          id?: string;
-          organization_id?: string;
-          prenom?: string | null;
-          nom?: string | null;
-          date_naissance?: string | null;
-          genre?: string | null;
-          telephone?: string | null;
-          telephone_normalized?: string | null;
-          adresse_ligne1?: string | null;
-          adresse_ligne2?: string | null;
-          code_postal?: string | null;
-          ville?: string | null;
-          contact_urgence_nom?: string | null;
-          contact_urgence_telephone?: string | null;
-          nir_encrypted?: string | null;
-          nir_search_hash?: string | null;
-          nir_last4?: string | null;
-          canal_contact_prefere?: Database['public']['Enums']['canal_contact_prefere'];
-          consentement_sms?: boolean;
-          consentement_sms_at?: string | null;
-          archive?: boolean;
-          archive_at?: string | null;
-          archive_reason?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          created_by?: string | null;
-          updated_by?: string | null;
-        };
+          action?: string
+          actor_id?: string | null
+          actor_role?: Database["public"]["Enums"]["user_role"] | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          metadata?: Json
+          organization_id?: string
+        }
         Relationships: [
           {
-            foreignKeyName: 'patients_organization_id_fkey';
-            columns: ['organization_id'];
-            referencedRelation: 'organizations';
-            referencedColumns: ['id'];
+            foreignKeyName: "audit_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
           },
-        ];
-      };
-      patient_constraint: {
-        Row: {
-          id: string;
-          organization_id: string;
-          patient_id: string;
-          type: Database['public']['Enums']['patient_constraint_type'];
-          note: string | null;
-          created_at: string;
-          created_by: string;
-        };
-        Insert: {
-          id?: string;
-          organization_id: string;
-          patient_id: string;
-          type: Database['public']['Enums']['patient_constraint_type'];
-          note?: string | null;
-          created_at?: string;
-          created_by: string;
-        };
-        Update: {
-          id?: string;
-          organization_id?: string;
-          patient_id?: string;
-          type?: Database['public']['Enums']['patient_constraint_type'];
-          note?: string | null;
-          created_at?: string;
-          created_by?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'patient_constraint_patient_id_fkey';
-            columns: ['patient_id'];
-            referencedRelation: 'patients';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      patient_operational_note: {
-        Row: {
-          id: string;
-          organization_id: string;
-          patient_id: string;
-          content: string;
-          author_id: string;
-          replaced_by_id: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          organization_id: string;
-          patient_id: string;
-          content: string;
-          author_id: string;
-          replaced_by_id?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          organization_id?: string;
-          patient_id?: string;
-          content?: string;
-          author_id?: string;
-          replaced_by_id?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'patient_operational_note_patient_id_fkey';
-            columns: ['patient_id'];
-            referencedRelation: 'patients';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      data_processing_register: {
-        Row: {
-          id: string;
-          organization_id: string;
-          purpose: string;
-          legal_basis: string;
-          data_categories: string[];
-          data_subjects: string[];
-          recipients: string[];
-          retention_period_days: number;
-          security_measures: string;
-          international_transfer: boolean;
-          international_transfer_safeguards: string | null;
-          created_at: string;
-          updated_at: string;
-          created_by: string | null;
-          updated_by: string | null;
-        };
-        Insert: {
-          id?: string;
-          organization_id: string;
-          purpose: string;
-          legal_basis: string;
-          data_categories: string[];
-          data_subjects: string[];
-          recipients: string[];
-          retention_period_days: number;
-          security_measures: string;
-          international_transfer?: boolean;
-          international_transfer_safeguards?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          created_by?: string | null;
-          updated_by?: string | null;
-        };
-        Update: never;
-        Relationships: [
-          {
-            foreignKeyName: 'data_processing_register_organization_id_fkey';
-            columns: ['organization_id'];
-            referencedRelation: 'organizations';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      dpa_record: {
-        Row: {
-          id: string;
-          organization_id: string;
-          subprocessor_name: string;
-          subprocessor_role: string;
-          dpa_version: string;
-          dpa_document_url: string | null;
-          signed_at: string;
-          expires_at: string | null;
-          notes: string | null;
-          created_at: string;
-          updated_at: string;
-          created_by: string | null;
-        };
-        Insert: {
-          id?: string;
-          organization_id: string;
-          subprocessor_name: string;
-          subprocessor_role: string;
-          dpa_version: string;
-          dpa_document_url?: string | null;
-          signed_at: string;
-          expires_at?: string | null;
-          notes?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          created_by?: string | null;
-        };
-        Update: {
-          id?: string;
-          organization_id?: string;
-          subprocessor_name?: string;
-          subprocessor_role?: string;
-          dpa_version?: string;
-          dpa_document_url?: string | null;
-          signed_at?: string;
-          expires_at?: string | null;
-          notes?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          created_by?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'dpa_record_organization_id_fkey';
-            columns: ['organization_id'];
-            referencedRelation: 'organizations';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      dpia_record: {
-        Row: {
-          id: string;
-          organization_id: string;
-          title: string;
-          scope: string;
-          data_flow_diagram: string | null;
-          risks_identified: Json;
-          mitigations: Json;
-          residual_risk_level: string | null;
-          cnil_consultation_required: boolean;
-          cnil_consultation_date: string | null;
-          reviewed_at: string;
-          next_review_at: string;
-          status: string;
-          created_at: string;
-          updated_at: string;
-          created_by: string | null;
-        };
-        Insert: {
-          id?: string;
-          organization_id: string;
-          title: string;
-          scope: string;
-          data_flow_diagram?: string | null;
-          risks_identified?: Json;
-          mitigations?: Json;
-          residual_risk_level?: string | null;
-          cnil_consultation_required?: boolean;
-          cnil_consultation_date?: string | null;
-          reviewed_at: string;
-          next_review_at: string;
-          status: string;
-          created_at?: string;
-          updated_at?: string;
-          created_by?: string | null;
-        };
-        Update: {
-          id?: string;
-          organization_id?: string;
-          title?: string;
-          scope?: string;
-          data_flow_diagram?: string | null;
-          risks_identified?: Json;
-          mitigations?: Json;
-          residual_risk_level?: string | null;
-          cnil_consultation_required?: boolean;
-          cnil_consultation_date?: string | null;
-          reviewed_at?: string;
-          next_review_at?: string;
-          status?: string;
-          created_at?: string;
-          updated_at?: string;
-          created_by?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'dpia_record_organization_id_fkey';
-            columns: ['organization_id'];
-            referencedRelation: 'organizations';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      data_breach_incident: {
-        Row: {
-          id: string;
-          organization_id: string;
-          detected_at: string;
-          severity: string;
-          nature: string;
-          affected_data_categories: string[];
-          affected_subjects_count: number | null;
-          description: string;
-          immediate_measures: string;
-          cnil_notification_required: boolean;
-          cnil_notification_at: string | null;
-          cnil_notification_reference: string | null;
-          subjects_notification_required: boolean;
-          subjects_notified_at: string | null;
-          closed_at: string | null;
-          closed_by: string | null;
-          created_at: string;
-          updated_at: string;
-          created_by: string | null;
-        };
-        Insert: {
-          id?: string;
-          organization_id: string;
-          detected_at: string;
-          severity: string;
-          nature: string;
-          affected_data_categories: string[];
-          affected_subjects_count?: number | null;
-          description: string;
-          immediate_measures: string;
-          cnil_notification_required?: boolean;
-          cnil_notification_at?: string | null;
-          cnil_notification_reference?: string | null;
-          subjects_notification_required?: boolean;
-          subjects_notified_at?: string | null;
-          closed_at?: string | null;
-          closed_by?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          created_by?: string | null;
-        };
-        Update: {
-          id?: string;
-          organization_id?: string;
-          detected_at?: string;
-          severity?: string;
-          nature?: string;
-          affected_data_categories?: string[];
-          affected_subjects_count?: number | null;
-          description?: string;
-          immediate_measures?: string;
-          cnil_notification_required?: boolean;
-          cnil_notification_at?: string | null;
-          cnil_notification_reference?: string | null;
-          subjects_notification_required?: boolean;
-          subjects_notified_at?: string | null;
-          closed_at?: string | null;
-          closed_by?: string | null;
-          created_at?: string;
-          updated_at?: string;
-          created_by?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'data_breach_incident_organization_id_fkey';
-            columns: ['organization_id'];
-            referencedRelation: 'organizations';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      patient_data_request: {
-        Row: {
-          id: string;
-          organization_id: string;
-          patient_id: string | null;
-          request_type: string;
-          requested_at: string;
-          deadline_at: string;
-          status: string;
-          response: string | null;
-          response_at: string | null;
-          response_by: string | null;
-          request_token: string;
-          request_token_expires_at: string;
-          requester_email: string | null;
-          requester_proof_of_identity_url: string | null;
-          created_at: string;
-          updated_at: string;
-        };
-        Insert: {
-          id?: string;
-          organization_id: string;
-          patient_id?: string | null;
-          request_type: string;
-          requested_at?: string;
-          deadline_at?: string;
-          status: string;
-          response?: string | null;
-          response_at?: string | null;
-          response_by?: string | null;
-          request_token: string;
-          request_token_expires_at: string;
-          requester_email?: string | null;
-          requester_proof_of_identity_url?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Update: {
-          id?: string;
-          organization_id?: string;
-          patient_id?: string | null;
-          request_type?: string;
-          requested_at?: string;
-          deadline_at?: string;
-          status?: string;
-          response?: string | null;
-          response_at?: string | null;
-          response_by?: string | null;
-          request_token?: string;
-          request_token_expires_at?: string;
-          requester_email?: string | null;
-          requester_proof_of_identity_url?: string | null;
-          created_at?: string;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'patient_data_request_organization_id_fkey';
-            columns: ['organization_id'];
-            referencedRelation: 'organizations';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'patient_data_request_patient_id_fkey';
-            columns: ['patient_id'];
-            referencedRelation: 'patients';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
+        ]
+      }
       cgu_acceptance: {
         Row: {
-          id: string;
-          profile_id: string;
-          version: string;
-          document_type: string;
-          accepted_at: string;
-          ip_address: string | null;
-          user_agent: string | null;
-        };
+          accepted_at: string
+          document_type: string
+          id: string
+          ip_address: unknown
+          profile_id: string
+          user_agent: string | null
+          version: string
+        }
         Insert: {
-          id?: string;
-          profile_id: string;
-          version: string;
-          document_type: string;
-          accepted_at?: string;
-          ip_address?: string | null;
-          user_agent?: string | null;
-        };
-        Update: never;
+          accepted_at?: string
+          document_type: string
+          id?: string
+          ip_address?: unknown
+          profile_id: string
+          user_agent?: string | null
+          version: string
+        }
+        Update: {
+          accepted_at?: string
+          document_type?: string
+          id?: string
+          ip_address?: unknown
+          profile_id?: string
+          user_agent?: string | null
+          version?: string
+        }
         Relationships: [
           {
-            foreignKeyName: 'cgu_acceptance_profile_id_fkey';
-            columns: ['profile_id'];
-            referencedRelation: 'profiles';
-            referencedColumns: ['id'];
+            foreignKeyName: "cgu_acceptance_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+        ]
+      }
       cookie_consent_log: {
         Row: {
-          id: string;
-          session_token_hash: string;
-          choices: Json;
-          user_agent_hash: string | null;
-          created_at: string;
-        };
+          choices: Json
+          created_at: string
+          id: string
+          session_token_hash: string
+          user_agent_hash: string | null
+        }
         Insert: {
-          id?: string;
-          session_token_hash: string;
-          choices: Json;
-          user_agent_hash?: string | null;
-          created_at?: string;
-        };
-        Update: never;
-        Relationships: [];
-      };
+          choices: Json
+          created_at?: string
+          id?: string
+          session_token_hash: string
+          user_agent_hash?: string | null
+        }
+        Update: {
+          choices?: Json
+          created_at?: string
+          id?: string
+          session_token_hash?: string
+          user_agent_hash?: string | null
+        }
+        Relationships: []
+      }
+      data_breach_incident: {
+        Row: {
+          affected_data_categories: string[]
+          affected_subjects_count: number | null
+          closed_at: string | null
+          closed_by: string | null
+          cnil_notification_at: string | null
+          cnil_notification_reference: string | null
+          cnil_notification_required: boolean
+          created_at: string
+          created_by: string | null
+          description: string
+          detected_at: string
+          id: string
+          immediate_measures: string
+          nature: string
+          organization_id: string
+          severity: string
+          subjects_notification_required: boolean
+          subjects_notified_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          affected_data_categories: string[]
+          affected_subjects_count?: number | null
+          closed_at?: string | null
+          closed_by?: string | null
+          cnil_notification_at?: string | null
+          cnil_notification_reference?: string | null
+          cnil_notification_required?: boolean
+          created_at?: string
+          created_by?: string | null
+          description: string
+          detected_at: string
+          id?: string
+          immediate_measures: string
+          nature: string
+          organization_id: string
+          severity: string
+          subjects_notification_required?: boolean
+          subjects_notified_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          affected_data_categories?: string[]
+          affected_subjects_count?: number | null
+          closed_at?: string | null
+          closed_by?: string | null
+          cnil_notification_at?: string | null
+          cnil_notification_reference?: string | null
+          cnil_notification_required?: boolean
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          detected_at?: string
+          id?: string
+          immediate_measures?: string
+          nature?: string
+          organization_id?: string
+          severity?: string
+          subjects_notification_required?: boolean
+          subjects_notified_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_breach_incident_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      data_processing_register: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          data_categories: string[]
+          data_subjects: string[]
+          id: string
+          international_transfer: boolean
+          international_transfer_safeguards: string | null
+          legal_basis: string
+          organization_id: string
+          purpose: string
+          recipients: string[]
+          retention_period_days: number
+          security_measures: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          data_categories: string[]
+          data_subjects: string[]
+          id?: string
+          international_transfer?: boolean
+          international_transfer_safeguards?: string | null
+          legal_basis: string
+          organization_id: string
+          purpose: string
+          recipients: string[]
+          retention_period_days: number
+          security_measures: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          data_categories?: string[]
+          data_subjects?: string[]
+          id?: string
+          international_transfer?: boolean
+          international_transfer_safeguards?: string | null
+          legal_basis?: string
+          organization_id?: string
+          purpose?: string
+          recipients?: string[]
+          retention_period_days?: number
+          security_measures?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_processing_register_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dpa_record: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          dpa_document_url: string | null
+          dpa_version: string
+          expires_at: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          signed_at: string
+          subprocessor_name: string
+          subprocessor_role: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          dpa_document_url?: string | null
+          dpa_version: string
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          signed_at: string
+          subprocessor_name: string
+          subprocessor_role: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          dpa_document_url?: string | null
+          dpa_version?: string
+          expires_at?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          signed_at?: string
+          subprocessor_name?: string
+          subprocessor_role?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dpa_record_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dpia_record: {
+        Row: {
+          cnil_consultation_date: string | null
+          cnil_consultation_required: boolean
+          created_at: string
+          created_by: string | null
+          data_flow_diagram: string | null
+          id: string
+          mitigations: Json
+          next_review_at: string
+          organization_id: string
+          residual_risk_level: string | null
+          reviewed_at: string
+          risks_identified: Json
+          scope: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          cnil_consultation_date?: string | null
+          cnil_consultation_required?: boolean
+          created_at?: string
+          created_by?: string | null
+          data_flow_diagram?: string | null
+          id?: string
+          mitigations?: Json
+          next_review_at: string
+          organization_id: string
+          residual_risk_level?: string | null
+          reviewed_at: string
+          risks_identified?: Json
+          scope: string
+          status: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          cnil_consultation_date?: string | null
+          cnil_consultation_required?: boolean
+          created_at?: string
+          created_by?: string | null
+          data_flow_diagram?: string | null
+          id?: string
+          mitigations?: Json
+          next_review_at?: string
+          organization_id?: string
+          residual_risk_level?: string | null
+          reviewed_at?: string
+          risks_identified?: Json
+          scope?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dpia_record_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      driver_invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          driver_id: string | null
+          email: string
+          expires_at: string
+          id: string
+          invited_by: string
+          organization_id: string
+          role: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          driver_id?: string | null
+          email: string
+          expires_at?: string
+          id?: string
+          invited_by: string
+          organization_id: string
+          role?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          driver_id?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          invited_by?: string
+          organization_id?: string
+          role?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_invitations_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_invitations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      drivers: {
+        Row: {
+          actif: boolean
+          archive: boolean
+          archive_at: string | null
+          archive_motif: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          nom_affichage: string
+          numero_licence: string | null
+          organization_id: string
+          profile_id: string | null
+          telephone: string | null
+          type_permis: string[]
+          updated_at: string
+        }
+        Insert: {
+          actif?: boolean
+          archive?: boolean
+          archive_at?: string | null
+          archive_motif?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          nom_affichage: string
+          numero_licence?: string | null
+          organization_id: string
+          profile_id?: string | null
+          telephone?: string | null
+          type_permis?: string[]
+          updated_at?: string
+        }
+        Update: {
+          actif?: boolean
+          archive?: boolean
+          archive_at?: string | null
+          archive_motif?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          nom_affichage?: string
+          numero_licence?: string | null
+          organization_id?: string
+          profile_id?: string | null
+          telephone?: string | null
+          type_permis?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drivers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      holidays_974: {
+        Row: {
+          date: string
+          label: string
+        }
+        Insert: {
+          date: string
+          label: string
+        }
+        Update: {
+          date?: string
+          label?: string
+        }
+        Relationships: []
+      }
+      idempotency_keys: {
+        Row: {
+          created_at: string
+          expires_at: string
+          key: string
+          mutation_type: string
+          resource_id: string
+          response_json: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          key: string
+          mutation_type: string
+          resource_id: string
+          response_json: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          key?: string
+          mutation_type?: string
+          resource_id?: string
+          response_json?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       legal_request_attempts: {
         Row: {
-          id: string;
-          token_hash: string;
-          attempted_at: string;
-          success: boolean;
-        };
+          attempted_at: string
+          id: string
+          success: boolean
+          token_hash: string
+        }
         Insert: {
-          id?: string;
-          token_hash: string;
-          attempted_at?: string;
-          success?: boolean;
-        };
-        Update: never;
-        Relationships: [];
-      };
-      rides: {
-        Row: {
-          id: string;
-          organization_id: string;
-          patient_id: string;
-          scheduled_at: string;
-          pickup_address: string;
-          pickup_postal_code: string | null;
-          pickup_city: string | null;
-          dropoff_address: string;
-          dropoff_postal_code: string | null;
-          dropoff_city: string | null;
-          transport_mode: Database['public']['Enums']['ride_transport_mode'];
-          urgency: Database['public']['Enums']['ride_urgency'];
-          status: Database['public']['Enums']['ride_status'];
-          notes_regulateur: string | null;
-          archive: boolean;
-          created_at: string;
-          updated_at: string;
-          created_by: string;
-          updated_by: string;
-        };
-        Insert: {
-          id?: string;
-          organization_id: string;
-          patient_id: string;
-          scheduled_at: string;
-          pickup_address: string;
-          pickup_postal_code?: string | null;
-          pickup_city?: string | null;
-          dropoff_address: string;
-          dropoff_postal_code?: string | null;
-          dropoff_city?: string | null;
-          transport_mode?: Database['public']['Enums']['ride_transport_mode'];
-          urgency?: Database['public']['Enums']['ride_urgency'];
-          status?: Database['public']['Enums']['ride_status'];
-          notes_regulateur?: string | null;
-          archive?: boolean;
-          created_at?: string;
-          updated_at?: string;
-          created_by: string;
-          updated_by: string;
-        };
+          attempted_at?: string
+          id?: string
+          success?: boolean
+          token_hash: string
+        }
         Update: {
-          id?: string;
-          organization_id?: string;
-          patient_id?: string;
-          scheduled_at?: string;
-          pickup_address?: string;
-          pickup_postal_code?: string | null;
-          pickup_city?: string | null;
-          dropoff_address?: string;
-          dropoff_postal_code?: string | null;
-          dropoff_city?: string | null;
-          transport_mode?: Database['public']['Enums']['ride_transport_mode'];
-          urgency?: Database['public']['Enums']['ride_urgency'];
-          status?: Database['public']['Enums']['ride_status'];
-          notes_regulateur?: string | null;
-          archive?: boolean;
-          created_at?: string;
-          updated_at?: string;
-          created_by?: string;
-          updated_by?: string;
-        };
+          attempted_at?: string
+          id?: string
+          success?: boolean
+          token_hash?: string
+        }
+        Relationships: []
+      }
+      organizations: {
+        Row: {
+          adresse: string | null
+          code_postal: string | null
+          created_at: string
+          date_archivage: string | null
+          date_creation: string
+          dpo_contact_address: string | null
+          dpo_contact_email: string | null
+          dpo_contact_phone: string | null
+          dpo_external: boolean
+          dpo_updated_at: string | null
+          email: string | null
+          id: string
+          nom: string
+          numero_agrement_cgss: string | null
+          siret: string | null
+          telephone: string | null
+          updated_at: string
+          ville: string | null
+        }
+        Insert: {
+          adresse?: string | null
+          code_postal?: string | null
+          created_at?: string
+          date_archivage?: string | null
+          date_creation?: string
+          dpo_contact_address?: string | null
+          dpo_contact_email?: string | null
+          dpo_contact_phone?: string | null
+          dpo_external?: boolean
+          dpo_updated_at?: string | null
+          email?: string | null
+          id?: string
+          nom: string
+          numero_agrement_cgss?: string | null
+          siret?: string | null
+          telephone?: string | null
+          updated_at?: string
+          ville?: string | null
+        }
+        Update: {
+          adresse?: string | null
+          code_postal?: string | null
+          created_at?: string
+          date_archivage?: string | null
+          date_creation?: string
+          dpo_contact_address?: string | null
+          dpo_contact_email?: string | null
+          dpo_contact_phone?: string | null
+          dpo_external?: boolean
+          dpo_updated_at?: string | null
+          email?: string | null
+          id?: string
+          nom?: string
+          numero_agrement_cgss?: string | null
+          siret?: string | null
+          telephone?: string | null
+          updated_at?: string
+          ville?: string | null
+        }
+        Relationships: []
+      }
+      patient_constraint: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          note: string | null
+          organization_id: string
+          patient_id: string
+          type: Database["public"]["Enums"]["patient_constraint_type"]
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          note?: string | null
+          organization_id: string
+          patient_id: string
+          type: Database["public"]["Enums"]["patient_constraint_type"]
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          note?: string | null
+          organization_id?: string
+          patient_id?: string
+          type?: Database["public"]["Enums"]["patient_constraint_type"]
+        }
         Relationships: [
           {
-            foreignKeyName: 'rides_organization_id_fkey';
-            columns: ['organization_id'];
-            referencedRelation: 'organizations';
-            referencedColumns: ['id'];
+            foreignKeyName: "patient_constraint_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'rides_patient_id_fkey';
-            columns: ['patient_id'];
-            referencedRelation: 'patients';
-            referencedColumns: ['id'];
+            foreignKeyName: "patient_constraint_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
           },
-        ];
-      };
+          {
+            foreignKeyName: "patient_constraint_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_data_request: {
+        Row: {
+          created_at: string
+          deadline_at: string
+          id: string
+          organization_id: string
+          patient_id: string | null
+          request_token: string
+          request_token_expires_at: string
+          request_type: string
+          requested_at: string
+          requester_email: string | null
+          requester_proof_of_identity_url: string | null
+          response: string | null
+          response_at: string | null
+          response_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          deadline_at: string
+          id?: string
+          organization_id: string
+          patient_id?: string | null
+          request_token: string
+          request_token_expires_at: string
+          request_type: string
+          requested_at?: string
+          requester_email?: string | null
+          requester_proof_of_identity_url?: string | null
+          response?: string | null
+          response_at?: string | null
+          response_by?: string | null
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          deadline_at?: string
+          id?: string
+          organization_id?: string
+          patient_id?: string | null
+          request_token?: string
+          request_token_expires_at?: string
+          request_type?: string
+          requested_at?: string
+          requester_email?: string | null
+          requester_proof_of_identity_url?: string | null
+          response?: string | null
+          response_at?: string | null
+          response_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_data_request_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_data_request_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_data_request_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_operational_note: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          id: string
+          organization_id: string
+          patient_id: string
+          replaced_by_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          id?: string
+          organization_id: string
+          patient_id: string
+          replaced_by_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          organization_id?: string
+          patient_id?: string
+          replaced_by_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_operational_note_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_operational_note_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_operational_note_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_operational_note_replaced_by_id_fkey"
+            columns: ["replaced_by_id"]
+            isOneToOne: false
+            referencedRelation: "patient_operational_note"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patients: {
+        Row: {
+          adresse_ligne1: string | null
+          adresse_ligne2: string | null
+          archive: boolean
+          archive_at: string | null
+          archive_reason: string | null
+          canal_contact_prefere: Database["public"]["Enums"]["canal_contact_prefere"]
+          code_postal: string | null
+          consentement_sms: boolean
+          consentement_sms_at: string | null
+          contact_urgence_nom: string | null
+          contact_urgence_telephone: string | null
+          created_at: string
+          created_by: string | null
+          date_naissance: string | null
+          genre: string | null
+          id: string
+          nir_encrypted: string | null
+          nir_last4: string | null
+          nir_search_hash: string | null
+          nom: string | null
+          organization_id: string
+          prenom: string | null
+          search_text: string | null
+          telephone: string | null
+          telephone_normalized: string | null
+          updated_at: string
+          updated_by: string | null
+          ville: string | null
+        }
+        Insert: {
+          adresse_ligne1?: string | null
+          adresse_ligne2?: string | null
+          archive?: boolean
+          archive_at?: string | null
+          archive_reason?: string | null
+          canal_contact_prefere?: Database["public"]["Enums"]["canal_contact_prefere"]
+          code_postal?: string | null
+          consentement_sms?: boolean
+          consentement_sms_at?: string | null
+          contact_urgence_nom?: string | null
+          contact_urgence_telephone?: string | null
+          created_at?: string
+          created_by?: string | null
+          date_naissance?: string | null
+          genre?: string | null
+          id?: string
+          nir_encrypted?: string | null
+          nir_last4?: string | null
+          nir_search_hash?: string | null
+          nom?: string | null
+          organization_id: string
+          prenom?: string | null
+          search_text?: string | null
+          telephone?: string | null
+          telephone_normalized?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          ville?: string | null
+        }
+        Update: {
+          adresse_ligne1?: string | null
+          adresse_ligne2?: string | null
+          archive?: boolean
+          archive_at?: string | null
+          archive_reason?: string | null
+          canal_contact_prefere?: Database["public"]["Enums"]["canal_contact_prefere"]
+          code_postal?: string | null
+          consentement_sms?: boolean
+          consentement_sms_at?: string | null
+          contact_urgence_nom?: string | null
+          contact_urgence_telephone?: string | null
+          created_at?: string
+          created_by?: string | null
+          date_naissance?: string | null
+          genre?: string | null
+          id?: string
+          nir_encrypted?: string | null
+          nir_last4?: string | null
+          nir_search_hash?: string | null
+          nom?: string | null
+          organization_id?: string
+          prenom?: string | null
+          search_text?: string | null
+          telephone?: string | null
+          telephone_normalized?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          ville?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patients_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pois_metier: {
+        Row: {
+          actif: boolean
+          adresse: string
+          code_postal: string
+          created_at: string
+          created_by: string | null
+          id: string
+          latitude: number | null
+          longitude: number | null
+          nom_court: string
+          nom_long: string | null
+          notes_acces: string | null
+          organization_id: string
+          telephone: string | null
+          type_poi: string
+          updated_at: string
+          ville: string
+        }
+        Insert: {
+          actif?: boolean
+          adresse: string
+          code_postal: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          nom_court: string
+          nom_long?: string | null
+          notes_acces?: string | null
+          organization_id: string
+          telephone?: string | null
+          type_poi: string
+          updated_at?: string
+          ville: string
+        }
+        Update: {
+          actif?: boolean
+          adresse?: string
+          code_postal?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          nom_court?: string
+          nom_long?: string | null
+          notes_acces?: string | null
+          organization_id?: string
+          telephone?: string | null
+          type_poi?: string
+          updated_at?: string
+          ville?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pois_metier_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          actif: boolean
+          cgu_accepted_at: string | null
+          cgu_version_accepted: string | null
+          created_at: string
+          date_archivage: string | null
+          email: string
+          id: string
+          nom: string
+          organization_id: string
+          prenom: string
+          role: Database["public"]["Enums"]["user_role"]
+          telephone: string | null
+          updated_at: string
+        }
+        Insert: {
+          actif?: boolean
+          cgu_accepted_at?: string | null
+          cgu_version_accepted?: string | null
+          created_at?: string
+          date_archivage?: string | null
+          email: string
+          id: string
+          nom: string
+          organization_id: string
+          prenom: string
+          role: Database["public"]["Enums"]["user_role"]
+          telephone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actif?: boolean
+          cgu_accepted_at?: string | null
+          cgu_version_accepted?: string | null
+          created_at?: string
+          date_archivage?: string | null
+          email?: string
+          id?: string
+          nom?: string
+          organization_id?: string
+          prenom?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          telephone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ride_draft: {
         Row: {
-          id: string;
-          organization_id: string;
-          author_id: string;
-          patient_id: string | null;
-          payload: Json;
-          created_at: string;
-          updated_at: string;
-        };
+          author_id: string
+          created_at: string
+          id: string
+          organization_id: string
+          patient_id: string | null
+          payload: Json
+          updated_at: string
+        }
         Insert: {
-          id?: string;
-          organization_id: string;
-          author_id: string;
-          patient_id?: string | null;
-          payload: Json;
-          created_at?: string;
-          updated_at?: string;
-        };
+          author_id: string
+          created_at?: string
+          id?: string
+          organization_id: string
+          patient_id?: string | null
+          payload: Json
+          updated_at?: string
+        }
         Update: {
-          id?: string;
-          organization_id?: string;
-          author_id?: string;
-          patient_id?: string | null;
-          payload?: Json;
-          created_at?: string;
-          updated_at?: string;
-        };
+          author_id?: string
+          created_at?: string
+          id?: string
+          organization_id?: string
+          patient_id?: string | null
+          payload?: Json
+          updated_at?: string
+        }
         Relationships: [
           {
-            foreignKeyName: 'ride_draft_organization_id_fkey';
-            columns: ['organization_id'];
-            referencedRelation: 'organizations';
-            referencedColumns: ['id'];
+            foreignKeyName: "ride_draft_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'ride_draft_patient_id_fkey';
-            columns: ['patient_id'];
-            referencedRelation: 'patients';
-            referencedColumns: ['id'];
+            foreignKeyName: "ride_draft_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
           },
-        ];
-      };
-    };
+          {
+            foreignKeyName: "ride_draft_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ride_recurrence_exceptions: {
+        Row: {
+          created_at: string
+          created_by: string
+          excluded_date: string
+          id: string
+          reason: string | null
+          ride_recurrence_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          excluded_date: string
+          id?: string
+          reason?: string | null
+          ride_recurrence_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          excluded_date?: string
+          id?: string
+          reason?: string | null
+          ride_recurrence_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_recurrence_exceptions_ride_recurrence_id_fkey"
+            columns: ["ride_recurrence_id"]
+            isOneToOne: false
+            referencedRelation: "ride_recurrences"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ride_recurrences: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          created_by: string
+          dropoff_address: string
+          dropoff_citycode: string | null
+          dropoff_lat: number | null
+          dropoff_lng: number | null
+          end_date: string | null
+          id: string
+          organization_id: string
+          patient_id: string
+          pickup_address: string
+          pickup_citycode: string | null
+          pickup_lat: number | null
+          pickup_lng: number | null
+          prescription_id: string | null
+          rrule_str: string
+          start_date: string
+          transport_mode: string
+          urgency: string
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          created_by: string
+          dropoff_address: string
+          dropoff_citycode?: string | null
+          dropoff_lat?: number | null
+          dropoff_lng?: number | null
+          end_date?: string | null
+          id?: string
+          organization_id: string
+          patient_id: string
+          pickup_address: string
+          pickup_citycode?: string | null
+          pickup_lat?: number | null
+          pickup_lng?: number | null
+          prescription_id?: string | null
+          rrule_str: string
+          start_date: string
+          transport_mode: string
+          urgency?: string
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          created_by?: string
+          dropoff_address?: string
+          dropoff_citycode?: string | null
+          dropoff_lat?: number | null
+          dropoff_lng?: number | null
+          end_date?: string | null
+          id?: string
+          organization_id?: string
+          patient_id?: string
+          pickup_address?: string
+          pickup_citycode?: string | null
+          pickup_lat?: number | null
+          pickup_lng?: number | null
+          prescription_id?: string | null
+          rrule_str?: string
+          start_date?: string
+          transport_mode?: string
+          urgency?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_recurrences_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ride_recurrences_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ride_recurrences_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rides: {
+        Row: {
+          archive: boolean
+          cancel_motif: string | null
+          created_at: string
+          created_by: string
+          driver_id: string | null
+          dropoff_address: string
+          dropoff_city: string | null
+          dropoff_citycode: string | null
+          dropoff_lat: number | null
+          dropoff_lng: number | null
+          dropoff_postal_code: string | null
+          ended_at: string | null
+          id: string
+          no_show_at: string | null
+          no_show_motif: string | null
+          notes_regulateur: string | null
+          organization_id: string
+          patient_id: string
+          payment_method: string | null
+          payment_received_at: string | null
+          payment_status: string
+          pickup_address: string
+          pickup_city: string | null
+          pickup_citycode: string | null
+          pickup_lat: number | null
+          pickup_lng: number | null
+          pickup_postal_code: string | null
+          ride_recurrence_id: string | null
+          scheduled_at: string
+          started_at: string | null
+          status: Database["public"]["Enums"]["ride_status"]
+          tarif_amount_eur: number | null
+          tarif_source: string | null
+          transport_mode: Database["public"]["Enums"]["ride_transport_mode"]
+          updated_at: string
+          updated_by: string
+          urgency: Database["public"]["Enums"]["ride_urgency"]
+          vehicle_id: string | null
+        }
+        Insert: {
+          archive?: boolean
+          cancel_motif?: string | null
+          created_at?: string
+          created_by: string
+          driver_id?: string | null
+          dropoff_address: string
+          dropoff_city?: string | null
+          dropoff_citycode?: string | null
+          dropoff_lat?: number | null
+          dropoff_lng?: number | null
+          dropoff_postal_code?: string | null
+          ended_at?: string | null
+          id?: string
+          no_show_at?: string | null
+          no_show_motif?: string | null
+          notes_regulateur?: string | null
+          organization_id: string
+          patient_id: string
+          payment_method?: string | null
+          payment_received_at?: string | null
+          payment_status?: string
+          pickup_address: string
+          pickup_city?: string | null
+          pickup_citycode?: string | null
+          pickup_lat?: number | null
+          pickup_lng?: number | null
+          pickup_postal_code?: string | null
+          ride_recurrence_id?: string | null
+          scheduled_at: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["ride_status"]
+          tarif_amount_eur?: number | null
+          tarif_source?: string | null
+          transport_mode?: Database["public"]["Enums"]["ride_transport_mode"]
+          updated_at?: string
+          updated_by: string
+          urgency?: Database["public"]["Enums"]["ride_urgency"]
+          vehicle_id?: string | null
+        }
+        Update: {
+          archive?: boolean
+          cancel_motif?: string | null
+          created_at?: string
+          created_by?: string
+          driver_id?: string | null
+          dropoff_address?: string
+          dropoff_city?: string | null
+          dropoff_citycode?: string | null
+          dropoff_lat?: number | null
+          dropoff_lng?: number | null
+          dropoff_postal_code?: string | null
+          ended_at?: string | null
+          id?: string
+          no_show_at?: string | null
+          no_show_motif?: string | null
+          notes_regulateur?: string | null
+          organization_id?: string
+          patient_id?: string
+          payment_method?: string | null
+          payment_received_at?: string | null
+          payment_status?: string
+          pickup_address?: string
+          pickup_city?: string | null
+          pickup_citycode?: string | null
+          pickup_lat?: number | null
+          pickup_lng?: number | null
+          pickup_postal_code?: string | null
+          ride_recurrence_id?: string | null
+          scheduled_at?: string
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["ride_status"]
+          tarif_amount_eur?: number | null
+          tarif_source?: string | null
+          transport_mode?: Database["public"]["Enums"]["ride_transport_mode"]
+          updated_at?: string
+          updated_by?: string
+          urgency?: Database["public"]["Enums"]["ride_urgency"]
+          vehicle_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rides_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rides_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rides_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rides_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rides_ride_recurrence_id_fkey"
+            columns: ["ride_recurrence_id"]
+            isOneToOne: false
+            referencedRelation: "ride_recurrences"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rides_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sms_messages: {
+        Row: {
+          body_rendered: string
+          created_at: string
+          delivered_at: string | null
+          delivery_error: string | null
+          delivery_status: string
+          id: string
+          organization_id: string
+          patient_id: string | null
+          ride_id: string | null
+          sent_at: string | null
+          template_key: string
+          to_phone: string
+          twilio_message_sid: string | null
+        }
+        Insert: {
+          body_rendered: string
+          created_at?: string
+          delivered_at?: string | null
+          delivery_error?: string | null
+          delivery_status?: string
+          id?: string
+          organization_id: string
+          patient_id?: string | null
+          ride_id?: string | null
+          sent_at?: string | null
+          template_key: string
+          to_phone: string
+          twilio_message_sid?: string | null
+        }
+        Update: {
+          body_rendered?: string
+          created_at?: string
+          delivered_at?: string | null
+          delivery_error?: string | null
+          delivery_status?: string
+          id?: string
+          organization_id?: string
+          patient_id?: string | null
+          ride_id?: string | null
+          sent_at?: string | null
+          template_key?: string
+          to_phone?: string
+          twilio_message_sid?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sms_messages_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sms_messages_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sms_messages_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sms_messages_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sms_templates: {
+        Row: {
+          body: string
+          key: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          body: string
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          body?: string
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      vehicles: {
+        Row: {
+          actif: boolean
+          archive: boolean
+          archive_at: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          immatriculation: string
+          marque: string | null
+          modele: string | null
+          organization_id: string
+          places_assises: number | null
+          places_tpmr: number | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          actif?: boolean
+          archive?: boolean
+          archive_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          immatriculation: string
+          marque?: string | null
+          modele?: string | null
+          organization_id: string
+          places_assises?: number | null
+          places_tpmr?: number | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          actif?: boolean
+          archive?: boolean
+          archive_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          immatriculation?: string
+          marque?: string | null
+          modele?: string | null
+          organization_id?: string
+          places_assises?: number | null
+          places_tpmr?: number | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vehicles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
     Views: {
       patients_safe: {
         Row: {
-          id: string | null;
-          organization_id: string | null;
-          nom: string | null;
-          prenom: string | null;
-          date_naissance: string | null;
-          genre: string | null;
-          telephone: string | null;
-          telephone_normalized: string | null;
-          adresse_ligne1: string | null;
-          adresse_ligne2: string | null;
-          code_postal: string | null;
-          ville: string | null;
-          canal_contact_prefere: Database['public']['Enums']['canal_contact_prefere'] | null;
-          consentement_sms: boolean | null;
-          consentement_sms_at: string | null;
-          contact_urgence_nom: string | null;
-          contact_urgence_telephone: string | null;
-          nir_last4: string | null;
-          has_nir: boolean | null;
-          archive: boolean | null;
-          archive_at: string | null;
-          archive_reason: string | null;
-          search_text: string | null;
-          created_at: string | null;
-          updated_at: string | null;
-          created_by: string | null;
-          updated_by: string | null;
-        };
-        Relationships: [];
-      };
-    };
+          adresse_ligne1: string | null
+          adresse_ligne2: string | null
+          archive: boolean | null
+          archive_at: string | null
+          archive_reason: string | null
+          canal_contact_prefere:
+            | Database["public"]["Enums"]["canal_contact_prefere"]
+            | null
+          code_postal: string | null
+          consentement_sms: boolean | null
+          consentement_sms_at: string | null
+          contact_urgence_nom: string | null
+          contact_urgence_telephone: string | null
+          created_at: string | null
+          created_by: string | null
+          date_naissance: string | null
+          genre: string | null
+          has_nir: boolean | null
+          id: string | null
+          nir_last4: string | null
+          nom: string | null
+          organization_id: string | null
+          prenom: string | null
+          search_text: string | null
+          telephone: string | null
+          telephone_normalized: string | null
+          updated_at: string | null
+          updated_by: string | null
+          ville: string | null
+        }
+        Insert: {
+          adresse_ligne1?: string | null
+          adresse_ligne2?: string | null
+          archive?: boolean | null
+          archive_at?: string | null
+          archive_reason?: string | null
+          canal_contact_prefere?:
+            | Database["public"]["Enums"]["canal_contact_prefere"]
+            | null
+          code_postal?: string | null
+          consentement_sms?: boolean | null
+          consentement_sms_at?: string | null
+          contact_urgence_nom?: string | null
+          contact_urgence_telephone?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          date_naissance?: string | null
+          genre?: string | null
+          has_nir?: never
+          id?: string | null
+          nir_last4?: string | null
+          nom?: string | null
+          organization_id?: string | null
+          prenom?: string | null
+          search_text?: string | null
+          telephone?: string | null
+          telephone_normalized?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          ville?: string | null
+        }
+        Update: {
+          adresse_ligne1?: string | null
+          adresse_ligne2?: string | null
+          archive?: boolean | null
+          archive_at?: string | null
+          archive_reason?: string | null
+          canal_contact_prefere?:
+            | Database["public"]["Enums"]["canal_contact_prefere"]
+            | null
+          code_postal?: string | null
+          consentement_sms?: boolean | null
+          consentement_sms_at?: string | null
+          contact_urgence_nom?: string | null
+          contact_urgence_telephone?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          date_naissance?: string | null
+          genre?: string | null
+          has_nir?: never
+          id?: string | null
+          nir_last4?: string | null
+          nom?: string | null
+          organization_id?: string | null
+          prenom?: string | null
+          search_text?: string | null
+          telephone?: string | null
+          telephone_normalized?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          ville?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patients_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+    }
     Functions: {
-      current_organization_id: {
-        Args: Record<PropertyKey, never>;
-        Returns: string;
-      };
+      check_breach_deadlines: { Args: never; Returns: undefined }
+      current_organization_id: { Args: never; Returns: string }
       current_user_role: {
-        Args: Record<PropertyKey, never>;
-        Returns: Database['public']['Enums']['user_role'];
-      };
+        Args: never
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
       has_role: {
-        Args: { required_role: Database['public']['Enums']['user_role'] };
-        Returns: boolean;
-      };
-      search_patients: {
-        Args: { q: string };
-        Returns: Database['public']['Views']['patients_safe']['Row'][];
-      };
-      unaccent_immutable: {
-        Args: { input: string };
-        Returns: string;
-      };
-      check_breach_deadlines: {
-        Args: Record<PropertyKey, never>;
-        Returns: void;
-      };
-      purge_legal_request_attempts: {
-        Args: Record<PropertyKey, never>;
-        Returns: void;
-      };
-      rgpd_anonymize_patient: {
-        Args: {
-          p_patient_id: string;
-          p_request_id: string;
-          p_salt: string;
-        };
-        Returns: void;
-      };
+        Args: { required_role: Database["public"]["Enums"]["user_role"] }
+        Returns: boolean
+      }
       nir_match_patient_for_legal_request: {
         Args: {
-          p_request_id: string;
-          p_nir_search_hash: string;
-          p_nom: string;
-          p_date_naissance: string;
-        };
-        Returns: string | null;
-      };
-    };
+          p_date_naissance: string
+          p_nir_search_hash: string
+          p_nom: string
+          p_request_id: string
+        }
+        Returns: string
+      }
+      purge_legal_request_attempts: { Args: never; Returns: undefined }
+      rgpd_anonymize_patient: {
+        Args: { p_patient_id: string; p_request_id: string; p_salt: string }
+        Returns: undefined
+      }
+      search_patients: {
+        Args: { q: string }
+        Returns: {
+          adresse_ligne1: string | null
+          adresse_ligne2: string | null
+          archive: boolean | null
+          archive_at: string | null
+          archive_reason: string | null
+          canal_contact_prefere:
+            | Database["public"]["Enums"]["canal_contact_prefere"]
+            | null
+          code_postal: string | null
+          consentement_sms: boolean | null
+          consentement_sms_at: string | null
+          contact_urgence_nom: string | null
+          contact_urgence_telephone: string | null
+          created_at: string | null
+          created_by: string | null
+          date_naissance: string | null
+          genre: string | null
+          has_nir: boolean | null
+          id: string | null
+          nir_last4: string | null
+          nom: string | null
+          organization_id: string | null
+          prenom: string | null
+          search_text: string | null
+          telephone: string | null
+          telephone_normalized: string | null
+          updated_at: string | null
+          updated_by: string | null
+          ville: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "patients_safe"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      unaccent_immutable: { Args: { input: string }; Returns: string }
+    }
     Enums: {
-      user_role: 'dirigeant' | 'regulateur' | 'chauffeur';
+      canal_contact_prefere: "sms" | "appel" | "aucun"
       patient_constraint_type:
-        | 'medical_oxygene'
-        | 'medical_fauteuil'
-        | 'medical_brancard'
-        | 'vehicule_tpmr'
-        | 'horaire_matin'
-        | 'horaire_apres_midi'
-        | 'accompagnement_obligatoire'
-        | 'autre';
-      canal_contact_prefere: 'sms' | 'appel' | 'aucun';
-      ride_transport_mode: 'taxi_conventionne' | 'tpmr' | 'vsl' | 'ambulance';
-      ride_urgency: 'programmee' | 'urgente' | 'immediate';
+        | "medical_oxygene"
+        | "medical_fauteuil"
+        | "medical_brancard"
+        | "vehicule_tpmr"
+        | "horaire_matin"
+        | "horaire_apres_midi"
+        | "accompagnement_obligatoire"
+        | "autre"
       ride_status:
-        | 'brouillon'
-        | 'validee'
-        | 'assignee'
-        | 'en_cours'
-        | 'terminee'
-        | 'annulee_regulateur'
-        | 'annulee_patient'
-        | 'annulee_chauffeur';
-    };
-    CompositeTypes: Record<string, never>;
-  };
+        | "brouillon"
+        | "validee"
+        | "assignee"
+        | "en_cours"
+        | "terminee"
+        | "annulee_regulateur"
+        | "annulee_patient"
+        | "annulee_chauffeur"
+      ride_transport_mode: "taxi_conventionne" | "tpmr" | "vsl" | "ambulance"
+      ride_urgency: "programmee" | "urgente" | "immediate"
+      user_role: "dirigeant" | "regulateur" | "chauffeur"
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
 }
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {
+      canal_contact_prefere: ["sms", "appel", "aucun"],
+      patient_constraint_type: [
+        "medical_oxygene",
+        "medical_fauteuil",
+        "medical_brancard",
+        "vehicule_tpmr",
+        "horaire_matin",
+        "horaire_apres_midi",
+        "accompagnement_obligatoire",
+        "autre",
+      ],
+      ride_status: [
+        "brouillon",
+        "validee",
+        "assignee",
+        "en_cours",
+        "terminee",
+        "annulee_regulateur",
+        "annulee_patient",
+        "annulee_chauffeur",
+      ],
+      ride_transport_mode: ["taxi_conventionne", "tpmr", "vsl", "ambulance"],
+      ride_urgency: ["programmee", "urgente", "immediate"],
+      user_role: ["dirigeant", "regulateur", "chauffeur"],
+    },
+  },
+} as const
