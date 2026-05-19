@@ -3,13 +3,24 @@ name: Sync Supabase types
 on:
   workflow_dispatch:
   schedule:
-    # Tous les jours à 3h UTC (7h Réunion)
+    # Tous les jours à 3h UTC (7h Réunion) — filet de sécurité quotidien
     - cron: '0 3 * * *'
+  workflow_run:
+    # Auto-déclenché après chaque CD push réussi sur main (post-migration).
+    # Évite que types.gen.ts reste désynchronisé après un merge de migration.
+    workflows: ["CD"]
+    types:
+      - completed
+    branches:
+      - main
 
 jobs:
   sync:
     name: Régénérer types.gen.ts
     runs-on: ubuntu-latest
+    # workflow_run se déclenche peu importe succès/échec — filtrer ici.
+    # workflow_dispatch et schedule passent toujours (event_name différent).
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -34,4 +45,9 @@ jobs:
           title: 'chore(database): sync types Supabase'
           body: |
             Régénération automatique de `packages/database/src/types.gen.ts` depuis le projet Supabase de production.
+
+            Déclenchée par :
+            - `workflow_dispatch` (manuel) OU
+            - `schedule` (cron quotidien 3h UTC, filet de sécurité) OU
+            - `workflow_run` après CD push réussi sur main (post-migration).
           delete-branch: true
