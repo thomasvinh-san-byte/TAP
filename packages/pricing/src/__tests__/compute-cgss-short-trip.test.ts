@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+  computeCgssFromDistance,
   computeCgssShortTrip,
   type PricingInput,
   type TariffGrid,
@@ -159,5 +160,34 @@ describe('computeCgssShortTrip', () => {
       GRID,
     );
     expect(r.majoration_motif).toBe('nuit');
+  });
+});
+
+describe('computeCgssFromDistance (cœur partagé — simulateur admin)', () => {
+  const params = {
+    scheduled_at: '2026-06-01T06:00:00.000Z',
+    transport_mode: 'taxi_conventionne' as const,
+    holidays974: NO_HOLIDAYS,
+  };
+
+  it('distance directe > km_inclus → km facturés au prorata', () => {
+    const r = computeCgssFromDistance(10, params, GRID);
+    expect(r.distance_method).toBe('haversine_corrige');
+    expect(r.km_factures).toBe(6); // 10 - 4 km inclus
+    expect(r.km_total_eur as number).toBeCloseTo(7.3, 2); // 6 × 1,22 → arrondi 0,05
+  });
+
+  it('distance directe ≤ km_inclus → forfait seul', () => {
+    const r = computeCgssFromDistance(3, params, GRID);
+    expect(r.km_factures).toBe(0);
+    expect(r.km_total_eur).toBe(0);
+    expect(r.total_eur).toBe(16); // 13 forfait + 3 DROM
+  });
+
+  it('distance null → distance_method unavailable', () => {
+    const r = computeCgssFromDistance(null, params, GRID);
+    expect(r.distance_method).toBe('unavailable');
+    expect(r.distance_km).toBeNull();
+    expect(r.km_factures).toBeNull();
   });
 });

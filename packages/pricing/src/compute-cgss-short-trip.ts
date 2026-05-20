@@ -117,31 +117,31 @@ function resolveMajorationMotif(
   return null;
 }
 
-export function computeCgssShortTrip(
-  input: PricingInput,
+/**
+ * Calcule le tarif à partir d'une distance déjà connue (corrigée routier).
+ *
+ * Cœur de calcul partagé : `computeCgssShortTrip` l'appelle après le
+ * Haversine ; le simulateur admin l'appelle directement avec une distance
+ * saisie. Fonction PURE.
+ *
+ * @param distance_km distance routière corrigée, ou null si indisponible.
+ */
+export function computeCgssFromDistance(
+  distance_km: number | null,
+  params: {
+    scheduled_at: string;
+    transport_mode: TransportMode;
+    holidays974: Set<string>;
+  },
   grid: TariffGrid,
 ): PricingResult {
-  const hasCoords =
-    typeof input.pickup_lat === 'number' &&
-    typeof input.pickup_lng === 'number' &&
-    typeof input.dropoff_lat === 'number' &&
-    typeof input.dropoff_lng === 'number';
-
-  let distance_km: number | null = null;
-  let distance_method: DistanceMethod = 'unavailable';
   let km_factures: number | null = null;
   let prix_km_eur: number | null = null;
   let km_total_eur: number | null = null;
+  const distance_method: DistanceMethod =
+    distance_km === null ? 'unavailable' : 'haversine_corrige';
 
-  if (hasCoords) {
-    const haversine = haversineKm(
-      input.pickup_lat as number,
-      input.pickup_lng as number,
-      input.dropoff_lat as number,
-      input.dropoff_lng as number,
-    );
-    distance_km = haversine * grid.facteur_correction_routier;
-    distance_method = 'haversine_corrige';
+  if (distance_km !== null) {
     km_factures = Math.max(0, distance_km - grid.km_inclus);
     prix_km_eur = grid.prix_km_eur;
     km_total_eur = roundTo(km_factures * grid.prix_km_eur, grid.arrondi_eur);
@@ -149,11 +149,11 @@ export function computeCgssShortTrip(
 
   const supplement_drom_eur = grid.supplement_drom_eur;
   const supplement_tpmr_eur =
-    input.transport_mode === 'tpmr' ? grid.supplement_tpmr_eur : 0;
+    params.transport_mode === 'tpmr' ? grid.supplement_tpmr_eur : 0;
 
   const majoration_motif = resolveMajorationMotif(
-    toReunionLocal(input.scheduled_at),
-    input.holidays974,
+    toReunionLocal(params.scheduled_at),
+    params.holidays974,
   );
   const baseMajorable =
     grid.forfait_eur +
@@ -188,4 +188,36 @@ export function computeCgssShortTrip(
     majoration_eur,
     total_eur,
   };
+}
+
+export function computeCgssShortTrip(
+  input: PricingInput,
+  grid: TariffGrid,
+): PricingResult {
+  const hasCoords =
+    typeof input.pickup_lat === 'number' &&
+    typeof input.pickup_lng === 'number' &&
+    typeof input.dropoff_lat === 'number' &&
+    typeof input.dropoff_lng === 'number';
+
+  let distance_km: number | null = null;
+  if (hasCoords) {
+    const haversine = haversineKm(
+      input.pickup_lat as number,
+      input.pickup_lng as number,
+      input.dropoff_lat as number,
+      input.dropoff_lng as number,
+    );
+    distance_km = haversine * grid.facteur_correction_routier;
+  }
+
+  return computeCgssFromDistance(
+    distance_km,
+    {
+      scheduled_at: input.scheduled_at,
+      transport_mode: input.transport_mode,
+      holidays974: input.holidays974,
+    },
+    grid,
+  );
 }
