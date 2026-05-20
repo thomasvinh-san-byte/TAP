@@ -2,24 +2,23 @@
 
 import * as React from 'react';
 import { AlertTriangle, Pencil } from 'lucide-react';
-import type { PricingResult } from '@tap/pricing';
+import type { MajorationMotif, PricingResult } from '@tap/pricing';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 /**
- * PricingBreakdown — Surface A UI-SPEC Phase 04.7.
+ * PricingBreakdown — Surface A.
  *
- * Affiche le détail du tarif calculé par `computeCgssShortTrip` (stub
- * DEC-042) avec badge « DEMO » obligatoire et bouton « Modifier » optionnel.
+ * Phase 05.5 Wave 1 : adaptation à la `PricingResult` enrichie (DEC-061 —
+ * forfait / km facturés / DROM / TPMR / majoration). Le retrait du badge
+ * « DEMO » et le disclaimer estimatif fin sont traités en Wave 2
+ * (affichage complet UI-SPEC Surface A). Cette wave assure typecheck +
+ * build verts.
  *
  * - editable=false → vue read-only (chauffeur dans end-ride-modal)
- * - editable=true → vue avec bouton Modifier (régulateur dans ride-drawer
- *   post-clôture, ouvre OverrideTarifModal Surface B)
+ * - editable=true → vue avec bouton Modifier (régulateur post-clôture)
  *
- * Si pricing.source === 'fallback_random' : bandeau warning R3 héritage
- * Phase 04.5 (bg-warning/10 + border-warning/30 + text-foreground).
- *
- * Refs : DEC-042, UI-SPEC Surface A, UI-PATTERNS DEC-034.
+ * Refs : DEC-061, UI-SPEC Surface A.
  */
 
 interface Props {
@@ -37,19 +36,25 @@ function formatKm(n: number | null): string {
   return `${n.toFixed(1).replace('.', ',')} km`;
 }
 
+const MAJORATION_LABEL: Record<Exclude<MajorationMotif, null>, string> = {
+  nuit: 'Majoration nuit',
+  weekend: 'Majoration week-end',
+  ferie: 'Majoration jour férié',
+};
+
 export function PricingBreakdown({
   pricing,
   editable,
   onOverride,
 }: Props): JSX.Element {
-  const isFallback = pricing.source === 'fallback_random';
+  const distanceUnavailable = pricing.distance_method === 'unavailable';
 
   return (
     <div
       className="rounded-md border border-border bg-muted/20 p-16 space-y-12"
       data-testid="pricing-breakdown"
     >
-      {isFallback && (
+      {distanceUnavailable && (
         <div
           role="status"
           className="flex items-start gap-8 rounded-md border border-warning/30 bg-warning/10 px-12 py-8"
@@ -59,7 +64,7 @@ export function PricingBreakdown({
             aria-hidden
           />
           <p className="text-xs text-foreground">
-            Distance non calculable. Tarif estimé.
+            Distance non disponible — forfait et suppléments seuls.
           </p>
         </div>
       )}
@@ -82,10 +87,11 @@ export function PricingBreakdown({
           </dd>
         </div>
 
-        {!isFallback && pricing.distance_km !== null && (
+        {!distanceUnavailable && pricing.distance_km !== null && (
           <div className="flex items-center justify-between">
             <dt className="text-muted-foreground">
-              Distance {formatKm(pricing.distance_km)} ×{' '}
+              Distance {formatKm(pricing.distance_km)} ·{' '}
+              {formatKm(pricing.km_factures)} facturés ×{' '}
               {pricing.prix_km_eur !== null
                 ? formatEur(pricing.prix_km_eur)
                 : '—'}
@@ -98,36 +104,32 @@ export function PricingBreakdown({
           </div>
         )}
 
-        {isFallback && (
+        {pricing.supplement_drom_eur > 0 && (
           <div className="flex items-center justify-between">
-            <dt className="text-muted-foreground">Estimation</dt>
+            <dt className="text-muted-foreground">Supplément DROM</dt>
             <dd className="font-mono tabular-nums">
-              {formatEur(
-                pricing.total_eur -
-                  pricing.forfait_eur -
-                  pricing.supp_tpmr_eur -
-                  pricing.majo_nuit_eur,
-              )}
+              +{formatEur(pricing.supplement_drom_eur)}
             </dd>
           </div>
         )}
 
-        {pricing.supp_tpmr_eur > 0 && (
+        {pricing.supplement_tpmr_eur > 0 && (
           <div className="flex items-center justify-between">
             <dt className="text-muted-foreground">Supplément TPMR</dt>
             <dd className="font-mono tabular-nums">
-              +{formatEur(pricing.supp_tpmr_eur)}
+              +{formatEur(pricing.supplement_tpmr_eur)}
             </dd>
           </div>
         )}
 
-        {pricing.majo_nuit_eur > 0 && (
+        {pricing.majoration_eur > 0 && pricing.majoration_motif !== null && (
           <div className="flex items-center justify-between">
             <dt className="text-muted-foreground">
-              Majoration nuit (+{pricing.majo_nuit_pct}%)
+              {MAJORATION_LABEL[pricing.majoration_motif]} (+
+              {pricing.majoration_pct}%)
             </dt>
             <dd className="font-mono tabular-nums">
-              +{formatEur(pricing.majo_nuit_eur)}
+              +{formatEur(pricing.majoration_eur)}
             </dd>
           </div>
         )}

@@ -1,194 +1,163 @@
-/**
- * Tests Vitest — computeCgssShortTrip (DEC-042).
- *
- * Vise 100 % branch coverage : Haversine vs fallback, majo nuit, supp TPMR,
- * clamps min/max, urgence immediate, scénarios edge.
- *
- * Refs : DEC-042 LOCKED, DEC-013 esprit (calcul critique data financière).
- */
+import { describe, it, expect } from 'vitest';
+import {
+  computeCgssShortTrip,
+  type PricingInput,
+  type TariffGrid,
+} from '../compute-cgss-short-trip';
 
-import { describe, expect, it } from 'vitest';
-import { computeCgssShortTrip, type PricingInput } from '../compute-cgss-short-trip';
+// Grille de test — image d'une ligne tariff_grids (DEC-057, valeurs 974).
+const GRID: TariffGrid = {
+  forfait_eur: 13.0,
+  km_inclus: 4,
+  prix_km_eur: 1.22,
+  supplement_drom_eur: 3.0,
+  supplement_tpmr_eur: 30.0,
+  majoration_pct: 50,
+  facteur_correction_routier: 1.4,
+  arrondi_eur: 0.05,
+};
 
-// Coords approximatives Réunion pour fixtures réalistes
-const SAINT_DENIS = { lat: -20.8789, lng: 55.4481 };
-const CHU_BELLEPIERRE = { lat: -20.8845, lng: 55.453 }; // ~1 km
-const SAINT_PIERRE = { lat: -21.3393, lng: 55.4781 }; // ~80 km plat
+const NO_HOLIDAYS = new Set<string>();
 
-function makeInput(overrides: Partial<PricingInput> = {}): PricingInput {
+const PICKUP = { lat: -20.8823, lng: 55.4504 };
+const DROPOFF_SHORT = { lat: -20.89, lng: 55.46 }; // ~1,3 km haversine
+const DROPOFF_LONG = { lat: -20.95, lng: 55.55 }; // ~13 km haversine
+
+function baseInput(overrides: Partial<PricingInput> = {}): PricingInput {
   return {
-    scheduled_at: '2026-05-15T14:00:00Z', // 14h UTC → pas de majo nuit
+    pickup_lat: PICKUP.lat,
+    pickup_lng: PICKUP.lng,
+    dropoff_lat: DROPOFF_LONG.lat,
+    dropoff_lng: DROPOFF_LONG.lng,
+    // 2026-06-01 = lundi, 10h Réunion (06h UTC) → jour ouvré, pas de majo.
+    scheduled_at: '2026-06-01T06:00:00.000Z',
     transport_mode: 'taxi_conventionne',
-    urgency: 'programmee',
+    holidays974: NO_HOLIDAYS,
     ...overrides,
   };
 }
 
-describe('computeCgssShortTrip — Haversine', () => {
-  it('Saint-Denis → CHU Bellepierre (~1 km) — Haversine + clamp min 10€', () => {
+describe('computeCgssShortTrip', () => {
+  it('1. trajet jour monopatient coords présentes → forfait + km + DROM', () => {
+    const r = computeCgssShortTrip(baseInput(), GRID);
+    expect(r.forfait_eur).toBe(13);
+    expect(r.distance_method).toBe('haversine_corrige');
+    expect(r.supplement_drom_eur).toBe(3);
+    expect(r.supplement_tpmr_eur).toBe(0);
+    expect(r.majoration_motif).toBeNull();
+    expect(r.total_eur).toBeGreaterThan(13);
+  });
+
+  it('2. trajet > km_inclus → km_factures > 0', () => {
+    const r = computeCgssShortTrip(baseInput(), GRID);
+    expect(r.distance_km).not.toBeNull();
+    expect(r.km_factures).not.toBeNull();
+    expect(r.km_factures as number).toBeGreaterThan(0);
+    expect(r.km_total_eur as number).toBeGreaterThan(0);
+  });
+
+  it('3. trajet ≤ km_inclus → km_factures = 0, forfait seul', () => {
     const r = computeCgssShortTrip(
-      makeInput({
-        pickup_lat: SAINT_DENIS.lat,
-        pickup_lng: SAINT_DENIS.lng,
-        dropoff_lat: CHU_BELLEPIERRE.lat,
-        dropoff_lng: CHU_BELLEPIERRE.lng,
+      baseInput({
+        dropoff_lat: DROPOFF_SHORT.lat,
+        dropoff_lng: DROPOFF_SHORT.lng,
       }),
+      GRID,
     );
-    expect(r.source).toBe('haversine');
-    expect(r.distance_km).toBeGreaterThan(0);
-    expect(r.distance_km).toBeLessThan(2);
-    expect(r.forfait_eur).toBe(4.2);
-    expect(r.prix_km_eur).toBe(2.1);
-    expect(r.total_eur).toBe(10); // forfait + 1km*2.10 ≈ 6.30 → clamp 10
-    expect(r.majo_nuit_pct).toBe(0);
-    expect(r.supp_tpmr_eur).toBe(0);
+    expect(r.km_factures).toBe(0);
+    expect(r.km_total_eur).toBe(0);
+    expect(r.total_eur).toBe(16); // 13 forfait + 3 DROM
   });
 
-  it('Saint-Denis → Saint-Pierre (~80 km) — clamp max 80€', () => {
+  it('4. TPMR → supplément 30 € ajouté', () => {
+    const r = computeCgssShortTrip(baseInput({ transport_mode: 'tpmr' }), GRID);
+    expect(r.supplement_tpmr_eur).toBe(30);
+  });
+
+  it('5. majoration nuit (départ 21h Réunion)', () => {
+    // 21h Réunion = 17h UTC.
     const r = computeCgssShortTrip(
-      makeInput({
-        pickup_lat: SAINT_DENIS.lat,
-        pickup_lng: SAINT_DENIS.lng,
-        dropoff_lat: SAINT_PIERRE.lat,
-        dropoff_lng: SAINT_PIERRE.lng,
+      baseInput({ scheduled_at: '2026-06-01T17:00:00.000Z' }),
+      GRID,
+    );
+    expect(r.majoration_motif).toBe('nuit');
+    expect(r.majoration_pct).toBe(50);
+    expect(r.majoration_eur).toBeGreaterThan(0);
+  });
+
+  it('6. majoration weekend (samedi 14h Réunion)', () => {
+    // 2026-06-06 = samedi ; 14h Réunion = 10h UTC.
+    const r = computeCgssShortTrip(
+      baseInput({ scheduled_at: '2026-06-06T10:00:00.000Z' }),
+      GRID,
+    );
+    expect(r.majoration_motif).toBe('weekend');
+  });
+
+  it('7. majoration weekend (dimanche 10h Réunion)', () => {
+    // 2026-06-07 = dimanche ; 10h Réunion = 06h UTC.
+    const r = computeCgssShortTrip(
+      baseInput({ scheduled_at: '2026-06-07T06:00:00.000Z' }),
+      GRID,
+    );
+    expect(r.majoration_motif).toBe('weekend');
+  });
+
+  it('8. majoration férié (date ∈ holidays974)', () => {
+    const r = computeCgssShortTrip(
+      baseInput({
+        scheduled_at: '2026-07-14T06:00:00.000Z',
+        holidays974: new Set(['2026-07-14']),
       }),
+      GRID,
     );
-    expect(r.source).toBe('haversine');
-    expect(r.distance_km).toBeGreaterThan(40);
-    expect(r.total_eur).toBe(80); // forfait + 80*2.10 ≈ 172 → clamp 80
+    expect(r.majoration_motif).toBe('ferie');
   });
 
-  it('distance trajet moyen ~10 km → tarif ~25€', () => {
-    // Construire deux points à ~10 km en latitude (1° lat = 111 km)
+  it('9. priorité férié > nuit (jour férié à 22h)', () => {
+    // 2026-07-14 22h Réunion = 18h UTC ; férié l'emporte sur nuit.
     const r = computeCgssShortTrip(
-      makeInput({
-        pickup_lat: -20.8789,
-        pickup_lng: 55.4481,
-        dropoff_lat: -20.7889, // ~10 km au nord
-        dropoff_lng: 55.4481,
+      baseInput({
+        scheduled_at: '2026-07-14T18:00:00.000Z',
+        holidays974: new Set(['2026-07-14']),
       }),
+      GRID,
     );
-    expect(r.source).toBe('haversine');
-    expect(r.total_eur).toBeGreaterThanOrEqual(20);
-    expect(r.total_eur).toBeLessThanOrEqual(35);
-  });
-});
-
-describe('computeCgssShortTrip — fallback random', () => {
-  it('pas de coords → fallback_random + total dans la plage clamp', () => {
-    const r = computeCgssShortTrip(makeInput());
-    expect(r.source).toBe('fallback_random');
-    expect(r.distance_km).toBeNull();
-    expect(r.prix_km_eur).toBeNull();
-    expect(r.km_total_eur).toBeNull();
-    expect(r.total_eur).toBeGreaterThanOrEqual(10);
-    expect(r.total_eur).toBeLessThanOrEqual(80);
+    expect(r.majoration_motif).toBe('ferie');
   });
 
-  it('fallback déterministe — même scheduled_at → même total', () => {
-    const a = computeCgssShortTrip(makeInput());
-    const b = computeCgssShortTrip(makeInput());
-    expect(a.total_eur).toBe(b.total_eur);
-  });
-
-  it('fallback urgence immediate → plage plus haute que programmee', () => {
-    const programmee = computeCgssShortTrip(makeInput({ urgency: 'programmee' }));
-    const immediate = computeCgssShortTrip(makeInput({ urgency: 'immediate' }));
-    expect(immediate.total_eur).toBeGreaterThanOrEqual(programmee.total_eur);
-  });
-
-  it('coords partielles (pickup only) → fallback', () => {
+  it('10. coords manquantes → distance unavailable, forfait + DROM + TPMR', () => {
     const r = computeCgssShortTrip(
-      makeInput({
-        pickup_lat: SAINT_DENIS.lat,
-        pickup_lng: SAINT_DENIS.lng,
-        // dropoff absent
-      }),
-    );
-    expect(r.source).toBe('fallback_random');
-  });
-
-  it('coords null explicites → fallback', () => {
-    const r = computeCgssShortTrip(
-      makeInput({
+      baseInput({
         pickup_lat: null,
-        pickup_lng: null,
         dropoff_lat: null,
-        dropoff_lng: null,
-      }),
-    );
-    expect(r.source).toBe('fallback_random');
-  });
-});
-
-describe('computeCgssShortTrip — majoration nuit', () => {
-  it('22h UTC → majo nuit +20%', () => {
-    const r = computeCgssShortTrip(
-      makeInput({ scheduled_at: '2026-05-15T22:00:00Z' }),
-    );
-    expect(r.majo_nuit_pct).toBe(20);
-    expect(r.majo_nuit_eur).toBeGreaterThan(0);
-  });
-
-  it('14h UTC → pas de majo nuit', () => {
-    const r = computeCgssShortTrip(
-      makeInput({ scheduled_at: '2026-05-15T14:00:00Z' }),
-    );
-    expect(r.majo_nuit_pct).toBe(0);
-    expect(r.majo_nuit_eur).toBe(0);
-  });
-
-  it('6h UTC → majo nuit (h < 7)', () => {
-    const r = computeCgssShortTrip(
-      makeInput({ scheduled_at: '2026-05-15T06:00:00Z' }),
-    );
-    expect(r.majo_nuit_pct).toBe(20);
-  });
-
-  it('20h UTC pile → majo nuit (h >= 20)', () => {
-    const r = computeCgssShortTrip(
-      makeInput({ scheduled_at: '2026-05-15T20:00:00Z' }),
-    );
-    expect(r.majo_nuit_pct).toBe(20);
-  });
-});
-
-describe('computeCgssShortTrip — supplément TPMR', () => {
-  it('transport_mode tpmr → supp 5€', () => {
-    const r = computeCgssShortTrip(
-      makeInput({ transport_mode: 'tpmr' }),
-    );
-    expect(r.supp_tpmr_eur).toBe(5);
-  });
-
-  it('transport_mode taxi_conventionne → pas de supp', () => {
-    const r = computeCgssShortTrip(
-      makeInput({ transport_mode: 'taxi_conventionne' }),
-    );
-    expect(r.supp_tpmr_eur).toBe(0);
-  });
-
-  it('transport_mode vsl → pas de supp', () => {
-    const r = computeCgssShortTrip(makeInput({ transport_mode: 'vsl' }));
-    expect(r.supp_tpmr_eur).toBe(0);
-  });
-});
-
-describe('computeCgssShortTrip — combinaisons', () => {
-  it('Haversine + TPMR + nuit + clamp', () => {
-    const r = computeCgssShortTrip(
-      makeInput({
-        pickup_lat: SAINT_DENIS.lat,
-        pickup_lng: SAINT_DENIS.lng,
-        dropoff_lat: CHU_BELLEPIERRE.lat,
-        dropoff_lng: CHU_BELLEPIERRE.lng,
         transport_mode: 'tpmr',
-        scheduled_at: '2026-05-15T22:00:00Z',
       }),
+      GRID,
     );
-    expect(r.source).toBe('haversine');
-    expect(r.supp_tpmr_eur).toBe(5);
-    expect(r.majo_nuit_pct).toBe(20);
-    expect(r.total_eur).toBeGreaterThanOrEqual(10);
+    expect(r.distance_method).toBe('unavailable');
+    expect(r.distance_km).toBeNull();
+    expect(r.km_factures).toBeNull();
+    expect(r.km_total_eur).toBeNull();
+    expect(r.prix_km_eur).toBeNull();
+    expect(r.total_eur).toBe(46); // 13 + 3 DROM + 30 TPMR
+  });
+
+  it('11. samedi avant 12h → pas de majoration weekend', () => {
+    // 2026-06-06 samedi ; 09h Réunion = 05h UTC.
+    const r = computeCgssShortTrip(
+      baseInput({ scheduled_at: '2026-06-06T05:00:00.000Z' }),
+      GRID,
+    );
+    expect(r.majoration_motif).toBeNull();
+  });
+
+  it('12. timezone : 23h UTC = 03h Réunion lendemain → nuit', () => {
+    // 2026-06-01 23h UTC = 2026-06-02 03h Réunion → nuit (03h < 8h).
+    const r = computeCgssShortTrip(
+      baseInput({ scheduled_at: '2026-06-01T23:00:00.000Z' }),
+      GRID,
+    );
+    expect(r.majoration_motif).toBe('nuit');
   });
 });
