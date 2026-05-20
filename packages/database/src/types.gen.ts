@@ -1531,6 +1531,62 @@ export type Database = {
         }
         Relationships: []
       }
+      tariff_grids: {
+        Row: {
+          arrondi_eur: number
+          created_at: string
+          created_by: string | null
+          date_effet: string
+          facteur_correction_routier: number
+          forfait_eur: number
+          id: string
+          km_inclus: number
+          majoration_pct: number
+          organization_id: string
+          prix_km_eur: number
+          supplement_drom_eur: number
+          supplement_tpmr_eur: number
+        }
+        Insert: {
+          arrondi_eur?: number
+          created_at?: string
+          created_by?: string | null
+          date_effet: string
+          facteur_correction_routier: number
+          forfait_eur: number
+          id?: string
+          km_inclus: number
+          majoration_pct: number
+          organization_id: string
+          prix_km_eur: number
+          supplement_drom_eur: number
+          supplement_tpmr_eur: number
+        }
+        Update: {
+          arrondi_eur?: number
+          created_at?: string
+          created_by?: string | null
+          date_effet?: string
+          facteur_correction_routier?: number
+          forfait_eur?: number
+          id?: string
+          km_inclus?: number
+          majoration_pct?: number
+          organization_id?: string
+          prix_km_eur?: number
+          supplement_drom_eur?: number
+          supplement_tpmr_eur?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tariff_grids_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vehicles: {
         Row: {
           actif: boolean
