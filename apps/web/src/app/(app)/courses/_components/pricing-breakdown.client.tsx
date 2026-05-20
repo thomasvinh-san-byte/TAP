@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { AlertTriangle, Pencil } from 'lucide-react';
+import { AlertTriangle, Info, Pencil } from 'lucide-react';
 import type { MajorationMotif, PricingResult } from '@tap/pricing';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -9,11 +9,11 @@ import { cn } from '@/lib/utils';
 /**
  * PricingBreakdown — Surface A.
  *
- * Phase 05.5 Wave 1 : adaptation à la `PricingResult` enrichie (DEC-061 —
- * forfait / km facturés / DROM / TPMR / majoration). Le retrait du badge
- * « DEMO » et le disclaimer estimatif fin sont traités en Wave 2
- * (affichage complet UI-SPEC Surface A). Cette wave assure typecheck +
- * build verts.
+ * Décomposition réelle du tarif CGSS (DEC-061) : forfait + distance/km
+ * facturés + supplément DROM + supplément TPMR + majoration (label
+ * dynamique nuit/week-end/jour férié) + total. Disclaimer estimatif en
+ * pied — le tarif n'est pas contractuel jusqu'à la facturation CGSS
+ * (Phase 06). Aucun badge de démonstration — le calcul est réel.
  *
  * - editable=false → vue read-only (chauffeur dans end-ride-modal)
  * - editable=true → vue avec bouton Modifier (régulateur post-clôture)
@@ -69,15 +69,7 @@ export function PricingBreakdown({
         </div>
       )}
 
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold">Détail tarif</h3>
-        <span
-          aria-label="Tarif démonstration non contractuel"
-          className="shrink-0 rounded-md bg-muted px-8 py-2 text-[10px] font-medium uppercase tracking-wide text-muted-foreground"
-        >
-          DEMO
-        </span>
-      </div>
+      <h3 className="text-sm font-semibold">Détail tarif</h3>
 
       <dl className="space-y-6 text-sm">
         <div className="flex items-center justify-between">
@@ -160,6 +152,14 @@ export function PricingBreakdown({
           )}
         </div>
       </div>
+
+      <p className="flex items-start gap-8 text-xs text-muted-foreground">
+        <Info className="h-12 w-12 shrink-0 mt-2" aria-hidden />
+        <span>
+          Tarif estimatif, non contractuel jusqu&apos;à la facturation CGSS.
+          Distance estimée (vol d&apos;oiseau corrigé).
+        </span>
+      </p>
     </div>
   );
 }
