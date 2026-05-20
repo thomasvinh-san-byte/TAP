@@ -69,6 +69,7 @@ export default async function AdminLayout({
   ];
   const ADMIN_EXTRAS = [
     { href: '/admin/vehicules', label: 'Véhicules' },
+    { href: '/admin/tarifs', label: 'Tarifs' },
     { href: '/admin/legal/registre', label: 'Registre' },
     { href: '/admin/legal/breaches', label: 'Violations' },
   ];

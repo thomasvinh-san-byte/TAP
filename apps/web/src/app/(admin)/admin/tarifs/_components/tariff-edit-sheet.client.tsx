@@ -1,0 +1,133 @@
+'use client';
+
+import { useState, useTransition } from 'react';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import type { TariffGridRow } from '../page';
+import { saveTariffGridAction } from '../actions';
+
+/**
+ * Édition d'une grille tarifaire = INSERT d'une nouvelle version datée
+ * (DEC-057 — versionnement strict). Les champs sont pré-remplis depuis la
+ * grille active courante (pas de constantes hardcodées). Date d'effet par
+ * défaut = demain.
+ */
+function tomorrowIso(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
+interface NumField {
+  name: string;
+  label: string;
+  step: string;
+  defaultValue: number;
+}
+
+export function TariffEditSheet({
+  open,
+  onOpenChange,
+  current,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  current: TariffGridRow;
+}): JSX.Element {
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  const fields: NumField[] = [
+    { name: 'forfait_eur', label: 'Forfait (€)', step: '0.01', defaultValue: current.forfait_eur },
+    { name: 'km_inclus', label: 'Km inclus', step: '1', defaultValue: current.km_inclus },
+    { name: 'prix_km_eur', label: 'Prix au km (€)', step: '0.01', defaultValue: current.prix_km_eur },
+    { name: 'supplement_drom_eur', label: 'Supplément DROM (€)', step: '0.01', defaultValue: current.supplement_drom_eur },
+    { name: 'supplement_tpmr_eur', label: 'Supplément TPMR (€)', step: '0.01', defaultValue: current.supplement_tpmr_eur },
+    { name: 'majoration_pct', label: 'Majoration (%)', step: '1', defaultValue: current.majoration_pct },
+    { name: 'facteur_correction_routier', label: 'Facteur correction', step: '0.01', defaultValue: current.facteur_correction_routier },
+    { name: 'arrondi_eur', label: 'Arrondi (€)', step: '0.01', defaultValue: current.arrondi_eur },
+  ];
+
+  function handleSubmit(formData: FormData): void {
+    setError(null);
+    startTransition(async () => {
+      const result = await saveTariffGridAction(formData);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      onOpenChange(false);
+    });
+  }
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent>
+        <SheetHeader>
+          <SheetTitle>Nouvelle version de grille</SheetTitle>
+          <SheetDescription>
+            La grille actuelle reste inchangée. Une nouvelle version datée
+            est créée — l&apos;historique est conservé.
+          </SheetDescription>
+        </SheetHeader>
+
+        <form action={handleSubmit} className="space-y-12 py-16">
+          <div className="space-y-4">
+            <Label htmlFor="tg-date">Date d&apos;effet</Label>
+            <Input
+              id="tg-date"
+              name="date_effet"
+              type="date"
+              defaultValue={tomorrowIso()}
+              required
+            />
+          </div>
+
+          {fields.map((f) => (
+            <div key={f.name} className="space-y-4">
+              <Label htmlFor={`tg-${f.name}`}>{f.label}</Label>
+              <Input
+                id={`tg-${f.name}`}
+                name={f.name}
+                type="number"
+                step={f.step}
+                min={0}
+                defaultValue={f.defaultValue}
+                required
+              />
+            </div>
+          ))}
+
+          {error && (
+            <p role="alert" className="text-sm text-destructive">
+              {error}
+            </p>
+          )}
+
+          <SheetFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={pending}
+            >
+              Annuler
+            </Button>
+            <Button type="submit" disabled={pending}>
+              {pending ? 'Enregistrement…' : 'Créer la version'}
+            </Button>
+          </SheetFooter>
+        </form>
+      </SheetContent>
+    </Sheet>
+  );
+}
