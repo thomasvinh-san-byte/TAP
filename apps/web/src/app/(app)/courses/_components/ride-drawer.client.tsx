@@ -7,7 +7,6 @@ import { ArrowDown, MapPin, Navigation, Trash2 } from 'lucide-react';
 import {
   computeCgssShortTrip,
   type TransportMode,
-  type Urgency,
 } from '@tap/pricing';
 import { PricingBreakdown } from './pricing-breakdown.client';
 import { OverrideTarifModal } from './override-tarif-modal.client';
@@ -26,6 +25,7 @@ import {
   formatTimeFr,
 } from '@/lib/dates-fr';
 import {
+  getActiveTariffGridAction,
   getRideAuditLogAction,
   getRideByIdAction,
   unassignRideAction,
@@ -76,9 +76,22 @@ export function RideDrawer({
     enabled: open && rideId !== null,
     staleTime: 5_000,
   });
+  // Grille tarifaire active + jours fériés 974 (DEC-057 — grille en
+  // paramètre de computeCgssShortTrip). Fetch léger, cache long.
+  const tariffQuery = useQuery({
+    queryKey: ['active-tariff-grid'],
+    queryFn: () => getActiveTariffGridAction(),
+    enabled: open,
+    staleTime: 5 * 60_000,
+  });
 
   const ride = rideQuery.data;
   const audit = auditQuery.data ?? [];
+  const tariffGrid = tariffQuery.data?.grid ?? null;
+  const holidays974 = React.useMemo(
+    () => new Set(tariffQuery.data?.holidays ?? []),
+    [tariffQuery.data],
+  );
 
   const invalidate = async () => {
     await Promise.all([
@@ -272,27 +285,30 @@ export function RideDrawer({
               </section>
             )}
 
-            {ride.status === 'terminee' && (
+            {ride.status === 'terminee' && tariffGrid && (
               <section className="space-y-12">
                 <SectionTitle>Paiement</SectionTitle>
                 <PricingBreakdown
-                  pricing={computeCgssShortTrip({
-                    pickup_lat:
-                      (ride as { pickup_lat?: number | null }).pickup_lat ??
-                      null,
-                    pickup_lng:
-                      (ride as { pickup_lng?: number | null }).pickup_lng ??
-                      null,
-                    dropoff_lat:
-                      (ride as { dropoff_lat?: number | null }).dropoff_lat ??
-                      null,
-                    dropoff_lng:
-                      (ride as { dropoff_lng?: number | null }).dropoff_lng ??
-                      null,
-                    scheduled_at: ride.scheduled_at,
-                    transport_mode: ride.transport_mode as TransportMode,
-                    urgency: ride.urgency as Urgency,
-                  })}
+                  pricing={computeCgssShortTrip(
+                    {
+                      pickup_lat:
+                        (ride as { pickup_lat?: number | null }).pickup_lat ??
+                        null,
+                      pickup_lng:
+                        (ride as { pickup_lng?: number | null }).pickup_lng ??
+                        null,
+                      dropoff_lat:
+                        (ride as { dropoff_lat?: number | null })
+                          .dropoff_lat ?? null,
+                      dropoff_lng:
+                        (ride as { dropoff_lng?: number | null })
+                          .dropoff_lng ?? null,
+                      scheduled_at: ride.scheduled_at,
+                      transport_mode: ride.transport_mode as TransportMode,
+                      holidays974,
+                    },
+                    tariffGrid,
+                  )}
                   editable
                   onOverride={() => setOverrideOpen(true)}
                 />

@@ -34,4 +34,5 @@ export {
   getRideAuditLogAction,
   listActiveDriversAction,
   listActiveVehiclesAction,
+  getActiveTariffGridAction,
 } from './list';

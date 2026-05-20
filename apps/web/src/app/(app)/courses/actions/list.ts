@@ -69,3 +69,19 @@ export async function listActiveVehiclesAction() {
   const { listActiveVehicles } = await import('../_lib/queries');
   return listActiveVehicles();
 }
+
+/**
+ * Grille tarifaire active + jours fériés 974 pour le calcul pricing
+ * côté client (Phase 05.5 — `computeCgssShortTrip` prend la grille en
+ * paramètre, DEC-057). Consommé par RideDrawer via useQuery.
+ */
+export async function getActiveTariffGridAction() {
+  const { getActiveTariffGrid, getHolidays974 } = await import(
+    '@/lib/pricing/get-active-tariff-grid'
+  );
+  const [grid, holidays] = await Promise.all([
+    getActiveTariffGrid(),
+    getHolidays974(),
+  ]);
+  return { grid, holidays };
+}
