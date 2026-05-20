@@ -1288,7 +1288,8 @@ Consolidation post-Phase 05.5 LIVRÉE (PR #136-#142, clôture 2026-05-19).
 - Facturation CGSS PDF mensuelle + télétransmission B2 via logiciel certifié CNDA (échéance réglementaire **31 mai 2026**).
 - Formulaire 606b-09/2025 (remplace l'annexe 4).
 
-#### Bug latent — contrainte CHECK `tarif_source`
-- **`override.ts` (Phase 04.7)** écrit `tarif_source = 'override'` — valeur qui **viole la contrainte CHECK** de `rides.tarif_source` (`NULL | 'manuel' | 'cgss_auto'`, migration `20260512000003_rides_execution`). Soit l'override échoue silencieusement en prod (INSERT rejeté), soit le chemin n'est jamais exercé. **Phase 06** : élargir la contrainte CHECK pour ajouter `'override'` OU corriger `override.ts` pour utiliser `'manuel'`. Découvert pendant Phase 05.5 Wave 4 (recalcul rétroactif — vérification des valeurs réelles de `tarif_source`).
+#### Bug latent — contrainte CHECK `tarif_source` — ✅ RÉSOLU
+- **`override.ts` (Phase 04.7)** écrivait `tarif_source = 'override'` — valeur qui violait la contrainte CHECK de `rides.tarif_source` (`NULL | 'manuel' | 'cgss_auto'`, migration `20260512000003_rides_execution`) → tout override régulateur échouait silencieusement (UPDATE rejeté Postgres). Découvert pendant Phase 05.5 Wave 4.
+- **✅ RÉSOLU 2026-05-20** — mini-PR `fix/tarif-source-add-override` : migration `20260523000001_rides_tarif_source_add_override.sql` élargit la contrainte (`DROP` + `ADD` avec `'override'`) + `payment.ts` `tarifSourceSchema` enum + `setup-sql.ts` synchronisés. `'override'` retenu comme état métier distinct (tarif forcé régulateur, vs `'manuel'` saisie chauffeur et `'cgss_auto'` calcul moteur) — la distinction permet au recalcul DEC-060 de préserver les overrides. Aucune migration de données (0 ligne `'override'` n'existait, toutes rejetées).
 
 *Items différés Phase 05.5 → Phase 06 consolidés 2026-05-19 (Wave 4 clôture Phase 05.5).*

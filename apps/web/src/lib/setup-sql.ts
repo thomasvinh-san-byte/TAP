@@ -2050,7 +2050,7 @@ alter table public.rides
 
 alter table public.rides
   add column tarif_source text
-    check (tarif_source is null or tarif_source in ('manuel', 'cgss_auto'));
+    check (tarif_source is null or tarif_source in ('manuel', 'cgss_auto', 'override'));
 
 alter table public.rides
   add column payment_status text not null default 'non_concerne'
