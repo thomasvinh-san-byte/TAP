@@ -1292,4 +1292,9 @@ Consolidation post-Phase 05.5 LIVRÉE (PR #136-#142, clôture 2026-05-19).
 - **`override.ts` (Phase 04.7)** écrivait `tarif_source = 'override'` — valeur qui violait la contrainte CHECK de `rides.tarif_source` (`NULL | 'manuel' | 'cgss_auto'`, migration `20260512000003_rides_execution`) → tout override régulateur échouait silencieusement (UPDATE rejeté Postgres). Découvert pendant Phase 05.5 Wave 4.
 - **✅ RÉSOLU 2026-05-20** — mini-PR `fix/tarif-source-add-override` : migration `20260523000001_rides_tarif_source_add_override.sql` élargit la contrainte (`DROP` + `ADD` avec `'override'`) + `payment.ts` `tarifSourceSchema` enum + `setup-sql.ts` synchronisés. `'override'` retenu comme état métier distinct (tarif forcé régulateur, vs `'manuel'` saisie chauffeur et `'cgss_auto'` calcul moteur) — la distinction permet au recalcul DEC-060 de préserver les overrides. Aucune migration de données (0 ligne `'override'` n'existait, toutes rejetées).
 
-*Items différés Phase 05.5 → Phase 06 consolidés 2026-05-19 (Wave 4 clôture Phase 05.5).*
+#### SMS — rebranchement fournisseur (différé ADR-004 / DEC-062)
+- Le fournisseur SMS est **différé** (ADR-004, 2026-05-20) — Twilio écarté (US/CLOUD Act, inadapté données de santé). `packages/sms` + 3 Route Handlers + UI `/admin/sms-templates` + tables `sms_*` conservés dormants ; les 2 cron jobs sont en pause (migration `20260524000001_unschedule_sms_cron`).
+- **Au choix d'un fournisseur** (cible API FR HDS smsmode/Octopush/OVH, ou RaspiSMS auto-hébergé) : réécrire `packages/sms/src/twilio-adapter.ts`, recréer les `cron.schedule` (nouvelle migration, modèle `20260519000007`), brancher le webhook de delivery du fournisseur, reconfigurer les pré-requis runtime (token cron, env vars).
+- Le secret Vault `cron_app_token` n'a **jamais été créé** — inutile tant que le SMS est différé, à générer au rebranchement.
+
+*Items différés Phase 05.5 → Phase 06 consolidés 2026-05-19 (Wave 4 clôture Phase 05.5). SMS différé ADR-004/DEC-062 ajouté 2026-05-20.*
