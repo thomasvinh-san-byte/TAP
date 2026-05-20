@@ -1,5 +1,6 @@
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 import { BackfillGeocoding } from './_components/backfill-geocoding.client';
+import { RecomputeTarifs } from './_components/recompute-tarifs.client';
 
 export const metadata = { title: 'Maintenance — TAP Admin' };
 
@@ -35,6 +36,18 @@ export default async function MaintenancePage() {
           </p>
         </div>
         <BackfillGeocoding />
+      </section>
+
+      <section className="rounded-md border border-border p-16 space-y-12">
+        <div className="space-y-4">
+          <h2 className="text-sm font-semibold">Recalcul des tarifs</h2>
+          <p className="text-xs text-muted-foreground">
+            Recalcule le tarif des courses calculées automatiquement, selon
+            la grille tarifaire active. Les tarifs saisis manuellement et
+            les courses déjà encaissées sont préservés.
+          </p>
+        </div>
+        <RecomputeTarifs />
       </section>
     </div>
   );

@@ -1266,3 +1266,29 @@ et ajouter `import 'server-only'` (Next.js 14 natif) en tête des fichiers Node-
 **Pourquoi le bug a survécu jusqu'à Wave 7** : tree-shaking webpack éliminait `twilio-adapter` du bundle client tant que l'arbre touché par chaque PR n'avait pas besoin de re-link cette branche. Wave 7 (suppression `recurrence-temp.ts` + add `recurrence.ts`) a invalidé le cache → rebuild from scratch a révélé l'erreur.
 
 **Vigilance Phase 06+** : à appliquer dès la conception d'un nouveau package workspace exposant du code mixed-runtime. Inscrire dans le PLAN d'architecture la séparation client/server avant écriture.
+
+---
+
+### Items différés Phase 05.5 → Phase 06
+
+Consolidation post-Phase 05.5 LIVRÉE (PR #136-#142, clôture 2026-05-19).
+
+#### Architecture / distance
+- **OSRM auto-hébergé** : V1.5 distance = Haversine × facteur de correction routier ~1,4 (DEC-056). Phase 06 = distance routière réelle via OSRM auto-hébergé (`services/osrm` + tuiles OSM 974) — arrive avec la géolocalisation certifiée Assurance maladie obligatoire 1er janvier 2027.
+- **Calibration facteur de correction routier** : le facteur ~1,4 est une estimation relief 974 ; à calibrer sur des cas réels fournis par le dirigeant (varie Hauts / littoral). Paramétrable BDD (`tariff_grids.facteur_correction_routier`) en attendant.
+
+#### Pricing — périmètre reporté
+- **Transport partagé + abattements multi-patients** (-23 / -35 / -37 %) — feature à part entière (UI courses groupées + modélisation).
+- **Retour à vide hospitalisation** (+25 / +50 % sur la part km) — nécessite un flag hospitalisation sur la course.
+- **Forfait Grande Ville** (non applicable 974, à modéliser si extension métropole).
+- **Règle exacte majoration nuit** « > 50 % du temps de transport en charge de nuit » — V1.5 = approximation heure de prise en charge (DEC-059). Règle exacte nécessite la durée routière (OSRM).
+- **Suggestion tarif côté PWA chauffeur** : V1.5 le chauffeur saisit le montant manuellement dans `end-ride-modal` (Phase 05.5 Wave 2, Option 1). Phase 06 = afficher le tarif CGSS auto-calculé en suggestion — nécessite un pricing offline-aware (grille fetch + cache PWA).
+
+#### Facturation CGSS (Phase 06 dédié)
+- Facturation CGSS PDF mensuelle + télétransmission B2 via logiciel certifié CNDA (échéance réglementaire **31 mai 2026**).
+- Formulaire 606b-09/2025 (remplace l'annexe 4).
+
+#### Bug latent — contrainte CHECK `tarif_source`
+- **`override.ts` (Phase 04.7)** écrit `tarif_source = 'override'` — valeur qui **viole la contrainte CHECK** de `rides.tarif_source` (`NULL | 'manuel' | 'cgss_auto'`, migration `20260512000003_rides_execution`). Soit l'override échoue silencieusement en prod (INSERT rejeté), soit le chemin n'est jamais exercé. **Phase 06** : élargir la contrainte CHECK pour ajouter `'override'` OU corriger `override.ts` pour utiliser `'manuel'`. Découvert pendant Phase 05.5 Wave 4 (recalcul rétroactif — vérification des valeurs réelles de `tarif_source`).
+
+*Items différés Phase 05.5 → Phase 06 consolidés 2026-05-19 (Wave 4 clôture Phase 05.5).*
