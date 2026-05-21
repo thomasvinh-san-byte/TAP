@@ -22,10 +22,18 @@ interface NavTabsProps {
  */
 export function NavTabs({ tabs }: NavTabsProps): JSX.Element {
   const pathname = usePathname() ?? '';
+  // Onglet actif = le href le plus spécifique (le plus long) qui correspond au
+  // chemin courant — évite que « Courses » (/courses) reste souligné en même
+  // temps que « Caisse » (/courses/caisse).
+  const activeHref = tabs.reduce<string | null>((longest, tab) => {
+    const matches = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
+    if (!matches) return longest;
+    return longest && longest.length >= tab.href.length ? longest : tab.href;
+  }, null);
   return (
     <nav aria-label="Navigation principale" className="flex h-full items-center gap-32">
       {tabs.map((tab) => {
-        const active = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
+        const active = tab.href === activeHref;
         return (
           <Link
             key={tab.href}

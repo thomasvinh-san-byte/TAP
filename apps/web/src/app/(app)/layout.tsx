@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getAuthContext } from '@/lib/auth/get-auth-context';
+import { tabsForRole } from '@/lib/nav-config';
 import { NavTabs } from '@/components/nav-tabs.client';
+import { LegalNavMenu } from '@/components/legal-nav-menu.client';
 import { UserMenu } from '@/components/user-menu';
 import { Providers } from './providers.client';
 import { RideExpressOrchestrator } from './courses/_components/ride-express-orchestrator.client';
@@ -19,24 +21,14 @@ import { DraftQueue } from './courses/_components/draft-queue.client';
  *   - sans session : redirect /login
  *   - rôle chauffeur : redirect /conduite (zone régulateur interdite)
  */
-const BASE_TABS = [
-  { href: '/cockpit', label: 'Cockpit' },
-  { href: '/patients', label: 'Patients' },
-  { href: '/courses', label: 'Courses' },
-  { href: '/courses/caisse', label: 'Caisse' },
-];
-
-const ADMIN_TABS = [...BASE_TABS, { href: '/admin/chauffeurs', label: 'Chauffeurs' }];
-
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const ctx = await getAuthContext();
   if (!ctx) redirect('/login');
   if (ctx.role === 'chauffeur') redirect('/conduite');
 
-  // Phase 04 hotfix (DEC-029) : la gestion chauffeurs est élargie au
-  // régulateur. Le lien « Chauffeurs » apparaît pour les deux rôles
-  // depuis le shell régulateur principal (sans imposer de switch admin).
-  const tabs = ctx.role === 'dirigeant' || ctx.role === 'regulateur' ? ADMIN_TABS : BASE_TABS;
+  // Nav unifiée par rôle (lib/nav-config.ts) — identique sur (app) et (admin).
+  const tabs = tabsForRole(ctx.role);
+  const isDirigeant = ctx.role === 'dirigeant';
 
   return (
     <Providers>
@@ -56,7 +48,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                 <span className="text-foreground font-semibold tracking-tight">TAP</span>
                 <span className="text-muted-foreground text-sm">Régulation</span>
               </Link>
-              <NavTabs tabs={tabs} />
+              <div className="flex h-full items-center gap-32">
+                <NavTabs tabs={tabs} />
+                {isDirigeant && <LegalNavMenu />}
+              </div>
               <div className="flex items-center gap-16">
                 <DraftQueue />
                 <UserMenu />
