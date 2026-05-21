@@ -83,6 +83,13 @@ Les items « Phase de résolution : Passe 2 (Phase 04) » référencés ci-desso
 
 ## Items reportés / Deferred
 
+### Découplage architecture Supabase — faciliter une future migration HDS
+
+- Issue : TAP est fortement couplé à l'écosystème Supabase (Auth, RLS, Realtime cockpit, Edge Functions NIR, pg_cron, Vault). Une future migration vers un hébergeur certifié HDS (cf. Phase 06.5) sera d'autant plus lourde que le couplage est fort. Un découplage progressif (couche d'accès données, auth abstraite, Edge Functions portables) réduirait cet effort.
+- Sévérité : **minor** (aucun impact fonctionnel ; pure facilitation future)
+- Décision dirigeant (2026-05-21) : **NE PAS faire d'architecture maintenant.** Priorité = mise en place du fonctionnel pendant la bêta. Le découplage se fait au fil de l'eau (construire proprement les nouvelles features) plutôt qu'en chantier dédié. Pas de phase « refonte archi ».
+- Phase de résolution : opportuniste / au fil des features ; jamais un sprint isolé. La migration HDS elle-même = Phase 06.5 (avant 1er client payant).
+
 ### Modal assignation — pas de filtrage `type_permis` ↔ `vehicle.type`
 
 - Issue : La modal d'assignation permet de marier un chauffeur (type permis B/D1/D) avec un véhicule (type berline/minibus/TPMR) sans cohérence. Risque opérationnel : chauffeur B affecté à un minibus 9 places.
@@ -135,7 +142,13 @@ Les items « Phase de résolution : Passe 2 (Phase 04) » référencés ci-desso
 
 - Issue : Pas de dashboard `/admin` agrégeant les KPIs dirigeant.
 - Sévérité : **minor**
-- Phase de résolution : Passe 4 (Phase 06)
+- Phase de résolution : **Phase 06.8 — Tableau de bord dirigeant** (formalisée ROADMAP 2026-05-21, autonome — avant HDS). KPIs : CA mensuel, courses à facturer, alertes, activité chauffeurs.
+
+### Conformité assistée — pré-remplissage RGPD
+
+- Issue : Les 6 pages `/admin/legal/*` sont vides ; aucun dirigeant ne rédige un registre RGPD de zéro (retour terrain 2026-05-21). Le hub + la vulgarisation des sous-titres règlent la compréhension, pas le remplissage.
+- Sévérité : **minor** (conformité réelle, mais pas bloquant tant que pas de client payant)
+- Phase de résolution : **Phase 06.6 — Conformité assistée** (formalisée ROADMAP 2026-05-21, autonome — AVANT HDS, décision dirigeant). Bouton « pré-remplir » déclenché, registre pré-rempli (traitements-types transport sanitaire), breaches/requests/dpo = aide contextuelle. Piste « indicateurs de statut de conformité » à relier au dashboard 06.8.
 
 ## Sandbox-blockers et dette de vérification
 
