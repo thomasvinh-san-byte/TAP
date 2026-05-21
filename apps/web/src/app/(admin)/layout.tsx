@@ -62,6 +62,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const ADMIN_EXTRAS = [
     { href: '/admin/vehicules', label: 'Véhicules' },
     { href: '/admin/tarifs', label: 'Tarifs' },
+    { href: '/admin/facturation', label: 'Facturation' },
     { href: '/admin/legal/registre', label: 'Registre' },
     { href: '/admin/legal/breaches', label: 'Violations' },
   ];
