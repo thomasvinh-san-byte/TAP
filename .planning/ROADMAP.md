@@ -40,7 +40,9 @@ Sources de vérité de ce séquencement : ADR-003 (LOCKED) +
 - [x] **Phase 04.9: PWA chauffeur enveloppe** — Serwist + Dexie 4.x (DEC-019) + manifest + icônes maskable + splash iOS DPR + ConnectionStatus 4 cas + sync engine + persistence storage warning > 7j (DEC-022) + transitions fade-in template.tsx (DEC-020) + iOS PWA quirks documentés CONCERNS.md. **Estimation : 8-10 h.** Livré 2026-05-18, 8 PR (#109-#116), ~1h40 wall-clock réel (-82% vélocité).
 - [x] **Phase 05: E2E Passe 3 — Récurrences + cockpit + SMS + patient absent** — `packages/recurrence` 100% (dialyse 3×/sem, exceptions jours fériés 974) + cockpit régulateur Realtime Supabase + SMS rappel J-1 et J-2h via Twilio + workflow patient absent au pickup + logique no-show vs annulation patient. **Estimation : 10-15 h. Livré 2026-05-19, 13 PR (#121-#133) + 2 auto-commits types** (pipeline GSD 5/5 complet, 11 migrations BDD, `@tap/recurrence` 100% branches + `@tap/sms` ≥80%, 4 Route Handlers, cockpit Realtime + modal récurrence cascade DEC-048 + UI admin SMS + workflow no-show PWA→cockpit, pipeline GitHub Actions 100% auto-trigger types validé 2 fois). Tableau de bord pilotage dirigeant reporté Phase 06.
 - [x] **Phase 05.5: Tarif CGSS réel** — Implémentation calcul réel `computeCgssShortTrip` (remplace stub Phase 04.7), grille tarif CGSS 2026 (forfait/km/majo nuit/dim/férié/supp TPMR), page grille active + historique + simulation, recalcul rétroactif courses historiques. 100% branch coverage Vitest (DEC-021). **Estimation : 8-12 h. Livré 2026-05-19, 6 PR (#136-#142)** (pipeline GSD 5/5 complet, migration `tariff_grids` versionnée + `computeCgssShortTrip`/`computeCgssFromDistance` fonction pure 15 cas 100% branches, page `/admin/tarifs` grille active + simulateur live + historique + édition INSERT-only, `PricingBreakdown` enrichi sans badge DEMO + disclaimer estimatif, recalcul rétroactif garde-fous DEC-060, DEC-056..061 LOCKED).
-- [ ] **Phase 06: E2E Passe 4 — HDS + OR-Tools + B2B + facturation CGSS PDF + audit RLS/Server Actions systémique** — Migration HDS production (Scaleway/OVHcloud OU validation Supabase EU conforme HDS V1) + OR-Tools tournée (TSP/VRP Google) + portail B2B multi-tenant complet (signup Stripe, isolation tenant) + facturation CGSS PDF mensuelle + 2FA TOTP dirigeant + rotation tokens Supabase auto + résolution 30+ warnings security advisors + pen test externe + **audit RLS systémique** (inventaire policies toutes tables + matrice rôle × table × action + fixes correctifs + tests E2E permissions cross-org/cross-driver) + **audit Server Actions row count check** (inventaire de TOUTES les Server Actions + application pattern DEC-041 + tests E2E error path RLS blocking) + **fix dettes CI V1.5** inscrites VISION.md « Stratégie CI/qualité V1.5 → V3 » : (a) ESLint v10 flat config `@tap/database` et `@tap/shared`, (b) remplacement SIRET Carrefour par SIRET fictif Luhn-valide dans tests `@tap/shared`, (c) diagnostic + fix environnement pgTAP CI runner. **Estimation : 19-32 h** (+1-2 h pour dettes CI V1.5 vs 18-30 h précédent ; +3-5 h pour audit RLS/SA vs estimation initiale 15-25 h).
+- [x] **Phase 06: E2E Passe 4 (resserrée) — Facturation CGSS PDF + audit RLS/Server Actions + dettes CI** — Périmètre resserré par le discuss (DEC-063) : facturation CGSS PDF récapitulatif mensuel (`/admin/facturation`) + audit RLS systémique (28 tables) + advisors sécurité + audit des 38 Server Actions (DEC-040/041) + résolution des dettes CI V1.5 (ESLint flat config, SIRET Luhn, runner pgTAP). HDS, OR-Tools, portail B2B et télétransmission B2/CNDA sortis du périmètre (sous-phases 06.5 / 06.7 et reports ADR-005/006). **Livré 2026-05-21, 4 waves (#148/#149 dettes CI, #150 facturation, #151/#152 audit RLS, audit SA + clôture).**
+- [ ] **Phase 06.5: Migration HDS** — Migration de l'hébergement vers une infra HDS-certifiée (DEC-065). Sous-phase dédiée : discuss propre + ADR pour le choix fournisseur (Scaleway HDS / OVHcloud HDS / validation Supabase EU + DPA). Prérequis : audit RLS Phase 06. **Depends on: Phase 06.**
+- [ ] **Phase 06.7: OR-Tools optimisation de tournées** — Microservice Python OR-Tools (`services/optimizer`) + `packages/optimizer-client` (DEC-066). Distance V1 = Haversine × facteur (DEC-056) ; OSRM avec la géoloc certifiée 2027. **Depends on: Phase 06.**
 - [ ] **Phase 07: Mobile native chauffeur (OPTIONNEL — décision business V2)** — App native iOS + Android (React Native ou Capacitor) + géoloc continue + mode hors-ligne complet + reconnaissance vocale + push natives + mode lecture seule chauffeur. Phase 04.9 PWA peut suffire si business case mobile natif non validé (coût 10× inférieur, même périmètre fonctionnel). **Estimation : 25-40 h.**
 
 ## Phase Details
@@ -339,32 +341,39 @@ Plans:
 **UI hint**: no (modification interne calcul, UI déjà livrée Phase 04.7 sans badge)
 **Canonical refs**: `.planning/phases/05.5-pricing-cgss-reel/05.5-CONTEXT.md`
 
-### Phase 06: E2E Passe 4 — HDS + OR-Tools + B2B + facturation CGSS
-**Goal fonctionnel**: Migration de l'hébergement vers une infra HDS-certifiée (Scaleway HDS ou OVHcloud Healthcare) avant lancement commercial. Optimisation des tournées par OR-Tools (microservice Python). Portail B2B dirigeant pour donneurs d'ordres (hôpitaux, cliniques, EHPAD). Facturation CGSS mensuelle PDF générée automatiquement.
-**Goal UX**: Portail B2B avec identité visuelle propre (split layout, palette adaptée). PDF facturation CGSS conforme aux standards CPAM (en-tête société, tableau courses, totaux, mentions légales).
-**Depends on**: Phase 05 (récurrences + cockpit + SMS)
-**Requirements**: OPTI-01..05, ROUT-01..03, KPI-01..*, conformité réglementaire
-**Périmètre — dans**:
-- Migration Supabase Cloud → infra HDS (CON-001) : provisioning + migration data + bascule DNS
-- `services/optimizer` : microservice Python OR-Tools, contrats client TS dans `packages/optimizer-client`
-- `services/osrm` : OSRM auto-hébergé tuiles 974 + RPC distance/eta
-- Portail B2B `apps/b2b` : auth séparée, dashboard donneur d'ordres, dépôt prescriptions
-- Génération facturation CGSS mensuelle PDF (`@react-pdf/renderer`) avec ligne par course
-- Mode dégradé (continuité de service en panne réseau / Supabase / tiers)
-- Audit grep CI pour NFR-001 (noms propres) + NFR-003 (spacing scale)
-- Fix dettes CI V1.5 (cf. VISION.md « Stratégie CI/qualité V1.5 → V3 ») : ESLint v10 flat config sur 2 packages + SIRET Luhn-valide dans `@tap/shared` + diagnostic env pgTAP
-**Périmètre — hors** (reporté V2) :
-- Push notifications natives
-- Dépôt patient sans organisation
-- Multi-langue
+### Phase 06: E2E Passe 4 (resserrée) — Facturation CGSS PDF + audit sécurité + dettes CI — LIVRÉE 2026-05-21
+**Goal fonctionnel**: Le dirigeant génère la facturation CGSS mensuelle en PDF récapitulatif. La sécurité base de données (RLS de toutes les tables, Server Actions, advisors) est auditée et durcie — prérequis de la migration HDS. La CI V1.5 est verdie.
+**Goal UX**: Page `/admin/facturation` (sélection période, aperçu des courses facturables, téléchargement) ; PDF A4 récapitulatif (en-tête société, tableau, sous-totaux, total, disclaimer estimatif).
+**Depends on**: Phase 05.5 (moteur de tarif CGSS consommé par la facturation)
+**Périmètre — resserré par le discuss (DEC-063)** :
+- Bloc A — facturation CGSS PDF mensuelle (`/admin/facturation` + Route Handler `@react-pdf/renderer`)
+- Bloc E — audit RLS systémique (28 tables, `docs/security/RLS-AUDIT.md`) + advisors sécurité + audit des 38 Server Actions (`SERVER-ACTIONS-AUDIT.md`, DEC-040/041)
+- Bloc F — dettes CI V1.5 : ESLint 9 flat config, SIRET Luhn, runner pgTAP
+**Périmètre — sorti (sous-phases / reports)** :
+- Migration HDS → Phase 06.5 (DEC-065)
+- OR-Tools optimisation de tournées → Phase 06.7 (DEC-066)
+- Portail B2B multi-tenant → différé, ADR-006 (DEC-067)
+- Télétransmission B2/SEFi/CNDA → différée, ADR-005 (DEC-064)
 **Success Criteria** (what must be TRUE):
-  1. Production hébergée chez un fournisseur HDS-certifié, audit conformité passé
-  2. OR-Tools optimise une tournée de 20 courses en < 5 secondes avec contraintes (TPMR, fenêtres horaires)
-  3. Portail B2B opérationnel pour 1 donneur d'ordres pilote (hôpital ou clinique)
-  4. PDF facturation CGSS mensuelle généré et accepté par CPAM Réunion (validation pilote)
-  5. Mode dégradé : l'application continue à enregistrer les courses en local pendant > 5 min de coupure réseau
-**Plans**: TBD — voir `/gsd-discuss-phase 06` puis `/gsd-plan-phase 06`
-**UI hint**: yes (portail B2B + PDF facturation)
+  1. Un PDF récapitulatif mensuel CGSS est généré et téléchargeable depuis `/admin/facturation` ✅
+  2. La matrice RLS des 28 tables est documentée, les advisors search_path/SECURITY DEFINER traités ✅
+  3. Les 38 Server Actions sont auditées ; guard `require*` (DEC-040) + row count (DEC-041) appliqués ✅
+  4. Les dettes CI D1/D2/D3 sont résolues — CI lint + format verts ✅
+**Plans**: 4 PLAN-N livrés (`PLAN-1` dettes CI, `PLAN-2` facturation, `PLAN-3` audit RLS, `PLAN-4` audit SA + clôture).
+**Status**: Complete (2026-05-21).
+**UI hint**: yes (`/admin/facturation` + PDF)
+
+### Phase 06.5: Migration HDS
+**Goal**: Migrer l'hébergement vers une infra HDS-certifiée avant le premier client payant commercial (CON-001).
+**Depends on**: Phase 06 (audit RLS — on ne migre pas une RLS trouée)
+**Périmètre — à cadrer en discuss dédié** : choix du fournisseur (Scaleway HDS / OVHcloud HDS / validation Supabase EU + DPA, ADR), provisioning, migration des données, bascule DNS, suivi de RLS/Auth/pg_cron/Vault/Realtime. Inclut, à confirmer : NIR Edge Function 401, 2FA TOTP dirigeant, rotation des tokens Supabase, déplacement `pg_net` hors `public`, activation `leaked_password_protection`, pen test externe.
+**Plans**: TBD — `/gsd-discuss-phase 06.5`.
+
+### Phase 06.7: OR-Tools optimisation de tournées
+**Goal**: Proposer à la régulatrice une optimisation des tournées (affectation courses ↔ chauffeurs, ordre de passage) via un microservice Python OR-Tools.
+**Depends on**: Phase 06
+**Périmètre — à cadrer en discuss dédié** : `services/optimizer` (Python OR-Tools), `packages/optimizer-client` (contrats TS). Distance V1 = Haversine × facteur de correction (DEC-056) ; OSRM auto-hébergé avec la géoloc certifiée Assurance maladie (1er janvier 2027).
+**Plans**: TBD — `/gsd-discuss-phase 06.7`.
 
 ---
 

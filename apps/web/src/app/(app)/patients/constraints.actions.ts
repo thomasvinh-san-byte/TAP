@@ -16,6 +16,7 @@
 import { revalidatePath } from 'next/cache';
 import { patientConstraintInputSchema } from '@tap/shared';
 import { createClient } from '@/lib/supabase/server';
+import { requireAdminOrRegulateur } from '@/lib/auth/require-admin-or-regulateur';
 
 export async function addPatientConstraintAction(
   patientId: string,
@@ -30,6 +31,10 @@ export async function addPatientConstraintAction(
   if (!parsed.success) {
     return { error: parsed.error.errors[0]?.message ?? 'Contrainte invalide.' };
   }
+  // DEC-040 — guard require* partagé : régulateur ou dirigeant.
+  const guard = await requireAdminOrRegulateur();
+  if (!guard) return { error: 'Action réservée au régulateur.' };
+
   const supabase = createClient();
   const {
     data: { user },
@@ -67,8 +72,20 @@ export async function addPatientConstraintAction(
 export async function removePatientConstraintAction(
   constraintId: string,
 ): Promise<{ ok: true } | { error: string }> {
+  // DEC-040 — guard require* partagé : régulateur ou dirigeant.
+  const guard = await requireAdminOrRegulateur();
+  if (!guard) return { error: 'Action réservée au régulateur.' };
+
   const supabase = createClient();
-  const { error } = await supabase.from('patient_constraint').delete().eq('id', constraintId);
+  const { error, data } = await supabase
+    .from('patient_constraint')
+    .delete()
+    .eq('id', constraintId)
+    .select('id');
   if (error) return { error: 'Suppression impossible.' };
+  // DEC-041 — row count check : RLS rejette en silence un DELETE hors droits.
+  if (!data || data.length === 0) {
+    return { error: 'Contrainte introuvable — droits insuffisants.' };
+  }
   return { ok: true };
 }

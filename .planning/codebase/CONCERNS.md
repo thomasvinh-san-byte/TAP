@@ -1298,3 +1298,30 @@ Consolidation post-Phase 05.5 LIVRÉE (PR #136-#142, clôture 2026-05-19).
 - Le secret Vault `cron_app_token` n'a **jamais été créé** — inutile tant que le SMS est différé, à générer au rebranchement.
 
 *Items différés Phase 05.5 → Phase 06 consolidés 2026-05-19 (Wave 4 clôture Phase 05.5). SMS différé ADR-004/DEC-062 ajouté 2026-05-20.*
+
+---
+
+## Clôture Phase 06 (2026-05-21) — résolus + résidus
+
+### Résolus par Phase 06
+
+- **Dettes CI V1.5 (D1/D2/D3)** — RÉSOLU. ESLint 9 flat config monorepo (`eslint.config.mjs` racine, `apps/web` migré `next lint` → `eslint`), SIRET de test Luhn-valide, `supabase/setup-cli` épinglé (`2.98.2`). Dette prettier de 266 fichiers résorbée. `.prettierignore` complété (fichiers générés). CI `lint` + `format:check` verts.
+- **Audit RLS systémique** — RÉSOLU. `docs/security/RLS-AUDIT.md` : matrice rôle × table × action des 28 tables — posture saine, aucune migration corrective requise (absences de policy toutes par conception).
+- **Audit Server Actions (DEC-041) + permissions modules admin (T-04.5-27)** — RÉSOLU. `docs/security/SERVER-ACTIONS-AUDIT.md` : 38 Server Actions auditées. Guard `requireDirigeant` ajouté aux 6 actions legal (privilege gap comblé) ; `requireDirigeant` local de `vehicules/actions.ts` dédupliqué → helper partagé ; `constraints.actions.ts` durci. DEC-040 promue LOCKED.
+- **Advisors `function_search_path_mutable` (3)** — RÉSOLU (migration `20260525000001`).
+- **Advisors `SECURITY DEFINER` triggers/crons** — RÉSOLU (migrations `20260525000001` + `20260526000001`) : EXECUTE révoqué de `anon`/`authenticated`/`public` sur les 19 fonctions triggers/gardes/crons.
+
+### Résidus (à traiter en sous-phases)
+
+- **`pg_net` dans le schéma `public`** (advisor `extension_in_public`) — différé : extension dormante (crons SMS en pause, ADR-004). `ALTER EXTENSION pg_net SET SCHEMA extensions` à faire au rebranchement SMS, où il pourra être testé.
+- **`leaked_password_protection` désactivé** — action **console dirigeant** (Authentication → Settings), non automatisable en SQL.
+- **Couverture pgTAP RLS** — ~11 tables sans test RLS dédié (`tariff_grids`, `sms_*`, `ride_recurrences`, etc.) ; leur RLS est conforme mais non couverte par assertion dédiée. À étendre avant la mise en prod HDS (06.5).
+- **Row count DEC-041 résiduel** — `assignment.ts`, `payment.ts`, les `UPDATE` des actions legal `dpia`/`breaches`/`requests` : guard présent, durcissement du row count recommandé (cf. `SERVER-ACTIONS-AUDIT.md` § Résidu).
+- **E2E error-path Playwright** — un test cross-rôle/cross-org dédié reste à ajouter dans un environnement où Playwright est exécutable.
+
+### Nouveaux items (hypothèses Phase 06 à reconsidérer)
+
+- **Définition « course facturable CGSS »** — V1.5 = `transport_mode` conventionné + exclusion du paiement direct. Si le dirigeant veut un jour distinguer finement un transport conventionné d'un transport privé non-CGSS, il faudra un champ dédié (`rides.is_conventionne` ou `prise_en_charge`).
+- **Décomposition tarif par course dans le PDF** — V1.5 affiche le montant total stocké (`tarif_amount_eur`). Une décomposition ligne à ligne (forfait/km/majoration) supposerait de persister `PricingResult` sur `rides` (colonnes nouvelles) — à arbitrer si demandé.
+
+*Clôture Phase 06 ajoutée 2026-05-21 (PLAN-4).*
