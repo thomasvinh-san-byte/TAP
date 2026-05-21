@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
+import { FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { RegistreDrawer } from './registre-drawer.client';
@@ -24,10 +26,22 @@ export function RegistreList({ entries }: { entries: Entry[] }) {
   if (entries.length === 0) {
     return (
       <div className="rounded-lg border border-dashed p-48 text-center">
-        <p className="text-muted-foreground">Aucune entrée au registre pour le moment.</p>
-        <Button className="mt-16" onClick={() => setDrawerOpen(true)}>
-          Créer la première entrée
-        </Button>
+        <FileText className="text-muted-foreground mx-auto h-32 w-32" aria-hidden />
+        <p className="text-foreground mt-16 font-medium">Votre registre est vide.</p>
+        <p className="text-muted-foreground mx-auto mt-8 max-w-md text-sm">
+          Un transport sanitaire a des traitements de données très prévisibles. TAP peut vous
+          proposer un brouillon des entrées types — à relire et adapter.
+        </p>
+        <div className="mt-24 flex flex-wrap items-center justify-center gap-12">
+          <Button asChild>
+            <Link href="/admin/legal/registre/pre-remplir">
+              Pré-remplir avec les traitements types
+            </Link>
+          </Button>
+          <Button variant="outline" onClick={() => setDrawerOpen(true)}>
+            Créer une entrée manuellement
+          </Button>
+        </div>
         <RegistreDrawer open={drawerOpen} onOpenChange={setDrawerOpen} />
       </div>
     );
