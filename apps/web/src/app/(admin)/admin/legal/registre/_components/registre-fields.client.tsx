@@ -1,5 +1,6 @@
 'use client';
 
+import { legalBasisLabels } from '@tap/shared';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -49,12 +50,11 @@ export function RegistreFields({ idPrefix = '', values }: RegistreFieldsProps): 
           defaultValue={values?.legal_basis}
           className="border-input bg-background flex h-32 w-full rounded-md border px-12 text-sm"
         >
-          <option value="consentement">Consentement</option>
-          <option value="contrat">Contrat</option>
-          <option value="obligation_legale">Obligation légale</option>
-          <option value="mission_interet_public">Mission intérêt public</option>
-          <option value="interet_legitime">Intérêt légitime</option>
-          <option value="sauvegarde_vie">Sauvegarde vie</option>
+          {Object.entries(legalBasisLabels).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
         </select>
       </div>
       <div className="space-y-4">
