@@ -144,11 +144,12 @@ Les items « Phase de résolution : Passe 2 (Phase 04) » référencés ci-desso
 - Sévérité : **minor**
 - Phase de résolution : **Phase 06.8 — Tableau de bord dirigeant** (formalisée ROADMAP 2026-05-21, autonome — avant HDS). KPIs : CA mensuel, courses à facturer, alertes, activité chauffeurs.
 
-### Conformité assistée — pré-remplissage RGPD
+### Conformité assistée — pré-remplissage RGPD — RÉSOLU (Phase 06.6, 2026-05-21)
 
-- Issue : Les 6 pages `/admin/legal/*` sont vides ; aucun dirigeant ne rédige un registre RGPD de zéro (retour terrain 2026-05-21). Le hub + la vulgarisation des sous-titres règlent la compréhension, pas le remplissage.
+- Issue : Les 6 pages `/admin/legal/*` étaient vides ; aucun dirigeant ne rédige un registre RGPD de zéro (retour terrain 2026-05-21). Le hub + la vulgarisation des sous-titres réglaient la compréhension, pas le remplissage.
 - Sévérité : **minor** (conformité réelle, mais pas bloquant tant que pas de client payant)
-- Phase de résolution : **Phase 06.6 — Conformité assistée** (formalisée ROADMAP 2026-05-21, autonome — AVANT HDS, décision dirigeant). Bouton « pré-remplir » déclenché, registre pré-rempli (traitements-types transport sanitaire), breaches/requests/dpo = aide contextuelle. Piste « indicateurs de statut de conformité » à relier au dashboard 06.8.
+- Résolution : **Phase 06.6 livrée 2026-05-21** (pipeline GSD 5/5, 3 waves). Écran de revue review-then-insert : registre pré-rempli (6 entrées-types transport sanitaire), fiches DPA, trame DPIA brouillon, aide contextuelle breaches/requests. DEC-068..070 LOCKED. TAP ne certifie pas — relecture juriste/DPO recommandée (cf. `06.6-SUMMARY.md`).
+- Pistes reportées : fiche DPA du fournisseur SMS (au choix du fournisseur — ADR-004) ; assistant de rédaction des risques DPIA au-delà du squelette (engage juridiquement) ; indicateurs de complétude / statut de conformité par section, à relier au tableau de bord dirigeant (Phase 06.8).
 
 ## Sandbox-blockers et dette de vérification
 

@@ -70,3 +70,81 @@ export async function createDpaRecordAction(
   revalidatePath('/admin/legal/dpa');
   return { success: true };
 }
+
+export type DpaPrefillInput = {
+  subprocessor_name: string;
+  subprocessor_role: string;
+  dpa_version: string;
+  signed_at: string;
+  notes: string;
+};
+
+export type PrefillState = { error?: string; success?: boolean; inserted?: number };
+
+/**
+ * Pré-remplissage en lot des fiches DPA des sous-traitants techniques (D-04).
+ *
+ * Insère uniquement les fiches transmises (cochées sur l'écran de revue).
+ * Idempotence : refuse si la liste DPA contient déjà des fiches.
+ */
+export async function prefillDpaRecordsAction(entries: DpaPrefillInput[]): Promise<PrefillState> {
+  const guard = await requireDirigeant();
+  if (!guard) return { error: 'Action réservée au dirigeant.' };
+
+  if (entries.length === 0) return { error: 'Aucune fiche à insérer.' };
+
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: 'Session expirée.' };
+
+  const profileRes = await supabase
+    .from('profiles')
+    .select('organization_id')
+    .eq('id', user.id)
+    .single();
+  const profile = profileRes.data as { organization_id: string } | null;
+  if (!profile) return { error: 'Profil introuvable.' };
+
+  const { count, error: countError } = await supabase
+    .from('dpa_record')
+    .select('id', { count: 'exact', head: true })
+    .eq('organization_id', profile.organization_id);
+  if (countError) return { error: 'Vérification des fiches DPA impossible.' };
+  if ((count ?? 0) > 0) return { error: 'Des fiches DPA existent déjà.' };
+
+  const rows = [];
+  for (const entry of entries) {
+    const parsed = dpaRecordSchema.safeParse({
+      subprocessor_name: entry.subprocessor_name,
+      subprocessor_role: entry.subprocessor_role,
+      dpa_version: entry.dpa_version,
+      dpa_document_url: null,
+      signed_at: entry.signed_at,
+      expires_at: null,
+      notes: entry.notes.trim() || null,
+    });
+    if (!parsed.success) {
+      return { error: parsed.error.errors[0]?.message ?? 'Fiche invalide.' };
+    }
+    const d = parsed.data;
+    rows.push({
+      organization_id: profile.organization_id,
+      subprocessor_name: d.subprocessor_name,
+      subprocessor_role: d.subprocessor_role,
+      dpa_version: d.dpa_version,
+      dpa_document_url: null,
+      signed_at: d.signed_at.toISOString().slice(0, 10),
+      expires_at: null,
+      notes: d.notes ?? null,
+      created_by: user.id,
+    });
+  }
+
+  const { error } = await supabase.from('dpa_record').insert(rows as never);
+  if (error) return { error: 'Insertion impossible.' };
+
+  revalidatePath('/admin/legal/dpa');
+  return { success: true, inserted: rows.length };
+}
