@@ -1,10 +1,12 @@
 -- =============================================================================
--- Tests pgTAP — Correctifs advisors sécurité (Phase 06 PLAN-3)
+-- Tests pgTAP — Correctifs advisors sécurité (Phase 06 PLAN-3 + correctif)
 -- =============================================================================
--- Vérifie la migration 20260525000001_security_advisors :
+-- Vérifie les migrations 20260525000001_security_advisors +
+-- 20260526000001_revoke_execute_anon_auth :
 --   - search_path figé sur les 3 fonctions signalées
---   - EXECUTE révoqué sur les fonctions de trigger / cron (non appelables
---     client)
+--   - EXECUTE révoqué de anon ET authenticated sur les fonctions de
+--     trigger / garde / cron (un REVOKE FROM public seul ne suffit pas —
+--     Supabase accorde des grants explicites à anon/authenticated)
 --   - les helpers RLS restent exécutables par `authenticated` — PREUVE que
 --     le RLS n'est pas cassé (cf. RLS-AUDIT.md, arbitrage périmètre sûr)
 --
@@ -14,7 +16,7 @@
 
 begin;
 
-select plan(11);
+select plan(14);
 
 -- -----------------------------------------------------------------------------
 -- 1. search_path figé (function_search_path_mutable résolu)
@@ -40,11 +42,15 @@ select ok(
 );
 
 -- -----------------------------------------------------------------------------
--- 2. EXECUTE révoqué sur les fonctions de trigger / cron
+-- 2. EXECUTE révoqué de anon ET authenticated sur trigger / garde / cron
 -- -----------------------------------------------------------------------------
 select ok(
   not has_function_privilege('anon', 'public.rides_audit_trigger()', 'execute'),
   'anon ne peut pas EXECUTE rides_audit_trigger (trigger d audit)'
+);
+select ok(
+  not has_function_privilege('authenticated', 'public.rides_audit_trigger()', 'execute'),
+  'authenticated ne peut pas EXECUTE rides_audit_trigger'
 );
 select ok(
   not has_function_privilege('authenticated', 'public.drivers_audit_trigger()', 'execute'),
@@ -55,12 +61,20 @@ select ok(
   'anon ne peut pas EXECUTE profiles_prevent_self_escalation (garde)'
 );
 select ok(
+  not has_function_privilege('anon', 'public.set_updated_at()', 'execute'),
+  'anon ne peut pas EXECUTE set_updated_at (trigger utilitaire)'
+);
+select ok(
   not has_function_privilege('authenticated', 'public.set_updated_at()', 'execute'),
   'authenticated ne peut pas EXECUTE set_updated_at (trigger utilitaire)'
 );
 select ok(
   not has_function_privilege('anon', 'public.check_breach_deadlines()', 'execute'),
   'anon ne peut pas EXECUTE check_breach_deadlines (cron)'
+);
+select ok(
+  not has_function_privilege('authenticated', 'public.purge_legal_request_attempts()', 'execute'),
+  'authenticated ne peut pas EXECUTE purge_legal_request_attempts (cron)'
 );
 
 -- -----------------------------------------------------------------------------
