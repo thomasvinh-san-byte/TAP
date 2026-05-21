@@ -8,6 +8,7 @@
 import { revalidatePath } from 'next/cache';
 import { breachIncidentSchema } from '@tap/shared';
 import { createClient } from '@/lib/supabase/server';
+import { requireDirigeant } from '@/lib/auth/require-dirigeant';
 
 export type ActionState = { error?: string; success?: boolean };
 
@@ -38,6 +39,10 @@ export async function createBreachAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  // DEC-040 — guard require* partagé : action réservée au dirigeant.
+  const guard = await requireDirigeant();
+  if (!guard) return { error: 'Action réservée au dirigeant.' };
+
   const parsed = parseBreachForm(formData);
   if (!parsed.success) {
     return { error: parsed.error.errors[0]?.message ?? 'Saisie invalide.' };
@@ -86,6 +91,10 @@ export async function createBreachAction(
 }
 
 export async function closeBreachAction(id: string): Promise<ActionState> {
+  // DEC-040 — guard require* partagé : action réservée au dirigeant.
+  const guard = await requireDirigeant();
+  if (!guard) return { error: 'Action réservée au dirigeant.' };
+
   const supabase = createClient();
   const {
     data: { user },

@@ -8,6 +8,7 @@
 import { revalidatePath } from 'next/cache';
 import { dpiaSchema } from '@tap/shared';
 import { createClient } from '@/lib/supabase/server';
+import { requireDirigeant } from '@/lib/auth/require-dirigeant';
 
 export type ActionState = { error?: string; success?: boolean };
 
@@ -52,6 +53,10 @@ export async function createDpiaAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  // DEC-040 — guard require* partagé : action réservée au dirigeant.
+  const guard = await requireDirigeant();
+  if (!guard) return { error: 'Action réservée au dirigeant.' };
+
   const parsed = parseDpiaForm(formData);
   if (!parsed.success) return { error: parsed.error };
 
@@ -98,6 +103,10 @@ export async function updateDpiaAction(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  // DEC-040 — guard require* partagé : action réservée au dirigeant.
+  const guard = await requireDirigeant();
+  if (!guard) return { error: 'Action réservée au dirigeant.' };
+
   const parsed = parseDpiaForm(formData);
   if (!parsed.success) return { error: parsed.error };
 

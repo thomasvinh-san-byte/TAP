@@ -11,7 +11,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { vehicleInputSchema } from '@tap/shared';
-import { getAuthContext } from '@/lib/auth/get-auth-context';
+import { requireDirigeant } from '@/lib/auth/require-dirigeant';
 
 export type ActionState = {
   success?: boolean;
@@ -19,13 +19,6 @@ export type ActionState = {
   error?: string;
   fieldErrors?: Record<string, string>;
 };
-
-async function requireDirigeant() {
-  const ctx = await getAuthContext();
-  if (!ctx) return null;
-  if (ctx.role !== 'dirigeant') return null;
-  return ctx;
-}
 
 function parseFormData(formData: FormData) {
   const placesAssises = formData.get('places_assises');
@@ -138,16 +131,21 @@ export async function archiveVehicleAction(vehicleId: string): Promise<ActionSta
   const ctx = await requireDirigeant();
   if (!ctx) return { error: 'Accès dirigeant requis.' };
 
-  const { error } = await ctx.supabase
+  const { error, data } = await ctx.supabase
     .from('vehicles' as never)
     .update({
       archive: true,
       archive_at: new Date().toISOString(),
       actif: false,
     } as never)
-    .eq('id', vehicleId);
+    .eq('id', vehicleId)
+    .select('id');
 
   if (error) return { error: 'Archivage impossible.' };
+  // DEC-041 — row count check : RLS rejette en silence un UPDATE hors droits.
+  if (!data || (data as unknown[]).length === 0) {
+    return { error: 'Véhicule introuvable — droits insuffisants.' };
+  }
   revalidatePath('/admin/vehicules');
   return { success: true };
 }
