@@ -7,6 +7,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
@@ -30,7 +31,7 @@ const LEGAL_LINKS = [
 
 export function LegalNavMenu(): JSX.Element {
   const pathname = usePathname() ?? '';
-  const active = pathname.startsWith('/admin/legal/');
+  const active = pathname === '/admin/legal' || pathname.startsWith('/admin/legal/');
 
   return (
     <DropdownMenu>
@@ -56,6 +57,12 @@ export function LegalNavMenu(): JSX.Element {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" sideOffset={8} className="w-[240px]">
+        <DropdownMenuItem asChild>
+          <Link href="/admin/legal" className="w-full">
+            Vue d&apos;ensemble
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         {LEGAL_LINKS.map((link) => (
           <DropdownMenuItem key={link.href} asChild>
             <Link href={link.href} className="w-full">

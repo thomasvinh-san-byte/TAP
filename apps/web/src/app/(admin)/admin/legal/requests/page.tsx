@@ -31,7 +31,8 @@ export default async function RequestsPage() {
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">Demandes RGPD patients</h1>
         <p className="text-muted-foreground mt-4 text-sm">
-          Articles 15-21 RGPD : délai légal 30 jours
+          Un patient veut consulter ou effacer ses données ? Suivez sa demande ici — vous devez
+          répondre sous 30 jours. (RGPD art. 15-21)
         </p>
       </header>
 
