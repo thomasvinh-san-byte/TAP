@@ -115,6 +115,7 @@ export function RecurrenceCreateModal({
               <Input
                 id="rec-hour"
                 type="time"
+                lang="fr-FR"
                 value={hour}
                 onChange={(e) => setHour(e.target.value)}
                 required

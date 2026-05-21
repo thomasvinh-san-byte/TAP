@@ -75,6 +75,7 @@ export function TariffSimulator({ grid }: { grid: TariffGrid }): JSX.Element {
           <Input
             id="sim-heure"
             type="time"
+            lang="fr-FR"
             value={heure}
             onChange={(e) => setHeure(e.target.value)}
           />

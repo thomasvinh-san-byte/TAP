@@ -18,6 +18,28 @@ const TYPE_LABELS: Record<VehicleType, string> = {
   ambulance: 'Ambulance',
 };
 
+// Marques courantes des flottes 974 — liste indicative pour la datalist.
+// La saisie reste LIBRE (aide, pas contrainte) : validation Server Action
+// inchangée (marque = string non vide, pas d'enum).
+const MARQUES_VEHICULE = [
+  'Renault',
+  'Peugeot',
+  'Citroën',
+  'Dacia',
+  'Toyota',
+  'Mercedes-Benz',
+  'Volkswagen',
+  'Ford',
+  'Opel',
+  'Hyundai',
+  'Kia',
+  'Fiat',
+  'Nissan',
+  'Škoda',
+  'BMW',
+  'Suzuki',
+];
+
 interface Props {
   initial?: VehicleRow;
   onSuccess?: (id: string) => void;
@@ -52,9 +74,20 @@ export function VehicleForm({ initial, onSuccess }: Props): JSX.Element {
       />
 
       <div className="grid grid-cols-2 gap-12">
-        <Field id="marque" label="Marque" defaultValue={initial?.marque ?? ''} error={fe.marque} />
+        <Field
+          id="marque"
+          label="Marque"
+          defaultValue={initial?.marque ?? ''}
+          error={fe.marque}
+          list="vehicle-marques"
+        />
         <Field id="modele" label="Modèle" defaultValue={initial?.modele ?? ''} error={fe.modele} />
       </div>
+      <datalist id="vehicle-marques">
+        {MARQUES_VEHICULE.map((m) => (
+          <option key={m} value={m} />
+        ))}
+      </datalist>
 
       <div className="space-y-8">
         <Label htmlFor="type">Type</Label>
