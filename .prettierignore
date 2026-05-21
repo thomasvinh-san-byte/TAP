@@ -8,3 +8,8 @@ pnpm-lock.yaml
 supabase/.branches
 supabase/.temp
 *.md
+
+# Fichiers générés (non formatables — régénérés au build / post-CD)
+apps/web/public/sw.js
+apps/web/public/swe-worker-*.js
+packages/database/src/types.gen.ts
