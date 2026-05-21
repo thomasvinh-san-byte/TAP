@@ -38,9 +38,7 @@ export function RecomputeTarifs(): JSX.Element {
       return;
     }
     setResult({ recomputed: res.recomputed, candidates: res.candidates });
-    toast.success(
-      `Recalcul terminé : ${res.recomputed} course(s) recalculée(s).`,
-    );
+    toast.success(`Recalcul terminé : ${res.recomputed} course(s) recalculée(s).`);
   };
 
   return (
@@ -52,15 +50,12 @@ export function RecomputeTarifs(): JSX.Element {
         variant="outline"
         className="gap-8"
       >
-        <Calculator
-          className={pending ? 'h-16 w-16 animate-spin' : 'h-16 w-16'}
-          aria-hidden
-        />
+        <Calculator className={pending ? 'h-16 w-16 animate-spin' : 'h-16 w-16'} aria-hidden />
         {pending ? 'Recalcul…' : 'Recalculer les tarifs'}
       </Button>
 
       {result && (
-        <dl className="rounded-md border border-border bg-muted/20 p-12 text-sm space-y-4">
+        <dl className="border-border bg-muted/20 space-y-4 rounded-md border p-12 text-sm">
           <div className="flex items-center justify-between">
             <dt className="text-muted-foreground">Courses recalculées</dt>
             <dd className="font-mono tabular-nums">{result.recomputed}</dd>

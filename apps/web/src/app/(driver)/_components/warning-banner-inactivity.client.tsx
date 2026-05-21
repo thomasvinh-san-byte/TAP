@@ -63,10 +63,9 @@ export function WarningBannerInactivity(): JSX.Element | null {
       role="alert"
       className="mb-16 flex items-start gap-12 rounded-md border border-amber-200 bg-amber-50 p-12 text-amber-900"
     >
-      <AlertTriangle aria-hidden className="h-20 w-20 shrink-0 mt-2" />
+      <AlertTriangle aria-hidden className="mt-2 h-20 w-20 shrink-0" />
       <div className="flex-1 text-sm">
-        Bienvenue. Si tu as un problème de chargement, ferme et relance
-        l&apos;app.
+        Bienvenue. Si tu as un problème de chargement, ferme et relance l&apos;app.
       </div>
       <Button
         variant="outline"

@@ -58,7 +58,7 @@ export function DpoForm({ initial }: Props) {
           name="dpo_contact_address"
           rows={3}
           defaultValue={initial.dpo_contact_address}
-          className="flex w-full rounded-md border border-input bg-background px-12 py-8 text-sm"
+          className="border-input bg-background flex w-full rounded-md border px-12 py-8 text-sm"
         />
       </div>
       <div className="flex items-center gap-8">
@@ -71,10 +71,8 @@ export function DpoForm({ initial }: Props) {
         <Label htmlFor="dpo_external">DPO externe (cabinet)</Label>
       </div>
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
-      {success && (
-        <p className="text-sm text-success">Contact DPO mis à jour.</p>
-      )}
+      {error && <p className="text-destructive text-sm">{error}</p>}
+      {success && <p className="text-success text-sm">Contact DPO mis à jour.</p>}
 
       <div className="pt-8">
         <Button type="submit" disabled={pending}>

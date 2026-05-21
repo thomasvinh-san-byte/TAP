@@ -59,9 +59,7 @@ function pickFormData(formData: FormData, keys: string[]): Record<string, unknow
   return obj;
 }
 
-export async function rescheduleRideAction(
-  formData: FormData,
-): Promise<CockpitActionState> {
+export async function rescheduleRideAction(formData: FormData): Promise<CockpitActionState> {
   const ctx = await requireAdminOrRegulateur();
   if (!ctx) return { error: 'Action réservée aux régulateurs et dirigeants.' };
 
@@ -134,9 +132,7 @@ export async function rescheduleRideAction(
   return { success: true, new_ride_id: cloned.id };
 }
 
-export async function cancelRideForNoShowAction(
-  rideId: string,
-): Promise<CockpitActionState> {
+export async function cancelRideForNoShowAction(rideId: string): Promise<CockpitActionState> {
   const ctx = await requireAdminOrRegulateur();
   if (!ctx) return { error: 'Action réservée aux régulateurs et dirigeants.' };
 

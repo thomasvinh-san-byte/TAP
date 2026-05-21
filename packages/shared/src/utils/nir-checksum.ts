@@ -38,10 +38,7 @@ function toCanonicalDigits13(nir15: string): string | null {
 
   // Cas Corse : positions 6-7 = '2A' ou '2B', le reste tout chiffres
   if (dept in CORSE_REPLACEMENTS) {
-    const replaced =
-      head13.slice(0, 5) +
-      CORSE_REPLACEMENTS[dept] +
-      head13.slice(7);
+    const replaced = head13.slice(0, 5) + CORSE_REPLACEMENTS[dept] + head13.slice(7);
     if (/^[0-9]{13}$/.test(replaced)) return replaced;
   }
 

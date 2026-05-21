@@ -83,12 +83,11 @@ export function TemplateEditor({
   }
 
   return (
-    <article className="space-y-12 rounded-md border border-border bg-background p-16">
+    <article className="border-border bg-background space-y-12 rounded-md border p-16">
       <header className="space-y-4">
-        <h2 className="text-base font-semibold text-foreground">{label}</h2>
-        <p className="text-xs text-muted-foreground">
-          Clé : <code className="font-mono">{templateKey}</code> · maj{' '}
-          {formatUpdatedAt(updatedAt)}
+        <h2 className="text-foreground text-base font-semibold">{label}</h2>
+        <p className="text-muted-foreground text-xs">
+          Clé : <code className="font-mono">{templateKey}</code> · maj {formatUpdatedAt(updatedAt)}
         </p>
       </header>
 
@@ -100,7 +99,7 @@ export function TemplateEditor({
               key={v}
               type="button"
               onClick={() => insertVariable(v)}
-              className="rounded border border-border bg-muted px-8 py-4 font-mono text-xs hover:bg-muted/70"
+              className="border-border bg-muted hover:bg-muted/70 rounded border px-8 py-4 font-mono text-xs"
             >
               {`{{${v}}}`}
             </button>
@@ -115,7 +114,7 @@ export function TemplateEditor({
             <span
               className={
                 'text-xs tabular-nums ' +
-                (over ? 'font-semibold text-destructive' : 'text-muted-foreground')
+                (over ? 'text-destructive font-semibold' : 'text-muted-foreground')
               }
             >
               {body.length}/{MAX_LENGTH}
@@ -127,16 +126,14 @@ export function TemplateEditor({
             value={body}
             onChange={(e) => setBody(e.target.value)}
             rows={5}
-            className="w-full rounded-md border border-input bg-background px-12 py-8 text-sm"
+            className="border-input bg-background w-full rounded-md border px-12 py-8 text-sm"
           />
         </div>
 
         <div className="space-y-4">
           <Label>Aperçu (valeurs génériques)</Label>
-          <div className="rounded-md border border-dashed border-border bg-muted/30 p-12 text-sm">
-            {preview || (
-              <span className="text-muted-foreground">— vide —</span>
-            )}
+          <div className="border-border bg-muted/30 rounded-md border border-dashed p-12 text-sm">
+            {preview || <span className="text-muted-foreground">— vide —</span>}
           </div>
         </div>
 
@@ -146,7 +143,7 @@ export function TemplateEditor({
           </p>
         )}
         {feedback?.error && (
-          <p role="alert" className="text-sm text-destructive">
+          <p role="alert" className="text-destructive text-sm">
             {feedback.error}
           </p>
         )}

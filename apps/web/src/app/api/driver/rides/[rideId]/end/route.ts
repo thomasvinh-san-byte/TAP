@@ -45,16 +45,10 @@ interface EndRideResponseBody {
   [key: string]: unknown;
 }
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { rideId: string } },
-) {
+export async function POST(req: NextRequest, { params }: { params: { rideId: string } }) {
   const rideIdParse = rideIdSchema.safeParse(params.rideId);
   if (!rideIdParse.success) {
-    return NextResponse.json(
-      { error: 'Identifiant course invalide.' },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: 'Identifiant course invalide.' }, { status: 400 });
   }
 
   const body = await req.json().catch(() => null);
@@ -83,8 +77,7 @@ export async function POST(
         .select('status, driver_id')
         .eq('id', rideIdParse.data)
         .single();
-      const currentRow =
-        (current as { status: string; driver_id: string | null } | null) ?? null;
+      const currentRow = (current as { status: string; driver_id: string | null } | null) ?? null;
       if (!currentRow) {
         return { status: 404, body: { error: 'Course introuvable.' } };
       }
@@ -134,8 +127,7 @@ export async function POST(
         return {
           status: 403,
           body: {
-            error:
-              'Course non modifiée — vérifiez que vous êtes bien le chauffeur assigné.',
+            error: 'Course non modifiée — vérifiez que vous êtes bien le chauffeur assigné.',
           },
         };
       }

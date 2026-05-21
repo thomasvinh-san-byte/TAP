@@ -29,9 +29,9 @@ test('chauffeur peut démarrer une course assignée et voir le bouton passer à 
   await page.getByRole('button', { name: 'Se connecter' }).click();
   await page.waitForURL(/\/conduite/);
 
-  await expect(
-    page.getByRole('heading', { name: /journée|courses/i, level: 1 }),
-  ).toBeVisible({ timeout: 10000 });
+  await expect(page.getByRole('heading', { name: /journée|courses/i, level: 1 })).toBeVisible({
+    timeout: 10000,
+  });
 
   const startButtons = page.getByRole('button', { name: 'Démarrer la course' });
   const startButtonCount = await startButtons.count();
@@ -55,9 +55,9 @@ test('chauffeur peut démarrer une course assignée et voir le bouton passer à 
   // Cible du fix DEC-033 : après router.refresh(), la clé incluant `status`
   // force le re-mount → le bouton doit désormais être « Clôturer la course ».
   // Tolérance 10s pour la propagation revalidatePath + re-render.
-  await expect(
-    page.getByRole('button', { name: 'Clôturer la course' }),
-  ).toBeVisible({ timeout: 10000 });
+  await expect(page.getByRole('button', { name: 'Clôturer la course' })).toBeVisible({
+    timeout: 10000,
+  });
 
   // Sanity : aucun bouton « Démarrer la course » sur la même course
   // (un autre ride assignee peut encore en exposer un, ce qui est OK).

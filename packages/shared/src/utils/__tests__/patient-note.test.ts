@@ -24,7 +24,11 @@ function makeMock(opts: { activeNote: { id: string; content: string } | null }) 
   const calls: CallLog[] = [];
 
   const builderFor = (table: string) => {
-    const ctx: { op: 'select' | 'insert' | 'update' | null; payload?: unknown; filters: Record<string, unknown> } = {
+    const ctx: {
+      op: 'select' | 'insert' | 'update' | null;
+      payload?: unknown;
+      filters: Record<string, unknown>;
+    } = {
       op: null,
       filters: {},
     };
@@ -55,7 +59,10 @@ function makeMock(opts: { activeNote: { id: string; content: string } | null }) 
 
     builder.maybeSingle = async () => {
       calls.push({ table, op: 'select', filters: { ...ctx.filters } });
-      return { data: opts.activeNote ? { ...opts.activeNote, organization_id: 'org-1' } : null, error: null };
+      return {
+        data: opts.activeNote ? { ...opts.activeNote, organization_id: 'org-1' } : null,
+        error: null,
+      };
     };
     builder.single = async () => {
       if (ctx.op === 'insert') {
@@ -84,7 +91,9 @@ function makeMock(opts: { activeNote: { id: string; content: string } | null }) 
   };
 
   return {
-    supabase: { from: (table: string) => builderFor(table) } as unknown as Parameters<typeof replacePatientNote>[0],
+    supabase: { from: (table: string) => builderFor(table) } as unknown as Parameters<
+      typeof replacePatientNote
+    >[0],
     calls,
   };
 }

@@ -3,30 +3,15 @@
 import { useDeferredValue, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowRight } from 'lucide-react';
-import {
-  listRidesEnrichedAction,
-} from '../actions';
-import type {
-  RideRowEnriched,
-  RideStatus,
-  RideTransportMode,
-} from '../_lib/queries';
+import { listRidesEnrichedAction } from '../actions';
+import type { RideRowEnriched, RideStatus, RideTransportMode } from '../_lib/queries';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
-import {
-  formatShortDateFr,
-  formatTimeFr,
-  isToday,
-} from '@/lib/dates-fr';
-import {
-  ModeBadge,
-  PaymentBadge,
-  StatusBadge,
-  UrgencyBadge,
-} from './ride-badges';
+import { formatShortDateFr, formatTimeFr, isToday } from '@/lib/dates-fr';
+import { ModeBadge, PaymentBadge, StatusBadge, UrgencyBadge } from './ride-badges';
 import { RideDrawer } from './ride-drawer.client';
 import { AssignModal } from './assign-modal.client';
 
@@ -105,12 +90,8 @@ export function RidesList(): JSX.Element {
     ],
     queryFn: () =>
       listRidesEnrichedAction({
-        status:
-          statusFilter === 'all' ? undefined : (statusFilter as RideStatus),
-        transport_mode:
-          modeFilter === 'all'
-            ? undefined
-            : (modeFilter as RideTransportMode),
+        status: statusFilter === 'all' ? undefined : (statusFilter as RideStatus),
+        transport_mode: modeFilter === 'all' ? undefined : (modeFilter as RideTransportMode),
         date: dateFilter || undefined,
         limit: pageOffset + PAGE_SIZE,
         offset: 0,
@@ -127,16 +108,14 @@ export function RidesList(): JSX.Element {
     return (
       r.pickup_address.toLowerCase().includes(lower) ||
       r.dropoff_address.toLowerCase().includes(lower) ||
-      `${r.patient?.nom ?? ''} ${r.patient?.prenom ?? ''}`
-        .toLowerCase()
-        .includes(lower)
+      `${r.patient?.nom ?? ''} ${r.patient?.prenom ?? ''}`.toLowerCase().includes(lower)
     );
   });
 
   return (
     <div className="space-y-16">
-      <div className="flex flex-wrap gap-12 items-end">
-        <div className="flex-1 min-w-[240px]">
+      <div className="flex flex-wrap items-end gap-12">
+        <div className="min-w-[240px] flex-1">
           <Input
             aria-label="Rechercher dans les adresses ou patients"
             placeholder="Rechercher…"
@@ -201,13 +180,13 @@ export function RidesList(): JSX.Element {
       )}
 
       {!isPending && filtered.length === 0 && (
-        <div className="rounded-md border border-border p-32 text-center text-sm text-muted-foreground">
+        <div className="border-border text-muted-foreground rounded-md border p-32 text-center text-sm">
           Aucune course ne correspond aux critères.
         </div>
       )}
 
       {!isPending && filtered.length > 0 && (
-        <div className="flex items-center justify-between text-xs text-muted-foreground tabular-nums">
+        <div className="text-muted-foreground flex items-center justify-between text-xs tabular-nums">
           <span>
             {filtered.length} course{filtered.length > 1 ? 's' : ''} affichée
             {filtered.length > 1 ? 's' : ''}
@@ -216,9 +195,9 @@ export function RidesList(): JSX.Element {
       )}
 
       {!isPending && filtered.length > 0 && (
-        <div className="overflow-x-auto rounded-md border border-border">
+        <div className="border-border overflow-x-auto rounded-md border">
           <table className="w-full text-sm" aria-label="Liste des courses">
-            <thead className="bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
+            <thead className="bg-muted/50 text-muted-foreground text-left text-xs uppercase tracking-wide">
               <tr>
                 <th className="px-12 py-12 font-medium">Heure</th>
                 <th className="px-12 py-12 font-medium">Patient</th>
@@ -292,13 +271,13 @@ function RideRowView({ ride, onOpen, onAssign }: RideRowProps): JSX.Element {
     : 'Patient inconnu';
   return (
     <tr
-      className="border-t border-border transition-colors duration-150 hover:bg-muted/50 cursor-pointer"
+      className="border-border hover:bg-muted/50 cursor-pointer border-t transition-colors duration-150"
       onClick={onOpen}
     >
       <td className="px-12 py-12 align-top tabular-nums">
         <div className="font-medium">{formatTimeFr(ride.scheduled_at)}</div>
         {!today && (
-          <div className="text-xs text-muted-foreground">
+          <div className="text-muted-foreground text-xs">
             {formatShortDateFr(ride.scheduled_at)}
           </div>
         )}
@@ -306,25 +285,16 @@ function RideRowView({ ride, onOpen, onAssign }: RideRowProps): JSX.Element {
       <td className="px-12 py-12 align-top">
         <div className="flex items-center gap-8">
           <InitialsAvatar name={patientName} size={24} />
-          <span className="truncate max-w-[180px]">{patientName}</span>
+          <span className="max-w-[180px] truncate">{patientName}</span>
         </div>
       </td>
-      <td className="px-12 py-12 align-top min-w-0">
-        <div className="flex items-center gap-8 text-sm min-w-0">
-          <span
-            className="truncate max-w-[180px]"
-            title={ride.pickup_address}
-          >
+      <td className="min-w-0 px-12 py-12 align-top">
+        <div className="flex min-w-0 items-center gap-8 text-sm">
+          <span className="max-w-[180px] truncate" title={ride.pickup_address}>
             {shortAddress(ride.pickup_address)}
           </span>
-          <ArrowRight
-            className="h-12 w-12 shrink-0 text-muted-foreground"
-            aria-hidden
-          />
-          <span
-            className="truncate max-w-[180px]"
-            title={ride.dropoff_address}
-          >
+          <ArrowRight className="text-muted-foreground h-12 w-12 shrink-0" aria-hidden />
+          <span className="max-w-[180px] truncate" title={ride.dropoff_address}>
             {shortAddress(ride.dropoff_address)}
           </span>
         </div>
@@ -338,14 +308,8 @@ function RideRowView({ ride, onOpen, onAssign }: RideRowProps): JSX.Element {
       <td className="px-12 py-12 align-top">
         {ride.driver ? (
           <div className="flex items-center gap-8">
-            <InitialsAvatar
-              name={ride.driver.nom_affichage}
-              role="chauffeur"
-              size={24}
-            />
-            <span className="truncate max-w-[140px]">
-              {ride.driver.nom_affichage}
-            </span>
+            <InitialsAvatar name={ride.driver.nom_affichage} role="chauffeur" size={24} />
+            <span className="max-w-[140px] truncate">{ride.driver.nom_affichage}</span>
           </div>
         ) : ride.status === 'validee' ? (
           <Button
@@ -360,17 +324,14 @@ function RideRowView({ ride, onOpen, onAssign }: RideRowProps): JSX.Element {
             Assigner
           </Button>
         ) : (
-          <span className="text-xs text-muted-foreground">—</span>
+          <span className="text-muted-foreground text-xs">—</span>
         )}
       </td>
       <td className="px-12 py-12 align-top">
         <StatusBadge status={ride.status} />
       </td>
       <td className="px-12 py-12 align-top">
-        <PaymentBadge
-          status={ride.payment_status}
-          amountEur={ride.tarif_amount_eur}
-        />
+        <PaymentBadge status={ride.payment_status} amountEur={ride.tarif_amount_eur} />
       </td>
     </tr>
   );

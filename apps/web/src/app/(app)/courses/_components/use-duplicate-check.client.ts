@@ -28,10 +28,7 @@ export function useDuplicateCheck() {
   const [duplicateConfirmed, setDuplicateConfirmed] = useState(false);
 
   const runCheck = useCallback(
-    async (
-      form: RideSubmitFormState,
-      excludeRideId: string | undefined,
-    ): Promise<boolean> => {
+    async (form: RideSubmitFormState, excludeRideId: string | undefined): Promise<boolean> => {
       const scheduledIso = form.scheduled_at;
       if (!form.patient_id || !scheduledIso) return false;
       const result = await checkDuplicateRideAction({

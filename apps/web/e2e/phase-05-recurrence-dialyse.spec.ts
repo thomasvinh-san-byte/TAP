@@ -14,9 +14,7 @@ import { loginAsRegulateur } from './helpers/auth';
  *     (le 1er mai 2026 vendredi est dans les occurrences)
  *  5. Soumet et vérifie le retour sur la fiche patient
  */
-test('régulatrice crée récurrence dialyse 3×/sem avec saut jour férié 974', async ({
-  page,
-}) => {
+test('régulatrice crée récurrence dialyse 3×/sem avec saut jour férié 974', async ({ page }) => {
   await loginAsRegulateur(page);
 
   await page.goto('/patients');

@@ -5,11 +5,7 @@ export const metadata = {
   title: 'Connexion — TAP Régulation',
 };
 
-export default function LoginPage({
-  searchParams,
-}: {
-  searchParams: { next?: string };
-}) {
+export default function LoginPage({ searchParams }: { searchParams: { next?: string } }) {
   return (
     <AuthShell title="Connexion">
       <LoginFormShell next={searchParams.next} />

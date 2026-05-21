@@ -45,34 +45,23 @@ export function IdentityForm({ token, requestType, action }: Props) {
           required
           aria-describedby="nir-help"
         />
-        <p id="nir-help" className="text-sm text-muted-foreground">
+        <p id="nir-help" className="text-muted-foreground text-sm">
           15 chiffres figurant sur votre carte vitale.
         </p>
       </div>
 
       <div className="space-y-8">
         <Label htmlFor="nom">Nom de famille</Label>
-        <Input
-          id="nom"
-          name="nom"
-          autoComplete="family-name"
-          required
-        />
+        <Input id="nom" name="nom" autoComplete="family-name" required />
       </div>
 
       <div className="space-y-8">
         <Label htmlFor="date_naissance">Date de naissance</Label>
-        <Input
-          id="date_naissance"
-          name="date_naissance"
-          type="date"
-          autoComplete="bday"
-          required
-        />
+        <Input id="date_naissance" name="date_naissance" type="date" autoComplete="bday" required />
       </div>
 
       {state.error && (
-        <p role="alert" className="text-sm text-destructive">
+        <p role="alert" className="text-destructive text-sm">
           {state.error}
         </p>
       )}

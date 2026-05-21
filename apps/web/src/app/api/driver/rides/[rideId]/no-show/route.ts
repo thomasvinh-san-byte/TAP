@@ -45,10 +45,7 @@ export async function POST(
 ): Promise<NextResponse> {
   const rideIdParse = rideIdSchema.safeParse(params.rideId);
   if (!rideIdParse.success) {
-    return NextResponse.json(
-      { error: 'Identifiant course invalide.' },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: 'Identifiant course invalide.' }, { status: 400 });
   }
 
   const body = await req.json().catch(() => null);
@@ -131,15 +128,13 @@ export async function POST(
       }
 
       // INSERT ride_events pour cockpit Realtime (alerte instantanée régulatrice).
-      const { error: eventErr } = await auth.ctx.supabase
-        .from('ride_events' as never)
-        .insert({
-          organization_id: currentRow.organization_id,
-          ride_id: rideIdParse.data,
-          event_type: 'patient_no_show',
-          payload: { motif: bodyParse.data.motif ?? null },
-          created_by: auth.ctx.userId,
-        } as never);
+      const { error: eventErr } = await auth.ctx.supabase.from('ride_events' as never).insert({
+        organization_id: currentRow.organization_id,
+        ride_id: rideIdParse.data,
+        event_type: 'patient_no_show',
+        payload: { motif: bodyParse.data.motif ?? null },
+        created_by: auth.ctx.userId,
+      } as never);
       if (eventErr) {
         return {
           status: 500,

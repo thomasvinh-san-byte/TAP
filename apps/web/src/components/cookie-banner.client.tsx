@@ -2,11 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  readConsent,
-  writeConsent,
-  type CookieChoices,
-} from '@/lib/cookie-consent';
+import { readConsent, writeConsent, type CookieChoices } from '@/lib/cookie-consent';
 
 /**
  * Bandeau cookies CNIL-conforme (D-14, DPA-08).
@@ -65,14 +61,13 @@ export function CookieBanner() {
       role="dialog"
       aria-label="Préférences cookies"
       aria-describedby="cookie-banner-desc"
-      className="fixed bottom-0 inset-x-0 z-50 border-t bg-background shadow-lg"
+      className="bg-background fixed inset-x-0 bottom-0 z-50 border-t shadow-lg"
     >
-      <div className="max-w-[1200px] mx-auto px-24 py-24">
-        <p id="cookie-banner-desc" className="text-sm mb-16">
-          Nous utilisons des cookies pour assurer le fonctionnement de
-          l'application et mesurer son usage de manière agrégée. Vous pouvez
-          accepter, refuser ou personnaliser votre choix. Vos préférences sont
-          conservées 6 mois.
+      <div className="mx-auto max-w-[1200px] px-24 py-24">
+        <p id="cookie-banner-desc" className="mb-16 text-sm">
+          Nous utilisons des cookies pour assurer le fonctionnement de l'application et mesurer son
+          usage de manière agrégée. Vous pouvez accepter, refuser ou personnaliser votre choix. Vos
+          préférences sont conservées 6 mois.
         </p>
         {customizing ? (
           <CustomizePanel
@@ -84,7 +79,7 @@ export function CookieBanner() {
           <div className="flex gap-12">
             <Button
               variant="outline"
-              className="flex-1 h-44"
+              className="h-44 flex-1"
               onClick={() => submit(ALL_REFUSED)}
               data-testid="cookie-refuse"
             >
@@ -92,7 +87,7 @@ export function CookieBanner() {
             </Button>
             <Button
               variant="outline"
-              className="flex-1 h-44"
+              className="h-44 flex-1"
               onClick={() => setCustomizing(true)}
               data-testid="cookie-customize"
             >
@@ -100,7 +95,7 @@ export function CookieBanner() {
             </Button>
             <Button
               variant="outline"
-              className="flex-1 h-44"
+              className="h-44 flex-1"
               onClick={() => submit(ALL_ACCEPTED)}
               data-testid="cookie-accept"
             >
@@ -124,7 +119,9 @@ function CustomizePanel({ choices, onChange, onValidate }: PanelProps) {
     <div className="space-y-12">
       <label className="flex items-start gap-12 text-sm">
         <input type="checkbox" checked disabled aria-label="Cookies techniques (obligatoires)" />
-        <span><strong>Techniques</strong> : session, authentification (obligatoires).</span>
+        <span>
+          <strong>Techniques</strong> : session, authentification (obligatoires).
+        </span>
       </label>
       <label className="flex items-start gap-12 text-sm">
         <input
@@ -132,11 +129,20 @@ function CustomizePanel({ choices, onChange, onValidate }: PanelProps) {
           checked={choices.analytics}
           onChange={(e) => onChange({ ...choices, analytics: e.target.checked })}
         />
-        <span><strong>Mesure d'audience</strong> : Sentry (anonymisé).</span>
+        <span>
+          <strong>Mesure d'audience</strong> : Sentry (anonymisé).
+        </span>
       </label>
-      <label className="flex items-start gap-12 text-sm text-muted-foreground">
-        <input type="checkbox" checked={false} disabled aria-label="Marketing : non utilisé en V1" />
-        <span><strong>Marketing</strong> : non utilisé dans cette version.</span>
+      <label className="text-muted-foreground flex items-start gap-12 text-sm">
+        <input
+          type="checkbox"
+          checked={false}
+          disabled
+          aria-label="Marketing : non utilisé en V1"
+        />
+        <span>
+          <strong>Marketing</strong> : non utilisé dans cette version.
+        </span>
       </label>
       <Button variant="outline" className="h-44" onClick={onValidate}>
         Valider mes choix

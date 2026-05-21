@@ -27,7 +27,7 @@ export function HeaderNewRideButton(): JSX.Element {
       variant="default"
       onClick={() => dispatch({ type: 'OPEN_NEW' })}
       aria-label="Nouvelle course (Cmd/Ctrl+Shift+K)"
-      className="gap-8 shrink-0 w-full md:w-auto"
+      className="w-full shrink-0 gap-8 md:w-auto"
     >
       <Plus className="h-16 w-16" aria-hidden />
       <span>Nouvelle course</span>

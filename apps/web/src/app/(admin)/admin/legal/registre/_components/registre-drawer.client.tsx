@@ -29,10 +29,7 @@ export function RegistreDrawer({ open, onOpenChange }: Props) {
   function onSubmit(formData: FormData) {
     setError(undefined);
     startTransition(async () => {
-      const res = await createDataProcessingRegisterAction(
-        { error: undefined },
-        formData,
-      );
+      const res = await createDataProcessingRegisterAction({ error: undefined }, formData);
       if (res.error) setError(res.error);
       else onOpenChange(false);
     });
@@ -42,7 +39,7 @@ export function RegistreDrawer({ open, onOpenChange }: Props) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-[400px] sm:w-[400px] sm:max-w-[400px] overflow-y-auto"
+        className="w-[400px] overflow-y-auto sm:w-[400px] sm:max-w-[400px]"
       >
         <SheetHeader>
           <SheetTitle>Nouvelle entrée registre</SheetTitle>
@@ -51,7 +48,7 @@ export function RegistreDrawer({ open, onOpenChange }: Props) {
           </SheetDescription>
         </SheetHeader>
 
-        <form action={onSubmit} className="space-y-16 mt-24">
+        <form action={onSubmit} className="mt-24 space-y-16">
           <div className="space-y-4">
             <Label htmlFor="purpose">Finalité</Label>
             <Input id="purpose" name="purpose" required />
@@ -62,7 +59,7 @@ export function RegistreDrawer({ open, onOpenChange }: Props) {
               id="legal_basis"
               name="legal_basis"
               required
-              className="flex h-32 w-full rounded-md border border-input bg-background px-12 text-sm"
+              className="border-input bg-background flex h-32 w-full rounded-md border px-12 text-sm"
             >
               <option value="consentement">Consentement</option>
               <option value="contrat">Contrat</option>
@@ -74,11 +71,21 @@ export function RegistreDrawer({ open, onOpenChange }: Props) {
           </div>
           <div className="space-y-4">
             <Label htmlFor="data_categories">Catégories de données (séparées par virgule)</Label>
-            <Input id="data_categories" name="data_categories" required placeholder="identite, contact, sante" />
+            <Input
+              id="data_categories"
+              name="data_categories"
+              required
+              placeholder="identite, contact, sante"
+            />
           </div>
           <div className="space-y-4">
             <Label htmlFor="data_subjects">Personnes concernées (séparées par virgule)</Label>
-            <Input id="data_subjects" name="data_subjects" required placeholder="patient, chauffeur" />
+            <Input
+              id="data_subjects"
+              name="data_subjects"
+              required
+              placeholder="patient, chauffeur"
+            />
           </div>
           <div className="space-y-4">
             <Label htmlFor="recipients">Destinataires (séparés par virgule)</Label>
@@ -102,7 +109,7 @@ export function RegistreDrawer({ open, onOpenChange }: Props) {
               name="security_measures"
               required
               rows={3}
-              className="flex w-full rounded-md border border-input bg-background px-12 py-8 text-sm"
+              className="border-input bg-background flex w-full rounded-md border px-12 py-8 text-sm"
             />
           </div>
           <div className="flex items-center gap-8">
@@ -110,7 +117,7 @@ export function RegistreDrawer({ open, onOpenChange }: Props) {
             <Label htmlFor="international_transfer">Transfert international</Label>
           </div>
 
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {error && <p className="text-destructive text-sm">{error}</p>}
 
           <div className="flex gap-8 pt-16">
             <Button

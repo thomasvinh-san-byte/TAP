@@ -31,7 +31,7 @@ export function SelectField({
         id={id}
         name={id}
         required
-        className="flex h-32 w-full rounded-md border border-input bg-background px-12 text-sm"
+        className="border-input bg-background flex h-32 w-full rounded-md border px-12 text-sm"
       >
         {options.map(([v, l]) => (
           <option key={v} value={v}>

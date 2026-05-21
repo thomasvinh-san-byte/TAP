@@ -124,8 +124,8 @@ export function RecurrenceEditModal({
               <AlertTriangle aria-hidden className="h-16 w-16 shrink-0" />
               <p>
                 <strong>{futureCount}</strong>{' '}
-                {futureCount > 1 ? 'occurrences seront supprimées' : 'occurrence sera supprimée'}{' '}
-                et régénérée(s). Les courses en cours, terminées ou annulées sont préservées.
+                {futureCount > 1 ? 'occurrences seront supprimées' : 'occurrence sera supprimée'} et
+                régénérée(s). Les courses en cours, terminées ou annulées sont préservées.
               </p>
             </div>
           )}
@@ -216,7 +216,7 @@ export function RecurrenceEditModal({
                   onChange={(e) =>
                     setTransportMode(e.target.value as RideRecurrence['transport_mode'])
                   }
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-12 text-sm"
+                  className="border-input bg-background flex h-10 w-full rounded-md border px-12 text-sm"
                 >
                   <option value="vsl">VSL</option>
                   <option value="taxi_conventionne">Taxi conventionné</option>
@@ -229,7 +229,7 @@ export function RecurrenceEditModal({
                   id="edit-urgency"
                   value={urgency}
                   onChange={(e) => setUrgency(e.target.value as RideRecurrence['urgency'])}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-12 text-sm"
+                  className="border-input bg-background flex h-10 w-full rounded-md border px-12 text-sm"
                 >
                   <option value="normale">Normale</option>
                   <option value="prioritaire">Prioritaire</option>
@@ -244,7 +244,7 @@ export function RecurrenceEditModal({
             />
 
             {error && (
-              <p role="alert" className="text-sm text-destructive">
+              <p role="alert" className="text-destructive text-sm">
                 {error}
               </p>
             )}
@@ -280,7 +280,7 @@ export function RecurrenceEditModal({
                 : 'Aucune occurrence future à régénérer — seule la récurrence sera mise à jour.'}
             </DialogDescription>
           </DialogHeader>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             Préservées : courses en cours, terminées ou annulées.
           </p>
           <DialogFooter>

@@ -26,9 +26,7 @@ const saveSchema = z.object({
 
 const testSchema = z.object({
   template_key: z.enum(['j1_reminder', 'j2h_reminder']),
-  to_phone: z
-    .string()
-    .regex(/^\+\d{8,15}$/, 'Numéro E.164 attendu (ex: +262692XXXXXX)'),
+  to_phone: z.string().regex(/^\+\d{8,15}$/, 'Numéro E.164 attendu (ex: +262692XXXXXX)'),
   patient_prenom: z.string().optional(),
   patient_nom: z.string().optional(),
   heure: z.string().optional(),
@@ -46,9 +44,7 @@ function pickFormData(formData: FormData, keys: string[]): Record<string, unknow
   return obj;
 }
 
-export async function saveTemplateAction(
-  formData: FormData,
-): Promise<SmsTemplateActionState> {
+export async function saveTemplateAction(formData: FormData): Promise<SmsTemplateActionState> {
   const ctx = await requireDirigeant();
   if (!ctx) return { error: 'Action réservée au dirigeant.' };
 
@@ -91,9 +87,7 @@ export async function saveTemplateAction(
   return { success: true };
 }
 
-export async function testSendSmsAction(
-  formData: FormData,
-): Promise<SmsTemplateActionState> {
+export async function testSendSmsAction(formData: FormData): Promise<SmsTemplateActionState> {
   const ctx = await requireDirigeant();
   if (!ctx) return { error: 'Action réservée au dirigeant.' };
 

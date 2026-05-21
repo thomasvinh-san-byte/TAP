@@ -1,12 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -43,52 +38,75 @@ export function DpiaForm({ mode, dpiaId, onClose }: Props) {
     <Sheet open={true} onOpenChange={(o) => !o && onClose()}>
       <SheetContent
         side="right"
-        className="w-[400px] sm:w-[400px] sm:max-w-[400px] overflow-y-auto"
+        className="w-[400px] overflow-y-auto sm:w-[400px] sm:max-w-[400px]"
       >
         <SheetHeader>
-          <SheetTitle>
-            {mode === 'create' ? 'Nouvelle DPIA' : 'Modifier DPIA'}
-          </SheetTitle>
+          <SheetTitle>{mode === 'create' ? 'Nouvelle DPIA' : 'Modifier DPIA'}</SheetTitle>
         </SheetHeader>
 
-        <form action={onSubmit} className="space-y-16 mt-24">
+        <form action={onSubmit} className="mt-24 space-y-16">
           <div className="space-y-4">
             <Label htmlFor="title">Titre</Label>
             <Input id="title" name="title" required />
           </div>
           <div className="space-y-4">
             <Label htmlFor="scope">Périmètre</Label>
-            <textarea id="scope" name="scope" rows={2} required
-              className="flex w-full rounded-md border border-input bg-background px-12 py-8 text-sm" />
+            <textarea
+              id="scope"
+              name="scope"
+              rows={2}
+              required
+              className="border-input bg-background flex w-full rounded-md border px-12 py-8 text-sm"
+            />
           </div>
           <div className="space-y-4">
             <Label htmlFor="data_flow_diagram">Diagramme de flux (Markdown)</Label>
-            <textarea id="data_flow_diagram" name="data_flow_diagram" rows={5}
-              className="flex w-full rounded-md border border-input bg-background px-12 py-8 text-sm font-mono" />
+            <textarea
+              id="data_flow_diagram"
+              name="data_flow_diagram"
+              rows={5}
+              className="border-input bg-background flex w-full rounded-md border px-12 py-8 font-mono text-sm"
+            />
           </div>
           <div className="space-y-4">
             <Label htmlFor="risks_identified">Risques (JSON)</Label>
-            <textarea id="risks_identified" name="risks_identified" rows={3}
+            <textarea
+              id="risks_identified"
+              name="risks_identified"
+              rows={3}
               defaultValue="[]"
-              className="flex w-full rounded-md border border-input bg-background px-12 py-8 text-sm font-mono" />
+              className="border-input bg-background flex w-full rounded-md border px-12 py-8 font-mono text-sm"
+            />
           </div>
           <div className="space-y-4">
             <Label htmlFor="mitigations">Mesures (JSON)</Label>
-            <textarea id="mitigations" name="mitigations" rows={3}
+            <textarea
+              id="mitigations"
+              name="mitigations"
+              rows={3}
               defaultValue="[]"
-              className="flex w-full rounded-md border border-input bg-background px-12 py-8 text-sm font-mono" />
+              className="border-input bg-background flex w-full rounded-md border px-12 py-8 font-mono text-sm"
+            />
           </div>
           <div className="space-y-4">
             <Label htmlFor="residual_risk_level">Risque résiduel</Label>
-            <select id="residual_risk_level" name="residual_risk_level" required
-              className="flex h-32 w-full rounded-md border border-input bg-background px-12 text-sm">
+            <select
+              id="residual_risk_level"
+              name="residual_risk_level"
+              required
+              className="border-input bg-background flex h-32 w-full rounded-md border px-12 text-sm"
+            >
               <option value="faible">Faible</option>
               <option value="moyen">Moyen</option>
               <option value="eleve">Élevé</option>
             </select>
           </div>
           <div className="flex items-center gap-8">
-            <input id="cnil_consultation_required" name="cnil_consultation_required" type="checkbox" />
+            <input
+              id="cnil_consultation_required"
+              name="cnil_consultation_required"
+              type="checkbox"
+            />
             <Label htmlFor="cnil_consultation_required">Consultation CNIL requise</Label>
           </div>
           <div className="grid grid-cols-2 gap-12">
@@ -103,15 +121,19 @@ export function DpiaForm({ mode, dpiaId, onClose }: Props) {
           </div>
           <div className="space-y-4">
             <Label htmlFor="status">Statut</Label>
-            <select id="status" name="status" required
-              className="flex h-32 w-full rounded-md border border-input bg-background px-12 text-sm">
+            <select
+              id="status"
+              name="status"
+              required
+              className="border-input bg-background flex h-32 w-full rounded-md border px-12 text-sm"
+            >
               <option value="brouillon">Brouillon</option>
               <option value="validee">Validée</option>
               <option value="archivee">Archivée</option>
             </select>
           </div>
 
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {error && <p className="text-destructive text-sm">{error}</p>}
 
           <div className="flex gap-8 pt-16">
             <Button type="button" variant="outline" onClick={onClose} disabled={pending}>

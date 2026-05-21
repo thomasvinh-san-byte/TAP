@@ -6,11 +6,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown, Wallet } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
 import { cn } from '@/lib/utils';
-import type {
-  CaisseRow,
-  CaisseSortColumn,
-  CaisseSortDir,
-} from '../_lib/queries-caisse';
+import type { CaisseRow, CaisseSortColumn, CaisseSortDir } from '../_lib/queries-caisse';
 
 /**
  * CaisseTable — tableau dense Surface C Phase 04.7.
@@ -49,8 +45,7 @@ function formatDateTime(iso: string): string {
 
 function PaymentBadge({ method }: { method: string | null }): JSX.Element {
   const label = METHOD_LABELS[method ?? ''] ?? '—';
-  if (method === 'cash')
-    return <Badge variant="outline">{label}</Badge>;
+  if (method === 'cash') return <Badge variant="outline">{label}</Badge>;
   if (method === 'cb')
     return (
       <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20">
@@ -94,17 +89,13 @@ function SortHeader({
       ? ('ascending' as const)
       : ('descending' as const)
     : ('none' as const);
-  const Icon = isActive
-    ? currentDir === 'asc'
-      ? ArrowUp
-      : ArrowDown
-    : ArrowUpDown;
+  const Icon = isActive ? (currentDir === 'asc' ? ArrowUp : ArrowDown) : ArrowUpDown;
   return (
     <th
       scope="col"
       aria-sort={ariaSort}
       className={cn(
-        'text-left text-xs font-medium uppercase tracking-wide text-muted-foreground',
+        'text-muted-foreground text-left text-xs font-medium uppercase tracking-wide',
         'px-12 py-8',
         className,
       )}
@@ -115,7 +106,7 @@ function SortHeader({
           query: { date, sort: column, dir: nextDir },
         }}
         scroll={false}
-        className="inline-flex items-center gap-4 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
+        className="hover:text-foreground focus-visible:ring-ring inline-flex items-center gap-4 rounded-sm focus-visible:outline-none focus-visible:ring-2"
       >
         {label}
         <Icon className="h-12 w-12" aria-hidden />
@@ -124,33 +115,24 @@ function SortHeader({
   );
 }
 
-export function CaisseTable({
-  rows,
-  sort,
-  dir,
-  date,
-}: Props): JSX.Element {
+export function CaisseTable({ rows, sort, dir, date }: Props): JSX.Element {
   if (rows.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-md border border-border py-48 text-center">
-        <Wallet className="h-32 w-32 text-muted-foreground mb-12" aria-hidden />
+      <div className="border-border flex flex-col items-center justify-center rounded-md border py-48 text-center">
+        <Wallet className="text-muted-foreground mb-12 h-32 w-32" aria-hidden />
         <p className="text-sm font-medium">Aucun encaissement ce jour.</p>
-        <p className="mt-8 max-w-[320px] text-xs text-muted-foreground">
-          Les courses apparaissent ici dès qu'elles sont clôturées et
-          encaissées par un chauffeur.
+        <p className="text-muted-foreground mt-8 max-w-[320px] text-xs">
+          Les courses apparaissent ici dès qu'elles sont clôturées et encaissées par un chauffeur.
         </p>
       </div>
     );
   }
 
-  const total = rows.reduce(
-    (acc, r) => acc + Number(r.tarif_amount_eur ?? 0),
-    0,
-  );
+  const total = rows.reduce((acc, r) => acc + Number(r.tarif_amount_eur ?? 0), 0);
 
   return (
-    <div className="rounded-md border border-border overflow-hidden">
-      <table className="w-full divide-y divide-border">
+    <div className="border-border overflow-hidden rounded-md border">
+      <table className="divide-border w-full divide-y">
         <thead className="bg-muted/40">
           <tr>
             <SortHeader
@@ -163,19 +145,19 @@ export function CaisseTable({
             />
             <th
               scope="col"
-              className="text-left text-xs font-medium uppercase tracking-wide text-muted-foreground px-12 py-8"
+              className="text-muted-foreground px-12 py-8 text-left text-xs font-medium uppercase tracking-wide"
             >
               Patient
             </th>
             <th
               scope="col"
-              className="text-left text-xs font-medium uppercase tracking-wide text-muted-foreground px-12 py-8 w-[200px]"
+              className="text-muted-foreground w-[200px] px-12 py-8 text-left text-xs font-medium uppercase tracking-wide"
             >
               Chauffeur
             </th>
             <th
               scope="col"
-              className="text-left text-xs font-medium uppercase tracking-wide text-muted-foreground px-12 py-8 w-[140px]"
+              className="text-muted-foreground w-[140px] px-12 py-8 text-left text-xs font-medium uppercase tracking-wide"
             >
               Mode paiement
             </th>
@@ -189,7 +171,7 @@ export function CaisseTable({
             />
           </tr>
         </thead>
-        <tbody className="divide-y divide-border bg-background">
+        <tbody className="divide-border bg-background divide-y">
           {rows.map((r) => (
             <tr key={r.id} className="hover:bg-muted/40 transition-colors">
               <td className="px-12 py-12 text-sm tabular-nums">
@@ -201,11 +183,7 @@ export function CaisseTable({
               <td className="px-12 py-12 text-sm">
                 {r.driver_nom ? (
                   <div className="flex items-center gap-8">
-                    <InitialsAvatar
-                      name={r.driver_nom}
-                      role="chauffeur"
-                      size={24}
-                    />
+                    <InitialsAvatar name={r.driver_nom} role="chauffeur" size={24} />
                     <span className="truncate">{r.driver_nom}</span>
                   </div>
                 ) : (
@@ -215,7 +193,7 @@ export function CaisseTable({
               <td className="px-12 py-12">
                 <PaymentBadge method={r.payment_method} />
               </td>
-              <td className="px-12 py-12 text-sm font-mono tabular-nums text-right">
+              <td className="px-12 py-12 text-right font-mono text-sm tabular-nums">
                 {formatEur(Number(r.tarif_amount_eur ?? 0))}
               </td>
             </tr>
@@ -225,11 +203,11 @@ export function CaisseTable({
           <tr>
             <td
               colSpan={4}
-              className="px-12 py-12 text-right text-sm font-semibold uppercase tracking-wide text-muted-foreground"
+              className="text-muted-foreground px-12 py-12 text-right text-sm font-semibold uppercase tracking-wide"
             >
               Total
             </td>
-            <td className="px-12 py-12 text-right text-sm font-mono tabular-nums font-semibold">
+            <td className="px-12 py-12 text-right font-mono text-sm font-semibold tabular-nums">
               {formatEur(total)}
             </td>
           </tr>

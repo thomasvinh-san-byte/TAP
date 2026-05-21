@@ -27,15 +27,12 @@ export type PatientArchiveState = { success?: true; error?: string };
 
 const patientIdSchema = z.string().uuid();
 
-export async function archivePatientAction(
-  patientId: string,
-): Promise<PatientArchiveState> {
+export async function archivePatientAction(patientId: string): Promise<PatientArchiveState> {
   const parsed = patientIdSchema.safeParse(patientId);
   if (!parsed.success) return { error: 'Identifiant patient invalide.' };
 
   const ctx = await requireAdminOrRegulateur();
-  if (!ctx)
-    return { error: 'Action réservée au régulateur ou dirigeant.' };
+  if (!ctx) return { error: 'Action réservée au régulateur ou dirigeant.' };
 
   const supabase = createClient();
 
@@ -45,12 +42,14 @@ export async function archivePatientAction(
     .select('nom, prenom, archive, organization_id')
     .eq('id', parsed.data)
     .single();
-  const beforeRow = before.data as
-    | { nom: string; prenom: string; archive: boolean; organization_id: string }
-    | null;
+  const beforeRow = before.data as {
+    nom: string;
+    prenom: string;
+    archive: boolean;
+    organization_id: string;
+  } | null;
   if (before.error || !beforeRow) return { error: 'Patient introuvable.' };
-  if (beforeRow.archive)
-    return { error: 'Patient déjà archivé.' };
+  if (beforeRow.archive) return { error: 'Patient déjà archivé.' };
 
   // UPDATE avec pattern DEC-041 row count check
   const updated = await supabase
@@ -86,9 +85,7 @@ export async function archivePatientAction(
   return { success: true };
 }
 
-export async function unarchivePatientAction(
-  patientId: string,
-): Promise<PatientArchiveState> {
+export async function unarchivePatientAction(patientId: string): Promise<PatientArchiveState> {
   const parsed = patientIdSchema.safeParse(patientId);
   if (!parsed.success) return { error: 'Identifiant patient invalide.' };
 
@@ -104,12 +101,14 @@ export async function unarchivePatientAction(
     .select('nom, prenom, archive, organization_id')
     .eq('id', parsed.data)
     .single();
-  const beforeRow = before.data as
-    | { nom: string; prenom: string; archive: boolean; organization_id: string }
-    | null;
+  const beforeRow = before.data as {
+    nom: string;
+    prenom: string;
+    archive: boolean;
+    organization_id: string;
+  } | null;
   if (before.error || !beforeRow) return { error: 'Patient introuvable.' };
-  if (!beforeRow.archive)
-    return { error: 'Patient déjà actif.' };
+  if (!beforeRow.archive) return { error: 'Patient déjà actif.' };
 
   const updated = await supabase
     .from('patients')

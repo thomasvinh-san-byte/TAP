@@ -27,8 +27,7 @@ export async function middleware(request: NextRequest) {
   //   2. Avec env vars + DB vide → /setup (bouton « Initialiser »)
   //   3. Avec env vars + DB OK  → /login (comportement normal)
   const supabaseConfigured =
-    !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseConfigured) {
     if (isWelcome) {
@@ -68,8 +67,7 @@ export async function middleware(request: NextRequest) {
   const isAuthRoute = pathname.startsWith('/login');
   // D-21 : pages /legal/* publiques (SSG) — pas de redirect login.
   // Strict startsWith('/legal') — `/legalX` (sans slash) reste protégé.
-  const isPublicLegal =
-    pathname === '/legal' || pathname.startsWith('/legal/');
+  const isPublicLegal = pathname === '/legal' || pathname.startsWith('/legal/');
   // Route API consent cookies : POST anonyme avant authentification.
   const isLegalApi = pathname.startsWith('/api/legal/cookie-consent');
 

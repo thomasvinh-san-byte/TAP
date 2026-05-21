@@ -13,10 +13,7 @@
 
 import { z } from 'zod';
 import { requireAdminOrRegulateur } from '@/lib/auth/require-admin-or-regulateur';
-import {
-  listRidesEncaissees,
-  type CaisseFilters,
-} from '../caisse/_lib/queries-caisse';
+import { listRidesEncaissees, type CaisseFilters } from '../caisse/_lib/queries-caisse';
 import { toCsv, formatEurFr, formatDateFr } from '@/lib/csv';
 
 const exportSchema = z.object({
@@ -45,8 +42,7 @@ export async function exportCaisseCsvAction(
   if (!parsed.success) return { error: 'Filtres invalides.' };
 
   const ctx = await requireAdminOrRegulateur();
-  if (!ctx)
-    return { error: 'Action réservée au régulateur ou dirigeant.' };
+  if (!ctx) return { error: 'Action réservée au régulateur ou dirigeant.' };
 
   const filters: CaisseFilters = {
     date: parsed.data.date,

@@ -29,7 +29,7 @@ export function ConnectionStatusBadge(): JSX.Element | null {
       <div
         role="status"
         aria-label={`Synchronisation en cours, ${pendingCount} mutations`}
-        className="inline-flex items-center gap-8 rounded-full bg-primary/10 px-12 py-4 text-sm text-primary animate-pulse"
+        className="bg-primary/10 text-primary inline-flex animate-pulse items-center gap-8 rounded-full px-12 py-4 text-sm"
       >
         <RefreshCw aria-hidden className="h-16 w-16 animate-spin" />
         <span>Sync… {pendingCount}</span>
@@ -42,7 +42,7 @@ export function ConnectionStatusBadge(): JSX.Element | null {
       <div
         role="status"
         aria-label={`Hors ligne, ${pendingCount} mutations en attente`}
-        className="inline-flex items-center gap-8 rounded-full bg-amber-100 px-12 py-4 text-sm text-amber-900 animate-pulse"
+        className="inline-flex animate-pulse items-center gap-8 rounded-full bg-amber-100 px-12 py-4 text-sm text-amber-900"
       >
         <CloudOff aria-hidden className="h-16 w-16" />
         <span>Hors-ligne · {pendingCount}</span>
@@ -54,7 +54,7 @@ export function ConnectionStatusBadge(): JSX.Element | null {
     <div
       role="status"
       aria-label="Hors ligne"
-      className="inline-flex items-center gap-8 rounded-full bg-muted px-12 py-4 text-sm text-muted-foreground"
+      className="bg-muted text-muted-foreground inline-flex items-center gap-8 rounded-full px-12 py-4 text-sm"
     >
       <CloudOff aria-hidden className="h-16 w-16" />
       <span>Hors-ligne</span>

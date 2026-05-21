@@ -1,11 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import {
-  Document,
-  Page,
-  Text,
-  View,
-  StyleSheet,
-} from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 
 /**
  * Composant PDF du registre des traitements (D-17, DPA-01).
@@ -70,14 +64,10 @@ export function RegistrePdf({
             <Text style={styles.label}>Mesures de sécurité</Text>
             <Text style={styles.value}>{e.security_measures}</Text>
             <Text style={styles.label}>Transfert international</Text>
-            <Text style={styles.value}>
-              {e.international_transfer ? 'Oui' : 'Non'}
-            </Text>
+            <Text style={styles.value}>{e.international_transfer ? 'Oui' : 'Non'}</Text>
           </View>
         ))}
-        <Text style={styles.meta}>
-          Document généré automatiquement — TAP Régulation
-        </Text>
+        <Text style={styles.meta}>Document généré automatiquement — TAP Régulation</Text>
       </Page>
     </Document>
   );

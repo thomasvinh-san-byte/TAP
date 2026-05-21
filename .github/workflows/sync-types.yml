@@ -8,7 +8,7 @@ on:
   workflow_run:
     # Auto-déclenché après chaque CD push réussi sur main (post-migration).
     # Évite que types.gen.ts reste désynchronisé après un merge de migration.
-    workflows: ["CD"]
+    workflows: ['CD']
     types:
       - completed
     branches:

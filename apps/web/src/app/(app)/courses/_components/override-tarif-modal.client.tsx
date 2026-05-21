@@ -76,11 +76,9 @@ export function OverrideTarifModal({
   }, [open, currentTarifEur]);
 
   const tarifNum = Number(tarifInput.replace(',', '.'));
-  const tarifValid =
-    Number.isFinite(tarifNum) && tarifNum > 0 && tarifNum <= TARIF_MAX;
+  const tarifValid = Number.isFinite(tarifNum) && tarifNum > 0 && tarifNum <= TARIF_MAX;
   const motifTrimmed = motif.trim();
-  const motifValid =
-    motifTrimmed.length >= MOTIF_MIN && motifTrimmed.length <= MOTIF_MAX;
+  const motifValid = motifTrimmed.length >= MOTIF_MIN && motifTrimmed.length <= MOTIF_MAX;
   const formValid = tarifValid && motifValid;
 
   const submit = React.useCallback(async () => {
@@ -103,35 +101,32 @@ export function OverrideTarifModal({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-[480px] sm:w-[520px] flex flex-col">
+      <SheetContent className="flex w-[480px] flex-col sm:w-[520px]">
         <SheetHeader>
           <SheetTitle>Modifier le tarif</SheetTitle>
           <SheetDescription>
-            L'override est tracé dans l'audit log avec acteur, ancien tarif,
-            nouveau tarif et motif.
+            L'override est tracé dans l'audit log avec acteur, ancien tarif, nouveau tarif et motif.
           </SheetDescription>
         </SheetHeader>
 
         <form
-          className="flex-1 space-y-24 mt-24"
+          className="mt-24 flex-1 space-y-24"
           onSubmit={(e) => {
             e.preventDefault();
             void submit();
           }}
         >
-          <div className="space-y-12 rounded-md border border-border bg-muted/30 p-12 text-sm">
+          <div className="border-border bg-muted/30 space-y-12 rounded-md border p-12 text-sm">
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Tarif actuel</span>
-              <span className="font-mono tabular-nums font-semibold">
+              <span className="font-mono font-semibold tabular-nums">
                 {formatEur(currentTarifEur)}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Source actuelle</span>
               <Badge variant="secondary" className="font-normal">
-                {pricingSource
-                  ? (SOURCE_LABEL[pricingSource] ?? pricingSource)
-                  : '—'}
+                {pricingSource ? (SOURCE_LABEL[pricingSource] ?? pricingSource) : '—'}
               </Badge>
             </div>
           </div>
@@ -152,15 +147,14 @@ export function OverrideTarifModal({
               aria-describedby="new-tarif-help"
               className="font-mono tabular-nums"
             />
-            <p id="new-tarif-help" className="text-xs text-muted-foreground">
+            <p id="new-tarif-help" className="text-muted-foreground text-xs">
               Valeur strictement positive, max 999,99 €.
             </p>
           </div>
 
           <div className="space-y-8">
             <Label htmlFor="motif">
-              Motif d'override{' '}
-              <span className="text-muted-foreground">(obligatoire)</span>
+              Motif d'override <span className="text-muted-foreground">(obligatoire)</span>
             </Label>
             <Textarea
               id="motif"
@@ -169,22 +163,18 @@ export function OverrideTarifModal({
               rows={4}
               maxLength={MOTIF_MAX}
               required
-              aria-invalid={
-                !motifValid && motif.length > 0
-              }
+              aria-invalid={!motifValid && motif.length > 0}
               aria-describedby="motif-help"
               placeholder="Ex : détour imposé par travaux Boulevard Vauban, +6 km estimés."
-              className={cn(
-                !motifValid && motif.length > 0 && 'border-destructive',
-              )}
+              className={cn(!motifValid && motif.length > 0 && 'border-destructive')}
             />
-            <p id="motif-help" className="text-xs text-muted-foreground">
+            <p id="motif-help" className="text-muted-foreground text-xs">
               {MOTIF_MIN} caractères minimum. ({motifTrimmed.length}/{MOTIF_MAX})
             </p>
           </div>
         </form>
 
-        <SheetFooter className="mt-24 border-t border-border pt-16 flex flex-row items-center justify-end gap-12">
+        <SheetFooter className="border-border mt-24 flex flex-row items-center justify-end gap-12 border-t pt-16">
           <Button
             type="button"
             variant="ghost"

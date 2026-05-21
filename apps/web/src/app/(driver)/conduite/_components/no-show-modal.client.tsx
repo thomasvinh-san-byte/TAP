@@ -90,8 +90,8 @@ export function NoShowModal({
         <DialogHeader>
           <DialogTitle>Confirmer absence patient ?</DialogTitle>
           <DialogDescription>
-            Vous êtes sur le point de déclarer ce patient absent. Le régulateur
-            sera notifié immédiatement.
+            Vous êtes sur le point de déclarer ce patient absent. Le régulateur sera notifié
+            immédiatement.
           </DialogDescription>
         </DialogHeader>
 
@@ -102,7 +102,7 @@ export function NoShowModal({
               className={
                 'text-xs tabular-nums ' +
                 (motif.length > MAX_MOTIF
-                  ? 'font-semibold text-destructive'
+                  ? 'text-destructive font-semibold'
                   : 'text-muted-foreground')
               }
             >
@@ -116,12 +116,12 @@ export function NoShowModal({
             rows={3}
             maxLength={MAX_MOTIF + 1}
             placeholder="Ex. porte close, pas de réponse au téléphone…"
-            className="w-full rounded-md border border-input bg-background px-12 py-8 text-base"
+            className="border-input bg-background w-full rounded-md border px-12 py-8 text-base"
           />
         </div>
 
         {error && (
-          <p role="alert" className="text-sm text-destructive">
+          <p role="alert" className="text-destructive text-sm">
             {error}
           </p>
         )}

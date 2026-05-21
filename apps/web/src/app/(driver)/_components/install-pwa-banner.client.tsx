@@ -66,10 +66,7 @@ export function InstallPwaBanner(): JSX.Element | null {
     setDismissed(true);
   };
 
-  if (
-    promptState.kind === 'standalone' ||
-    promptState.kind === 'unsupported'
-  ) {
+  if (promptState.kind === 'standalone' || promptState.kind === 'unsupported') {
     return null;
   }
   if (dismissed) return null;
@@ -78,21 +75,17 @@ export function InstallPwaBanner(): JSX.Element | null {
     <div
       role="region"
       aria-label="Installation de l'application"
-      className="mb-16 flex items-start gap-12 rounded-md border border-primary/20 bg-primary/5 p-12"
+      className="border-primary/20 bg-primary/5 mb-16 flex items-start gap-12 rounded-md border p-12"
     >
       {promptState.kind === 'android-ready' ? (
         <>
-          <Download
-            aria-hidden
-            className="h-20 w-20 shrink-0 text-primary mt-2"
-          />
+          <Download aria-hidden className="text-primary mt-2 h-20 w-20 shrink-0" />
           <div className="flex-1 space-y-8">
-            <p className="text-sm font-medium text-foreground">
+            <p className="text-foreground text-sm font-medium">
               Installe TAP sur ton écran d&apos;accueil
             </p>
-            <p className="text-xs text-muted-foreground">
-              Accès rapide d&apos;un seul tap, plein écran, fonctionne
-              hors-ligne.
+            <p className="text-muted-foreground text-xs">
+              Accès rapide d&apos;un seul tap, plein écran, fonctionne hors-ligne.
             </p>
             <Button
               type="button"
@@ -105,7 +98,7 @@ export function InstallPwaBanner(): JSX.Element | null {
                   await dismiss();
                 }
               }}
-              className="h-12 mt-4"
+              className="mt-4 h-12"
             >
               Installer l&apos;app
             </Button>
@@ -113,25 +106,15 @@ export function InstallPwaBanner(): JSX.Element | null {
         </>
       ) : (
         <>
-          <Share2
-            aria-hidden
-            className="h-20 w-20 shrink-0 text-primary mt-2"
-          />
+          <Share2 aria-hidden className="text-primary mt-2 h-20 w-20 shrink-0" />
           <div className="flex-1 space-y-8">
-            <p className="text-sm font-medium text-foreground">
+            <p className="text-foreground text-sm font-medium">
               Ajoute TAP à ton écran d&apos;accueil
             </p>
-            <p className="text-xs text-muted-foreground">
-              Touche{' '}
-              <Share2
-                aria-hidden
-                className="inline h-14 w-14 align-text-bottom mx-2"
-              />{' '}
-              en bas de Safari, puis{' '}
-              <Plus
-                aria-hidden
-                className="inline h-14 w-14 align-text-bottom mx-2"
-              />{' '}
+            <p className="text-muted-foreground text-xs">
+              Touche <Share2 aria-hidden className="mx-2 inline h-14 w-14 align-text-bottom" /> en
+              bas de Safari, puis{' '}
+              <Plus aria-hidden className="mx-2 inline h-14 w-14 align-text-bottom" />{' '}
               <strong>Sur l&apos;écran d&apos;accueil</strong>.
             </p>
           </div>
@@ -141,9 +124,9 @@ export function InstallPwaBanner(): JSX.Element | null {
         type="button"
         onClick={dismiss}
         aria-label="Masquer pendant 7 jours"
-        className="shrink-0 rounded-md p-8 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="hover:bg-muted/50 focus-visible:ring-ring shrink-0 rounded-md p-8 focus-visible:outline-none focus-visible:ring-2"
       >
-        <X aria-hidden className="h-16 w-16 text-muted-foreground" />
+        <X aria-hidden className="text-muted-foreground h-16 w-16" />
       </button>
     </div>
   );

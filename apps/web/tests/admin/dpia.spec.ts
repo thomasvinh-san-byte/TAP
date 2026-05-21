@@ -19,15 +19,11 @@ test.describe('admin /admin/legal/dpia — workflow brouillon → validée', () 
 
     // Navigation
     await page.goto('/admin/legal/dpia');
-    await expect(
-      page.getByRole('heading', { name: /analyse d.impact|dpia/i }),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: /analyse d.impact|dpia/i })).toBeVisible();
 
     // Création brouillon
     await page.getByRole('button', { name: /nouvelle dpia|nouveau/i }).click();
-    await page
-      .getByLabel(/titre/i)
-      .fill('Transport sanitaire patients ALD');
+    await page.getByLabel(/titre/i).fill('Transport sanitaire patients ALD');
     await page.getByLabel(/p[ée]rim[èe]tre|scope/i).fill('Patients dialysés');
     // Markdown body
     await page
@@ -48,8 +44,6 @@ test.describe('admin /admin/legal/dpia — workflow brouillon → validée', () 
     await page.getByLabel(/titre/i).fill('Transport sanitaire patients ALD V2');
     await page.getByRole('button', { name: /enregistrer/i }).click();
 
-    await expect(
-      page.getByText(/historique|modifications|audit/i).first(),
-    ).toBeVisible();
+    await expect(page.getByText(/historique|modifications|audit/i).first()).toBeVisible();
   });
 });

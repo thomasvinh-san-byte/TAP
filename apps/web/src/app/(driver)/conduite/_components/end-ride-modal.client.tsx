@@ -4,20 +4,8 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { toast } from 'sonner';
-import {
-  Banknote,
-  Clock,
-  CreditCard,
-  FileText,
-  Loader2,
-  type LucideIcon,
-} from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Banknote, Clock, CreditCard, FileText, Loader2, type LucideIcon } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { enqueue } from '@/lib/offline/sync-engine';
@@ -54,11 +42,7 @@ interface Props {
  * Submission : endRideAction (en_cours → terminee + tarif + paiement).
  * Toast Sonner sur succès, refresh route pour recharger la liste.
  */
-export function EndRideModal({
-  rideId,
-  open,
-  onOpenChange,
-}: Props): JSX.Element {
+export function EndRideModal({ rideId, open, onOpenChange }: Props): JSX.Element {
   const router = useRouter();
   const [amount, setAmount] = React.useState('');
   const [method, setMethod] = React.useState<PaymentMethod>('cash');
@@ -159,11 +143,11 @@ export function EndRideModal({
         className={cn(
           // Mobile : bottom-sheet pleine largeur
           'fixed inset-x-0 bottom-0 left-0 right-0 top-auto w-full max-w-none',
-          'translate-x-0 translate-y-0 rounded-t-xl rounded-b-none border-x-0 border-b-0',
+          'translate-x-0 translate-y-0 rounded-b-none rounded-t-xl border-x-0 border-b-0',
           // Desktop ≥ sm : recentré au milieu
           'sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:right-auto sm:top-1/2 sm:max-w-md',
           'sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl sm:border',
-          'p-24 gap-16 max-h-[92vh] overflow-y-auto',
+          'max-h-[92vh] gap-16 overflow-y-auto p-24',
         )}
       >
         <div className="space-y-4">
@@ -174,10 +158,7 @@ export function EndRideModal({
         </div>
 
         <div className="space-y-4">
-          <label
-            htmlFor="end-ride-amount"
-            className="text-xs font-medium text-muted-foreground"
-          >
+          <label htmlFor="end-ride-amount" className="text-muted-foreground text-xs font-medium">
             Tarif
           </label>
           <div className="relative">
@@ -192,14 +173,14 @@ export function EndRideModal({
               placeholder="0,00"
               aria-label="Tarif en euros"
               className={cn(
-                'w-full rounded-md border border-input bg-background px-16 pr-32 py-12',
+                'border-input bg-background w-full rounded-md border px-16 py-12 pr-32',
                 'text-3xl font-semibold tabular-nums',
-                'transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                'focus-visible:ring-ring transition-colors focus-visible:outline-none focus-visible:ring-2',
               )}
             />
             <span
               aria-hidden
-              className="absolute right-16 top-1/2 -translate-y-1/2 text-2xl font-semibold text-muted-foreground"
+              className="text-muted-foreground absolute right-16 top-1/2 -translate-y-1/2 text-2xl font-semibold"
             >
               €
             </span>
@@ -207,14 +188,8 @@ export function EndRideModal({
         </div>
 
         <div className="space-y-8">
-          <span className="text-xs font-medium text-muted-foreground">
-            Moyen de paiement
-          </span>
-          <div
-            role="radiogroup"
-            aria-label="Moyen de paiement"
-            className="grid grid-cols-2 gap-8"
-          >
+          <span className="text-muted-foreground text-xs font-medium">Moyen de paiement</span>
+          <div role="radiogroup" aria-label="Moyen de paiement" className="grid grid-cols-2 gap-8">
             {METHODS.map((m) => {
               const active = m.value === method;
               return (
@@ -226,7 +201,7 @@ export function EndRideModal({
                   onClick={() => setMethod(m.value)}
                   className={cn(
                     'flex flex-col items-center justify-center gap-4 rounded-md border px-12 py-16 transition-colors duration-150',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2',
                     active
                       ? 'border-primary bg-primary/10 text-foreground'
                       : 'border-border bg-background text-foreground hover:bg-muted/50',
@@ -247,8 +222,8 @@ export function EndRideModal({
           aria-label="Encaissé maintenant"
           onClick={() => setEncaisseNow((v) => !v)}
           className={cn(
-            'flex items-center justify-between gap-12 rounded-md bg-muted px-16 py-12',
-            'transition-colors duration-150 hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            'bg-muted flex items-center justify-between gap-12 rounded-md px-16 py-12',
+            'hover:bg-muted/80 focus-visible:ring-ring transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2',
           )}
         >
           <span className="text-sm font-medium">Encaissé maintenant</span>
@@ -261,7 +236,7 @@ export function EndRideModal({
           >
             <span
               className={cn(
-                'absolute inline-block h-16 w-16 rounded-full bg-background shadow-sm transition-transform duration-150',
+                'bg-background absolute inline-block h-16 w-16 rounded-full shadow-sm transition-transform duration-150',
                 encaisseNow ? 'translate-x-[28px]' : 'translate-x-4',
               )}
             />

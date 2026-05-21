@@ -15,10 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
-import {
-  unarchiveDriverInputSchema,
-  type UnarchiveDriverInput,
-} from '@tap/shared';
+import { unarchiveDriverInputSchema, type UnarchiveDriverInput } from '@tap/shared';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -89,8 +86,8 @@ export function UnarchiveConfirmDialog({
         <DialogHeader>
           <DialogTitle>Désarchiver « {driver.nom_affichage} » ?</DialogTitle>
           <DialogDescription>
-            Le chauffeur sera réintégré au système, désactivé par défaut.
-            Vous pourrez le réactiver ensuite.
+            Le chauffeur sera réintégré au système, désactivé par défaut. Vous pourrez le réactiver
+            ensuite.
           </DialogDescription>
         </DialogHeader>
 
@@ -99,13 +96,12 @@ export function UnarchiveConfirmDialog({
             <input
               id="unarchive-confirm"
               type="checkbox"
-              className="mt-4 h-16 w-16 rounded border-border accent-primary"
+              className="border-border accent-primary mt-4 h-16 w-16 rounded"
               checked={checked}
               onChange={(e) =>
                 form.setValue(
                   'confirmation',
-                  e.target
-                    .checked as unknown as UnarchiveDriverInput['confirmation'],
+                  e.target.checked as unknown as UnarchiveDriverInput['confirmation'],
                   { shouldValidate: true },
                 )
               }
@@ -116,19 +112,10 @@ export function UnarchiveConfirmDialog({
           </div>
 
           <DialogFooter className="gap-12">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={isSubmitting}
-            >
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Annuler
             </Button>
-            <Button
-              type="submit"
-              disabled={!checked || isSubmitting}
-              aria-busy={isSubmitting}
-            >
+            <Button type="submit" disabled={!checked || isSubmitting} aria-busy={isSubmitting}>
               {isSubmitting ? 'Désarchivage…' : 'Désarchiver'}
             </Button>
           </DialogFooter>

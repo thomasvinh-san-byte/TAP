@@ -106,7 +106,7 @@ export async function acceptInvitationAction(
   //    RLS UPDATE policy le re-check côté Postgres)
   if (new Date(inv.expires_at).getTime() < Date.now()) {
     return {
-      error: 'Lien d\'invitation expiré. Demandez un nouveau lien à votre régulateur.',
+      error: "Lien d'invitation expiré. Demandez un nouveau lien à votre régulateur.",
     };
   }
 
@@ -129,7 +129,7 @@ export async function acceptInvitationAction(
     .eq('id', inv.id)
     .eq('status', 'pending');
   if (invUpdErr) {
-    return { error: 'Validation de l\'invitation impossible.' };
+    return { error: "Validation de l'invitation impossible." };
   }
 
   // 6. UPDATE drivers.profile_id = auth.uid() — clause `.is('profile_id', null)`

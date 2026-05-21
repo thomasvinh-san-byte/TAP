@@ -62,12 +62,7 @@ const EARTH_RADIUS_KM = 6371;
 /** Réunion = UTC+4, sans heure d'été (DST). Décalage fixe. */
 const REUNION_UTC_OFFSET_MS = 4 * 60 * 60 * 1000;
 
-function haversineKm(
-  lat1: number,
-  lng1: number,
-  lat2: number,
-  lng2: number,
-): number {
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const toRad = (d: number): number => (d * Math.PI) / 180;
   const dLat = toRad(lat2 - lat1);
   const dLng = toRad(lng2 - lng1);
@@ -106,10 +101,7 @@ function toReunionLocal(iso: string): ReunionLocal {
  * Détermine la majoration applicable (DEC-059) — UNE SEULE, non-cumulable.
  * Priorité : férié > weekend > nuit.
  */
-function resolveMajorationMotif(
-  local: ReunionLocal,
-  holidays974: Set<string>,
-): MajorationMotif {
+function resolveMajorationMotif(local: ReunionLocal, holidays974: Set<string>): MajorationMotif {
   if (holidays974.has(local.isoDate)) return 'ferie';
   if (local.weekday === 0) return 'weekend';
   if (local.weekday === 6 && local.hour >= 12) return 'weekend';
@@ -148,18 +140,14 @@ export function computeCgssFromDistance(
   }
 
   const supplement_drom_eur = grid.supplement_drom_eur;
-  const supplement_tpmr_eur =
-    params.transport_mode === 'tpmr' ? grid.supplement_tpmr_eur : 0;
+  const supplement_tpmr_eur = params.transport_mode === 'tpmr' ? grid.supplement_tpmr_eur : 0;
 
   const majoration_motif = resolveMajorationMotif(
     toReunionLocal(params.scheduled_at),
     params.holidays974,
   );
   const baseMajorable =
-    grid.forfait_eur +
-    (km_total_eur ?? 0) +
-    supplement_drom_eur +
-    supplement_tpmr_eur;
+    grid.forfait_eur + (km_total_eur ?? 0) + supplement_drom_eur + supplement_tpmr_eur;
   const majoration_pct = majoration_motif ? grid.majoration_pct : 0;
   const majoration_eur = majoration_motif
     ? roundTo((baseMajorable * majoration_pct) / 100, grid.arrondi_eur)
@@ -190,10 +178,7 @@ export function computeCgssFromDistance(
   };
 }
 
-export function computeCgssShortTrip(
-  input: PricingInput,
-  grid: TariffGrid,
-): PricingResult {
+export function computeCgssShortTrip(input: PricingInput, grid: TariffGrid): PricingResult {
   const hasCoords =
     typeof input.pickup_lat === 'number' &&
     typeof input.pickup_lng === 'number' &&

@@ -28,10 +28,7 @@ export function RequestDrawer({ open, onOpenChange }: Props) {
   function onSubmit(formData: FormData) {
     setError(undefined);
     startTransition(async () => {
-      const res = await createDataRequestAction(
-        { error: undefined },
-        formData,
-      );
+      const res = await createDataRequestAction({ error: undefined }, formData);
       if (res.error) setError(res.error);
       else onOpenChange(false);
     });
@@ -41,16 +38,14 @@ export function RequestDrawer({ open, onOpenChange }: Props) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-[400px] sm:w-[400px] sm:max-w-[400px] overflow-y-auto"
+        className="w-[400px] overflow-y-auto sm:w-[400px] sm:max-w-[400px]"
       >
         <SheetHeader>
           <SheetTitle>Nouvelle demande RGPD</SheetTitle>
-          <SheetDescription>
-            Articles 15-21 RGPD : délai 30 jours
-          </SheetDescription>
+          <SheetDescription>Articles 15-21 RGPD : délai 30 jours</SheetDescription>
         </SheetHeader>
 
-        <form action={onSubmit} className="space-y-16 mt-24">
+        <form action={onSubmit} className="mt-24 space-y-16">
           <div className="space-y-4">
             <Label htmlFor="patient_id">Patient (UUID, optionnel)</Label>
             <Input id="patient_id" name="patient_id" />
@@ -61,7 +56,7 @@ export function RequestDrawer({ open, onOpenChange }: Props) {
               id="request_type"
               name="request_type"
               required
-              className="flex h-32 w-full rounded-md border border-input bg-background px-12 text-sm"
+              className="border-input bg-background flex h-32 w-full rounded-md border px-12 text-sm"
             >
               <option value="acces">Accès (art. 15)</option>
               <option value="rectification">Rectification (art. 16)</option>
@@ -81,7 +76,7 @@ export function RequestDrawer({ open, onOpenChange }: Props) {
             />
           </div>
 
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {error && <p className="text-destructive text-sm">{error}</p>}
 
           <div className="flex gap-8 pt-16">
             <Button

@@ -35,19 +35,19 @@ export function RequestsList({ entries }: { entries: Entry[] }) {
       ) : (
         <div className="rounded-lg border">
           <table className="w-full text-sm">
-            <thead className="border-b bg-muted/40">
+            <thead className="bg-muted/40 border-b">
               <tr>
-                <th className="text-left p-12 font-medium">Type</th>
-                <th className="text-left p-12 font-medium">Statut</th>
-                <th className="text-left p-12 font-medium">Reçue le</th>
-                <th className="text-left p-12 font-medium">Échéance</th>
-                <th className="text-left p-12 font-medium">Demandeur</th>
-                <th className="text-left p-12 font-medium">Répondue le</th>
+                <th className="p-12 text-left font-medium">Type</th>
+                <th className="p-12 text-left font-medium">Statut</th>
+                <th className="p-12 text-left font-medium">Reçue le</th>
+                <th className="p-12 text-left font-medium">Échéance</th>
+                <th className="p-12 text-left font-medium">Demandeur</th>
+                <th className="p-12 text-left font-medium">Répondue le</th>
               </tr>
             </thead>
             <tbody>
               {entries.map((e) => (
-                <tr key={e.id} className="border-b last:border-0 hover:bg-muted/20">
+                <tr key={e.id} className="hover:bg-muted/20 border-b last:border-0">
                   <td className="p-12">
                     <Badge variant="outline">{e.request_type}</Badge>
                   </td>
@@ -58,13 +58,9 @@ export function RequestsList({ entries }: { entries: Entry[] }) {
                   <td className="p-12 tabular-nums">
                     {new Date(e.deadline_at).toLocaleDateString('fr-FR')}
                   </td>
-                  <td className="p-12 text-muted-foreground">
-                    {e.requester_email ?? '—'}
-                  </td>
-                  <td className="p-12 tabular-nums text-muted-foreground">
-                    {e.response_at
-                      ? new Date(e.response_at).toLocaleDateString('fr-FR')
-                      : '—'}
+                  <td className="text-muted-foreground p-12">{e.requester_email ?? '—'}</td>
+                  <td className="text-muted-foreground p-12 tabular-nums">
+                    {e.response_at ? new Date(e.response_at).toLocaleDateString('fr-FR') : '—'}
                   </td>
                 </tr>
               ))}

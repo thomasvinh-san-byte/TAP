@@ -40,9 +40,7 @@ function pickFormData(formData: FormData, keys: string[]): Record<string, unknow
   return obj;
 }
 
-export async function saveTariffGridAction(
-  formData: FormData,
-): Promise<TariffGridActionState> {
+export async function saveTariffGridAction(formData: FormData): Promise<TariffGridActionState> {
   const ctx = await requireDirigeant();
   if (!ctx) return { error: 'Action réservée au dirigeant.' };
 

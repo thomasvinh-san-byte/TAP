@@ -29,10 +29,8 @@ export default async function DpaPage() {
   return (
     <div className="space-y-24">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          DPA sous-traitants
-        </h1>
-        <p className="text-sm text-muted-foreground mt-4">
+        <h1 className="text-2xl font-semibold tracking-tight">DPA sous-traitants</h1>
+        <p className="text-muted-foreground mt-4 text-sm">
           Article 28 RGPD : accords de traitement signés
         </p>
       </header>

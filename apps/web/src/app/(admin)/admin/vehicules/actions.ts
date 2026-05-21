@@ -36,13 +36,8 @@ function parseFormData(formData: FormData) {
     modele: formData.get('modele'),
     type: formData.get('type'),
     places_assises:
-      placesAssises === null || placesAssises === ''
-        ? undefined
-        : Number(placesAssises),
-    places_tpmr:
-      placesTpmr === null || placesTpmr === ''
-        ? undefined
-        : Number(placesTpmr),
+      placesAssises === null || placesAssises === '' ? undefined : Number(placesAssises),
+    places_tpmr: placesTpmr === null || placesTpmr === '' ? undefined : Number(placesTpmr),
     actif: formData.get('actif') === 'on',
   });
 }
@@ -135,9 +130,7 @@ export async function updateVehicleAction(
   return { success: true, id: vehicleId };
 }
 
-export async function archiveVehicleAction(
-  vehicleId: string,
-): Promise<ActionState> {
+export async function archiveVehicleAction(vehicleId: string): Promise<ActionState> {
   if (!z.string().uuid().safeParse(vehicleId).success) {
     return { error: 'Identifiant véhicule invalide.' };
   }

@@ -16,7 +16,7 @@ export function PatientSearch({ value, onChange }: Props) {
   return (
     <div className="relative">
       <Search
-        className="pointer-events-none absolute left-12 top-1/2 -translate-y-1/2 h-16 w-16 text-muted-foreground"
+        className="text-muted-foreground pointer-events-none absolute left-12 top-1/2 h-16 w-16 -translate-y-1/2"
         aria-hidden
       />
       <Input
@@ -24,7 +24,7 @@ export function PatientSearch({ value, onChange }: Props) {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Rechercher (nom, prénom, téléphone)…"
-        className="pl-32 h-48"
+        className="h-48 pl-32"
         aria-label="Rechercher un patient"
         autoFocus
       />

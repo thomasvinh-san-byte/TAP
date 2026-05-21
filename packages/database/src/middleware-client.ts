@@ -10,10 +10,7 @@ import type { Database } from './types';
  * directement). Le client lit les cookies de la requête entrante et écrit
  * les cookies de réponse mis à jour par `getUser()` (refresh de session).
  */
-export function createSupabaseMiddlewareClient(
-  req: NextRequest,
-  res: NextResponse,
-) {
+export function createSupabaseMiddlewareClient(req: NextRequest, res: NextResponse) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 

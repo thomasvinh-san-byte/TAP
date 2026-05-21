@@ -24,10 +24,7 @@ interface Props {
  * city + lat + lng) pour pré-remplir les champs liés (réduction
  * erreurs saisie terrain).
  */
-export function PatientAddressField({
-  defaultValue = '',
-  onAddressPick,
-}: Props) {
+export function PatientAddressField({ defaultValue = '', onAddressPick }: Props) {
   const [value, setValue] = useState(defaultValue);
   return (
     <>

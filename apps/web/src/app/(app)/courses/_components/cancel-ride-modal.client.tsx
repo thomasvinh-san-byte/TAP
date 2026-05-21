@@ -32,12 +32,7 @@ interface Props {
  * Motif libre optionnel (≤ 500 chars). Au succès, ferme le modal,
  * notifie le parent (`onCancelled`) qui peut fermer le drawer.
  */
-export function CancelRideModal({
-  rideId,
-  open,
-  onOpenChange,
-  onCancelled,
-}: Props): JSX.Element {
+export function CancelRideModal({ rideId, open, onOpenChange, onCancelled }: Props): JSX.Element {
   const [motif, setMotif] = React.useState('');
   const [isPending, startTransition] = useTransition();
 
@@ -66,17 +61,16 @@ export function CancelRideModal({
       <DialogContent
         className={cn(
           'fixed inset-x-0 bottom-0 left-0 right-0 top-auto w-full max-w-none',
-          'translate-x-0 translate-y-0 rounded-t-xl rounded-b-none border-x-0 border-b-0',
+          'translate-x-0 translate-y-0 rounded-b-none rounded-t-xl border-x-0 border-b-0',
           'sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:right-auto sm:top-1/2 sm:max-w-md',
           'sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl sm:border',
-          'p-24 gap-16 max-h-[92vh] overflow-y-auto',
+          'max-h-[92vh] gap-16 overflow-y-auto p-24',
         )}
       >
         <div className="space-y-8">
           <DialogTitle className="text-lg">Annuler cette course ?</DialogTitle>
           <DialogDescription className="text-sm">
-            Cette action est irréversible. Un motif optionnel aide à retracer
-            la décision.
+            Cette action est irréversible. Un motif optionnel aide à retracer la décision.
           </DialogDescription>
         </div>
 
@@ -90,9 +84,7 @@ export function CancelRideModal({
             placeholder="ex : patient indisponible, doublon CGSS…"
             autoFocus
           />
-          <p className="text-xs text-muted-foreground tabular-nums">
-            {motif.length} / 500
-          </p>
+          <p className="text-muted-foreground text-xs tabular-nums">{motif.length} / 500</p>
         </div>
 
         <DialogFooter className="flex flex-row gap-12 sm:justify-end">
@@ -104,12 +96,7 @@ export function CancelRideModal({
           >
             Conserver la course
           </Button>
-          <Button
-            type="button"
-            variant="destructive"
-            onClick={submit}
-            disabled={isPending}
-          >
+          <Button type="button" variant="destructive" onClick={submit} disabled={isPending}>
             {isPending ? 'Annulation…' : 'Annuler la course'}
           </Button>
         </DialogFooter>

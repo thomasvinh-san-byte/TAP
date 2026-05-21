@@ -4,7 +4,7 @@
  */
 export function LastUpdated({ date }: { date: string }) {
   return (
-    <span className="text-sm text-muted-foreground">
+    <span className="text-muted-foreground text-sm">
       Dernière mise à jour :{' '}
       {new Date(date).toLocaleDateString('fr-FR', {
         year: 'numeric',

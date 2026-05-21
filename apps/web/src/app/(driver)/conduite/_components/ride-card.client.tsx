@@ -63,7 +63,7 @@ export function RideCard({ ride }: Props): JSX.Element {
   return (
     <article
       className={cn(
-        'overflow-hidden rounded-lg border border-border bg-background',
+        'border-border bg-background overflow-hidden rounded-lg border',
         'shadow-sm transition-shadow duration-150 hover:shadow-md',
       )}
     >
@@ -72,55 +72,34 @@ export function RideCard({ ride }: Props): JSX.Element {
         href={`/conduite/${ride.id}`}
         className={cn(
           'block px-16 py-16 transition-colors duration-150',
-          'hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
+          'hover:bg-muted/30 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset',
         )}
       >
         <div className="flex items-start gap-12">
-          <InitialsAvatar
-            name={fullName || 'Patient'}
-            role="chauffeur"
-            size={32}
-          />
-          <div className="flex-1 min-w-0">
-            <div className="text-2xl font-semibold tabular-nums text-foreground">
+          <InitialsAvatar name={fullName || 'Patient'} role="chauffeur" size={32} />
+          <div className="min-w-0 flex-1">
+            <div className="text-foreground text-2xl font-semibold tabular-nums">
               {formatTimeFr(ride.scheduled_at)}
             </div>
-            <div className="text-base font-semibold truncate">
-              {fullName || 'Patient inconnu'}
-            </div>
-            <div className="mt-4 text-xs text-muted-foreground">
-              {buildMeta(ride)}
-            </div>
+            <div className="truncate text-base font-semibold">{fullName || 'Patient inconnu'}</div>
+            <div className="text-muted-foreground mt-4 text-xs">{buildMeta(ride)}</div>
           </div>
         </div>
 
-        <div className="mt-16 rounded-md bg-muted/50 px-12 py-12 space-y-4 text-base">
+        <div className="bg-muted/50 mt-16 space-y-4 rounded-md px-12 py-12 text-base">
           <div className="flex gap-12">
-            <MapPin
-              className="h-16 w-16 shrink-0 text-muted-foreground mt-4"
-              aria-hidden
-            />
+            <MapPin className="text-muted-foreground mt-4 h-16 w-16 shrink-0" aria-hidden />
             <span className="flex-1 truncate">{ride.pickup_address}</span>
           </div>
-          <ArrowDown
-            className="h-12 w-12 ml-4 text-muted-foreground"
-            aria-hidden
-          />
+          <ArrowDown className="text-muted-foreground ml-4 h-12 w-12" aria-hidden />
           <div className="flex gap-12">
-            <Navigation
-              className="h-16 w-16 shrink-0 text-muted-foreground mt-4"
-              aria-hidden
-            />
+            <Navigation className="text-muted-foreground mt-4 h-16 w-16 shrink-0" aria-hidden />
             <span className="flex-1 truncate">{ride.dropoff_address}</span>
           </div>
         </div>
       </Link>
       <div className="px-16 pb-16">
-        <RideActions
-          rideId={ride.id}
-          status={ride.status}
-          endedAt={ride.ended_at}
-        />
+        <RideActions rideId={ride.id} status={ride.status} endedAt={ride.ended_at} />
       </div>
     </article>
   );

@@ -64,29 +64,19 @@ test.describe('Smoke preview Vercel — Visible Progress Mandate', () => {
     expect(page.url()).toMatch(/\/(patients|cockpit|$)/);
   });
 
-  test('Phase 2 — route /courses accessible après login régulatrice', async ({
-    page,
-  }) => {
+  test('Phase 2 — route /courses accessible après login régulatrice', async ({ page }) => {
     await loginRegulateur(page);
     await page.goto('/courses');
-    await expect(
-      page.getByRole('heading', { name: /^Courses$/, level: 1 }),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: /^Courses$/, level: 1 })).toBeVisible();
   });
 
-  test('Phase 2 — bouton « Nouvelle course » visible dans header global', async ({
-    page,
-  }) => {
+  test('Phase 2 — bouton « Nouvelle course » visible dans header global', async ({ page }) => {
     await loginRegulateur(page);
     await page.goto('/patients');
-    await expect(
-      page.getByRole('button', { name: /Nouvelle course/i }),
-    ).toBeVisible();
+    await expect(page.getByRole('button', { name: /Nouvelle course/i })).toBeVisible();
   });
 
-  test('Phase 2 — raccourci Cmd/Ctrl+Shift+K déclenche le modal global', async ({
-    page,
-  }) => {
+  test('Phase 2 — raccourci Cmd/Ctrl+Shift+K déclenche le modal global', async ({ page }) => {
     await loginRegulateur(page);
     await page.goto('/patients');
     await page.keyboard.press('Control+Shift+K');

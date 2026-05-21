@@ -25,13 +25,13 @@ export function TariffHistoryTable({
 }): JSX.Element {
   return (
     <section className="space-y-12">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+      <h2 className="text-muted-foreground text-sm font-semibold uppercase tracking-wide">
         Historique des grilles
       </h2>
-      <div className="overflow-x-auto rounded-lg border border-border bg-background">
+      <div className="border-border bg-background overflow-x-auto rounded-lg border">
         <table className="w-full border-collapse">
           <thead className="bg-muted/40">
-            <tr className="h-10 border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
+            <tr className="border-border text-muted-foreground h-10 border-b text-xs uppercase tracking-wide">
               <th className="px-12 text-left font-medium">Date d&apos;effet</th>
               <th className="px-12 text-left font-medium">Forfait</th>
               <th className="px-12 text-left font-medium">Km 974</th>
@@ -48,37 +48,24 @@ export function TariffHistoryTable({
                 <tr
                   key={g.id}
                   className={
-                    'h-10 border-b border-border text-sm ' +
-                    (isActive ? 'bg-muted/30' : '')
+                    'border-border h-10 border-b text-sm ' + (isActive ? 'bg-muted/30' : '')
                   }
                 >
-                  <td className="px-12 tabular-nums">
-                    {formatDateFr(g.date_effet)}
-                  </td>
-                  <td className="px-12 font-mono tabular-nums">
-                    {formatEur(g.forfait_eur)}
-                  </td>
-                  <td className="px-12 font-mono tabular-nums">
-                    {formatEur(g.prix_km_eur)}
-                  </td>
+                  <td className="px-12 tabular-nums">{formatDateFr(g.date_effet)}</td>
+                  <td className="px-12 font-mono tabular-nums">{formatEur(g.forfait_eur)}</td>
+                  <td className="px-12 font-mono tabular-nums">{formatEur(g.prix_km_eur)}</td>
                   <td className="px-12 font-mono tabular-nums">
                     {formatEur(g.supplement_drom_eur)}
                   </td>
                   <td className="px-12 font-mono tabular-nums">
                     {formatEur(g.supplement_tpmr_eur)}
                   </td>
-                  <td className="px-12 font-mono tabular-nums">
-                    {g.majoration_pct} %
-                  </td>
+                  <td className="px-12 font-mono tabular-nums">{g.majoration_pct} %</td>
                   <td className="px-12">
                     {isActive ? (
-                      <span className="text-xs font-semibold text-emerald-700">
-                        Active
-                      </span>
+                      <span className="text-xs font-semibold text-emerald-700">Active</span>
                     ) : (
-                      <span className="text-xs text-muted-foreground">
-                        Archivée
-                      </span>
+                      <span className="text-muted-foreground text-xs">Archivée</span>
                     )}
                   </td>
                 </tr>

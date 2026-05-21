@@ -110,9 +110,7 @@ export async function listDrafts(): Promise<RideDraftRow[]> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from('ride_draft')
-    .select(
-      'id, organization_id, author_id, patient_id, payload, created_at, updated_at',
-    )
+    .select('id, organization_id, author_id, patient_id, payload, created_at, updated_at')
     .order('updated_at', { ascending: false })
     .limit(20);
   if (error) throw new Error('Lecture brouillons impossible.');
@@ -143,9 +141,7 @@ export {
  * (Postgres `distinct on` complique la combinaison `order by created_at desc`
  * sans CTE — la dédup JS sur 20 lignes est triviale et garde la query simple).
  */
-export async function listRecentPickupAddresses(
-  patientId: string,
-): Promise<string[]> {
+export async function listRecentPickupAddresses(patientId: string): Promise<string[]> {
   const supabase = createClient();
   const { data } = await supabase
     .from('rides')

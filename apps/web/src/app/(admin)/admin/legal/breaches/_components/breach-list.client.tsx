@@ -37,24 +37,22 @@ export function BreachList({ entries }: { entries: Entry[] }) {
       ) : (
         <div className="rounded-lg border">
           <table className="w-full text-sm">
-            <thead className="border-b bg-muted/40">
+            <thead className="bg-muted/40 border-b">
               <tr>
-                <th className="text-left p-12 font-medium">Détecté le</th>
-                <th className="text-left p-12 font-medium">Gravité</th>
-                <th className="text-left p-12 font-medium">Nature</th>
-                <th className="text-left p-12 font-medium">Description</th>
-                <th className="text-left p-12 font-medium">Délai CNIL</th>
-                <th className="text-left p-12 font-medium">État</th>
+                <th className="p-12 text-left font-medium">Détecté le</th>
+                <th className="p-12 text-left font-medium">Gravité</th>
+                <th className="p-12 text-left font-medium">Nature</th>
+                <th className="p-12 text-left font-medium">Description</th>
+                <th className="p-12 text-left font-medium">Délai CNIL</th>
+                <th className="p-12 text-left font-medium">État</th>
               </tr>
             </thead>
             <tbody>
               {entries.map((e) => {
                 const showTimer =
-                  e.cnil_notification_required &&
-                  !e.cnil_notification_at &&
-                  !e.closed_at;
+                  e.cnil_notification_required && !e.cnil_notification_at && !e.closed_at;
                 return (
-                  <tr key={e.id} className="border-b last:border-0 hover:bg-muted/20">
+                  <tr key={e.id} className="hover:bg-muted/20 border-b last:border-0">
                     <td className="p-12 tabular-nums">
                       {new Date(e.detected_at).toLocaleString('fr-FR')}
                     </td>
@@ -62,7 +60,7 @@ export function BreachList({ entries }: { entries: Entry[] }) {
                       <Badge variant="outline">{e.severity}</Badge>
                     </td>
                     <td className="p-12">{e.nature}</td>
-                    <td className="p-12 max-w-[300px] truncate">{e.description}</td>
+                    <td className="max-w-[300px] truncate p-12">{e.description}</td>
                     <td className="p-12">
                       {showTimer ? (
                         <BreachTimer detectedAt={e.detected_at} />

@@ -27,14 +27,11 @@ const updateRidePaymentInputSchema = z
     payment_status: paymentStatusSchema,
     payment_method: paymentMethodSchema.optional(),
   })
-  .refine(
-    (v) => v.payment_status !== 'encaisse' || !!v.payment_method,
-    {
-      message:
-        'Une course encaissée doit indiquer le moyen de paiement (espèces, CB, chèque ou CGSS différé).',
-      path: ['payment_method'],
-    },
-  );
+  .refine((v) => v.payment_status !== 'encaisse' || !!v.payment_method, {
+    message:
+      'Une course encaissée doit indiquer le moyen de paiement (espèces, CB, chèque ou CGSS différé).',
+    path: ['payment_method'],
+  });
 
 export async function updateRidePaymentAction(
   args: z.infer<typeof updateRidePaymentInputSchema>,

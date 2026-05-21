@@ -1,9 +1,5 @@
 import { z } from 'zod';
-import {
-  adresseSchema,
-  telephoneReunionSchema,
-  nirFieldSchema,
-} from './common';
+import { adresseSchema, telephoneReunionSchema, nirFieldSchema } from './common';
 
 export const canalContactSchema = z.enum(['sms', 'appel', 'aucun']);
 export type CanalContact = z.infer<typeof canalContactSchema>;
@@ -49,8 +45,7 @@ export function normalizePhone(input: string): string {
 }
 
 const nameRegex = /^[A-Za-zÀ-ÿ\s'-]+$/;
-const nameMessage =
-  'Lettres uniquement (accents, tirets et apostrophes autorisés).';
+const nameMessage = 'Lettres uniquement (accents, tirets et apostrophes autorisés).';
 
 function isPlausibleBirthDate(value: string): boolean {
   const m = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.exec(value);
@@ -62,11 +57,7 @@ function isPlausibleBirthDate(value: string): boolean {
   const d = new Date(value + 'T00:00:00Z');
   if (Number.isNaN(d.getTime())) return false;
   // Date doit round-trip (refuse 30/02 → roule à 02/03)
-  if (
-    d.getUTCFullYear() !== year ||
-    d.getUTCMonth() + 1 !== month ||
-    d.getUTCDate() !== day
-  ) {
+  if (d.getUTCFullYear() !== year || d.getUTCMonth() + 1 !== month || d.getUTCDate() !== day) {
     return false;
   }
   const ageYears = (Date.now() - d.getTime()) / (365.25 * 24 * 3600 * 1000);
@@ -75,24 +66,13 @@ function isPlausibleBirthDate(value: string): boolean {
 
 export const patientSchema = z
   .object({
-    prenom: z
-      .string()
-      .trim()
-      .min(1, 'Prénom requis')
-      .max(80)
-      .regex(nameRegex, nameMessage),
-    nom: z
-      .string()
-      .trim()
-      .min(1, 'Nom requis')
-      .max(80)
-      .regex(nameRegex, nameMessage),
+    prenom: z.string().trim().min(1, 'Prénom requis').max(80).regex(nameRegex, nameMessage),
+    nom: z.string().trim().min(1, 'Nom requis').max(80).regex(nameRegex, nameMessage),
     date_naissance: z
       .string()
       .regex(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/, 'Format attendu : AAAA-MM-JJ')
       .refine(isPlausibleBirthDate, {
-        message:
-          'Date invalide. Format attendu : JJ/MM/AAAA, âge entre 0 et 130 ans.',
+        message: 'Date invalide. Format attendu : JJ/MM/AAAA, âge entre 0 et 130 ans.',
       }),
     genre: genreSchema.optional(),
     telephone: telephoneReunionSchema.optional(),
@@ -108,12 +88,9 @@ export const patientSchema = z
     notes_operationnelles: z.string().trim().max(500).optional(),
     archive: z.boolean().default(false),
   })
-  .refine(
-    (data) => !data.consentement_sms || Boolean(data.consentement_sms_at),
-    {
-      message: 'Horodatage de consentement requis si consentement_sms = true.',
-      path: ['consentement_sms_at'],
-    },
-  );
+  .refine((data) => !data.consentement_sms || Boolean(data.consentement_sms_at), {
+    message: 'Horodatage de consentement requis si consentement_sms = true.',
+    path: ['consentement_sms_at'],
+  });
 
 export type PatientInput = z.infer<typeof patientSchema>;

@@ -55,9 +55,7 @@ export async function createDpaRecordAction(
     dpa_version: data.dpa_version,
     dpa_document_url: data.dpa_document_url ?? null,
     signed_at: data.signed_at.toISOString().slice(0, 10),
-    expires_at: data.expires_at
-      ? data.expires_at.toISOString().slice(0, 10)
-      : null,
+    expires_at: data.expires_at ? data.expires_at.toISOString().slice(0, 10) : null,
     notes: data.notes ?? null,
     created_by: user.id,
   } as never);

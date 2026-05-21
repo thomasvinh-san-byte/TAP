@@ -24,9 +24,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Driver workflow E2E complet', () => {
-  test('chauffeur peut démarrer et clôturer une course de bout en bout', async ({
-    page,
-  }) => {
+  test('chauffeur peut démarrer et clôturer une course de bout en bout', async ({ page }) => {
     // 1. Login chauffeur démo
     await page.goto('/login');
     await page.getByLabel('Adresse e-mail').fill('chauffeur@demo.tap');
@@ -34,9 +32,9 @@ test.describe('Driver workflow E2E complet', () => {
     await page.getByRole('button', { name: 'Se connecter' }).click();
     await page.waitForURL(/\/conduite/);
 
-    await expect(
-      page.getByRole('heading', { name: /journée|courses/i, level: 1 }),
-    ).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: /journée|courses/i, level: 1 })).toBeVisible({
+      timeout: 10000,
+    });
 
     // 2. Démarrer la première course assignée disponible
     const startButtons = page.getByRole('button', {
@@ -66,31 +64,24 @@ test.describe('Driver workflow E2E complet', () => {
       await expect(page.getByText('Course démarrée.')).toBeVisible({
         timeout: 5000,
       });
-      await expect(
-        page.getByRole('button', { name: 'Clôturer la course' }).first(),
-      ).toBeVisible({ timeout: 10000 });
+      await expect(page.getByRole('button', { name: 'Clôturer la course' }).first()).toBeVisible({
+        timeout: 10000,
+      });
     }
 
     // 4. Ouvrir le modal de clôture (premier bouton « Clôturer la course »
     // de la liste — celui de la course qu'on vient de démarrer)
-    await page
-      .getByRole('button', { name: 'Clôturer la course' })
-      .first()
-      .click();
+    await page.getByRole('button', { name: 'Clôturer la course' }).first().click();
 
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible({ timeout: 5000 });
-    await expect(
-      dialog.getByRole('heading', { name: 'Clôturer la course' }),
-    ).toBeVisible();
+    await expect(dialog.getByRole('heading', { name: 'Clôturer la course' })).toBeVisible();
 
     // 5. Saisir tarif (défauts modal : cash + encaissé maintenant)
     await dialog.getByLabel('Tarif en euros').fill('25');
 
     // Bouton submit (dans le dialog, distinct du trigger de la liste)
-    await dialog
-      .getByRole('button', { name: 'Clôturer la course' })
-      .click();
+    await dialog.getByRole('button', { name: 'Clôturer la course' }).click();
 
     // Toast success clôture
     await expect(page.getByText('Course clôturée.')).toBeVisible({

@@ -10,18 +10,15 @@ import { resetCookieConsent } from '@/lib/cookie-consent';
  */
 export function Footer() {
   return (
-    <footer className="border-t bg-muted/30">
-      <div className="max-w-[1200px] mx-auto px-24 py-32 flex flex-wrap gap-24 text-sm text-muted-foreground">
+    <footer className="bg-muted/30 border-t">
+      <div className="text-muted-foreground mx-auto flex max-w-[1200px] flex-wrap gap-24 px-24 py-32 text-sm">
         <Link href="/legal/cgu" className="hover:text-foreground transition-colors">
           CGU
         </Link>
         <Link href="/legal/cgv" className="hover:text-foreground transition-colors">
           CGV
         </Link>
-        <Link
-          href="/legal/confidentialite"
-          className="hover:text-foreground transition-colors"
-        >
+        <Link href="/legal/confidentialite" className="hover:text-foreground transition-colors">
           Politique de confidentialité
         </Link>
         <Link href="/legal/cookies" className="hover:text-foreground transition-colors">

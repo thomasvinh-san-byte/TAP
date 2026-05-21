@@ -32,11 +32,7 @@ interface Props {
   error?: string | null;
 }
 
-export function PatientPickerField({
-  selectedLabel,
-  onSelect,
-  error,
-}: Props): JSX.Element {
+export function PatientPickerField({ selectedLabel, onSelect, error }: Props): JSX.Element {
   const [query, setQuery] = useState<string>('');
   const dq = useDeferredValue(query);
 
@@ -54,13 +50,13 @@ export function PatientPickerField({
         <Label>Patient</Label>
         <div
           className={cn(
-            'flex items-center justify-between gap-12 rounded-md border border-input bg-muted/30 px-12 py-12',
+            'border-input bg-muted/30 flex items-center justify-between gap-12 rounded-md border px-12 py-12',
             error && 'border-destructive',
           )}
         >
-          <div className="flex items-center gap-12 min-w-0">
+          <div className="flex min-w-0 items-center gap-12">
             <InitialsAvatar name={selectedLabel} size={32} />
-            <span className="font-medium truncate">{selectedLabel}</span>
+            <span className="truncate font-medium">{selectedLabel}</span>
           </div>
           <Button
             type="button"
@@ -78,7 +74,7 @@ export function PatientPickerField({
           </Button>
         </div>
         {error && (
-          <p className="text-xs text-destructive" role="alert">
+          <p className="text-destructive text-xs" role="alert">
             {error}
           </p>
         )}
@@ -93,14 +89,14 @@ export function PatientPickerField({
       <PatientSearch value={query} onChange={setQuery} />
 
       {dq.length === 1 && (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-xs">
           Tapez au moins 2 caractères pour rechercher.
         </p>
       )}
 
       {results.data && results.data.length > 0 && (
         <ul
-          className="max-h-[200px] overflow-y-auto divide-y divide-border rounded-md border border-border"
+          className="divide-border border-border max-h-[200px] divide-y overflow-y-auto rounded-md border"
           aria-label="Résultats de recherche"
         >
           {results.data.slice(0, 10).map((p) => (
@@ -108,16 +104,16 @@ export function PatientPickerField({
               <button
                 type="button"
                 onClick={() => onSelect(p.id, `${p.prenom} ${p.nom}`)}
-                className="flex w-full items-center justify-between gap-12 px-12 py-12 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                className="hover:bg-muted focus-visible:ring-ring flex w-full items-center justify-between gap-12 px-12 py-12 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset"
               >
-                <div className="flex items-center gap-12 min-w-0">
+                <div className="flex min-w-0 items-center gap-12">
                   <InitialsAvatar name={`${p.prenom} ${p.nom}`} size={24} />
-                  <span className="font-medium truncate">
+                  <span className="truncate font-medium">
                     {p.nom} {p.prenom}
                   </span>
                 </div>
                 {p.telephone && (
-                  <span className="text-xs text-muted-foreground tabular-nums shrink-0">
+                  <span className="text-muted-foreground shrink-0 text-xs tabular-nums">
                     {p.telephone}
                   </span>
                 )}
@@ -127,17 +123,12 @@ export function PatientPickerField({
         </ul>
       )}
 
-      {dq.length >= 2 &&
-        !results.isPending &&
-        results.data &&
-        results.data.length === 0 && (
-          <p className="text-xs text-muted-foreground">
-            Aucun patient ne correspond à « {dq} ».
-          </p>
-        )}
+      {dq.length >= 2 && !results.isPending && results.data && results.data.length === 0 && (
+        <p className="text-muted-foreground text-xs">Aucun patient ne correspond à « {dq} ».</p>
+      )}
 
       {error && (
-        <p className="text-xs text-destructive" role="alert">
+        <p className="text-destructive text-xs" role="alert">
           {error}
         </p>
       )}

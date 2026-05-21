@@ -30,10 +30,7 @@
 // =============================================================================
 
 import { test, expect } from '@playwright/test';
-import {
-  resetInbucketMailbox,
-  fetchLatestInviteUrl,
-} from './helpers/inbucket';
+import { resetInbucketMailbox, fetchLatestInviteUrl } from './helpers/inbucket';
 
 const TEST_DRIVER_NAME = 'Chauffeur test';
 const TEST_EMAIL = 'chauffeur-test@example.com';
@@ -60,10 +57,7 @@ test.describe('Invitation chauffeur — happy path', () => {
     await page.getByLabel(/adresse e-mail/i).fill(DIRIGEANT_EMAIL);
     await page.getByLabel(/mot de passe/i).fill(DIRIGEANT_PASSWORD);
     await page.getByRole('button', { name: /se connecter/i }).click();
-    await page.waitForURL(
-      (url) => !url.pathname.includes('/login'),
-      { timeout: 10_000 },
-    );
+    await page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 10_000 });
 
     // 2. Aller créer une fiche chauffeur test
     await page.goto('/admin/chauffeurs');
@@ -87,21 +81,14 @@ test.describe('Invitation chauffeur — happy path', () => {
     // Note : le bouton "Inviter" est en dehors du <button> parent qui
     // englobe la ligne (cf. drivers-list.client.tsx). On filtre la ligne
     // <li> qui contient le nom du chauffeur, puis on prend le bouton.
-    const driverRow = page
-      .locator('li')
-      .filter({ hasText: TEST_DRIVER_NAME })
-      .first();
+    const driverRow = page.locator('li').filter({ hasText: TEST_DRIVER_NAME }).first();
     await driverRow.getByRole('button', { name: /^Inviter$/ }).click();
 
     // 4. Mini-Dialog Inviter : saisie email + submit
     const inviteDialog = page.getByRole('dialog');
     await expect(inviteDialog).toBeVisible({ timeout: 2_000 });
-    await inviteDialog
-      .getByLabel(/adresse e-mail du chauffeur/i)
-      .fill(TEST_EMAIL);
-    await inviteDialog
-      .getByRole('button', { name: /envoyer l'invitation/i })
-      .click();
+    await inviteDialog.getByLabel(/adresse e-mail du chauffeur/i).fill(TEST_EMAIL);
+    await inviteDialog.getByRole('button', { name: /envoyer l'invitation/i }).click();
 
     // Toast Sonner "Invitation envoyée."
     await expect(page.getByText(/invitation envoyée/i)).toBeVisible({
@@ -130,18 +117,12 @@ test.describe('Invitation chauffeur — happy path', () => {
     await expect(emailField).toHaveJSProperty('readOnly', true);
 
     // 9. Saisir password + confirm + CGU
-    await page
-      .getByLabel(/^Mot de passe$/)
-      .fill(CHAUFFEUR_PASSWORD);
-    await page
-      .getByLabel(/confirmer le mot de passe/i)
-      .fill(CHAUFFEUR_PASSWORD);
+    await page.getByLabel(/^Mot de passe$/).fill(CHAUFFEUR_PASSWORD);
+    await page.getByLabel(/confirmer le mot de passe/i).fill(CHAUFFEUR_PASSWORD);
     await page.getByLabel(/conditions générales/i).check();
 
     // 10. Submit Activer mon compte
-    await page
-      .getByRole('button', { name: /activer mon compte/i })
-      .click();
+    await page.getByRole('button', { name: /activer mon compte/i }).click();
 
     // 11. Assert redirect /conduite
     await page.waitForURL(/\/conduite(?:\?|$)/, { timeout: 10_000 });

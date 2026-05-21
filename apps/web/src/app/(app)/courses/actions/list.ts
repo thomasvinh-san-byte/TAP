@@ -17,15 +17,16 @@ const listRidesParamsSchema = z.object({
   transport_mode: z.string().optional(),
   urgency: z.string().optional(),
   // Hotfix 04.7-bis : filtre date + pagination simple
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
   limit: z.number().int().min(1).max(200).optional(),
   offset: z.number().int().min(0).optional(),
 });
 
 /** RidesList Wave 4 (Phase 2) — version simple (sans jointures). */
-export async function listRidesAction(
-  params: z.infer<typeof listRidesParamsSchema> = {},
-) {
+export async function listRidesAction(params: z.infer<typeof listRidesParamsSchema> = {}) {
   const parsed = listRidesParamsSchema.safeParse(params);
   if (!parsed.success) return [];
   const { listRides } = await import('../_lib/queries');
@@ -33,15 +34,11 @@ export async function listRidesAction(
 }
 
 /** Variante enrichie : courses + patient/driver/vehicle joints (03-D). */
-export async function listRidesEnrichedAction(
-  params: z.infer<typeof listRidesParamsSchema> = {},
-) {
+export async function listRidesEnrichedAction(params: z.infer<typeof listRidesParamsSchema> = {}) {
   const parsed = listRidesParamsSchema.safeParse(params);
   if (!parsed.success) return [];
   const { listRidesEnriched } = await import('../_lib/queries');
-  return listRidesEnriched(
-    parsed.data as Parameters<typeof listRidesEnriched>[0],
-  );
+  return listRidesEnriched(parsed.data as Parameters<typeof listRidesEnriched>[0]);
 }
 
 /** Détail d'une course pour le drawer régulateur (03-D). */
@@ -76,12 +73,8 @@ export async function listActiveVehiclesAction() {
  * paramètre, DEC-057). Consommé par RideDrawer via useQuery.
  */
 export async function getActiveTariffGridAction() {
-  const { getActiveTariffGrid, getHolidays974 } = await import(
-    '@/lib/pricing/get-active-tariff-grid'
-  );
-  const [grid, holidays] = await Promise.all([
-    getActiveTariffGrid(),
-    getHolidays974(),
-  ]);
+  const { getActiveTariffGrid, getHolidays974 } =
+    await import('@/lib/pricing/get-active-tariff-grid');
+  const [grid, holidays] = await Promise.all([getActiveTariffGrid(), getHolidays974()]);
   return { grid, holidays };
 }

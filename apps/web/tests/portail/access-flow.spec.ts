@@ -31,17 +31,16 @@ test.describe('portail patient /legal/request/[token] — flow accès', () => {
     await page.goto('/admin/legal/requests');
     await page.getByRole('button', { name: /nouvelle demande|nouveau/i }).click();
     await page.getByLabel(/patient/i).fill('Hoarau');
-    await page.getByRole('option', { name: /hoarau/i }).first().click();
-    await page.getByLabel(/type de demande/i).selectOption('acces');
     await page
-      .getByLabel(/email du demandeur/i)
-      .fill('marie.hoarau@test.tap');
+      .getByRole('option', { name: /hoarau/i })
+      .first()
+      .click();
+    await page.getByLabel(/type de demande/i).selectOption('acces');
+    await page.getByLabel(/email du demandeur/i).fill('marie.hoarau@test.tap');
     await page.getByRole('button', { name: /créer|envoyer/i }).click();
 
     // Récupération du token via API helper (fourni par le seed E2E)
-    const tokenResponse = await page.request.get(
-      '/api/test/last-data-request-token',
-    );
+    const tokenResponse = await page.request.get('/api/test/last-data-request-token');
     expect(tokenResponse.ok()).toBe(true);
     const { token } = (await tokenResponse.json()) as { token: string };
     expect(token).toBeTruthy();
@@ -54,24 +53,16 @@ test.describe('portail patient /legal/request/[token] — flow accès', () => {
     // 3. Vérification identité
     await anonPage.getByLabel(/nir/i).fill('1801234567823');
     await anonPage.getByLabel(/nom/i).fill('Hoarau');
-    await anonPage
-      .getByLabel(/date de naissance/i)
-      .fill('1980-01-23');
-    await anonPage
-      .getByRole('button', { name: /v[ée]rifier|valider/i })
-      .click();
+    await anonPage.getByLabel(/date de naissance/i).fill('1980-01-23');
+    await anonPage.getByRole('button', { name: /v[ée]rifier|valider/i }).click();
 
     // 4. Page export visible avec bouton « Télécharger JSON »
-    await expect(
-      anonPage.getByRole('button', { name: /t[ée]l[ée]charger json/i }),
-    ).toBeVisible();
+    await expect(anonPage.getByRole('button', { name: /t[ée]l[ée]charger json/i })).toBeVisible();
 
     // Téléchargement et vérification du JSON
     const [download] = await Promise.all([
       anonPage.waitForEvent('download'),
-      anonPage
-        .getByRole('button', { name: /t[ée]l[ée]charger json/i })
-        .click(),
+      anonPage.getByRole('button', { name: /t[ée]l[ée]charger json/i }).click(),
     ]);
     const path = await download.path();
     expect(path).toBeTruthy();

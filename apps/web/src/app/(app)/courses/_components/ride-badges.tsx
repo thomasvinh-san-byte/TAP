@@ -76,23 +76,13 @@ interface PaymentBadgeProps {
   amountEur?: number | null | undefined;
 }
 
-export function PaymentBadge({
-  status,
-  amountEur,
-}: PaymentBadgeProps): JSX.Element | null {
+export function PaymentBadge({ status, amountEur }: PaymentBadgeProps): JSX.Element | null {
   if (!status || status === 'non_concerne') {
-    return (
-      <span className="text-xs text-muted-foreground">—</span>
-    );
+    return <span className="text-muted-foreground text-xs">—</span>;
   }
   if (status === 'a_encaisser') {
     return (
-      <span
-        className={cn(
-          BASE_BADGE,
-          'border-warning/30 bg-warning/10 text-warning',
-        )}
-      >
+      <span className={cn(BASE_BADGE, 'border-warning/30 bg-warning/10 text-warning')}>
         À encaisser
       </span>
     );
@@ -100,17 +90,11 @@ export function PaymentBadge({
   if (status === 'encaisse') {
     return (
       <span
-        className={cn(
-          BASE_BADGE,
-          'border-success/30 bg-success/10 text-success',
-          'tabular-nums',
-        )}
+        className={cn(BASE_BADGE, 'border-success/30 bg-success/10 text-success', 'tabular-nums')}
       >
         Encaissé
         {typeof amountEur === 'number' && (
-          <span className="opacity-70">
-            ({amountEur.toFixed(2)} €)
-          </span>
+          <span className="opacity-70">({amountEur.toFixed(2)} €)</span>
         )}
       </span>
     );

@@ -16,10 +16,7 @@
 
 import { test, expect } from '@playwright/test';
 
-async function loginAs(
-  page: import('@playwright/test').Page,
-  role: 'regulateur' | 'chauffeur',
-) {
+async function loginAs(page: import('@playwright/test').Page, role: 'regulateur' | 'chauffeur') {
   await page.goto('/login');
   await page.getByLabel('Adresse e-mail').fill(`${role}@demo.tap`);
   await page.getByLabel('Mot de passe').fill('demo1234!');
@@ -32,14 +29,12 @@ test.describe('Caisse — page admin régulateur', () => {
     await loginAs(page, 'regulateur');
     await page.goto('/courses/caisse');
     await expect(page).toHaveURL(/\/courses\/caisse/);
-    await expect(
-      page.getByRole('heading', { name: 'Caisse', level: 1 }),
-    ).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Caisse', level: 1 })).toBeVisible({
+      timeout: 5000,
+    });
   });
 
-  test('S2 — sub-header total jour visible avec € formaté FR', async ({
-    page,
-  }) => {
+  test('S2 — sub-header total jour visible avec € formaté FR', async ({ page }) => {
     await loginAs(page, 'regulateur');
     await page.goto('/courses/caisse');
     // Total formaté avec virgule décimale + €
@@ -62,37 +57,27 @@ test.describe('Caisse — page admin régulateur', () => {
     // Header colonne Tarif (link)
     const tarifHeader = page.getByRole('link', { name: /Tarif/i });
     if (!(await tarifHeader.isVisible({ timeout: 3000 }).catch(() => false))) {
-      test.skip(
-        true,
-        'Empty state (0 rides) → table non rendue → pas de header tri.',
-      );
+      test.skip(true, 'Empty state (0 rides) → table non rendue → pas de header tri.');
       return;
     }
     await tarifHeader.click();
     await expect(page).toHaveURL(/sort=tarif/, { timeout: 5000 });
   });
 
-  test('S5 — Export CSV télécharge fichier caisse-YYYY-MM-DD.csv', async ({
-    page,
-  }) => {
+  test('S5 — Export CSV télécharge fichier caisse-YYYY-MM-DD.csv', async ({ page }) => {
     await loginAs(page, 'regulateur');
     await page.goto('/courses/caisse');
     const downloadPromise = page.waitForEvent('download', { timeout: 10_000 });
     await page.getByRole('button', { name: /Exporter CSV/i }).click();
     const download = await downloadPromise.catch(() => null);
     if (!download) {
-      test.skip(
-        true,
-        'Aucun téléchargement déclenché — Server Action ou toast d\'erreur ?',
-      );
+      test.skip(true, "Aucun téléchargement déclenché — Server Action ou toast d'erreur ?");
       return;
     }
     expect(download.suggestedFilename()).toMatch(/^caisse-\d{4}-\d{2}-\d{2}\.csv$/);
   });
 
-  test('S6 — chauffeur redirigé hors /courses/caisse (DEC-043)', async ({
-    page,
-  }) => {
+  test('S6 — chauffeur redirigé hors /courses/caisse (DEC-043)', async ({ page }) => {
     await loginAs(page, 'chauffeur');
     await page.goto('/courses/caisse');
     // requireAdminOrRegulateurPage redirige chauffeur vers /conduite

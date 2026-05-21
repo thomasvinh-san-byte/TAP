@@ -29,28 +29,18 @@ export function BreachTimer({ detectedAt }: { detectedAt: string }) {
   const minutes = Math.floor((remainingMs % 3_600_000) / 60_000);
 
   const tone =
-    remainingHours > 24
-      ? 'text-success'
-      : remainingHours > 6
-        ? 'text-warning'
-        : 'text-destructive';
+    remainingHours > 24 ? 'text-success' : remainingHours > 6 ? 'text-warning' : 'text-destructive';
 
   if (remainingMs < 0) {
     return (
-      <span
-        data-testid="breach-countdown"
-        className="font-mono tabular-nums text-destructive"
-      >
+      <span data-testid="breach-countdown" className="text-destructive font-mono tabular-nums">
         Délai dépassé
       </span>
     );
   }
 
   return (
-    <span
-      data-testid="breach-countdown"
-      className={cn('font-mono tabular-nums', tone)}
-    >
+    <span data-testid="breach-countdown" className={cn('font-mono tabular-nums', tone)}>
       J-{days} • {hours}h {minutes.toString().padStart(2, '0')}m
     </span>
   );

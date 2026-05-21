@@ -63,9 +63,7 @@ export const RideOrchestratorProvider = Ctx.Provider;
 export function useRideOrchestrator(): RideOrchestratorCtx {
   const v = useContext(Ctx);
   if (!v) {
-    throw new Error(
-      'useRideOrchestrator doit être utilisé sous <RideExpressOrchestrator>.',
-    );
+    throw new Error('useRideOrchestrator doit être utilisé sous <RideExpressOrchestrator>.');
   }
   return v;
 }

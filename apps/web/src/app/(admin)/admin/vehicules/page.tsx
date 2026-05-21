@@ -25,9 +25,9 @@ export default async function VehiculesPage() {
     <div className="space-y-24">
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">Véhicules</h1>
-        <p className="text-sm text-muted-foreground">
-          Référentiel des véhicules de l&apos;organisation. Une
-          immatriculation active ne peut pas être saisie deux fois.
+        <p className="text-muted-foreground text-sm">
+          Référentiel des véhicules de l&apos;organisation. Une immatriculation active ne peut pas
+          être saisie deux fois.
         </p>
       </header>
       <VehiclesList initialVehicles={(vehicles ?? []) as VehicleRow[]} />

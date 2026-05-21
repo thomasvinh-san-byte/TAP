@@ -43,7 +43,8 @@ export default defineConfig({
   ],
   webServer: {
     // eslint-disable-next-line max-len
-    command: 'npx concurrently --kill-others-on-fail "pnpm -C apps/web dev" "supabase functions serve nir --env-file .env.local --no-verify-jwt"',
+    command:
+      'npx concurrently --kill-others-on-fail "pnpm -C apps/web dev" "supabase functions serve nir --env-file .env.local --no-verify-jwt"',
     url: 'http://127.0.0.1:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
@@ -52,8 +53,7 @@ export default defineConfig({
       APP_NIR_SEARCH_KEY: process.env.APP_NIR_SEARCH_KEY ?? '',
       SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ?? '',
       NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
-      NEXT_PUBLIC_SUPABASE_ANON_KEY:
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
     },
   },
 });

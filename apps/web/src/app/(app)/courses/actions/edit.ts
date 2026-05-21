@@ -54,8 +54,7 @@ export async function updateRideAction(
   if (error) return { error: 'Modification impossible.' };
   if (!data) {
     return {
-      error:
-        'Course non modifiable : elle a été démarrée, terminée ou annulée.',
+      error: 'Course non modifiable : elle a été démarrée, terminée ou annulée.',
     };
   }
 

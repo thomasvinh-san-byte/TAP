@@ -5,7 +5,14 @@
   "manifest_override": true,
   "title": "ADR-001 — Monorepo Turborepo + pnpm workspaces",
   "summary": "Décision d'adopter une architecture monorepo basée sur Turborepo et pnpm workspaces pour les 4 applications et packages partagés du projet.",
-  "scope": ["monorepo", "Turborepo", "pnpm workspaces", "architecture du repo", "build pipeline", "package management"],
+  "scope": [
+    "monorepo",
+    "Turborepo",
+    "pnpm workspaces",
+    "architecture du repo",
+    "build pipeline",
+    "package management"
+  ],
   "cross_refs": ["CLAUDE.md"],
   "locked": true,
   "precedence": null,

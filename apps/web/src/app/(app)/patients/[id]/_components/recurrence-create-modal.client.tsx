@@ -78,8 +78,8 @@ export function RecurrenceCreateModal({
         <DialogHeader>
           <DialogTitle>Nouvelle récurrence</DialogTitle>
           <DialogDescription>
-            Génération automatique des courses sur 3 mois (DEC-047). Les jours
-            fériés 974 sont sautés.
+            Génération automatique des courses sur 3 mois (DEC-047). Les jours fériés 974 sont
+            sautés.
           </DialogDescription>
         </DialogHeader>
         <form action={handleSubmit} className="space-y-16">
@@ -168,7 +168,7 @@ export function RecurrenceCreateModal({
                 name="transport_mode"
                 defaultValue="vsl"
                 required
-                className="flex h-10 w-full rounded-md border border-input bg-background px-12 text-sm"
+                className="border-input bg-background flex h-10 w-full rounded-md border px-12 text-sm"
               >
                 <option value="vsl">VSL</option>
                 <option value="taxi_conventionne">Taxi conventionné</option>
@@ -181,7 +181,7 @@ export function RecurrenceCreateModal({
                 id="rec-urgency"
                 name="urgency"
                 defaultValue="normale"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-12 text-sm"
+                className="border-input bg-background flex h-10 w-full rounded-md border px-12 text-sm"
               >
                 <option value="normale">Normale</option>
                 <option value="prioritaire">Prioritaire</option>
@@ -189,14 +189,10 @@ export function RecurrenceCreateModal({
             </div>
           </div>
 
-          <RecurrencePreview
-            rruleStr={rruleStr}
-            startDate={startDate}
-            holidays974={holidays974}
-          />
+          <RecurrencePreview rruleStr={rruleStr} startDate={startDate} holidays974={holidays974} />
 
           {error && (
-            <p role="alert" className="text-sm text-destructive">
+            <p role="alert" className="text-destructive text-sm">
               {error}
             </p>
           )}

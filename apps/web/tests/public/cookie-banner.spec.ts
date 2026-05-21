@@ -15,17 +15,13 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('bandeau cookies — symétrie CNIL + persistance', () => {
-  test('le bandeau apparaît sur la home sans authentification', async ({
-    page,
-  }) => {
+  test('le bandeau apparaît sur la home sans authentification', async ({ page }) => {
     await page.goto('/');
     const banner = page.getByRole('dialog', { name: /pr[ée]f[ée]rences cookies/i });
     await expect(banner).toBeVisible();
   });
 
-  test('les 3 boutons ont la même hauteur (±2px) et la même classe variant', async ({
-    page,
-  }) => {
+  test('les 3 boutons ont la même hauteur (±2px) et la même classe variant', async ({ page }) => {
     await page.goto('/');
     const banner = page.getByRole('dialog', { name: /pr[ée]f[ée]rences cookies/i });
 
@@ -44,8 +40,8 @@ test.describe('bandeau cookies — symétrie CNIL + persistance', () => {
     expect(boxA).not.toBeNull();
 
     // Symétrie hauteur ±2px (Pitfall 4 RESEARCH — CNIL dark patterns)
-    expect(Math.abs((boxR!.height - boxP!.height))).toBeLessThanOrEqual(2);
-    expect(Math.abs((boxP!.height - boxA!.height))).toBeLessThanOrEqual(2);
+    expect(Math.abs(boxR!.height - boxP!.height)).toBeLessThanOrEqual(2);
+    expect(Math.abs(boxP!.height - boxA!.height)).toBeLessThanOrEqual(2);
 
     // Symétrie classe variant (variant=outline pour les 3)
     const classR = await refuser.getAttribute('class');
@@ -56,26 +52,20 @@ test.describe('bandeau cookies — symétrie CNIL + persistance', () => {
     expect(classA).toContain('outline');
   });
 
-  test('« Tout refuser » écrit dans localStorage.cookieConsent et POSTe l\'API', async ({
+  test("« Tout refuser » écrit dans localStorage.cookieConsent et POSTe l'API", async ({
     page,
   }) => {
     await page.goto('/');
 
     const [request] = await Promise.all([
       page.waitForRequest(
-        (req) =>
-          req.url().includes('/api/legal/cookie-consent') &&
-          req.method() === 'POST',
+        (req) => req.url().includes('/api/legal/cookie-consent') && req.method() === 'POST',
       ),
-      page
-        .getByRole('button', { name: /tout refuser/i })
-        .click(),
+      page.getByRole('button', { name: /tout refuser/i }).click(),
     ]);
     expect(request.method()).toBe('POST');
 
-    const stored = await page.evaluate(() =>
-      localStorage.getItem('cookieConsent'),
-    );
+    const stored = await page.evaluate(() => localStorage.getItem('cookieConsent'));
     expect(stored).not.toBeNull();
     const parsed = JSON.parse(stored!) as {
       choices: { analytics: boolean; marketing: boolean };

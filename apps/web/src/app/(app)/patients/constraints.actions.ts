@@ -21,10 +21,7 @@ export async function addPatientConstraintAction(
   patientId: string,
   type: string,
   note?: string,
-): Promise<
-  | { created: { id: string; type: string; note: string | null } }
-  | { error: string }
-> {
+): Promise<{ created: { id: string; type: string; note: string | null } } | { error: string }> {
   const parsed = patientConstraintInputSchema.safeParse({
     patient_id: patientId,
     type,
@@ -58,9 +55,7 @@ export async function addPatientConstraintAction(
     } as never)
     .select('id, type, note')
     .single();
-  const data = insertRes.data as
-    | { id: string; type: string; note: string | null }
-    | null;
+  const data = insertRes.data as { id: string; type: string; note: string | null } | null;
   if (insertRes.error || !data) {
     return { error: 'Ajout de la contrainte impossible.' };
   }
@@ -73,10 +68,7 @@ export async function removePatientConstraintAction(
   constraintId: string,
 ): Promise<{ ok: true } | { error: string }> {
   const supabase = createClient();
-  const { error } = await supabase
-    .from('patient_constraint')
-    .delete()
-    .eq('id', constraintId);
+  const { error } = await supabase.from('patient_constraint').delete().eq('id', constraintId);
   if (error) return { error: 'Suppression impossible.' };
   return { ok: true };
 }

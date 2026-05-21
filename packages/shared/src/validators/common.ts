@@ -1,9 +1,5 @@
 import { z } from 'zod';
-import {
-  VILLES_974,
-  cpDominantVille,
-  type Ville974,
-} from '../constants/villes-974';
+import { VILLES_974, cpDominantVille, type Ville974 } from '../constants/villes-974';
 import { isNirChecksumValid } from '../utils/nir-checksum';
 
 export { VILLES_974, cpDominantVille, type Ville974 };
@@ -22,11 +18,9 @@ export const telephoneReunionSchema = z
   .transform((value) => value.replace(/[\s.-]/g, ''))
   .refine(
     (value) =>
-      /^0(?:262|263|692|693)[0-9]{6}$/.test(value) ||
-      /^\+262(?:62|63|92|93)[0-9]{6}$/.test(value),
+      /^0(?:262|263|692|693)[0-9]{6}$/.test(value) || /^\+262(?:62|63|92|93)[0-9]{6}$/.test(value),
     {
-      message:
-        'Le numéro doit commencer par 0262, 0263, 0692 ou 0693 (10 chiffres).',
+      message: 'Le numéro doit commencer par 0262, 0263, 0692 ou 0693 (10 chiffres).',
     },
   );
 
@@ -88,20 +82,16 @@ function verifyLuhn(siret: string): boolean {
  *
  * Refs : PR #80, PR #83, hotfix UX 2026-05-15, DEC-036.
  */
-export const NIR_FORMAT_REGEX =
-  /^[12][0-9]{2}(0[1-9]|1[0-2])([0-9]{2}|2A|2B)[0-9]{8}$/;
+export const NIR_FORMAT_REGEX = /^[12][0-9]{2}(0[1-9]|1[0-2])([0-9]{2}|2A|2B)[0-9]{8}$/;
 
-export const isNirChecksumStrict =
-  process.env.NEXT_PUBLIC_NIR_CHECKSUM_STRICT === 'true';
+export const isNirChecksumStrict = process.env.NEXT_PUBLIC_NIR_CHECKSUM_STRICT === 'true';
 
 const NIR_FORMAT_MESSAGE =
   'Le NIR doit comporter 15 chiffres : sexe, année, mois, département, commune, ordre, clé. Exemple : 1 76 05 25 974 001 12.';
 
-const NIR_CHECKSUM_MESSAGE =
-  'La clé de contrôle du NIR est invalide. Vérifiez la saisie.';
+const NIR_CHECKSUM_MESSAGE = 'La clé de contrôle du NIR est invalide. Vérifiez la saisie.';
 
-const nirNormalize = (value: string) =>
-  value.replace(/\s/g, '').toUpperCase();
+const nirNormalize = (value: string) => value.replace(/\s/g, '').toUpperCase();
 
 /** Format INSEE structurel — pas de vérif clé. Suffit pour la démo. */
 export const nirFormatSchema = z
@@ -122,9 +112,7 @@ export const nirChecksumSchema = z
  * Schéma effectif consommé par `patientSchema` — résolu au build/runtime.
  * Démo (défaut) : format only. Production : strict avec clé INSEE.
  */
-export const nirFieldSchema = isNirChecksumStrict
-  ? nirChecksumSchema
-  : nirFormatSchema;
+export const nirFieldSchema = isNirChecksumStrict ? nirChecksumSchema : nirFormatSchema;
 
 /**
  * Adresse minimale postale Réunion.

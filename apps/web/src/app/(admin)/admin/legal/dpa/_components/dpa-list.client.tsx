@@ -33,25 +33,25 @@ export function DpaList({ entries }: { entries: Entry[] }) {
       ) : (
         <div className="rounded-lg border">
           <table className="w-full text-sm">
-            <thead className="border-b bg-muted/40">
+            <thead className="bg-muted/40 border-b">
               <tr>
-                <th className="text-left p-12 font-medium">Sous-traitant</th>
-                <th className="text-left p-12 font-medium">Rôle</th>
-                <th className="text-left p-12 font-medium">Version</th>
-                <th className="text-left p-12 font-medium">Signé le</th>
-                <th className="text-left p-12 font-medium">Expire le</th>
+                <th className="p-12 text-left font-medium">Sous-traitant</th>
+                <th className="p-12 text-left font-medium">Rôle</th>
+                <th className="p-12 text-left font-medium">Version</th>
+                <th className="p-12 text-left font-medium">Signé le</th>
+                <th className="p-12 text-left font-medium">Expire le</th>
               </tr>
             </thead>
             <tbody>
               {entries.map((e) => (
-                <tr key={e.id} className="border-b last:border-0 hover:bg-muted/20">
+                <tr key={e.id} className="hover:bg-muted/20 border-b last:border-0">
                   <td className="p-12 font-medium">{e.subprocessor_name}</td>
                   <td className="p-12">{e.subprocessor_role}</td>
                   <td className="p-12 tabular-nums">{e.dpa_version}</td>
                   <td className="p-12 tabular-nums">
                     {new Date(e.signed_at).toLocaleDateString('fr-FR')}
                   </td>
-                  <td className="p-12 tabular-nums text-muted-foreground">
+                  <td className="text-muted-foreground p-12 tabular-nums">
                     {e.expires_at
                       ? new Date(e.expires_at).toLocaleDateString('fr-FR')
                       : 'Évergreen'}

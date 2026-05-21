@@ -1,7 +1,4 @@
-export {
-  renderTemplate,
-  TEMPLATE_VARIABLES,
-} from './template-renderer';
+export { renderTemplate, TEMPLATE_VARIABLES } from './template-renderer';
 export type { TemplateVars, TemplateVariable } from './template-renderer';
 
 export { hasActiveSmsConsent } from './consent-checker';

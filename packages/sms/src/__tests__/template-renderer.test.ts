@@ -17,7 +17,7 @@ describe('renderTemplate', () => {
     expect(renderTemplate(tpl, { patient_prenom: 'Jean' })).toBe('Hello Jean .');
   });
 
-  it("remplace par chaîne vide quand la variable est inconnue (hors Mustache 5)", () => {
+  it('remplace par chaîne vide quand la variable est inconnue (hors Mustache 5)', () => {
     const tpl = 'X={{unknown_var}}|Y={{patient_prenom}}';
     expect(renderTemplate(tpl, { patient_prenom: 'P' })).toBe('X=|Y=P');
   });

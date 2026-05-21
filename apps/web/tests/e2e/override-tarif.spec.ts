@@ -26,18 +26,14 @@ async function loginAsRegulateur(page: import('@playwright/test').Page) {
 }
 
 test.describe('Override tarif — Sheet régulateur', () => {
-  test('régulateur peut modifier le tarif d\'une course terminée', async ({
-    page,
-  }) => {
+  test("régulateur peut modifier le tarif d'une course terminée", async ({ page }) => {
     await loginAsRegulateur(page);
     await page.goto('/courses');
     await expect(page).toHaveURL(/\/courses/);
 
     // Cherche une course terminée (badge « Terminée » ou status semantic)
     const terminatedRow = page.locator('[data-testid*="ride"]').first();
-    const hasRow = await terminatedRow
-      .isVisible({ timeout: 3000 })
-      .catch(() => false);
+    const hasRow = await terminatedRow.isVisible({ timeout: 3000 }).catch(() => false);
     if (!hasRow) {
       test.skip(true, 'Aucune course visible dans /courses — seed à vérifier.');
       return;
@@ -49,10 +45,7 @@ test.describe('Override tarif — Sheet régulateur', () => {
     // Cherche PricingBreakdown — visible seulement si ride terminée
     const breakdown = page.locator('[data-testid="pricing-breakdown"]');
     if (!(await breakdown.isVisible({ timeout: 3000 }).catch(() => false))) {
-      test.skip(
-        true,
-        'Aucune course terminée dans le seed démo — PricingBreakdown non visible.',
-      );
+      test.skip(true, 'Aucune course terminée dans le seed démo — PricingBreakdown non visible.');
       return;
     }
 
@@ -66,22 +59,16 @@ test.describe('Override tarif — Sheet régulateur', () => {
     // Sheet OverrideTarifModal ouvert
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible({ timeout: 3000 });
-    await expect(
-      dialog.getByRole('heading', { name: 'Modifier le tarif' }),
-    ).toBeVisible();
+    await expect(dialog.getByRole('heading', { name: 'Modifier le tarif' })).toBeVisible();
 
     // Saisir nouveau tarif + motif valide
     await dialog.getByLabel('Nouveau tarif (€)').fill('28.50');
     await dialog
       .getByLabel(/Motif d'override/i)
-      .fill(
-        "Détour imposé par travaux Boulevard Vauban ce matin, +6 km estimés.",
-      );
+      .fill('Détour imposé par travaux Boulevard Vauban ce matin, +6 km estimés.');
 
     // Confirmer
-    await dialog
-      .getByRole('button', { name: /^Confirmer$/i })
-      .click();
+    await dialog.getByRole('button', { name: /^Confirmer$/i }).click();
 
     // Toast success
     await expect(page.getByText(/Tarif modifié\./i)).toBeVisible({

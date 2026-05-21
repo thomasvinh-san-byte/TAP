@@ -78,10 +78,7 @@ export async function listRidesEnriched(
   const [patientsRes, driversRes, vehiclesRes] = await Promise.all([
     patientIds.length === 0
       ? Promise.resolve({ data: [] as PatientMin[] })
-      : supabase
-          .from('patients_safe')
-          .select('id, nom, prenom')
-          .in('id', patientIds),
+      : supabase.from('patients_safe').select('id, nom, prenom').in('id', patientIds),
     driverIds.length === 0
       ? Promise.resolve({ data: [] as DriverMin[] })
       : supabase
@@ -103,14 +100,12 @@ export async function listRidesEnriched(
   return rides.map((r) => ({
     ...r,
     patient: patients.get(r.patient_id) ?? null,
-    driver: r.driver_id ? drivers.get(r.driver_id) ?? null : null,
-    vehicle: r.vehicle_id ? vehicles.get(r.vehicle_id) ?? null : null,
+    driver: r.driver_id ? (drivers.get(r.driver_id) ?? null) : null,
+    vehicle: r.vehicle_id ? (vehicles.get(r.vehicle_id) ?? null) : null,
   }));
 }
 
-export async function getRideByIdEnriched(
-  rideId: string,
-): Promise<RideRowEnriched | null> {
+export async function getRideByIdEnriched(rideId: string): Promise<RideRowEnriched | null> {
   const supabase = createClient();
   const { data, error } = await supabase
     .from('rides')
@@ -121,11 +116,7 @@ export async function getRideByIdEnriched(
   const r = data as unknown as RideRow;
 
   const [patientRes, driverRes, vehicleRes] = await Promise.all([
-    supabase
-      .from('patients_safe')
-      .select('id, nom, prenom')
-      .eq('id', r.patient_id)
-      .maybeSingle(),
+    supabase.from('patients_safe').select('id, nom, prenom').eq('id', r.patient_id).maybeSingle(),
     r.driver_id
       ? supabase
           .from('drivers' as never)
@@ -159,9 +150,7 @@ export type RideAuditEntry = {
   metadata: Record<string, unknown>;
 };
 
-export async function getRideAuditLog(
-  rideId: string,
-): Promise<RideAuditEntry[]> {
+export async function getRideAuditLog(rideId: string): Promise<RideAuditEntry[]> {
   const supabase = createClient();
   const { data } = await supabase
     .from('audit_logs')

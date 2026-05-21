@@ -90,32 +90,22 @@ export function DraftQueue(): JSX.Element {
         >
           <Inbox className="h-16 w-16" aria-hidden />
           {count > 0 && (
-            <Badge
-              variant="secondary"
-              className="ml-4 tabular-nums"
-            >
+            <Badge variant="secondary" className="ml-4 tabular-nums">
               {count}
             </Badge>
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        className="w-[360px] max-h-[400px] overflow-y-auto"
-      >
+      <DropdownMenuContent align="end" className="max-h-[400px] w-[360px] overflow-y-auto">
         <DropdownMenuLabel>
           {count === 0
             ? 'Aucun brouillon en cours'
             : `${count} brouillon${count > 1 ? 's' : ''} en cours`}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {isPending && (
-          <DropdownMenuItem disabled>Chargement…</DropdownMenuItem>
-        )}
+        {isPending && <DropdownMenuItem disabled>Chargement…</DropdownMenuItem>}
         {!isPending && drafts.length === 0 && (
-          <DropdownMenuItem disabled>
-            Vos brouillons apparaîtront ici.
-          </DropdownMenuItem>
+          <DropdownMenuItem disabled>Vos brouillons apparaîtront ici.</DropdownMenuItem>
         )}
         {drafts.map((d) => (
           <DropdownMenuItem
@@ -126,10 +116,8 @@ export function DraftQueue(): JSX.Element {
             }}
             className="flex flex-col items-start gap-4"
           >
-            <span className="text-sm font-medium truncate w-full">
-              {formatPreview(d)}
-            </span>
-            <div className="flex items-center justify-between w-full text-xs text-muted-foreground">
+            <span className="w-full truncate text-sm font-medium">{formatPreview(d)}</span>
+            <div className="text-muted-foreground flex w-full items-center justify-between text-xs">
               <span>{formatRelative(d.updated_at)}</span>
               <button
                 type="button"

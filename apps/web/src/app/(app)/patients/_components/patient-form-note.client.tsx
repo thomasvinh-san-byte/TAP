@@ -17,9 +17,7 @@ export function PatientFormNote({ defaultValue = '', maxLength = 500 }: Props) {
   const [value, setValue] = useState(defaultValue);
   return (
     <section className="space-y-12">
-      <h2 className="text-sm font-semibold uppercase text-muted-foreground">
-        Note opérationnelle
-      </h2>
+      <h2 className="text-muted-foreground text-sm font-semibold uppercase">Note opérationnelle</h2>
       <div className="space-y-8">
         <Label htmlFor="notes_operationnelles">
           Note opérationnelle (codes d&apos;accès, particularités)
@@ -31,13 +29,10 @@ export function PatientFormNote({ defaultValue = '', maxLength = 500 }: Props) {
           maxLength={maxLength}
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          className="w-full rounded-md border border-border bg-background px-12 py-8 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="border-border bg-background focus-visible:ring-ring w-full rounded-md border px-12 py-8 text-sm focus-visible:outline-none focus-visible:ring-2"
           aria-describedby="notes-help"
         />
-        <p
-          id="notes-help"
-          className="text-xs tabular-nums text-muted-foreground"
-        >
+        <p id="notes-help" className="text-muted-foreground text-xs tabular-nums">
           {value.length} / {maxLength} caractères
         </p>
       </div>

@@ -11,9 +11,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('admin /admin/legal/breaches — compteur 72h', () => {
-  test('le compteur affiche J-2 en classe success quand > 24h restantes', async ({
-    page,
-  }) => {
+  test('le compteur affiche J-2 en classe success quand > 24h restantes', async ({ page }) => {
     // Connexion dirigeant Alpha
     await page.goto('/login');
     await page.getByLabel(/email/i).fill('alpha-dir@test.tap');
@@ -23,15 +21,9 @@ test.describe('admin /admin/legal/breaches — compteur 72h', () => {
     // Création breach via UI (formulaire Server Action)
     await page.goto('/admin/legal/breaches');
     await page.getByRole('button', { name: /nouvel incident|nouveau/i }).click();
-    await page
-      .getByLabel(/description/i)
-      .fill('Accès non autorisé via session compromise');
-    await page
-      .getByLabel(/mesures imm[ée]diates/i)
-      .fill('Révocation des sessions actives');
-    await page
-      .getByLabel(/notification cnil/i)
-      .check();
+    await page.getByLabel(/description/i).fill('Accès non autorisé via session compromise');
+    await page.getByLabel(/mesures imm[ée]diates/i).fill('Révocation des sessions actives');
+    await page.getByLabel(/notification cnil/i).check();
     await page.getByRole('button', { name: /enregistrer|créer/i }).click();
 
     // Compteur visible avec classe success (> 24h restantes = vert)

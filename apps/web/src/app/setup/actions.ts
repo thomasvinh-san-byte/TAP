@@ -21,9 +21,7 @@
 import { Client } from 'pg';
 import { MIGRATIONS_SQL, SEED_SQL } from '@/lib/setup-sql';
 
-export type SetupResult =
-  | { ok: true; message: string }
-  | { ok: false; error: string };
+export type SetupResult = { ok: true; message: string } | { ok: false; error: string };
 
 export type DatabaseState = 'fresh' | 'partial' | 'ready';
 
@@ -33,10 +31,7 @@ interface CheckResult {
 }
 
 function getConnectionString(): string | null {
-  const raw =
-    process.env.POSTGRES_URL_NON_POOLING ??
-    process.env.POSTGRES_URL ??
-    null;
+  const raw = process.env.POSTGRES_URL_NON_POOLING ?? process.env.POSTGRES_URL ?? null;
   if (!raw) return null;
 
   // Retire sslmode de l'URL pour laisser l'objet ssl du Client gagner.

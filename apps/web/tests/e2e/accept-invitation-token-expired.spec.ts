@@ -20,47 +20,31 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Invitation chauffeur — token expiré / invalide', () => {
-  test('lien expiré → panneau erreur sans form ni bouton retry', async ({
-    page,
-  }) => {
+  test('lien expiré → panneau erreur sans form ni bouton retry', async ({ page }) => {
     await page.goto('/accept-invite?error=expired');
 
     // 1. Panneau erreur visible avec message "Lien d'invitation expiré"
-    await expect(
-      page.getByText(/lien d'invitation expiré/i),
-    ).toBeVisible();
+    await expect(page.getByText(/lien d'invitation expiré/i)).toBeVisible();
 
     // 2. Aucun champ password rendu (la page court-circuite AcceptInviteForm)
     await expect(page.getByLabel(/^Mot de passe$/)).toHaveCount(0);
-    await expect(
-      page.getByLabel(/confirmer le mot de passe/i),
-    ).toHaveCount(0);
+    await expect(page.getByLabel(/confirmer le mot de passe/i)).toHaveCount(0);
 
     // 3. Aucun bouton de retry self-service (DEC-024 B2B fleet)
-    await expect(
-      page.getByRole('button', { name: /renvoyer|réessayer|retry/i }),
-    ).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /renvoyer|réessayer|retry/i })).toHaveCount(0);
 
     // 4. Indication factuelle de contacter le régulateur
-    await expect(
-      page.getByText(/contactez votre régulateur/i),
-    ).toBeVisible();
+    await expect(page.getByText(/contactez votre régulateur/i)).toBeVisible();
   });
 
-  test('lien invalide → panneau erreur générique sans form', async ({
-    page,
-  }) => {
+  test('lien invalide → panneau erreur générique sans form', async ({ page }) => {
     await page.goto('/accept-invite?error=invalid_link');
 
     // Message générique distinct (cf. accept-invite/page.tsx)
-    await expect(
-      page.getByText(/invalide ou déjà utilisé/i),
-    ).toBeVisible();
+    await expect(page.getByText(/invalide ou déjà utilisé/i)).toBeVisible();
 
     // Aucun form rendu non plus
     await expect(page.getByLabel(/^Mot de passe$/)).toHaveCount(0);
-    await expect(
-      page.getByRole('button', { name: /activer mon compte/i }),
-    ).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /activer mon compte/i })).toHaveCount(0);
   });
 });

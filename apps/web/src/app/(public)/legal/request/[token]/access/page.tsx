@@ -14,40 +14,30 @@ export const dynamic = 'force-dynamic';
  * traitée), un message générique en français est rendu — jamais de
  * stack trace ni de détail technique (CLAUDE.md § 1, T-1.5-19).
  */
-export default async function AccessPage({
-  params,
-}: {
-  params: { token: string };
-}) {
+export default async function AccessPage({ params }: { params: { token: string } }) {
   const result = await fulfillAccessAction(params.token);
   if (result.error) {
     return (
       <div className="space-y-16">
-        <h1 className="text-2xl font-semibold tracking-tight mb-12">
-          Demande indisponible
-        </h1>
-        <p className="text-sm text-destructive">{result.error}</p>
+        <h1 className="mb-12 text-2xl font-semibold tracking-tight">Demande indisponible</h1>
+        <p className="text-destructive text-sm">{result.error}</p>
       </div>
     );
   }
   return (
     <div className="space-y-24">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight mb-12">
-          Vos données
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Conformément aux articles 15 et 20 du Règlement Général sur la
-          Protection des Données, vous trouverez ci-dessous l&apos;ensemble
-          des données vous concernant. Vous pouvez les télécharger au
-          format JSON portable.
+        <h1 className="mb-12 text-2xl font-semibold tracking-tight">Vos données</h1>
+        <p className="text-muted-foreground text-sm">
+          Conformément aux articles 15 et 20 du Règlement Général sur la Protection des Données,
+          vous trouverez ci-dessous l&apos;ensemble des données vous concernant. Vous pouvez les
+          télécharger au format JSON portable.
         </p>
       </header>
       <DownloadJsonButton data={result.data} />
-      <p className="text-sm text-muted-foreground">
-        En cas de désaccord sur le contenu de cet export, vous pouvez
-        saisir la Commission Nationale de l&apos;Informatique et des
-        Libertés (cnil.fr).
+      <p className="text-muted-foreground text-sm">
+        En cas de désaccord sur le contenu de cet export, vous pouvez saisir la Commission Nationale
+        de l&apos;Informatique et des Libertés (cnil.fr).
       </p>
     </div>
   );

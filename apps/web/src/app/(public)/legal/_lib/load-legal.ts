@@ -25,11 +25,7 @@ function toIsoDate(value: unknown): string {
 }
 
 export async function loadLegalDoc(slug: LegalSlug) {
-  const filePath = path.join(
-    process.cwd(),
-    'src/content/legal',
-    `${slug}.md`,
-  );
+  const filePath = path.join(process.cwd(), 'src/content/legal', `${slug}.md`);
   const raw = await fs.readFile(filePath, 'utf-8');
   const { data, content } = matter(raw);
   // YAML coerce automatiquement `version: 2026-05-08` en Date — on

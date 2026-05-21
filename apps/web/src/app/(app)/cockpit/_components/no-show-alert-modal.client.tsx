@@ -67,9 +67,7 @@ export function NoShowAlertModal({
 
   function handleCancel(): void {
     setError(null);
-    if (
-      !window.confirm('Annuler définitivement cette course pour cause d\'absence ?')
-    ) {
+    if (!window.confirm("Annuler définitivement cette course pour cause d'absence ?")) {
       return;
     }
     startTransition(async () => {
@@ -86,30 +84,28 @@ export function NoShowAlertModal({
     <aside
       role="alertdialog"
       aria-label="Patient absent — décision"
-      className="cockpit-noshow-slide-in fixed right-0 top-0 z-40 flex h-full w-full max-w-[24rem] flex-col gap-12 border-l border-destructive/30 bg-background p-16 shadow-xl"
+      className="cockpit-noshow-slide-in border-destructive/30 bg-background fixed right-0 top-0 z-40 flex h-full w-full max-w-[24rem] flex-col gap-12 border-l p-16 shadow-xl"
     >
       <header className="flex items-start justify-between gap-12">
         <div className="flex items-start gap-8">
-          <AlertTriangle aria-hidden className="h-20 w-20 shrink-0 text-destructive" />
+          <AlertTriangle aria-hidden className="text-destructive h-20 w-20 shrink-0" />
           <div>
-            <h2 className="text-base font-semibold text-foreground">Patient absent</h2>
-            <p className="text-xs text-muted-foreground">{formatRideContext(ride)}</p>
+            <h2 className="text-foreground text-base font-semibold">Patient absent</h2>
+            <p className="text-muted-foreground text-xs">{formatRideContext(ride)}</p>
           </div>
         </div>
         <button
           type="button"
           onClick={onClose}
           aria-label="Fermer"
-          className="rounded-md p-4 text-muted-foreground hover:bg-muted"
+          className="text-muted-foreground hover:bg-muted rounded-md p-4"
         >
           <X aria-hidden className="h-16 w-16" />
         </button>
       </header>
 
       <section className="space-y-8">
-        <p className="text-sm text-foreground">
-          Que souhaitez-vous faire pour cette course ?
-        </p>
+        <p className="text-foreground text-sm">Que souhaitez-vous faire pour cette course ?</p>
 
         <div className="space-y-4">
           <Label htmlFor="reschedule-at">Reprogrammer à</Label>
@@ -142,7 +138,7 @@ export function NoShowAlertModal({
       </section>
 
       <label
-        className="flex cursor-not-allowed items-center gap-8 text-xs text-muted-foreground opacity-60"
+        className="text-muted-foreground flex cursor-not-allowed items-center gap-8 text-xs opacity-60"
         title="Disponible Phase 06 (DEC-055 — consentement tiers RGPD à clarifier)."
       >
         <input type="checkbox" disabled />
@@ -150,7 +146,7 @@ export function NoShowAlertModal({
       </label>
 
       {error && (
-        <p role="alert" className="text-sm text-destructive">
+        <p role="alert" className="text-destructive text-sm">
           {error}
         </p>
       )}

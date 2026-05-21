@@ -58,9 +58,7 @@ describe('rideExpressInputSchema', () => {
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.errors[0]?.message).toBe(
-        'Adresse de prise en charge requise',
-      );
+      expect(result.error.errors[0]?.message).toBe('Adresse de prise en charge requise');
     }
   });
 
@@ -71,9 +69,7 @@ describe('rideExpressInputSchema', () => {
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.errors[0]?.message).toBe(
-        'Adresse de destination requise',
-      );
+      expect(result.error.errors[0]?.message).toBe('Adresse de destination requise');
     }
   });
 
@@ -97,9 +93,7 @@ describe('rideExpressInputSchema', () => {
 
 describe('rideTransportModeSchema', () => {
   it('8. accepte les 4 modes attendus et refuse les valeurs legacy', () => {
-    expect(rideTransportModeSchema.parse('taxi_conventionne')).toBe(
-      'taxi_conventionne',
-    );
+    expect(rideTransportModeSchema.parse('taxi_conventionne')).toBe('taxi_conventionne');
     expect(rideTransportModeSchema.parse('tpmr')).toBe('tpmr');
     expect(rideTransportModeSchema.parse('vsl')).toBe('vsl');
     expect(rideTransportModeSchema.parse('ambulance')).toBe('ambulance');
@@ -120,9 +114,7 @@ describe('rideUrgencySchema', () => {
 
 describe('rideDraftSchema (D-02)', () => {
   it('10. accepte un brouillon avec uniquement {patient_id} ou {} vide', () => {
-    expect(() =>
-      rideDraftSchema.parse({ patient_id: baseValide.patient_id }),
-    ).not.toThrow();
+    expect(() => rideDraftSchema.parse({ patient_id: baseValide.patient_id })).not.toThrow();
     expect(() => rideDraftSchema.parse({})).not.toThrow();
   });
 });

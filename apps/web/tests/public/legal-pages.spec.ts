@@ -22,9 +22,7 @@ const LEGAL_PAGES = [
 
 test.describe('pages publiques /legal/* sans auth', () => {
   for (const { slug, title } of LEGAL_PAGES) {
-    test(`/legal/${slug} accessible sans login (200, pas de redirect)`, async ({
-      page,
-    }) => {
+    test(`/legal/${slug} accessible sans login (200, pas de redirect)`, async ({ page }) => {
       const response = await page.goto(`/legal/${slug}`, {
         waitUntil: 'domcontentloaded',
       });

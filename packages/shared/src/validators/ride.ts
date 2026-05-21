@@ -5,12 +5,7 @@ import { codePostalReunionSchema } from './common';
  * Mode de transport (D-08, CDC v2 § 5.8).
  * 4 valeurs alignées sur l'enum Postgres ride_transport_mode (Phase 2 / Wave 1).
  */
-export const rideTransportModeSchema = z.enum([
-  'taxi_conventionne',
-  'tpmr',
-  'vsl',
-  'ambulance',
-]);
+export const rideTransportModeSchema = z.enum(['taxi_conventionne', 'tpmr', 'vsl', 'ambulance']);
 export type RideTransportMode = z.infer<typeof rideTransportModeSchema>;
 
 /**
@@ -32,21 +27,11 @@ export type RideUrgency = z.infer<typeof rideUrgencySchema>;
  */
 export const rideExpressInputSchema = z.object({
   patient_id: z.string().uuid('Patient requis'),
-  scheduled_at: z
-    .string()
-    .datetime({ offset: true, message: 'Date/heure requise' }),
-  pickup_address: z
-    .string()
-    .trim()
-    .min(3, 'Adresse de prise en charge requise')
-    .max(200),
+  scheduled_at: z.string().datetime({ offset: true, message: 'Date/heure requise' }),
+  pickup_address: z.string().trim().min(3, 'Adresse de prise en charge requise').max(200),
   pickup_postal_code: codePostalReunionSchema.optional(),
   pickup_city: z.string().trim().max(80).optional(),
-  dropoff_address: z
-    .string()
-    .trim()
-    .min(3, 'Adresse de destination requise')
-    .max(200),
+  dropoff_address: z.string().trim().min(3, 'Adresse de destination requise').max(200),
   dropoff_postal_code: codePostalReunionSchema.optional(),
   dropoff_city: z.string().trim().max(80).optional(),
   // Géocoding DEC-044 (Phase 04.7) — coordonnées BAN/POI optionnelles

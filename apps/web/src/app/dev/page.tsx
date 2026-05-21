@@ -16,13 +16,11 @@ export default function DevPage() {
     notFound();
   }
   return (
-    <div className="min-h-screen flex items-center justify-center px-24 bg-muted/30">
+    <div className="bg-muted/30 flex min-h-screen items-center justify-center px-24">
       <div className="w-full max-w-[480px] space-y-24">
-        <header className="text-center space-y-8">
+        <header className="space-y-8 text-center">
           <h1 className="text-2xl font-semibold tracking-tight">Mode démo</h1>
-          <p className="text-sm text-muted-foreground">
-            Choisissez un compte de démonstration.
-          </p>
+          <p className="text-muted-foreground text-sm">Choisissez un compte de démonstration.</p>
         </header>
         <DevSwitcher />
       </div>

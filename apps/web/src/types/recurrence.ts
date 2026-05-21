@@ -12,18 +12,14 @@
 
 import type { Database } from '@tap/database';
 
-export type RideRecurrence =
-  Database['public']['Tables']['ride_recurrences']['Row'];
-export type RideRecurrenceInsert =
-  Database['public']['Tables']['ride_recurrences']['Insert'];
-export type RideRecurrenceUpdate =
-  Database['public']['Tables']['ride_recurrences']['Update'];
+export type RideRecurrence = Database['public']['Tables']['ride_recurrences']['Row'];
+export type RideRecurrenceInsert = Database['public']['Tables']['ride_recurrences']['Insert'];
+export type RideRecurrenceUpdate = Database['public']['Tables']['ride_recurrences']['Update'];
 
 export type RideRecurrenceException =
   Database['public']['Tables']['ride_recurrence_exceptions']['Row'];
 
-export type Holiday974 =
-  Database['public']['Tables']['holidays_974']['Row'];
+export type Holiday974 = Database['public']['Tables']['holidays_974']['Row'];
 
 export type TransportMode = RideRecurrence['transport_mode'];
 export type Urgency = RideRecurrence['urgency'];

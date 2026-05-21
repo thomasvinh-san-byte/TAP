@@ -30,11 +30,7 @@ interface Props {
   filters: CaisseFilters;
 }
 
-export function CaisseToolbar({
-  date,
-  drivers,
-  filters,
-}: Props): JSX.Element {
+export function CaisseToolbar({ date, drivers, filters }: Props): JSX.Element {
   const router = useRouter();
   const [pending, setPending] = React.useState(false);
 
@@ -95,10 +91,8 @@ export function CaisseToolbar({
           <select
             id="caisse-driver"
             value={filters.driverId ?? ''}
-            onChange={(e) =>
-              updateUrl({ driverId: e.target.value || undefined })
-            }
-            className="h-10 w-[200px] rounded-md border border-border bg-background px-12 text-sm"
+            onChange={(e) => updateUrl({ driverId: e.target.value || undefined })}
+            className="border-border bg-background h-10 w-[200px] rounded-md border px-12 text-sm"
           >
             <option value="">Tous chauffeurs</option>
             {drivers.map((d) => (
@@ -109,12 +103,7 @@ export function CaisseToolbar({
           </select>
         </div>
       </div>
-      <Button
-        type="button"
-        onClick={() => void onExport()}
-        disabled={pending}
-        className="gap-8"
-      >
+      <Button type="button" onClick={() => void onExport()} disabled={pending} className="gap-8">
         <Download className="h-16 w-16" aria-hidden />
         {pending ? 'Export…' : 'Exporter CSV'}
       </Button>

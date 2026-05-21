@@ -37,13 +37,11 @@ export function TariffGridCard({ grid }: { grid: TariffGridRow }): JSX.Element {
   ];
 
   return (
-    <article className="rounded-md border border-border bg-muted/20 p-16">
+    <article className="border-border bg-muted/20 rounded-md border p-16">
       <header className="mb-12 flex items-start justify-between gap-12">
         <div>
-          <h2 className="text-base font-semibold text-foreground">
-            Grille active
-          </h2>
-          <p className="text-xs text-muted-foreground">
+          <h2 className="text-foreground text-base font-semibold">Grille active</h2>
+          <p className="text-muted-foreground text-xs">
             En vigueur depuis le {formatDateFr(grid.date_effet)}
           </p>
         </div>

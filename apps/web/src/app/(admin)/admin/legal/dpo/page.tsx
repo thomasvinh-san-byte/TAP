@@ -38,12 +38,11 @@ export default async function DpoPage() {
   } | null;
 
   return (
-    <div className="space-y-24 max-w-2xl">
+    <div className="max-w-2xl space-y-24">
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">Contact DPO</h1>
-        <p className="text-sm text-muted-foreground mt-4">
-          Délégué à la Protection des Données : visible sur la page publique
-          /legal/dpo.
+        <p className="text-muted-foreground mt-4 text-sm">
+          Délégué à la Protection des Données : visible sur la page publique /legal/dpo.
         </p>
       </header>
 

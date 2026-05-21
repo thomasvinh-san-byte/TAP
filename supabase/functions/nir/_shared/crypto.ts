@@ -22,7 +22,7 @@ function base64ToBytes(b64: string): Uint8Array {
 }
 
 function bytesToBase64(bytes: Uint8Array): string {
-  let binary = "";
+  let binary = '';
   for (const b of bytes) binary += String.fromCharCode(b);
   return btoa(binary);
 }
@@ -34,9 +34,7 @@ function getEnvKey(name: string): Uint8Array {
   if (!raw) throw new Error(`Configuration manquante : ${name}`);
   const bytes = base64ToBytes(raw);
   if (bytes.length !== 32) {
-    throw new Error(
-      `Clé ${name} invalide : 32 bytes attendus, ${bytes.length} reçus`,
-    );
+    throw new Error(`Clé ${name} invalide : 32 bytes attendus, ${bytes.length} reçus`);
   }
   return bytes;
 }
@@ -45,11 +43,11 @@ let _encKey: CryptoKey | null = null;
 async function getEncryptionKey(): Promise<CryptoKey> {
   if (_encKey) return _encKey;
   _encKey = await crypto.subtle.importKey(
-    "raw",
-    getEnvKey("APP_NIR_ENCRYPTION_KEY"),
-    { name: "AES-GCM" },
+    'raw',
+    getEnvKey('APP_NIR_ENCRYPTION_KEY'),
+    { name: 'AES-GCM' },
     false,
-    ["encrypt", "decrypt"],
+    ['encrypt', 'decrypt'],
   );
   return _encKey;
 }
@@ -58,11 +56,11 @@ let _hmacKey: CryptoKey | null = null;
 async function getHmacKey(): Promise<CryptoKey> {
   if (_hmacKey) return _hmacKey;
   _hmacKey = await crypto.subtle.importKey(
-    "raw",
-    getEnvKey("APP_NIR_SEARCH_KEY"),
-    { name: "HMAC", hash: "SHA-256" },
+    'raw',
+    getEnvKey('APP_NIR_SEARCH_KEY'),
+    { name: 'HMAC', hash: 'SHA-256' },
     false,
-    ["sign"],
+    ['sign'],
   );
   return _hmacKey;
 }
@@ -71,7 +69,7 @@ async function getHmacKey(): Promise<CryptoKey> {
 
 /** Normalise un NIR : supprime tous les espaces, uppercase (clé corse 2A/2B). */
 export function normalizeNir(input: string): string {
-  return input.replace(/\s+/g, "").toUpperCase();
+  return input.replace(/\s+/g, '').toUpperCase();
 }
 
 /**
@@ -84,11 +82,7 @@ export async function encryptNir(nir: string): Promise<string> {
   const key = await getEncryptionKey();
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const ct = new Uint8Array(
-    await crypto.subtle.encrypt(
-      { name: "AES-GCM", iv },
-      key,
-      new TextEncoder().encode(normalized),
-    ),
+    await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(normalized)),
   );
   const out = new Uint8Array(1 + iv.length + ct.length);
   out[0] = VERSION_BYTE;
@@ -106,19 +100,15 @@ export async function encryptNir(nir: string): Promise<string> {
 export async function decryptNir(encryptedB64: string): Promise<string> {
   try {
     const buf = base64ToBytes(encryptedB64);
-    if (buf.length < 1 + 12 + 16) throw new Error("payload trop court");
-    if (buf[0] !== VERSION_BYTE) throw new Error("version inconnue");
+    if (buf.length < 1 + 12 + 16) throw new Error('payload trop court');
+    if (buf[0] !== VERSION_BYTE) throw new Error('version inconnue');
     const iv = buf.slice(1, 13);
     const ctWithTag = buf.slice(13);
     const key = await getEncryptionKey();
-    const plain = await crypto.subtle.decrypt(
-      { name: "AES-GCM", iv },
-      key,
-      ctWithTag,
-    );
+    const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ctWithTag);
     return new TextDecoder().decode(plain);
   } catch {
-    throw new Error("NIR illisible");
+    throw new Error('NIR illisible');
   }
 }
 
@@ -130,10 +120,6 @@ export async function decryptNir(encryptedB64: string): Promise<string> {
 export async function hashNir(nir: string): Promise<string> {
   const normalized = normalizeNir(nir);
   const key = await getHmacKey();
-  const sig = await crypto.subtle.sign(
-    "HMAC",
-    key,
-    new TextEncoder().encode(normalized),
-  );
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(normalized));
   return bytesToBase64(new Uint8Array(sig));
 }

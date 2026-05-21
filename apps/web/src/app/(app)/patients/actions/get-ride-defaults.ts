@@ -38,10 +38,7 @@ export async function getPatientRideDefaultsAction(
     if (!REGULATEUR_OR_DIRIGEANT.includes(ctx.role as never)) {
       return { error: 'Accès non autorisé.' };
     }
-    const data = await getPatientRideDefaults(
-      parsed.data.patientId,
-      ctx.organizationId,
-    );
+    const data = await getPatientRideDefaults(parsed.data.patientId, ctx.organizationId);
     return { data };
   } catch {
     return { error: 'Pré-remplissage indisponible.' };

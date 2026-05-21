@@ -174,9 +174,8 @@ export async function recomputeTarifsAction(): Promise<RecomputeTarifsResult> {
     return { recomputed: 0, candidates: 0, error: 'Action réservée au dirigeant.' };
   }
 
-  const { getActiveTariffGrid, getHolidays974 } = await import(
-    '@/lib/pricing/get-active-tariff-grid'
-  );
+  const { getActiveTariffGrid, getHolidays974 } =
+    await import('@/lib/pricing/get-active-tariff-grid');
   const { computeCgssShortTrip } = await import('@tap/pricing');
   const grid = await getActiveTariffGrid();
   if (!grid) {
@@ -194,8 +193,7 @@ export async function recomputeTarifsAction(): Promise<RecomputeTarifsResult> {
   const target = await supabase
     .from('rides')
     .select(
-      'id, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng, ' +
-        'scheduled_at, transport_mode',
+      'id, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng, ' + 'scheduled_at, transport_mode',
     )
     .eq('tarif_source', 'cgss_auto')
     .neq('payment_status', 'encaisse');

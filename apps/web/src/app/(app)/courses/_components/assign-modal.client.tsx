@@ -18,11 +18,7 @@ import { Input } from '@/components/ui/input';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
-import {
-  assignRideAction,
-  listActiveDriversAction,
-  listActiveVehiclesAction,
-} from '../actions';
+import { assignRideAction, listActiveDriversAction, listActiveVehiclesAction } from '../actions';
 import type { DriverMin, VehicleMin } from '../_lib/queries';
 
 interface Props {
@@ -32,10 +28,7 @@ interface Props {
 }
 
 function normalize(s: string): string {
-  return s
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '');
+  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 }
 
 /**
@@ -52,19 +45,11 @@ function normalize(s: string): string {
  * - Server Action assignRideAction → revalidatePath('/courses') déjà côté
  *   action — on invalide tout de même côté client pour le drawer + liste.
  */
-export function AssignModal({
-  rideId,
-  open,
-  onOpenChange,
-}: Props): JSX.Element {
+export function AssignModal({ rideId, open, onOpenChange }: Props): JSX.Element {
   const qc = useQueryClient();
   const [query, setQuery] = React.useState('');
-  const [selectedDriverId, setSelectedDriverId] = React.useState<string | null>(
-    null,
-  );
-  const [selectedVehicleId, setSelectedVehicleId] = React.useState<string | null>(
-    null,
-  );
+  const [selectedDriverId, setSelectedDriverId] = React.useState<string | null>(null);
+  const [selectedVehicleId, setSelectedVehicleId] = React.useState<string | null>(null);
   const [showCompatibleOnly, setShowCompatibleOnly] = React.useState(true);
   const [pending, setPending] = React.useState(false);
 
@@ -108,9 +93,7 @@ export function AssignModal({
   // - avec véhicule + showCompatibleOnly=false : compatibles d'abord (tri),
   //   incompatibles ensuite avec badge destructive
   const filteredDrivers = React.useMemo(() => {
-    const matched = nq
-      ? drivers.filter((d) => normalize(d.nom_affichage).includes(nq))
-      : drivers;
+    const matched = nq ? drivers.filter((d) => normalize(d.nom_affichage).includes(nq)) : drivers;
     if (!selectedVehicle) {
       return matched.map((d) => ({ ...d, compatible: true as const }));
     }
@@ -163,10 +146,7 @@ export function AssignModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="max-w-lg"
-        onKeyDown={onKey}
-      >
+      <DialogContent className="max-w-lg" onKeyDown={onKey}>
         <DialogHeader>
           <DialogTitle>Affecter un chauffeur</DialogTitle>
           <DialogDescription>
@@ -177,7 +157,7 @@ export function AssignModal({
         <div className="space-y-16">
           <div className="relative">
             <Search
-              className="absolute left-12 top-1/2 -translate-y-1/2 h-16 w-16 text-muted-foreground"
+              className="text-muted-foreground absolute left-12 top-1/2 h-16 w-16 -translate-y-1/2"
               aria-hidden
             />
             <Input
@@ -192,7 +172,7 @@ export function AssignModal({
 
           {selectedVehicle && (
             <div
-              className="inline-flex rounded-md border border-border bg-muted/40 p-2"
+              className="border-border bg-muted/40 inline-flex rounded-md border p-2"
               role="tablist"
               aria-label="Filtre de compatibilité"
             >
@@ -202,9 +182,9 @@ export function AssignModal({
                 aria-selected={showCompatibleOnly}
                 onClick={() => setShowCompatibleOnly(true)}
                 className={cn(
-                  'px-12 py-6 text-sm rounded-sm transition-colors',
+                  'rounded-sm px-12 py-6 text-sm transition-colors',
                   showCompatibleOnly
-                    ? 'bg-background shadow-sm text-foreground'
+                    ? 'bg-background text-foreground shadow-sm'
                     : 'text-muted-foreground hover:text-foreground',
                 )}
               >
@@ -216,9 +196,9 @@ export function AssignModal({
                 aria-selected={!showCompatibleOnly}
                 onClick={() => setShowCompatibleOnly(false)}
                 className={cn(
-                  'px-12 py-6 text-sm rounded-sm transition-colors',
+                  'rounded-sm px-12 py-6 text-sm transition-colors',
                   !showCompatibleOnly
-                    ? 'bg-background shadow-sm text-foreground'
+                    ? 'bg-background text-foreground shadow-sm'
                     : 'text-muted-foreground hover:text-foreground',
                 )}
               >
@@ -227,24 +207,21 @@ export function AssignModal({
             </div>
           )}
 
-          <div className="max-h-[280px] overflow-y-auto rounded-md border border-border">
+          <div className="border-border max-h-[280px] overflow-y-auto rounded-md border">
             {driversQuery.isPending ? (
-              <div className="p-12 space-y-8">
+              <div className="space-y-8 p-12">
                 {[0, 1, 2].map((i) => (
                   <Skeleton key={i} className="h-32 w-full" />
                 ))}
               </div>
             ) : filteredDrivers.length === 0 ? (
               selectedVehicle && showCompatibleOnly ? (
-                <div className="flex flex-col items-center justify-center py-48 text-center px-16">
-                  <CarTaxiFront
-                    className="h-32 w-32 text-muted-foreground mb-12"
-                    aria-hidden
-                  />
+                <div className="flex flex-col items-center justify-center px-16 py-48 text-center">
+                  <CarTaxiFront className="text-muted-foreground mb-12 h-32 w-32" aria-hidden />
                   <p className="text-sm font-medium">
                     Aucun chauffeur compatible avec un véhicule {selectedVehicle.type}.
                   </p>
-                  <p className="text-xs text-muted-foreground mt-8">
+                  <p className="text-muted-foreground mt-8 text-xs">
                     Activez « Afficher tous » pour basculer en mode urgence.
                   </p>
                   <Button
@@ -257,9 +234,7 @@ export function AssignModal({
                   </Button>
                 </div>
               ) : (
-                <p className="p-16 text-sm text-muted-foreground">
-                  Aucun chauffeur actif trouvé.
-                </p>
+                <p className="text-muted-foreground p-16 text-sm">Aucun chauffeur actif trouvé.</p>
               )
             ) : (
               <ul role="listbox" aria-label="Chauffeurs disponibles">
@@ -274,18 +249,12 @@ export function AssignModal({
                         onClick={() => setSelectedDriverId(d.id)}
                         className={cn(
                           'flex w-full items-center gap-12 px-12 py-8 text-left transition-colors duration-150',
-                          'hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
+                          'hover:bg-muted/50 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset',
                           active && 'bg-primary/10',
                         )}
                       >
-                        <InitialsAvatar
-                          name={d.nom_affichage}
-                          role="chauffeur"
-                          size={24}
-                        />
-                        <span className="flex-1 min-w-0 truncate text-sm">
-                          {d.nom_affichage}
-                        </span>
+                        <InitialsAvatar name={d.nom_affichage} role="chauffeur" size={24} />
+                        <span className="min-w-0 flex-1 truncate text-sm">{d.nom_affichage}</span>
                         {selectedVehicle ? (
                           <span
                             className={cn(
@@ -302,7 +271,7 @@ export function AssignModal({
                             {(d.type_permis ?? []).map((t) => (
                               <span
                                 key={t}
-                                className="rounded-md border border-border bg-muted px-4 py-2 text-[10px] uppercase tracking-wide text-muted-foreground"
+                                className="border-border bg-muted text-muted-foreground rounded-md border px-4 py-2 text-[10px] uppercase tracking-wide"
                               >
                                 {t}
                               </span>
@@ -321,30 +290,25 @@ export function AssignModal({
             <div
               role="alert"
               aria-live="polite"
-              className="flex items-start gap-12 bg-warning/10 border border-warning/30 rounded-md px-16 py-12"
+              className="bg-warning/10 border-warning/30 flex items-start gap-12 rounded-md border px-16 py-12"
             >
-              <AlertTriangle
-                className="h-16 w-16 text-warning shrink-0 mt-2"
-                aria-hidden
-              />
-              <p className="text-sm text-foreground">
-                Ce chauffeur n'a pas le permis requis pour ce véhicule.
-                Confirmez en connaissance de cause.
+              <AlertTriangle className="text-warning mt-2 h-16 w-16 shrink-0" aria-hidden />
+              <p className="text-foreground text-sm">
+                Ce chauffeur n'a pas le permis requis pour ce véhicule. Confirmez en connaissance de
+                cause.
               </p>
             </div>
           )}
 
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-8">
+            <div className="text-muted-foreground mb-8 text-xs font-semibold uppercase tracking-wide">
               Véhicule (optionnel)
             </div>
-            <div className="max-h-[160px] overflow-y-auto rounded-md border border-border">
+            <div className="border-border max-h-[160px] overflow-y-auto rounded-md border">
               {vehiclesQuery.isPending ? (
-                <Skeleton className="h-32 w-full m-12" />
+                <Skeleton className="m-12 h-32 w-full" />
               ) : vehicles.length === 0 ? (
-                <p className="p-16 text-sm text-muted-foreground">
-                  Aucun véhicule actif.
-                </p>
+                <p className="text-muted-foreground p-16 text-sm">Aucun véhicule actif.</p>
               ) : (
                 <ul role="listbox" aria-label="Véhicules disponibles">
                   <li>
@@ -353,13 +317,11 @@ export function AssignModal({
                       onClick={() => setSelectedVehicleId(null)}
                       className={cn(
                         'flex w-full items-center gap-12 px-12 py-8 text-left text-sm transition-colors duration-150',
-                        'hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
+                        'hover:bg-muted/50 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset',
                         selectedVehicleId === null && 'bg-primary/10',
                       )}
                     >
-                      <span className="text-muted-foreground">
-                        Aucun véhicule
-                      </span>
+                      <span className="text-muted-foreground">Aucun véhicule</span>
                     </button>
                   </li>
                   {vehicles.map((v) => {
@@ -371,17 +333,15 @@ export function AssignModal({
                           onClick={() => setSelectedVehicleId(v.id)}
                           className={cn(
                             'flex w-full items-center gap-12 px-12 py-8 text-left text-sm transition-colors duration-150',
-                            'hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
+                            'hover:bg-muted/50 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset',
                             active && 'bg-primary/10',
                           )}
                         >
-                          <span className="font-medium tabular-nums">
-                            {v.immatriculation}
-                          </span>
+                          <span className="font-medium tabular-nums">{v.immatriculation}</span>
                           <span className="text-muted-foreground truncate">
                             {[v.marque, v.modele].filter(Boolean).join(' ')}
                           </span>
-                          <span className="ml-auto text-[10px] uppercase tracking-wide text-muted-foreground">
+                          <span className="text-muted-foreground ml-auto text-[10px] uppercase tracking-wide">
                             {v.type}
                           </span>
                         </button>

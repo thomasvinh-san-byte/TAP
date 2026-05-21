@@ -48,10 +48,9 @@ export async function encryptAndHashNir(
   supabase: SupabaseClientLike,
   nir: string,
 ): Promise<EncryptResponse> {
-  const { data, error } = await supabase.functions.invoke<EncryptResponse>(
-    'nir',
-    { body: { action: 'encrypt', nir } },
-  );
+  const { data, error } = await supabase.functions.invoke<EncryptResponse>('nir', {
+    body: { action: 'encrypt', nir },
+  });
   if (error || !data) throw new Error('Chiffrement NIR impossible');
   return data;
 }
@@ -66,10 +65,9 @@ export async function decryptNir(
   encrypted: string,
   patientId: string,
 ): Promise<string> {
-  const { data, error } = await supabase.functions.invoke<DecryptResponse>(
-    'nir',
-    { body: { action: 'decrypt', encrypted, patientId } },
-  );
+  const { data, error } = await supabase.functions.invoke<DecryptResponse>('nir', {
+    body: { action: 'decrypt', encrypted, patientId },
+  });
   if (error || !data) throw new Error('NIR illisible');
   return data.nir;
 }
@@ -78,14 +76,10 @@ export async function decryptNir(
  * Hash déterministe pour la recherche NIR exacte (pas utilisé en PLAN-5 ;
  * conservé pour la Phase 2 saisie express qui pourra réutiliser ce wrapper).
  */
-export async function hashNir(
-  supabase: SupabaseClientLike,
-  nir: string,
-): Promise<string> {
-  const { data, error } = await supabase.functions.invoke<HashResponse>(
-    'nir',
-    { body: { action: 'hash', nir } },
-  );
+export async function hashNir(supabase: SupabaseClientLike, nir: string): Promise<string> {
+  const { data, error } = await supabase.functions.invoke<HashResponse>('nir', {
+    body: { action: 'hash', nir },
+  });
   if (error || !data) throw new Error('Hash NIR impossible');
   return data.hash;
 }

@@ -36,8 +36,7 @@ export default async function SetupPage() {
   const isPartial = state === 'partial';
 
   const supabaseConfigured =
-    !!process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseConfigured) {
     redirect('/welcome');
@@ -46,52 +45,49 @@ export default async function SetupPage() {
   return (
     <AuthShell title="Initialiser la base">
       <div className="space-y-24">
-        <section className="rounded-md border border-border bg-muted/40 p-16 space-y-8">
-          <p className="font-medium text-foreground text-sm">
+        <section className="border-border bg-muted/40 space-y-8 rounded-md border p-16">
+          <p className="text-foreground text-sm font-medium">
             {isPartial ? 'Init incomplète détectée' : "Plus qu'une étape"}
           </p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             {isPartial
               ? "Les tables existent mais les comptes démo manquent (probable échec partiel d'une init précédente). Cliquer pour (re)créer les comptes : le seed est idempotent."
               : "L'intégration Vercel ↔ Supabase est en place. Il reste à initialiser la base avec le schéma et les données démo. Un seul clic."}
           </p>
         </section>
 
-        <div className="rounded-md border border-border bg-card p-16 space-y-16">
+        <div className="border-border bg-card space-y-16 rounded-md border p-16">
           <div className="space-y-8">
-            <h2 className="text-base font-medium text-foreground">
+            <h2 className="text-foreground text-base font-medium">
               Initialiser la base de données
             </h2>
-            <p className="text-sm text-muted-foreground">
-              Crée les tables nécessaires (patients, courses, RGPD…) et
-              insère les comptes démo :
+            <p className="text-muted-foreground text-sm">
+              Crée les tables nécessaires (patients, courses, RGPD…) et insère les comptes démo :
             </p>
-            <ul className="text-sm text-muted-foreground space-y-4 list-disc list-inside marker:text-muted-foreground/50 font-mono">
+            <ul className="text-muted-foreground marker:text-muted-foreground/50 list-inside list-disc space-y-4 font-mono text-sm">
               <li>dirigeant@demo.tap</li>
               <li>regulateur@demo.tap</li>
               <li>chauffeur@demo.tap</li>
             </ul>
-            <p className="text-sm text-muted-foreground">
-              Plus 10 patients fictifs réunionnais pour tester la recherche et
-              la saisie de course. Mot de passe partagé :{' '}
-              <code className="font-mono text-foreground">demo1234!</code>
+            <p className="text-muted-foreground text-sm">
+              Plus 10 patients fictifs réunionnais pour tester la recherche et la saisie de course.
+              Mot de passe partagé : <code className="text-foreground font-mono">demo1234!</code>
             </p>
           </div>
 
           <InitButton />
 
-          <p className="text-xs text-muted-foreground">
-            L&apos;opération est idempotente : peut être relancée sans risque
-            de doublons.
+          <p className="text-muted-foreground text-xs">
+            L&apos;opération est idempotente : peut être relancée sans risque de doublons.
           </p>
         </div>
 
         {reason && (
-          <details className="rounded-md border border-border bg-muted/20 p-12 text-xs">
-            <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+          <details className="border-border bg-muted/20 rounded-md border p-12 text-xs">
+            <summary className="text-muted-foreground hover:text-foreground cursor-pointer">
               Détails techniques
             </summary>
-            <pre className="pt-8 text-muted-foreground font-mono whitespace-pre-wrap break-all">
+            <pre className="text-muted-foreground whitespace-pre-wrap break-all pt-8 font-mono">
               {reason}
             </pre>
           </details>

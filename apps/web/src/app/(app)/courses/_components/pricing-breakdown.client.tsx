@@ -42,28 +42,21 @@ const MAJORATION_LABEL: Record<Exclude<MajorationMotif, null>, string> = {
   ferie: 'Majoration jour férié',
 };
 
-export function PricingBreakdown({
-  pricing,
-  editable,
-  onOverride,
-}: Props): JSX.Element {
+export function PricingBreakdown({ pricing, editable, onOverride }: Props): JSX.Element {
   const distanceUnavailable = pricing.distance_method === 'unavailable';
 
   return (
     <div
-      className="rounded-md border border-border bg-muted/20 p-16 space-y-12"
+      className="border-border bg-muted/20 space-y-12 rounded-md border p-16"
       data-testid="pricing-breakdown"
     >
       {distanceUnavailable && (
         <div
           role="status"
-          className="flex items-start gap-8 rounded-md border border-warning/30 bg-warning/10 px-12 py-8"
+          className="border-warning/30 bg-warning/10 flex items-start gap-8 rounded-md border px-12 py-8"
         >
-          <AlertTriangle
-            className="h-16 w-16 shrink-0 text-warning mt-2"
-            aria-hidden
-          />
-          <p className="text-xs text-foreground">
+          <AlertTriangle className="text-warning mt-2 h-16 w-16 shrink-0" aria-hidden />
+          <p className="text-foreground text-xs">
             Distance non disponible — forfait et suppléments seuls.
           </p>
         </div>
@@ -74,24 +67,17 @@ export function PricingBreakdown({
       <dl className="space-y-6 text-sm">
         <div className="flex items-center justify-between">
           <dt className="text-muted-foreground">Forfait prise en charge</dt>
-          <dd className="font-mono tabular-nums">
-            {formatEur(pricing.forfait_eur)}
-          </dd>
+          <dd className="font-mono tabular-nums">{formatEur(pricing.forfait_eur)}</dd>
         </div>
 
         {!distanceUnavailable && pricing.distance_km !== null && (
           <div className="flex items-center justify-between">
             <dt className="text-muted-foreground">
-              Distance {formatKm(pricing.distance_km)} ·{' '}
-              {formatKm(pricing.km_factures)} facturés ×{' '}
-              {pricing.prix_km_eur !== null
-                ? formatEur(pricing.prix_km_eur)
-                : '—'}
+              Distance {formatKm(pricing.distance_km)} · {formatKm(pricing.km_factures)} facturés ×{' '}
+              {pricing.prix_km_eur !== null ? formatEur(pricing.prix_km_eur) : '—'}
             </dt>
             <dd className="font-mono tabular-nums">
-              {pricing.km_total_eur !== null
-                ? formatEur(pricing.km_total_eur)
-                : '—'}
+              {pricing.km_total_eur !== null ? formatEur(pricing.km_total_eur) : '—'}
             </dd>
           </div>
         )}
@@ -99,18 +85,14 @@ export function PricingBreakdown({
         {pricing.supplement_drom_eur > 0 && (
           <div className="flex items-center justify-between">
             <dt className="text-muted-foreground">Supplément DROM</dt>
-            <dd className="font-mono tabular-nums">
-              +{formatEur(pricing.supplement_drom_eur)}
-            </dd>
+            <dd className="font-mono tabular-nums">+{formatEur(pricing.supplement_drom_eur)}</dd>
           </div>
         )}
 
         {pricing.supplement_tpmr_eur > 0 && (
           <div className="flex items-center justify-between">
             <dt className="text-muted-foreground">Supplément TPMR</dt>
-            <dd className="font-mono tabular-nums">
-              +{formatEur(pricing.supplement_tpmr_eur)}
-            </dd>
+            <dd className="font-mono tabular-nums">+{formatEur(pricing.supplement_tpmr_eur)}</dd>
           </div>
         )}
 
@@ -120,32 +102,22 @@ export function PricingBreakdown({
               {MAJORATION_LABEL[pricing.majoration_motif]} (+
               {pricing.majoration_pct}%)
             </dt>
-            <dd className="font-mono tabular-nums">
-              +{formatEur(pricing.majoration_eur)}
-            </dd>
+            <dd className="font-mono tabular-nums">+{formatEur(pricing.majoration_eur)}</dd>
           </div>
         )}
       </dl>
 
       <div
         className={cn(
-          'flex items-center justify-between border-t border-border pt-12',
+          'border-border flex items-center justify-between border-t pt-12',
           'text-base font-semibold',
         )}
       >
         <span>Total</span>
         <div className="flex items-center gap-12">
-          <span className="font-mono tabular-nums">
-            {formatEur(pricing.total_eur)}
-          </span>
+          <span className="font-mono tabular-nums">{formatEur(pricing.total_eur)}</span>
           {editable && onOverride && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={onOverride}
-              className="gap-4"
-            >
+            <Button type="button" variant="ghost" size="sm" onClick={onOverride} className="gap-4">
               <Pencil className="h-12 w-12" aria-hidden />
               Modifier
             </Button>
@@ -153,11 +125,11 @@ export function PricingBreakdown({
         </div>
       </div>
 
-      <p className="flex items-start gap-8 text-xs text-muted-foreground">
-        <Info className="h-12 w-12 shrink-0 mt-2" aria-hidden />
+      <p className="text-muted-foreground flex items-start gap-8 text-xs">
+        <Info className="mt-2 h-12 w-12 shrink-0" aria-hidden />
         <span>
-          Tarif estimatif, non contractuel jusqu&apos;à la facturation CGSS.
-          Distance estimée (vol d&apos;oiseau corrigé).
+          Tarif estimatif, non contractuel jusqu&apos;à la facturation CGSS. Distance estimée (vol
+          d&apos;oiseau corrigé).
         </span>
       </p>
     </div>

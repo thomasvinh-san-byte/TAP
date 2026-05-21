@@ -191,13 +191,11 @@ export function RideExpressModal(props: Props): JSX.Element {
   return (
     <Dialog open onOpenChange={handleOpenChange}>
       <DialogContent
-        className="w-[calc(100vw-32px)] max-w-[640px] max-h-[90vh] overflow-y-auto overflow-x-hidden"
+        className="max-h-[90vh] w-[calc(100vw-32px)] max-w-[640px] overflow-y-auto overflow-x-hidden"
         aria-label="Saisie express d'une course"
       >
         <DialogHeader>
-          <DialogTitle>
-            {isEditMode ? 'Modifier la course' : 'Nouvelle course'}
-          </DialogTitle>
+          <DialogTitle>{isEditMode ? 'Modifier la course' : 'Nouvelle course'}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-12" noValidate>
@@ -222,18 +220,9 @@ export function RideExpressModal(props: Props): JSX.Element {
             onChange={(v) => updateField('pickup_address', v)}
             onSelect={(sel) => {
               // DEC-044 : threadage coords BAN/POI → persistance Server Action
-              updateField(
-                'pickup_lat' as keyof FormState,
-                (sel.lat ?? null) as never,
-              );
-              updateField(
-                'pickup_lng' as keyof FormState,
-                (sel.lng ?? null) as never,
-              );
-              updateField(
-                'pickup_citycode' as keyof FormState,
-                (sel.citycode ?? null) as never,
-              );
+              updateField('pickup_lat' as keyof FormState, (sel.lat ?? null) as never);
+              updateField('pickup_lng' as keyof FormState, (sel.lng ?? null) as never);
+              updateField('pickup_citycode' as keyof FormState, (sel.citycode ?? null) as never);
             }}
             onBlur={() => void autosave.flushSave(form)}
             tabIndex={3}
@@ -247,18 +236,9 @@ export function RideExpressModal(props: Props): JSX.Element {
             value={form.dropoff_address ?? ''}
             onChange={(v) => updateField('dropoff_address', v)}
             onSelect={(sel) => {
-              updateField(
-                'dropoff_lat' as keyof FormState,
-                (sel.lat ?? null) as never,
-              );
-              updateField(
-                'dropoff_lng' as keyof FormState,
-                (sel.lng ?? null) as never,
-              );
-              updateField(
-                'dropoff_citycode' as keyof FormState,
-                (sel.citycode ?? null) as never,
-              );
+              updateField('dropoff_lat' as keyof FormState, (sel.lat ?? null) as never);
+              updateField('dropoff_lng' as keyof FormState, (sel.lng ?? null) as never);
+              updateField('dropoff_citycode' as keyof FormState, (sel.citycode ?? null) as never);
             }}
             onBlur={() => void autosave.flushSave(form)}
             tabIndex={4}
@@ -279,11 +259,8 @@ export function RideExpressModal(props: Props): JSX.Element {
           />
 
           {!isEditMode && (
-            <div className="text-xs text-muted-foreground min-h-[20px]">
-              <SavingIndicator
-                state={autosave.savingState}
-                lastSavedAt={autosave.lastSavedAt}
-              />
+            <div className="text-muted-foreground min-h-[20px] text-xs">
+              <SavingIndicator state={autosave.savingState} lastSavedAt={autosave.lastSavedAt} />
             </div>
           )}
 

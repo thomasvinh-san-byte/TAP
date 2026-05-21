@@ -25,12 +25,7 @@ interface PageProps {
 
 const VALID_SORTS: CaisseSortColumn[] = ['date', 'tarif'];
 const VALID_DIRS: CaisseSortDir[] = ['asc', 'desc'];
-const VALID_METHODS: CaissePaymentMethod[] = [
-  'cash',
-  'cb',
-  'cheque',
-  'cgss_differe',
-];
+const VALID_METHODS: CaissePaymentMethod[] = ['cash', 'cb', 'cheque', 'cgss_differe'];
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
@@ -41,19 +36,13 @@ export default async function CaissePage({ searchParams }: PageProps) {
   const date = /^\d{4}-\d{2}-\d{2}$/.test(searchParams.date ?? '')
     ? (searchParams.date as string)
     : todayIso();
-  const sort: CaisseSortColumn = VALID_SORTS.includes(
-    searchParams.sort as CaisseSortColumn,
-  )
+  const sort: CaisseSortColumn = VALID_SORTS.includes(searchParams.sort as CaisseSortColumn)
     ? (searchParams.sort as CaisseSortColumn)
     : 'date';
-  const dir: CaisseSortDir = VALID_DIRS.includes(
-    searchParams.dir as CaisseSortDir,
-  )
+  const dir: CaisseSortDir = VALID_DIRS.includes(searchParams.dir as CaisseSortDir)
     ? (searchParams.dir as CaisseSortDir)
     : 'desc';
-  const paymentMethod = VALID_METHODS.includes(
-    searchParams.payment_method as CaissePaymentMethod,
-  )
+  const paymentMethod = VALID_METHODS.includes(searchParams.payment_method as CaissePaymentMethod)
     ? (searchParams.payment_method as CaissePaymentMethod)
     : undefined;
 
@@ -71,10 +60,10 @@ export default async function CaissePage({ searchParams }: PageProps) {
   ]);
 
   return (
-    <div className="space-y-24 max-w-[1280px]">
+    <div className="max-w-[1280px] space-y-24">
       <header className="space-y-4">
         <h1 className="text-2xl font-semibold tracking-tight">Caisse</h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           Encaissements de la journée. Total et détail par course.
         </p>
       </header>

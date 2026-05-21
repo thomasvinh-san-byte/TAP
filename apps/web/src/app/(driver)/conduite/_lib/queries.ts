@@ -106,14 +106,11 @@ function reunionUpcomingBoundsIso(now = new Date()): {
   endIso: string;
   tomorrowStartIso: string;
 } {
-  const reunionNow = new Date(
-    now.getTime() + REUNION_OFFSET_HOURS * 60 * 60 * 1000,
-  );
+  const reunionNow = new Date(now.getTime() + REUNION_OFFSET_HOURS * 60 * 60 * 1000);
   const y = reunionNow.getUTCFullYear();
   const m = reunionNow.getUTCMonth();
   const d = reunionNow.getUTCDate();
-  const startUtcMs =
-    Date.UTC(y, m, d, 0, 0, 0, 0) - REUNION_OFFSET_HOURS * 60 * 60 * 1000;
+  const startUtcMs = Date.UTC(y, m, d, 0, 0, 0, 0) - REUNION_OFFSET_HOURS * 60 * 60 * 1000;
   const tomorrowStartUtcMs = startUtcMs + 24 * 60 * 60 * 1000;
   const endUtcMs = startUtcMs + 48 * 60 * 60 * 1000;
   return {
@@ -226,9 +223,7 @@ export type RideForDriverWithBucket = RideForDriverList & {
  * de J+1 → la projection 48 h donne de la prévisibilité au chauffeur
  * sans saturer la liste (limit 50 conservée).
  */
-export async function listMyRidesUpcoming(): Promise<
-  RideForDriverWithBucket[]
-> {
+export async function listMyRidesUpcoming(): Promise<RideForDriverWithBucket[]> {
   const ctx = await getAuthContext();
   if (!ctx) return [];
   if (ctx.role !== 'chauffeur') return [];
@@ -281,9 +276,7 @@ export async function listMyRidesUpcoming(): Promise<
 // getRideForDriver — détail d'une course pour /conduite/[rideId]
 // --------------------------------------------------------------------------
 
-export async function getRideForDriver(
-  rideId: string,
-): Promise<RideForDriverList | null> {
+export async function getRideForDriver(rideId: string): Promise<RideForDriverList | null> {
   const ctx = await getAuthContext();
   if (!ctx) return null;
   if (ctx.role !== 'chauffeur') return null;

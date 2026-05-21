@@ -2,11 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { Calculator } from 'lucide-react';
-import {
-  computeCgssFromDistance,
-  type MajorationMotif,
-  type TariffGrid,
-} from '@tap/pricing';
+import { computeCgssFromDistance, type MajorationMotif, type TariffGrid } from '@tap/pricing';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
@@ -56,10 +52,10 @@ export function TariffSimulator({ grid }: { grid: TariffGrid }): JSX.Element {
   }, [distanceKm, heure, tpmr, grid]);
 
   return (
-    <article className="rounded-md border border-border bg-muted/20 p-16">
+    <article className="border-border bg-muted/20 rounded-md border p-16">
       <header className="mb-12 flex items-center gap-8">
-        <Calculator aria-hidden className="h-16 w-16 text-muted-foreground" />
-        <h2 className="text-base font-semibold text-foreground">Simulateur</h2>
+        <Calculator aria-hidden className="text-muted-foreground h-16 w-16" />
+        <h2 className="text-foreground text-base font-semibold">Simulateur</h2>
       </header>
 
       <div className="grid grid-cols-2 gap-12">
@@ -86,63 +82,45 @@ export function TariffSimulator({ grid }: { grid: TariffGrid }): JSX.Element {
       </div>
 
       <label className="mt-12 flex items-center gap-8 text-sm">
-        <input
-          type="checkbox"
-          checked={tpmr}
-          onChange={(e) => setTpmr(e.target.checked)}
-        />
+        <input type="checkbox" checked={tpmr} onChange={(e) => setTpmr(e.target.checked)} />
         Véhicule TPMR
       </label>
 
-      <dl className="mt-16 space-y-6 border-t border-border pt-12 text-sm">
+      <dl className="border-border mt-16 space-y-6 border-t pt-12 text-sm">
         <div className="flex items-center justify-between">
           <dt className="text-muted-foreground">Forfait</dt>
-          <dd className="font-mono tabular-nums">
-            {formatEur(result.forfait_eur)}
-          </dd>
+          <dd className="font-mono tabular-nums">{formatEur(result.forfait_eur)}</dd>
         </div>
         {result.km_total_eur !== null && (
           <div className="flex items-center justify-between">
             <dt className="text-muted-foreground">Km facturés</dt>
-            <dd className="font-mono tabular-nums">
-              {formatEur(result.km_total_eur)}
-            </dd>
+            <dd className="font-mono tabular-nums">{formatEur(result.km_total_eur)}</dd>
           </div>
         )}
         {result.supplement_drom_eur > 0 && (
           <div className="flex items-center justify-between">
             <dt className="text-muted-foreground">Supplément DROM</dt>
-            <dd className="font-mono tabular-nums">
-              {formatEur(result.supplement_drom_eur)}
-            </dd>
+            <dd className="font-mono tabular-nums">{formatEur(result.supplement_drom_eur)}</dd>
           </div>
         )}
         {result.supplement_tpmr_eur > 0 && (
           <div className="flex items-center justify-between">
             <dt className="text-muted-foreground">Supplément TPMR</dt>
-            <dd className="font-mono tabular-nums">
-              {formatEur(result.supplement_tpmr_eur)}
-            </dd>
+            <dd className="font-mono tabular-nums">{formatEur(result.supplement_tpmr_eur)}</dd>
           </div>
         )}
         {result.majoration_eur > 0 && result.majoration_motif !== null && (
           <div className="flex items-center justify-between">
-            <dt className="text-muted-foreground">
-              {MAJORATION_LABEL[result.majoration_motif]}
-            </dt>
-            <dd className="font-mono tabular-nums">
-              {formatEur(result.majoration_eur)}
-            </dd>
+            <dt className="text-muted-foreground">{MAJORATION_LABEL[result.majoration_motif]}</dt>
+            <dd className="font-mono tabular-nums">{formatEur(result.majoration_eur)}</dd>
           </div>
         )}
-        <div className="flex items-center justify-between border-t border-border pt-8 text-base font-semibold">
+        <div className="border-border flex items-center justify-between border-t pt-8 text-base font-semibold">
           <dt>Total</dt>
-          <dd className="font-mono tabular-nums">
-            {formatEur(result.total_eur)}
-          </dd>
+          <dd className="font-mono tabular-nums">{formatEur(result.total_eur)}</dd>
         </div>
       </dl>
-      <p className="mt-8 text-xs text-muted-foreground">Estimation indicative.</p>
+      <p className="text-muted-foreground mt-8 text-xs">Estimation indicative.</p>
     </article>
   );
 }

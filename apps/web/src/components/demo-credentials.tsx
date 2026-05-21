@@ -76,30 +76,22 @@ export function DemoCredentials({ onSelect }: DemoCredentialsProps) {
 
   return (
     <div className="space-y-12">
-      <p className="text-sm text-muted-foreground">
+      <p className="text-muted-foreground text-sm">
         Comptes de démonstration (cliquer pour pré-remplir).
       </p>
 
       <div className="space-y-8">
         {ADMINS.map((account) => (
-          <AccountCard
-            key={account.email}
-            account={account}
-            onSelect={onSelect}
-          />
+          <AccountCard key={account.email} account={account} onSelect={onSelect} />
         ))}
       </div>
 
       <div className="space-y-8">
-        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">
           Chauffeurs ({DRIVERS.length})
         </p>
         {DRIVERS.map((account) => (
-          <AccountCard
-            key={account.email}
-            account={account}
-            onSelect={onSelect}
-          />
+          <AccountCard key={account.email} account={account} onSelect={onSelect} />
         ))}
       </div>
     </div>
@@ -117,31 +109,17 @@ function AccountCard({
     <button
       type="button"
       onClick={() => onSelect(account.email, account.password)}
-      className="
-        w-full text-left
-        border border-border rounded-md p-16
-        cursor-pointer
-        hover:bg-accent/8 hover:border-accent
-        active:bg-accent/12
-        transition-colors duration-150
-        focus-visible:outline-none focus-visible:ring-2
-        focus-visible:ring-ring focus-visible:ring-offset-2
-      "
+      className="border-border hover:bg-accent/8 hover:border-accent active:bg-accent/12 focus-visible:ring-ring w-full cursor-pointer rounded-md border p-16 text-left transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
     >
       <div className="flex items-center justify-between">
         <div className="space-y-4">
           <p className="text-sm font-medium">{account.role}</p>
-          <p className="text-xs text-muted-foreground">{account.description}</p>
+          <p className="text-muted-foreground text-xs">{account.description}</p>
           {account.permis ? (
-            <p className="text-xs text-muted-foreground tabular-nums">
-              Permis : {account.permis}
-            </p>
+            <p className="text-muted-foreground text-xs tabular-nums">Permis : {account.permis}</p>
           ) : null}
         </div>
-        <ChevronRight
-          className="h-4 w-4 text-muted-foreground"
-          aria-hidden="true"
-        />
+        <ChevronRight className="text-muted-foreground h-4 w-4" aria-hidden="true" />
       </div>
     </button>
   );

@@ -70,8 +70,7 @@ export function TemplateTestModal({
         <DialogHeader>
           <DialogTitle>Tester l&apos;envoi SMS</DialogTitle>
           <DialogDescription>
-            Coût estimé ~0,04 € par SMS Twilio. Le destinataire ne reçoit
-            qu&apos;un seul message.
+            Coût estimé ~0,04 € par SMS Twilio. Le destinataire ne reçoit qu&apos;un seul message.
           </DialogDescription>
         </DialogHeader>
 
@@ -86,9 +85,7 @@ export function TemplateTestModal({
               required
             />
             {!validPhone && toPhone.length > 0 && (
-              <p className="text-xs text-destructive">
-                Format attendu : +262692XXXXXX
-              </p>
+              <p className="text-destructive text-xs">Format attendu : +262692XXXXXX</p>
             )}
           </div>
 
@@ -97,7 +94,7 @@ export function TemplateTestModal({
             <div className="grid grid-cols-2 gap-8">
               {TEMPLATE_VARIABLES.map((key) => (
                 <div key={key} className="space-y-2">
-                  <label htmlFor={`var-${key}`} className="text-xs text-muted-foreground">
+                  <label htmlFor={`var-${key}`} className="text-muted-foreground text-xs">
                     {`{{${key}}}`}
                   </label>
                   <Input
@@ -112,7 +109,7 @@ export function TemplateTestModal({
 
           <div className="space-y-4">
             <Label>Aperçu envoi</Label>
-            <div className="rounded-md border border-dashed border-border bg-muted/30 p-12 text-sm">
+            <div className="border-border bg-muted/30 rounded-md border border-dashed p-12 text-sm">
               {rendered || <span className="text-muted-foreground">— vide —</span>}
             </div>
           </div>
@@ -123,7 +120,7 @@ export function TemplateTestModal({
             </p>
           )}
           {feedback?.error && (
-            <p role="alert" className="text-sm text-destructive">
+            <p role="alert" className="text-destructive text-sm">
               {feedback.error}
             </p>
           )}

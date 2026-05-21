@@ -4,11 +4,7 @@ import { useState, useDeferredValue } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Archive, ArchiveRestore, MessageSquare, Phone, X } from 'lucide-react';
 import { toast } from 'sonner';
-import {
-  archivePatientAction,
-  searchPatientsAction,
-  unarchivePatientAction,
-} from '../actions';
+import { archivePatientAction, searchPatientsAction, unarchivePatientAction } from '../actions';
 import { PatientSearch } from './patient-search.client';
 import { PatientDrawer } from './patient-drawer.client';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,11 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
 import { cn } from '@/lib/utils';
-import {
-  daysFromNow,
-  formatShortDateFr,
-  formatTimeFr,
-} from '@/lib/dates-fr';
+import { daysFromNow, formatShortDateFr, formatTimeFr } from '@/lib/dates-fr';
 
 interface PatientListItem {
   id: string;
@@ -38,11 +30,7 @@ const CANAL_LABEL: Record<PatientListItem['canal_contact_prefere'], string> = {
   aucun: 'Aucun',
 };
 
-function CanalIcon({
-  canal,
-}: {
-  canal: PatientListItem['canal_contact_prefere'];
-}): JSX.Element {
+function CanalIcon({ canal }: { canal: PatientListItem['canal_contact_prefere'] }): JSX.Element {
   const cls = 'h-12 w-12';
   if (canal === 'sms') return <MessageSquare className={cls} aria-hidden />;
   if (canal === 'appel') return <Phone className={cls} aria-hidden />;
@@ -99,10 +87,7 @@ export function PatientsList() {
     staleTime: 5_000,
   });
 
-  const handleArchive = async (
-    patientId: string,
-    fullName: string,
-  ): Promise<void> => {
+  const handleArchive = async (patientId: string, fullName: string): Promise<void> => {
     // Confirmation native (V1.5 — ConfirmDialog shadcn différé V2)
     if (
       !window.confirm(
@@ -122,10 +107,7 @@ export function PatientsList() {
     void qc.invalidateQueries({ queryKey: ['patients'] });
   };
 
-  const handleUnarchive = async (
-    patientId: string,
-    fullName: string,
-  ): Promise<void> => {
+  const handleUnarchive = async (patientId: string, fullName: string): Promise<void> => {
     if (
       !window.confirm(
         `Réactiver le patient « ${fullName} » ? Le dossier redeviendra visible dans les listes actives.`,
@@ -148,7 +130,7 @@ export function PatientsList() {
     <div className="space-y-16">
       <div className="flex flex-wrap items-center gap-12">
         <div
-          className="inline-flex rounded-md border border-border bg-muted/40 p-2"
+          className="border-border bg-muted/40 inline-flex rounded-md border p-2"
           role="tablist"
           aria-label="Filtre archive patients"
         >
@@ -158,9 +140,9 @@ export function PatientsList() {
             aria-selected={scope === 'active'}
             onClick={() => setScope('active')}
             className={cn(
-              'px-12 py-6 text-sm rounded-sm transition-colors',
+              'rounded-sm px-12 py-6 text-sm transition-colors',
               scope === 'active'
-                ? 'bg-background shadow-sm text-foreground'
+                ? 'bg-background text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground',
             )}
           >
@@ -172,22 +154,22 @@ export function PatientsList() {
             aria-selected={scope === 'archived'}
             onClick={() => setScope('archived')}
             className={cn(
-              'px-12 py-6 text-sm rounded-sm transition-colors',
+              'rounded-sm px-12 py-6 text-sm transition-colors',
               scope === 'archived'
-                ? 'bg-background shadow-sm text-foreground'
+                ? 'bg-background text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground',
             )}
           >
             Archivés
           </button>
         </div>
-        <div className="flex-1 min-w-[240px]">
+        <div className="min-w-[240px] flex-1">
           <PatientSearch value={q} onChange={setQ} />
         </div>
       </div>
 
       {q.length === 1 && (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           Tapez au moins 2 caractères pour lancer la recherche.
         </p>
       )}
@@ -203,14 +185,12 @@ export function PatientsList() {
       )}
 
       {data && data.length === 0 && q.length >= 2 && !isFetching && (
-        <p className="text-sm text-muted-foreground">
-          Aucun patient ne correspond à « {q} ».
-        </p>
+        <p className="text-muted-foreground text-sm">Aucun patient ne correspond à « {q} ».</p>
       )}
 
       {data && data.length > 0 && (
         <ul
-          className="divide-y divide-border rounded-md border border-border overflow-hidden"
+          className="divide-border border-border divide-y overflow-hidden rounded-md border"
           aria-label="Résultats de recherche"
         >
           {data.map((p: PatientListItem) => {
@@ -221,18 +201,18 @@ export function PatientsList() {
                 <button
                   type="button"
                   onClick={() => setOpenId(p.id)}
-                  className="flex flex-1 items-center gap-16 px-16 py-12 text-left transition-colors duration-150 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                  className="hover:bg-muted/50 focus-visible:ring-ring flex flex-1 items-center gap-16 px-16 py-12 text-left transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset"
                 >
                   <InitialsAvatar name={fullName} size={32} />
-                  <span className="flex-1 min-w-0 flex flex-col gap-4">
-                    <span className="font-semibold text-foreground truncate">
+                  <span className="flex min-w-0 flex-1 flex-col gap-4">
+                    <span className="text-foreground truncate font-semibold">
                       {p.nom} {p.prenom}
                     </span>
-                    <span className="text-xs text-muted-foreground tabular-nums">
+                    <span className="text-muted-foreground text-xs tabular-nums">
                       {describeRides(p)}
                     </span>
                   </span>
-                  <Badge variant="secondary" className="gap-4 shrink-0">
+                  <Badge variant="secondary" className="shrink-0 gap-4">
                     <CanalIcon canal={p.canal_contact_prefere} />
                     <span>{CANAL_LABEL[p.canal_contact_prefere]}</span>
                   </Badge>

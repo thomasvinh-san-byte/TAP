@@ -13,29 +13,23 @@ export const metadata: Metadata = {
   title: { default: 'TAP Régulation', template: '%s — TAP Régulation' },
 };
 
-export default function PublicLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex min-h-screen flex-col">
       <header className="border-b">
-        <div className="max-w-[1200px] mx-auto px-24 py-16 flex items-center justify-between">
+        <div className="mx-auto flex max-w-[1200px] items-center justify-between px-24 py-16">
           <Link href="/" className="font-semibold tracking-tight">
             TAP Régulation
           </Link>
           <Link
             href="/login"
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="text-muted-foreground hover:text-foreground text-sm transition-colors"
           >
             Connexion
           </Link>
         </div>
       </header>
-      <main className="flex-1 max-w-[840px] mx-auto px-24 py-48 w-full">
-        {children}
-      </main>
+      <main className="mx-auto w-full max-w-[840px] flex-1 px-24 py-48">{children}</main>
       <Footer />
       <CookieBanner />
     </div>

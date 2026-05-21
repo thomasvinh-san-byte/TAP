@@ -22,31 +22,24 @@ import { test, expect } from '@playwright/test';
 import { loginAsRegulateur } from './helpers/auth';
 
 test.describe('Driver PWA — offline → sync flow', () => {
-  test('démarrer course offline puis sync au retour réseau', async ({
-    page,
-    context,
-  }) => {
+  test('démarrer course offline puis sync au retour réseau', async ({ page, context }) => {
     // 1. Login chauffeur démo (helper générique, accepte n'importe quel compte)
     await loginAsRegulateur(page, 'chauffeur@demo.tap', 'demo1234!');
 
     // 2. Naviguer /conduite
     await page.goto('/conduite');
-    await expect(
-      page.getByRole('heading', { name: /ma journée/i }),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: /ma journée/i })).toBeVisible();
 
     // 3. État initial : online_idle (badge invisible — null render)
-    await expect(
-      page.getByRole('status', { name: /hors ligne|sync/i }),
-    ).toHaveCount(0);
+    await expect(page.getByRole('status', { name: /hors ligne|sync/i })).toHaveCount(0);
 
     // 4. Simuler offline
     await context.setOffline(true);
 
     // 5. Badge passe à offline_idle (queue vide encore)
-    await expect(
-      page.getByRole('status', { name: /^hors ligne$/i }),
-    ).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('status', { name: /^hors ligne$/i })).toBeVisible({
+      timeout: 5000,
+    });
 
     // 6. Click « Démarrer » si une course est disponible
     const demarrer = page.getByRole('button', { name: /démarrer/i }).first();
@@ -56,14 +49,12 @@ test.describe('Driver PWA — offline → sync flow', () => {
       await demarrer.click();
 
       // 7. Toast « Mutation enregistrée » apparaît
-      await expect(
-        page.getByText(/enregistrée.*sync au retour/i),
-      ).toBeVisible({ timeout: 3000 });
+      await expect(page.getByText(/enregistrée.*sync au retour/i)).toBeVisible({ timeout: 3000 });
 
       // 8. Badge passe à offline_with_queue avec count >= 1
-      await expect(
-        page.getByRole('status', { name: /hors ligne.*\d+/i }),
-      ).toBeVisible({ timeout: 3000 });
+      await expect(page.getByRole('status', { name: /hors ligne.*\d+/i })).toBeVisible({
+        timeout: 3000,
+      });
     } else {
       console.warn(
         '[E2E] Aucune course « Démarrer » disponible pour chauffeur@demo.tap. ' +
@@ -75,8 +66,8 @@ test.describe('Driver PWA — offline → sync flow', () => {
     await context.setOffline(false);
 
     // 10. Badge disparaît (queue vide = sync OK)
-    await expect(
-      page.getByRole('status', { name: /hors ligne|sync/i }),
-    ).toHaveCount(0, { timeout: 15_000 });
+    await expect(page.getByRole('status', { name: /hors ligne|sync/i })).toHaveCount(0, {
+      timeout: 15_000,
+    });
   });
 });

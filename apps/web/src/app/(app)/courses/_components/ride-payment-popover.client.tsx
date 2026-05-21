@@ -82,15 +82,11 @@ export function RidePaymentPopover({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Encaisser la course</DialogTitle>
-          <DialogDescription>
-            Saisir le montant et le moyen de paiement.
-          </DialogDescription>
+          <DialogDescription>Saisir le montant et le moyen de paiement.</DialogDescription>
         </DialogHeader>
         <div className="space-y-12">
           <label className="flex flex-col gap-4">
-            <span className="text-xs font-medium text-muted-foreground">
-              Montant (€)
-            </span>
+            <span className="text-muted-foreground text-xs font-medium">Montant (€)</span>
             <Input
               type="text"
               inputMode="decimal"
@@ -101,9 +97,7 @@ export function RidePaymentPopover({
             />
           </label>
           <div className="flex flex-col gap-4">
-            <span className="text-xs font-medium text-muted-foreground">
-              Moyen de paiement
-            </span>
+            <span className="text-muted-foreground text-xs font-medium">Moyen de paiement</span>
             <Select
               ariaLabel="Moyen de paiement"
               value={method}

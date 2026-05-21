@@ -40,9 +40,9 @@ test.describe('Hotfix 04.7-bis élargi — 3 fixes UX', () => {
   }) => {
     await loginAs(page, 'regulateur');
     await page.goto('/courses');
-    await expect(
-      page.getByRole('heading', { name: 'Courses', level: 1 }),
-    ).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Courses', level: 1 })).toBeVisible({
+      timeout: 5000,
+    });
 
     // Effacer date pour voir toutes les courses
     const clearBtn = page.getByRole('button', {
@@ -53,9 +53,7 @@ test.describe('Hotfix 04.7-bis élargi — 3 fixes UX', () => {
     }
 
     // Body ne doit pas avoir overflow horizontal (la page entière)
-    const bodyScrollWidth = await page.evaluate(
-      () => document.body.scrollWidth,
-    );
+    const bodyScrollWidth = await page.evaluate(() => document.body.scrollWidth);
     const viewportWidth = page.viewportSize()?.width ?? 1280;
     // Tolérance 4px (scrollbar éventuelle)
     expect(bodyScrollWidth).toBeLessThanOrEqual(viewportWidth + 4);
@@ -69,9 +67,7 @@ test.describe('Hotfix 04.7-bis élargi — 3 fixes UX', () => {
     }
   });
 
-  test('F2 — /admin/chauffeurs raccroché au layout app (TAP Régulation)', async ({
-    page,
-  }) => {
+  test('F2 — /admin/chauffeurs raccroché au layout app (TAP Régulation)', async ({ page }) => {
     await loginAs(page, 'regulateur');
     await page.goto('/admin/chauffeurs');
     await expect(page).toHaveURL(/\/admin\/chauffeurs/, { timeout: 5000 });
@@ -97,9 +93,9 @@ test.describe('Hotfix 04.7-bis élargi — 3 fixes UX', () => {
   }) => {
     await loginAs(page, 'regulateur');
     await page.goto('/patients');
-    await expect(
-      page.getByRole('heading', { name: 'Patients', level: 1 }),
-    ).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Patients', level: 1 })).toBeVisible({
+      timeout: 5000,
+    });
 
     // Tabs Actifs / Archivés
     const actifsTab = page.getByRole('tab', { name: 'Actifs' });
@@ -109,9 +105,7 @@ test.describe('Hotfix 04.7-bis élargi — 3 fixes UX', () => {
     await expect(actifsTab).toHaveAttribute('aria-selected', 'true');
 
     // Si patients visibles dans Actifs, bouton Archiver présent
-    const archiveBtn = page
-      .getByRole('button', { name: /^Archiver/i })
-      .first();
+    const archiveBtn = page.getByRole('button', { name: /^Archiver/i }).first();
     if (await archiveBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
       await expect(archiveBtn).toBeVisible();
     }

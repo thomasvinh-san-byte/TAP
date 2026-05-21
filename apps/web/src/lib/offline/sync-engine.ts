@@ -30,10 +30,7 @@ function jitter(base: number): number {
 }
 
 function delayForAttempt(attempts: number): number {
-  return Math.min(
-    jitter(BASE_DELAY_MS * Math.pow(2, attempts - 1)),
-    MAX_DELAY_MS,
-  );
+  return Math.min(jitter(BASE_DELAY_MS * Math.pow(2, attempts - 1)), MAX_DELAY_MS);
 }
 
 export interface EnqueueInput {
@@ -76,10 +73,7 @@ export async function flushQueue(): Promise<FlushResult> {
   // Pattern industry 2026 : tasking.space PWA Edge Sync "deterministic
   // queue + recovery logic at startup", wild.codes "engine detect/reset
   // stale state at boot". Refs : CONCERNS #6 Phase 04.9.
-  await db.mutations_queue
-    .where('status')
-    .equals('in_flight')
-    .modify({ status: 'pending' });
+  await db.mutations_queue.where('status').equals('in_flight').modify({ status: 'pending' });
 
   const pending = await db.mutations_queue
     .where('status')
@@ -99,12 +93,7 @@ export async function flushQueue(): Promise<FlushResult> {
     });
 
     try {
-      const path =
-        m.type === 'start_ride'
-          ? 'start'
-          : m.type === 'end_ride'
-            ? 'end'
-            : 'no-show';
+      const path = m.type === 'start_ride' ? 'start' : m.type === 'end_ride' ? 'end' : 'no-show';
       const endpoint = `/api/driver/rides/${m.resource_id}/${path}`;
       const res = await fetch(endpoint, {
         method: 'POST',

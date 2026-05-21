@@ -30,9 +30,7 @@ test.describe('Patient form — masques + validation Zod', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsRegulateur(page);
     await page.goto('/patients/new');
-    await expect(
-      page.getByRole('heading', { name: 'Nouveau patient' }),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Nouveau patient' })).toBeVisible();
   });
 
   // Mode par défaut : NEXT_PUBLIC_NIR_CHECKSUM_STRICT non défini ou !=='true'
@@ -42,16 +40,10 @@ test.describe('Patient form — masques + validation Zod', () => {
   // « Format NIR valide./invalide. ». La conditionnalité E2E sera ajoutée
   // si la pré-prod active strict (cf. CONCERNS.md « Validation NIR »).
   const isStrict = process.env.NEXT_PUBLIC_NIR_CHECKSUM_STRICT === 'true';
-  const liveValidMessage = isStrict
-    ? 'Clé de contrôle NIR valide.'
-    : 'Format NIR valide.';
-  const liveInvalidMessage = isStrict
-    ? 'Clé de contrôle NIR invalide.'
-    : 'Format NIR invalide.';
+  const liveValidMessage = isStrict ? 'Clé de contrôle NIR valide.' : 'Format NIR valide.';
+  const liveInvalidMessage = isStrict ? 'Clé de contrôle NIR invalide.' : 'Format NIR invalide.';
 
-  test('S2 — NIR tronqué à 15 caractères et indicateur reflète le format', async ({
-    page,
-  }) => {
+  test('S2 — NIR tronqué à 15 caractères et indicateur reflète le format', async ({ page }) => {
     const nirInput = page.getByLabel('NIR');
     // Tape 20 chiffres : le masque doit tronquer à 15.
     await nirInput.fill('17605259740016912345');
@@ -83,39 +75,27 @@ test.describe('Patient form — masques + validation Zod', () => {
   test('S6ter — Strict only : NIR clé fausse refusé', async ({ page }) => {
     test.skip(
       !isStrict,
-      'Mode démo (NEXT_PUBLIC_NIR_CHECKSUM_STRICT≠true) — la clé contrôle n\'est pas vérifiée. Test pertinent uniquement en strict.',
+      "Mode démo (NEXT_PUBLIC_NIR_CHECKSUM_STRICT≠true) — la clé contrôle n'est pas vérifiée. Test pertinent uniquement en strict.",
     );
     const nirInput = page.getByLabel('NIR');
     await nirInput.fill('176052597400100'); // clé 00, impossible mathématiquement
-    await expect(page.locator('#nir-live')).toContainText(
-      'Clé de contrôle NIR invalide.',
-    );
+    await expect(page.locator('#nir-live')).toContainText('Clé de contrôle NIR invalide.');
   });
 
-  test('S4 — Téléphone format métropole/US refusé en temps réel', async ({
-    page,
-  }) => {
+  test('S4 — Téléphone format métropole/US refusé en temps réel', async ({ page }) => {
     const telInput = page.getByLabel('Téléphone');
     // 0612345678 = mobile métropole, pas Réunion
     await telInput.fill('0612345678');
-    await expect(page.locator('#telephone-help')).toContainText(
-      '0262, 0263, 0692 ou 0693',
-    );
+    await expect(page.locator('#telephone-help')).toContainText('0262, 0263, 0692 ou 0693');
   });
 
-  test('S4bis — Téléphone mobile Réunion accepté (pas de message erreur)', async ({
-    page,
-  }) => {
+  test('S4bis — Téléphone mobile Réunion accepté (pas de message erreur)', async ({ page }) => {
     const telInput = page.getByLabel('Téléphone');
     await telInput.fill('0692000001');
-    await expect(page.locator('#telephone-help')).toContainText(
-      'Fixe ou mobile Réunion',
-    );
+    await expect(page.locator('#telephone-help')).toContainText('Fixe ou mobile Réunion');
   });
 
-  test('S5 — Code postal : préfixe 974 forcé, suffix 2 chiffres uniquement', async ({
-    page,
-  }) => {
+  test('S5 — Code postal : préfixe 974 forcé, suffix 2 chiffres uniquement', async ({ page }) => {
     const cpInput = page.getByLabel(/Code postal, 2 derniers chiffres/i);
     // Tape "12345" : le masque doit tronquer à "12" (2 chars max)
     await cpInput.fill('12345');
@@ -124,19 +104,13 @@ test.describe('Patient form — masques + validation Zod', () => {
     await expect(page.getByText('974', { exact: true }).first()).toBeVisible();
   });
 
-  test('S7 — CP 97400 auto-complète la ville à Saint-Denis', async ({
-    page,
-  }) => {
+  test('S7 — CP 97400 auto-complète la ville à Saint-Denis', async ({ page }) => {
     await page.getByLabel(/Code postal, 2 derniers chiffres/i).fill('00');
     // Le Select Ville devrait afficher "Saint-Denis" après effet auto
-    await expect(
-      page.getByRole('button', { name: 'Ville' }).first(),
-    ).toContainText('Saint-Denis');
+    await expect(page.getByRole('button', { name: 'Ville' }).first()).toContainText('Saint-Denis');
   });
 
-  test('S1 — Nom avec chiffres : helper explicite sous le champ', async ({
-    page,
-  }) => {
+  test('S1 — Nom avec chiffres : helper explicite sous le champ', async ({ page }) => {
     // Le helper est toujours visible (« Lettres, accents, tirets et
     // apostrophes autorisés. »). On vérifie sa présence comme indication
     // utilisateur. Le refus final est côté serveur Zod (state.error).

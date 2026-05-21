@@ -30,21 +30,20 @@ export default async function SmsTemplatesPage(): Promise<JSX.Element> {
     <div className="space-y-24">
       <header className="space-y-8">
         <h1 className="text-2xl font-semibold tracking-tight">Templates SMS</h1>
-        <p className="text-sm text-muted-foreground">
-          Rappels automatiques envoyés aux patients consentants. Limite 160
-          caractères par SMS.
+        <p className="text-muted-foreground text-sm">
+          Rappels automatiques envoyés aux patients consentants. Limite 160 caractères par SMS.
         </p>
       </header>
 
-      <section className="rounded-md border border-border bg-muted/20 p-12">
-        <h2 className="mb-8 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+      <section className="border-border bg-muted/20 rounded-md border p-12">
+        <h2 className="text-muted-foreground mb-8 text-xs font-semibold uppercase tracking-wide">
           Variables disponibles
         </h2>
         <div className="flex flex-wrap gap-8">
           {TEMPLATE_VARIABLES.map((v) => (
             <code
               key={v}
-              className="rounded bg-background px-8 py-2 font-mono text-xs text-foreground"
+              className="bg-background text-foreground rounded px-8 py-2 font-mono text-xs"
             >
               {'{{'}
               {v}
@@ -55,9 +54,8 @@ export default async function SmsTemplatesPage(): Promise<JSX.Element> {
       </section>
 
       {templates.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Aucun template seedé. Vérifiez la migration{' '}
-          <code>20260519000005_sms_templates.sql</code>.
+        <p className="text-muted-foreground text-sm">
+          Aucun template seedé. Vérifiez la migration <code>20260519000005_sms_templates.sql</code>.
         </p>
       ) : (
         <div className="grid gap-16 lg:grid-cols-2">

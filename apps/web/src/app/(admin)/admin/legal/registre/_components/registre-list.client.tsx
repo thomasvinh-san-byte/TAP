@@ -24,9 +24,7 @@ export function RegistreList({ entries }: { entries: Entry[] }) {
   if (entries.length === 0) {
     return (
       <div className="rounded-lg border border-dashed p-48 text-center">
-        <p className="text-muted-foreground">
-          Aucune entrée au registre pour le moment.
-        </p>
+        <p className="text-muted-foreground">Aucune entrée au registre pour le moment.</p>
         <Button className="mt-16" onClick={() => setDrawerOpen(true)}>
           Créer la première entrée
         </Button>
@@ -39,29 +37,25 @@ export function RegistreList({ entries }: { entries: Entry[] }) {
     <>
       <div className="rounded-lg border">
         <table className="w-full text-sm">
-          <thead className="border-b bg-muted/40">
+          <thead className="bg-muted/40 border-b">
             <tr>
-              <th className="text-left p-12 font-medium">Finalité</th>
-              <th className="text-left p-12 font-medium">Base légale</th>
-              <th className="text-left p-12 font-medium">Conservation</th>
-              <th className="text-left p-12 font-medium">Transfert intl.</th>
-              <th className="text-left p-12 font-medium">Créé le</th>
+              <th className="p-12 text-left font-medium">Finalité</th>
+              <th className="p-12 text-left font-medium">Base légale</th>
+              <th className="p-12 text-left font-medium">Conservation</th>
+              <th className="p-12 text-left font-medium">Transfert intl.</th>
+              <th className="p-12 text-left font-medium">Créé le</th>
             </tr>
           </thead>
           <tbody>
             {entries.map((e) => (
-              <tr key={e.id} className="border-b last:border-0 hover:bg-muted/20">
+              <tr key={e.id} className="hover:bg-muted/20 border-b last:border-0">
                 <td className="p-12">{e.purpose}</td>
                 <td className="p-12">
                   <Badge variant="outline">{e.legal_basis}</Badge>
                 </td>
-                <td className="p-12 tabular-nums">
-                  {e.retention_period_days} jours
-                </td>
-                <td className="p-12">
-                  {e.international_transfer ? 'Oui' : 'Non'}
-                </td>
-                <td className="p-12 tabular-nums text-muted-foreground">
+                <td className="p-12 tabular-nums">{e.retention_period_days} jours</td>
+                <td className="p-12">{e.international_transfer ? 'Oui' : 'Non'}</td>
+                <td className="text-muted-foreground p-12 tabular-nums">
                   {new Date(e.created_at).toLocaleDateString('fr-FR')}
                 </td>
               </tr>

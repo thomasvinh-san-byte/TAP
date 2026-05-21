@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { DpiaList } from './_components/dpia-list.client';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 
-export const metadata = { title: 'Analyse d\'impact DPIA — TAP Admin' };
+export const metadata = { title: "Analyse d'impact DPIA — TAP Admin" };
 
 /**
  * Page admin DPIA (DPA-03, D-07).
@@ -13,9 +13,7 @@ export default async function DpiaPage() {
   const supabase = createClient();
   const { data } = await supabase
     .from('dpia_record')
-    .select(
-      'id, title, status, residual_risk_level, reviewed_at, next_review_at',
-    )
+    .select('id, title, status, residual_risk_level, reviewed_at, next_review_at')
     .order('reviewed_at', { ascending: false });
 
   const entries = (data ?? []) as Array<{
@@ -30,10 +28,8 @@ export default async function DpiaPage() {
   return (
     <div className="space-y-24">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Analyses d&apos;impact (DPIA)
-        </h1>
-        <p className="text-sm text-muted-foreground mt-4">
+        <h1 className="text-2xl font-semibold tracking-tight">Analyses d&apos;impact (DPIA)</h1>
+        <p className="text-muted-foreground mt-4 text-sm">
           Article 35 RGPD : obligatoire pour traitement à risque élevé (santé)
         </p>
       </header>

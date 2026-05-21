@@ -44,16 +44,14 @@ export function BreachDrawer({ open, onOpenChange }: Props) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-[400px] sm:w-[400px] sm:max-w-[400px] overflow-y-auto"
+        className="w-[400px] overflow-y-auto sm:w-[400px] sm:max-w-[400px]"
       >
         <SheetHeader>
           <SheetTitle>Nouvel incident</SheetTitle>
-          <SheetDescription>
-            Article 33 RGPD : délai notification 72h
-          </SheetDescription>
+          <SheetDescription>Article 33 RGPD : délai notification 72h</SheetDescription>
         </SheetHeader>
 
-        <form action={onSubmit} className="space-y-16 mt-24">
+        <form action={onSubmit} className="mt-24 space-y-16">
           <div className="space-y-4">
             <Label htmlFor="detected_at">Détecté le</Label>
             <Input
@@ -67,9 +65,7 @@ export function BreachDrawer({ open, onOpenChange }: Props) {
           <SelectField id="severity" label="Gravité" options={SEVERITY_OPTS} />
           <SelectField id="nature" label="Nature" options={NATURE_OPTS} />
           <div className="space-y-4">
-            <Label htmlFor="affected_data_categories">
-              Catégories de données (virgule)
-            </Label>
+            <Label htmlFor="affected_data_categories">Catégories de données (virgule)</Label>
             <Input
               id="affected_data_categories"
               name="affected_data_categories"
@@ -78,9 +74,7 @@ export function BreachDrawer({ open, onOpenChange }: Props) {
             />
           </div>
           <div className="space-y-4">
-            <Label htmlFor="affected_subjects_count">
-              Nombre de personnes concernées
-            </Label>
+            <Label htmlFor="affected_subjects_count">Nombre de personnes concernées</Label>
             <Input
               id="affected_subjects_count"
               name="affected_subjects_count"
@@ -95,7 +89,7 @@ export function BreachDrawer({ open, onOpenChange }: Props) {
               name="description"
               rows={3}
               required
-              className="flex w-full rounded-md border border-input bg-background px-12 py-8 text-sm"
+              className="border-input bg-background flex w-full rounded-md border px-12 py-8 text-sm"
             />
           </div>
           <div className="space-y-4">
@@ -105,19 +99,16 @@ export function BreachDrawer({ open, onOpenChange }: Props) {
               name="immediate_measures"
               rows={3}
               required
-              className="flex w-full rounded-md border border-input bg-background px-12 py-8 text-sm"
+              className="border-input bg-background flex w-full rounded-md border px-12 py-8 text-sm"
             />
           </div>
-          <CheckboxField
-            id="cnil_notification_required"
-            label="Notification CNIL requise"
-          />
+          <CheckboxField id="cnil_notification_required" label="Notification CNIL requise" />
           <CheckboxField
             id="subjects_notification_required"
             label="Notification personnes concernées"
           />
 
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {error && <p className="text-destructive text-sm">{error}</p>}
 
           <div className="flex gap-8 pt-16">
             <Button

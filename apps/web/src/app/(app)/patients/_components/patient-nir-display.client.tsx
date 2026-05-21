@@ -36,16 +36,9 @@ export function PatientNirDisplay({ patientId, maskedNir }: Props) {
 
   return (
     <div className="flex items-center gap-12">
-      <code className="font-mono text-base tabular-nums">
-        {revealed ?? maskedNir}
-      </code>
+      <code className="font-mono text-base tabular-nums">{revealed ?? maskedNir}</code>
       {revealed === null ? (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleReveal}
-          disabled={loading}
-        >
+        <Button variant="ghost" size="sm" onClick={handleReveal} disabled={loading}>
           <Eye className="mr-8 h-16 w-16" aria-hidden />
           {loading ? 'Déchiffrement…' : 'Afficher le NIR complet'}
         </Button>

@@ -25,10 +25,8 @@ export function formatRelativeFr(iso: string, now = Date.now()): string {
 
   if (abs < 45 * SECOND) return "à l'instant";
 
-  const pick = (
-    n: number,
-    unit: 'min' | 'h' | 'j',
-  ): string => (future ? `dans ${n} ${unit}` : `il y a ${n} ${unit}`);
+  const pick = (n: number, unit: 'min' | 'h' | 'j'): string =>
+    future ? `dans ${n} ${unit}` : `il y a ${n} ${unit}`;
 
   if (abs < HOUR) return pick(Math.round(abs / MINUTE), 'min');
   if (abs < DAY) return pick(Math.round(abs / HOUR), 'h');
