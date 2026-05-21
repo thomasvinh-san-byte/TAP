@@ -11,9 +11,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('admin /admin/legal/registre — export PDF', () => {
-  test('le dirigeant peut exporter le registre au format PDF', async ({
-    page,
-  }) => {
+  test('le dirigeant peut exporter le registre au format PDF', async ({ page }) => {
     // Connexion dirigeant Alpha (helper fourni par e2e/helpers en Wave 2)
     await page.goto('/login');
     await page.getByLabel(/email/i).fill('alpha-dir@test.tap');
@@ -22,16 +20,12 @@ test.describe('admin /admin/legal/registre — export PDF', () => {
 
     // Navigation vers la page registre
     await page.goto('/admin/legal/registre');
-    await expect(
-      page.getByRole('heading', { name: /registre des traitements/i }),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', { name: /registre des traitements/i })).toBeVisible();
 
     // Click bouton « Exporter PDF » → intercept response
     const [response] = await Promise.all([
       page.waitForResponse(
-        (resp) =>
-          resp.url().includes('/api/admin/legal/registre/pdf') &&
-          resp.status() === 200,
+        (resp) => resp.url().includes('/api/admin/legal/registre/pdf') && resp.status() === 200,
       ),
       page.getByRole('button', { name: /exporter pdf|export pdf/i }).click(),
     ]);

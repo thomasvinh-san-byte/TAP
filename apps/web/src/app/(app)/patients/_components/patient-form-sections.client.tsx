@@ -17,9 +17,7 @@ export type { PatientFormDefaults };
 export function IdentitySection({ dv }: { dv: PatientFormDefaults }) {
   return (
     <section className="space-y-12">
-      <h2 className="text-sm font-semibold uppercase text-muted-foreground">
-        Identité
-      </h2>
+      <h2 className="text-muted-foreground text-sm font-semibold uppercase">Identité</h2>
       <div className="grid grid-cols-2 gap-12">
         <div className="space-y-8">
           <Label htmlFor="nom">Nom</Label>
@@ -32,7 +30,7 @@ export function IdentitySection({ dv }: { dv: PatientFormDefaults }) {
             className="capitalize"
             aria-describedby="nom-help"
           />
-          <p id="nom-help" className="text-xs text-muted-foreground">
+          <p id="nom-help" className="text-muted-foreground text-xs">
             Lettres, accents, tirets et apostrophes autorisés.
           </p>
         </div>
@@ -54,7 +52,7 @@ export function IdentitySection({ dv }: { dv: PatientFormDefaults }) {
             id="genre"
             name="genre"
             defaultValue={dv.genre ?? ''}
-            className="h-48 w-full rounded-md border border-border bg-background px-12 text-sm"
+            className="border-border bg-background h-48 w-full rounded-md border px-12 text-sm"
           >
             <option value="">—</option>
             <option value="M">M</option>
@@ -74,9 +72,7 @@ export function CoordinatesSection({ dv }: { dv: PatientFormDefaults }) {
 
   return (
     <section className="space-y-12">
-      <h2 className="text-sm font-semibold uppercase text-muted-foreground">
-        Coordonnées
-      </h2>
+      <h2 className="text-muted-foreground text-sm font-semibold uppercase">Coordonnées</h2>
       <TelField defaultValue={dv.telephone} />
       <PatientAddressField
         defaultValue={dv.adresse_ligne1}
@@ -94,11 +90,7 @@ export function CoordinatesSection({ dv }: { dv: PatientFormDefaults }) {
           autoComplete="address-line2"
         />
       </div>
-      <CityPostalCodeField
-        key={`${postcode}|${ville}`}
-        defaultCp={postcode}
-        defaultVille={ville}
-      />
+      <CityPostalCodeField key={`${postcode}|${ville}`} defaultCp={postcode} defaultVille={ville} />
     </section>
   );
 }
@@ -106,16 +98,14 @@ export function CoordinatesSection({ dv }: { dv: PatientFormDefaults }) {
 export function PreferencesSection({ dv }: { dv: PatientFormDefaults }) {
   return (
     <section className="space-y-12">
-      <h2 className="text-sm font-semibold uppercase text-muted-foreground">
-        Préférences
-      </h2>
+      <h2 className="text-muted-foreground text-sm font-semibold uppercase">Préférences</h2>
       <div className="space-y-8">
         <Label htmlFor="canal_contact_prefere">Canal préféré</Label>
         <select
           id="canal_contact_prefere"
           name="canal_contact_prefere"
           defaultValue={dv.canal_contact_prefere ?? 'appel'}
-          className="h-48 w-full rounded-md border border-border bg-background px-12 text-sm"
+          className="border-border bg-background h-48 w-full rounded-md border px-12 text-sm"
         >
           <option value="sms">SMS</option>
           <option value="appel">Appel</option>
@@ -128,7 +118,7 @@ export function PreferencesSection({ dv }: { dv: PatientFormDefaults }) {
           name="consentement_sms"
           type="checkbox"
           defaultChecked={dv.consentement_sms}
-          className="h-16 w-16 rounded border-border"
+          className="border-border h-16 w-16 rounded"
         />
         <Label htmlFor="consentement_sms">Consentement SMS</Label>
       </div>

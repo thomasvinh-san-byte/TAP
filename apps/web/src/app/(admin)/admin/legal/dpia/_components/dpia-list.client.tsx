@@ -35,28 +35,26 @@ export function DpiaList({ entries }: { entries: Entry[] }) {
       ) : (
         <div className="rounded-lg border">
           <table className="w-full text-sm">
-            <thead className="border-b bg-muted/40">
+            <thead className="bg-muted/40 border-b">
               <tr>
-                <th className="text-left p-12 font-medium">Titre</th>
-                <th className="text-left p-12 font-medium">Statut</th>
-                <th className="text-left p-12 font-medium">Risque résiduel</th>
-                <th className="text-left p-12 font-medium">Revue le</th>
-                <th className="text-left p-12 font-medium">Prochaine</th>
-                <th className="text-right p-12 font-medium">Actions</th>
+                <th className="p-12 text-left font-medium">Titre</th>
+                <th className="p-12 text-left font-medium">Statut</th>
+                <th className="p-12 text-left font-medium">Risque résiduel</th>
+                <th className="p-12 text-left font-medium">Revue le</th>
+                <th className="p-12 text-left font-medium">Prochaine</th>
+                <th className="p-12 text-right font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {entries.map((e) => (
-                <tr key={e.id} className="border-b last:border-0 hover:bg-muted/20">
+                <tr key={e.id} className="hover:bg-muted/20 border-b last:border-0">
                   <td className="p-12 font-medium">{e.title}</td>
                   <td className="p-12">
                     <Badge variant={e.status === 'validee' ? 'default' : 'outline'}>
                       {e.status}
                     </Badge>
                   </td>
-                  <td className="p-12">
-                    {e.residual_risk_level ?? '—'}
-                  </td>
+                  <td className="p-12">{e.residual_risk_level ?? '—'}</td>
                   <td className="p-12 tabular-nums">
                     {new Date(e.reviewed_at).toLocaleDateString('fr-FR')}
                   </td>
@@ -75,19 +73,8 @@ export function DpiaList({ entries }: { entries: Entry[] }) {
         </div>
       )}
 
-      {creating && (
-        <DpiaForm
-          mode="create"
-          onClose={() => setCreating(false)}
-        />
-      )}
-      {editing && (
-        <DpiaForm
-          mode="edit"
-          dpiaId={editing}
-          onClose={() => setEditing(null)}
-        />
-      )}
+      {creating && <DpiaForm mode="create" onClose={() => setCreating(false)} />}
+      {editing && <DpiaForm mode="edit" dpiaId={editing} onClose={() => setEditing(null)} />}
     </>
   );
 }

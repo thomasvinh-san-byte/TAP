@@ -21,33 +21,27 @@ import { InstallPwaBanner } from './_components/install-pwa-banner.client';
  *   - sans session : redirect /login
  *   - rôle non chauffeur : redirect /patients (zone chauffeur réservée)
  */
-export default async function DriverLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function DriverLayout({ children }: { children: React.ReactNode }) {
   const ctx = await getAuthContext();
   if (!ctx) redirect('/login');
   if (ctx.role !== 'chauffeur') redirect('/patients');
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="bg-background flex min-h-screen flex-col">
       <SWRegister />
       <header
         className={
-          'pt-safe sticky top-0 z-40 w-full border-b border-border ' +
-          'bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70'
+          'pt-safe border-border sticky top-0 z-40 w-full border-b ' +
+          'bg-background/85 supports-[backdrop-filter]:bg-background/70 backdrop-blur'
         }
       >
-        <div className="h-14 px-16 sm:px-24 flex items-center justify-between gap-16">
+        <div className="flex h-14 items-center justify-between gap-16 px-16 sm:px-24">
           <Link
             href="/conduite"
-            className="flex items-baseline gap-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
+            className="focus-visible:ring-ring flex items-baseline gap-8 rounded-sm focus-visible:outline-none focus-visible:ring-2"
           >
-            <span className="font-semibold text-foreground tracking-tight">
-              TAP
-            </span>
-            <span className="text-sm text-muted-foreground">Ma journée</span>
+            <span className="text-foreground font-semibold tracking-tight">TAP</span>
+            <span className="text-muted-foreground text-sm">Ma journée</span>
           </Link>
           <div className="flex items-center gap-12">
             <ConnectionStatusBadge />
@@ -56,7 +50,7 @@ export default async function DriverLayout({
         </div>
       </header>
       <main
-        className="pb-safe flex-1 px-16 sm:px-24 py-24 max-w-[640px] w-full mx-auto"
+        className="pb-safe mx-auto w-full max-w-[640px] flex-1 px-16 py-24 sm:px-24"
         style={{ backgroundColor: 'hsl(var(--driver-surface, var(--background)))' }}
       >
         <WarningBannerInactivity />

@@ -57,8 +57,7 @@ export async function cancelRideAction(
   if (error) return { error: 'Annulation impossible.' };
   if (!data) {
     return {
-      error:
-        'Course non annulable : elle a été démarrée, terminée ou déjà annulée.',
+      error: 'Course non annulable : elle a été démarrée, terminée ou déjà annulée.',
     };
   }
 

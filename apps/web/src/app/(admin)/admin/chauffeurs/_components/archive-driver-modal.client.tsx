@@ -21,10 +21,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
-import {
-  archiveDriverInputSchema,
-  type ArchiveDriverInput,
-} from '@tap/shared';
+import { archiveDriverInputSchema, type ArchiveDriverInput } from '@tap/shared';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -45,11 +42,7 @@ interface Props {
   onArchived: () => void;
 }
 
-export function ArchiveDriverModal({
-  driver,
-  onClose,
-  onArchived,
-}: Props): JSX.Element | null {
+export function ArchiveDriverModal({ driver, onClose, onArchived }: Props): JSX.Element | null {
   const router = useRouter();
   const form = useForm<ArchiveDriverInput>({
     resolver: zodResolver(archiveDriverInputSchema),
@@ -99,9 +92,8 @@ export function ArchiveDriverModal({
         <DialogHeader>
           <DialogTitle>Archiver « {driver.nom_affichage} » ?</DialogTitle>
           <DialogDescription>
-            Cette action est irréversible. Le chauffeur ne pourra plus accéder
-            à l&apos;application et ne pourra plus être affecté à des courses.
-            Les courses passées restent intactes.
+            Cette action est irréversible. Le chauffeur ne pourra plus accéder à l&apos;application
+            et ne pourra plus être affecté à des courses. Les courses passées restent intactes.
           </DialogDescription>
         </DialogHeader>
 
@@ -116,20 +108,18 @@ export function ArchiveDriverModal({
               aria-invalid={!!motifError}
               {...form.register('motif')}
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               10 caractères minimum. Sera tracé dans l&apos;historique.
             </p>
             {motifError ? (
-              <p role="alert" className="text-sm text-destructive">
+              <p role="alert" className="text-destructive text-sm">
                 {motifError}
               </p>
             ) : null}
           </div>
 
           <div className="space-y-8">
-            <Label htmlFor="archive-confirmation">
-              Confirmer en saisissant « ARCHIVER »
-            </Label>
+            <Label htmlFor="archive-confirmation">Confirmer en saisissant « ARCHIVER »</Label>
             <Input
               id="archive-confirmation"
               type="text"
@@ -139,19 +129,14 @@ export function ArchiveDriverModal({
               {...form.register('confirmation')}
             />
             {confirmationError ? (
-              <p role="alert" className="text-sm text-destructive">
+              <p role="alert" className="text-destructive text-sm">
                 {confirmationError}
               </p>
             ) : null}
           </div>
 
           <DialogFooter className="gap-12">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={isSubmitting}
-            >
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Conserver
             </Button>
             <Button

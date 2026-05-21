@@ -40,7 +40,9 @@ test.describe('AddressOrPOIPicker — POI + BAN intégrés', () => {
     // Ouvrir la modal de saisie via le raccourci Cmd+Shift+K ou bouton dédié
     await page.keyboard.press('Control+Shift+K').catch(() => undefined);
     // Fallback : cliquer un bouton de saisie si raccourci non disponible
-    const newRideBtn = page.getByRole('button', { name: /Nouvelle course|Saisie express/i }).first();
+    const newRideBtn = page
+      .getByRole('button', { name: /Nouvelle course|Saisie express/i })
+      .first();
     if (await newRideBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
       await newRideBtn.click();
     }
@@ -56,18 +58,18 @@ test.describe('AddressOrPOIPicker — POI + BAN intégrés', () => {
     if (!(await luxLabel.isVisible({ timeout: 3000 }).catch(() => false))) {
       test.skip(
         true,
-        'Aucun POI matché — la migration pois_metier ou le seed démo n\'est peut-être pas encore appliqué en preview.',
+        "Aucun POI matché — la migration pois_metier ou le seed démo n'est peut-être pas encore appliqué en preview.",
       );
       return;
     }
     await expect(luxLabel).toBeVisible();
   });
 
-  test('S2 — Sélectionner un POI bascule en mode pill avec label complet', async ({
-    page,
-  }) => {
+  test('S2 — Sélectionner un POI bascule en mode pill avec label complet', async ({ page }) => {
     await page.keyboard.press('Control+Shift+K').catch(() => undefined);
-    const newRideBtn = page.getByRole('button', { name: /Nouvelle course|Saisie express/i }).first();
+    const newRideBtn = page
+      .getByRole('button', { name: /Nouvelle course|Saisie express/i })
+      .first();
     if (await newRideBtn.isVisible({ timeout: 1000 }).catch(() => false)) {
       await newRideBtn.click();
     }
@@ -81,16 +83,13 @@ test.describe('AddressOrPOIPicker — POI + BAN intégrés', () => {
     // Attendre le rendu de la liste
     const firstOption = page.getByRole('option').first();
     if (!(await firstOption.isVisible({ timeout: 3000 }).catch(() => false))) {
-      test.skip(
-        true,
-        'Aucune suggestion POI/BAN — preview pas peuplée.',
-      );
+      test.skip(true, 'Aucune suggestion POI/BAN — preview pas peuplée.');
       return;
     }
     await firstOption.click();
     // Mode pill : bouton Changer visible
-    await expect(
-      page.getByRole('button', { name: /Changer/i }).first(),
-    ).toBeVisible({ timeout: 3000 });
+    await expect(page.getByRole('button', { name: /Changer/i }).first()).toBeVisible({
+      timeout: 3000,
+    });
   });
 });

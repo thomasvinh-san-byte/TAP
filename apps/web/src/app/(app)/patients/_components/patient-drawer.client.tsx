@@ -45,7 +45,7 @@ export function PatientDrawer({ patientId, open, onOpenChange }: Props) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-[400px] sm:w-[400px] sm:max-w-[400px] overflow-y-auto"
+        className="w-[400px] overflow-y-auto sm:w-[400px] sm:max-w-[400px]"
       >
         {isPending || !data ? (
           <DrawerSkeleton />
@@ -72,7 +72,7 @@ function DrawerBody({ data }: { data: DrawerPatientShape }) {
     <>
       <SheetHeader className="space-y-8">
         <div className="flex items-center gap-12">
-          <div className="flex h-48 w-48 items-center justify-center rounded-full bg-primary/10 font-semibold text-base text-primary">
+          <div className="bg-primary/10 text-primary flex h-48 w-48 items-center justify-center rounded-full text-base font-semibold">
             {data.prenom.charAt(0)}
             {data.nom.charAt(0)}
           </div>
@@ -93,11 +93,11 @@ function DrawerBody({ data }: { data: DrawerPatientShape }) {
       <ConstraintsSection d={data} />
       <NoteSection d={data} />
 
-      <div className="mt-32 flex flex-col gap-12 border-t border-border pt-16">
+      <div className="border-border mt-32 flex flex-col gap-12 border-t pt-16">
         <NewRideForPatientButton patientId={data.id} />
         <Link
           href={`/patients/${data.id}`}
-          className="text-sm text-primary hover:underline self-start"
+          className="text-primary self-start text-sm hover:underline"
         >
           Voir la fiche complète →
         </Link>

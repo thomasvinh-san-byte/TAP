@@ -32,15 +32,14 @@ registerLocale('fr', fr);
  * Refs : PLAN-2 T2.2, DEC-036, UI-SPEC Surface B.
  */
 
-const NIR_DISPLAY_FORMAT = /^([12]?)([0-9]{0,2})([0-9]{0,2})([0-9]{0,2}|2A|2B)?([0-9]{0,3})([0-9]{0,3})([0-9]{0,2})/i;
+const NIR_DISPLAY_FORMAT =
+  /^([12]?)([0-9]{0,2})([0-9]{0,2})([0-9]{0,2}|2A|2B)?([0-9]{0,3})([0-9]{0,3})([0-9]{0,2})/i;
 
 function formatNirDisplay(raw: string): string {
   const u = raw.replace(/\s+/g, '').toUpperCase().slice(0, 15);
   const m = NIR_DISPLAY_FORMAT.exec(u);
   if (!m) return u;
-  return [m[1], m[2], m[3], m[4], m[5], m[6], m[7]]
-    .filter((p) => p && p.length > 0)
-    .join(' ');
+  return [m[1], m[2], m[3], m[4], m[5], m[6], m[7]].filter((p) => p && p.length > 0).join(' ');
 }
 
 function formatTelDisplay(raw: string): string {
@@ -104,17 +103,17 @@ export function BirthDateField({
           required={required}
           aria-label="Date de naissance"
           className={cn(
-            'h-48 w-full rounded-md border border-input bg-background px-12 pr-32 text-sm',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            'border-input bg-background h-48 w-full rounded-md border px-12 pr-32 text-sm',
+            'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2',
           )}
           autoComplete="off"
         />
         <CalendarIcon
-          className="pointer-events-none absolute right-12 top-1/2 -translate-y-1/2 h-16 w-16 text-muted-foreground"
+          className="text-muted-foreground pointer-events-none absolute right-12 top-1/2 h-16 w-16 -translate-y-1/2"
           aria-hidden
         />
       </div>
-      <p id={`${id}-help`} className="text-xs text-muted-foreground">
+      <p id={`${id}-help`} className="text-muted-foreground text-xs">
         Format attendu : JJ/MM/AAAA.
       </p>
       <input type="hidden" name={name} value={iso} />
@@ -156,9 +155,7 @@ export function NirField({ defaultValue }: NirFieldProps): JSX.Element {
   } else if (length < 15) {
     liveMessage = `${length} caractères saisis sur 15.`;
   } else if (isNirChecksumStrict) {
-    liveMessage = isValid
-      ? 'Clé de contrôle NIR valide.'
-      : 'Clé de contrôle NIR invalide.';
+    liveMessage = isValid ? 'Clé de contrôle NIR valide.' : 'Clé de contrôle NIR invalide.';
   } else {
     liveMessage = isValid ? 'Format NIR valide.' : 'Format NIR invalide.';
   }
@@ -166,10 +163,7 @@ export function NirField({ defaultValue }: NirFieldProps): JSX.Element {
   return (
     <div className="space-y-8">
       <Label htmlFor="nir">
-        NIR{' '}
-        <span className="font-normal text-muted-foreground">
-          (optionnel en démo)
-        </span>
+        NIR <span className="text-muted-foreground font-normal">(optionnel en démo)</span>
       </Label>
       <div className="relative max-w-[320px]">
         <Input
@@ -185,9 +179,8 @@ export function NirField({ defaultValue }: NirFieldProps): JSX.Element {
           aria-describedby="nir-help nir-live"
           aria-invalid={indicator === 'invalid'}
           className={cn(
-            'pr-32 font-mono tracking-wide tabular-nums',
-            indicator === 'invalid' &&
-              'border-destructive focus-visible:ring-destructive',
+            'pr-32 font-mono tabular-nums tracking-wide',
+            indicator === 'invalid' && 'border-destructive focus-visible:ring-destructive',
             indicator === 'valid' && 'border-success',
           )}
         />
@@ -195,26 +188,19 @@ export function NirField({ defaultValue }: NirFieldProps): JSX.Element {
           className="pointer-events-none absolute right-12 top-1/2 -translate-y-1/2"
           aria-hidden
         >
-          {indicator === 'pending' && (
-            <CircleDashed className="h-16 w-16 text-muted-foreground" />
-          )}
-          {indicator === 'valid' && (
-            <Check className="h-16 w-16 text-success" />
-          )}
-          {indicator === 'invalid' && (
-            <X className="h-16 w-16 text-destructive" />
-          )}
+          {indicator === 'pending' && <CircleDashed className="text-muted-foreground h-16 w-16" />}
+          {indicator === 'valid' && <Check className="text-success h-16 w-16" />}
+          {indicator === 'invalid' && <X className="text-destructive h-16 w-16" />}
         </span>
       </div>
-      <p id="nir-help" className="text-xs text-muted-foreground">
+      <p id="nir-help" className="text-muted-foreground text-xs">
         {isNirChecksumStrict
           ? '15 chiffres + clé INSEE valide. Exemple : 1 76 05 25 974 001 69.'
           : '15 chiffres : sexe + année + mois + département + commune + ordre + clé. Exemple : 1 76 05 25 974 001 12.'}
       </p>
-      <p className="text-xs text-muted-foreground">
-        Le NIR peut être laissé vide. Si renseigné, il sera chiffré et stocké
-        conformément RGPD. Si le chiffrement échoue, vous pouvez créer le
-        patient sans NIR et le compléter plus tard.
+      <p className="text-muted-foreground text-xs">
+        Le NIR peut être laissé vide. Si renseigné, il sera chiffré et stocké conformément RGPD. Si
+        le chiffrement échoue, vous pouvez créer le patient sans NIR et le compléter plus tard.
       </p>
       <p
         id="nir-live"
@@ -243,9 +229,7 @@ interface TelFieldProps {
 }
 
 export function TelField({ defaultValue, required }: TelFieldProps): JSX.Element {
-  const [raw, setRaw] = React.useState<string>(
-    (defaultValue ?? '').replace(/\D/g, ''),
-  );
+  const [raw, setRaw] = React.useState<string>((defaultValue ?? '').replace(/\D/g, ''));
   const display = formatTelDisplay(raw);
   const isComplete = raw.length === 10;
   const isReunion = /^0(?:262|263|692|693)/.test(raw);
@@ -270,11 +254,11 @@ export function TelField({ defaultValue, required }: TelFieldProps): JSX.Element
         )}
       />
       {showError ? (
-        <p id="telephone-help" className="text-xs text-destructive" role="alert">
+        <p id="telephone-help" className="text-destructive text-xs" role="alert">
           Le numéro doit commencer par 0262, 0263, 0692 ou 0693 (10 chiffres).
         </p>
       ) : (
-        <p id="telephone-help" className="text-xs text-muted-foreground">
+        <p id="telephone-help" className="text-muted-foreground text-xs">
           Fixe ou mobile Réunion : 0262, 0263, 0692, 0693.
         </p>
       )}
@@ -322,7 +306,7 @@ export function CityPostalCodeField({
         <div className="flex">
           <span
             aria-hidden
-            className="inline-flex items-center rounded-l-md border border-r-0 border-input bg-muted px-8 text-sm font-medium text-muted-foreground"
+            className="border-input bg-muted text-muted-foreground inline-flex items-center rounded-l-md border border-r-0 px-8 text-sm font-medium"
           >
             974
           </span>
@@ -331,18 +315,14 @@ export function CityPostalCodeField({
             inputMode="numeric"
             maxLength={2}
             value={cpSuffix}
-            onChange={(e) =>
-              setCpSuffix(e.target.value.replace(/\D/g, '').slice(0, 2))
-            }
+            onChange={(e) => setCpSuffix(e.target.value.replace(/\D/g, '').slice(0, 2))}
             placeholder="00"
             required
             aria-label="Code postal, 2 derniers chiffres après 974"
             className="rounded-l-none tabular-nums"
           />
         </div>
-        <p className="text-xs text-muted-foreground">
-          974 + 2 chiffres (ex : 97400).
-        </p>
+        <p className="text-muted-foreground text-xs">974 + 2 chiffres (ex : 97400).</p>
         <input type="hidden" name="code_postal" value={cp} />
       </div>
       <div className="space-y-8">
@@ -355,9 +335,7 @@ export function CityPostalCodeField({
           placeholder="Sélectionnez une commune"
           triggerClassName="h-48 w-full"
         />
-        <p className="text-xs text-muted-foreground">
-          24 communes Réunion.
-        </p>
+        <p className="text-muted-foreground text-xs">24 communes Réunion.</p>
         <input type="hidden" name="ville" value={ville} />
       </div>
     </div>

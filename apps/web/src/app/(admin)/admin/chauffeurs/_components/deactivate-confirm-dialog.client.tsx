@@ -13,10 +13,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
-import {
-  deactivateDriverInputSchema,
-  type DeactivateDriverInput,
-} from '@tap/shared';
+import { deactivateDriverInputSchema, type DeactivateDriverInput } from '@tap/shared';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -87,8 +84,8 @@ export function DeactivateConfirmDialog({
         <DialogHeader>
           <DialogTitle>Désactiver « {driver.nom_affichage} » ?</DialogTitle>
           <DialogDescription>
-            Ce chauffeur ne pourra plus être affecté à des courses. L&apos;action
-            est réversible : vous pourrez le réactiver à tout moment.
+            Ce chauffeur ne pourra plus être affecté à des courses. L&apos;action est réversible :
+            vous pourrez le réactiver à tout moment.
           </DialogDescription>
         </DialogHeader>
 
@@ -97,13 +94,12 @@ export function DeactivateConfirmDialog({
             <input
               id="deactivate-confirm"
               type="checkbox"
-              className="mt-4 h-16 w-16 rounded border-border accent-primary"
+              className="border-border accent-primary mt-4 h-16 w-16 rounded"
               checked={checked}
               onChange={(e) =>
                 form.setValue(
                   'confirmation',
-                  e.target
-                    .checked as unknown as DeactivateDriverInput['confirmation'],
+                  e.target.checked as unknown as DeactivateDriverInput['confirmation'],
                   { shouldValidate: true },
                 )
               }
@@ -114,19 +110,10 @@ export function DeactivateConfirmDialog({
           </div>
 
           <DialogFooter className="gap-12">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={isSubmitting}
-            >
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Annuler
             </Button>
-            <Button
-              type="submit"
-              disabled={!checked || isSubmitting}
-              aria-busy={isSubmitting}
-            >
+            <Button type="submit" disabled={!checked || isSubmitting} aria-busy={isSubmitting}>
               {isSubmitting ? 'Désactivation…' : 'Désactiver'}
             </Button>
           </DialogFooter>

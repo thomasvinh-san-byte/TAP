@@ -33,10 +33,8 @@ export default async function BreachesPage() {
   return (
     <div className="space-y-24">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Violations de données
-        </h1>
-        <p className="text-sm text-muted-foreground mt-4">
+        <h1 className="text-2xl font-semibold tracking-tight">Violations de données</h1>
+        <p className="text-muted-foreground mt-4 text-sm">
           Article 33 RGPD : notification CNIL sous 72h
         </p>
       </header>

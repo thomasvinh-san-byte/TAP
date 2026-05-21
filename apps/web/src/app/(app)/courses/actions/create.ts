@@ -105,9 +105,7 @@ export async function upsertRideDraft(
 // DELETE DRAFT
 // --------------------------------------------------------------------------
 
-export async function deleteRideDraft(
-  id: string,
-): Promise<{ success: boolean; error?: string }> {
+export async function deleteRideDraft(id: string): Promise<{ success: boolean; error?: string }> {
   if (!z.string().uuid().safeParse(id).success) {
     return { success: false, error: 'Identifiant brouillon invalide.' };
   }

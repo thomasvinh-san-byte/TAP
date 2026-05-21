@@ -28,11 +28,7 @@ const BASE_TABS = [
 
 const ADMIN_TABS = [...BASE_TABS, { href: '/admin/chauffeurs', label: 'Chauffeurs' }];
 
-export default async function AppLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const ctx = await getAuthContext();
   if (!ctx) redirect('/login');
   if (ctx.role === 'chauffeur') redirect('/conduite');
@@ -40,30 +36,25 @@ export default async function AppLayout({
   // Phase 04 hotfix (DEC-029) : la gestion chauffeurs est élargie au
   // régulateur. Le lien « Chauffeurs » apparaît pour les deux rôles
   // depuis le shell régulateur principal (sans imposer de switch admin).
-  const tabs =
-    ctx.role === 'dirigeant' || ctx.role === 'regulateur' ? ADMIN_TABS : BASE_TABS;
+  const tabs = ctx.role === 'dirigeant' || ctx.role === 'regulateur' ? ADMIN_TABS : BASE_TABS;
 
   return (
     <Providers>
       <RideExpressOrchestrator>
-        <div className="min-h-screen flex flex-col bg-background">
+        <div className="bg-background flex min-h-screen flex-col">
           <header
             className={
-              'sticky top-0 z-40 h-14 w-full border-b border-border ' +
-              'bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70'
+              'border-border sticky top-0 z-40 h-14 w-full border-b ' +
+              'bg-background/85 supports-[backdrop-filter]:bg-background/70 backdrop-blur'
             }
           >
-            <div className="h-full px-24 flex items-center justify-between gap-24">
+            <div className="flex h-full items-center justify-between gap-24 px-24">
               <Link
                 href="/patients"
-                className="flex items-baseline gap-8 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
+                className="focus-visible:ring-ring flex items-baseline gap-8 rounded-sm focus-visible:outline-none focus-visible:ring-2"
               >
-                <span className="font-semibold text-foreground tracking-tight">
-                  TAP
-                </span>
-                <span className="text-sm text-muted-foreground">
-                  Régulation
-                </span>
+                <span className="text-foreground font-semibold tracking-tight">TAP</span>
+                <span className="text-muted-foreground text-sm">Régulation</span>
               </Link>
               <NavTabs tabs={tabs} />
               <div className="flex items-center gap-16">
@@ -72,9 +63,7 @@ export default async function AppLayout({
               </div>
             </div>
           </header>
-          <main className="flex-1 px-24 py-24 max-w-[1280px] w-full mx-auto">
-            {children}
-          </main>
+          <main className="mx-auto w-full max-w-[1280px] flex-1 px-24 py-24">{children}</main>
         </div>
       </RideExpressOrchestrator>
     </Providers>

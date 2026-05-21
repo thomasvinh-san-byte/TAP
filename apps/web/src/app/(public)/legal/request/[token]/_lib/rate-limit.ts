@@ -22,14 +22,10 @@ export async function checkRateLimit(token: string): Promise<void> {
   if ((count ?? 0) >= 5) {
     throw new Error('Trop de tentatives. Réessayez dans 1 heure.');
   }
-  await sb
-    .from('legal_request_attempts')
-    .insert({ token_hash: hash, success: false });
+  await sb.from('legal_request_attempts').insert({ token_hash: hash, success: false });
 }
 
 export async function markAttemptSuccess(token: string): Promise<void> {
   const sb = createAdminClient();
-  await sb
-    .from('legal_request_attempts')
-    .insert({ token_hash: tokenHash(token), success: true });
+  await sb.from('legal_request_attempts').insert({ token_hash: tokenHash(token), success: true });
 }

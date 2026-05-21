@@ -30,10 +30,7 @@ export interface ShortcutDef {
  * Exigence de stabilité : passer `cb` via `useCallback` côté appelant pour
  * éviter ré-attachement listener à chaque render (RESEARCH C1).
  */
-export function useGlobalShortcut(
-  def: ShortcutDef,
-  cb: () => void,
-): void {
+export function useGlobalShortcut(def: ShortcutDef, cb: () => void): void {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const modOk = def.mod ? e.metaKey || e.ctrlKey : true;

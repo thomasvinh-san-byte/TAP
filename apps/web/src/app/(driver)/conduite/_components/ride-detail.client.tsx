@@ -1,13 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import {
-  ArrowDown,
-  ArrowLeft,
-  MapPin,
-  Navigation,
-  Phone,
-} from 'lucide-react';
+import { ArrowDown, ArrowLeft, MapPin, Navigation, Phone } from 'lucide-react';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
 import { cn } from '@/lib/utils';
 import { formatRelativeFr, formatTimeFr } from '@/lib/dates-fr';
@@ -23,14 +17,8 @@ const STATUS_BAR: Record<string, string> = {
   annulee_chauffeur: 'bg-destructive/60',
 };
 
-function joinAddress(
-  street: string,
-  postal: string | null,
-  city: string | null,
-): string {
-  return [street, [postal, city].filter(Boolean).join(' ')]
-    .filter(Boolean)
-    .join(' · ');
+function joinAddress(street: string, postal: string | null, city: string | null): string {
+  return [street, [postal, city].filter(Boolean).join(' ')].filter(Boolean).join(' · ');
 }
 
 interface Props {
@@ -57,38 +45,32 @@ export function RideDetail({ ride }: Props): JSX.Element {
       <Link
         href="/conduite"
         className={cn(
-          'inline-flex items-center gap-8 text-sm text-muted-foreground',
-          'transition-colors duration-150 hover:text-foreground',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm w-fit',
+          'text-muted-foreground inline-flex items-center gap-8 text-sm',
+          'hover:text-foreground transition-colors duration-150',
+          'focus-visible:ring-ring w-fit rounded-sm focus-visible:outline-none focus-visible:ring-2',
         )}
       >
         <ArrowLeft className="h-16 w-16" aria-hidden />
         Ma journée
       </Link>
 
-      <article className="overflow-hidden rounded-lg border border-border bg-background shadow-sm">
+      <article className="border-border bg-background overflow-hidden rounded-lg border shadow-sm">
         <div className={cn('h-4 w-full', bar)} aria-hidden />
         <div className="flex flex-col gap-24 px-16 py-16 sm:px-24 sm:py-24">
           <div className="flex items-start gap-16">
-            <InitialsAvatar
-              name={fullName || 'Patient'}
-              role="chauffeur"
-              size={48}
-            />
-            <div className="flex-1 min-w-0">
+            <InitialsAvatar name={fullName || 'Patient'} role="chauffeur" size={48} />
+            <div className="min-w-0 flex-1">
               <div className="text-3xl font-semibold tabular-nums">
                 {formatTimeFr(ride.scheduled_at)}
               </div>
-              <div className="text-lg font-semibold truncate">
-                {fullName || 'Patient inconnu'}
-              </div>
+              <div className="truncate text-lg font-semibold">{fullName || 'Patient inconnu'}</div>
               {ride.patient.telephone && (
                 <a
                   href={`tel:${ride.patient.telephone}`}
                   className={cn(
                     'mt-8 inline-flex items-center gap-8 text-sm font-medium tabular-nums',
                     'text-primary transition-colors duration-150 hover:underline',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm',
+                    'focus-visible:ring-ring rounded-sm focus-visible:outline-none focus-visible:ring-2',
                   )}
                 >
                   <Phone className="h-16 w-16" aria-hidden />
@@ -100,41 +82,24 @@ export function RideDetail({ ride }: Props): JSX.Element {
 
           <section className="space-y-12">
             <div className="flex gap-12">
-              <MapPin
-                className="h-16 w-16 shrink-0 text-muted-foreground mt-4"
-                aria-hidden
-              />
+              <MapPin className="text-muted-foreground mt-4 h-16 w-16 shrink-0" aria-hidden />
               <div className="flex-1">
                 <div className="text-base">
-                  {joinAddress(
-                    ride.pickup_address,
-                    ride.pickup_postal_code,
-                    ride.pickup_city,
-                  )}
+                  {joinAddress(ride.pickup_address, ride.pickup_postal_code, ride.pickup_city)}
                 </div>
-                <div className="text-xs uppercase tracking-wide text-muted-foreground mt-4">
+                <div className="text-muted-foreground mt-4 text-xs uppercase tracking-wide">
                   Départ
                 </div>
               </div>
             </div>
-            <ArrowDown
-              className="h-12 w-12 ml-4 text-muted-foreground"
-              aria-hidden
-            />
+            <ArrowDown className="text-muted-foreground ml-4 h-12 w-12" aria-hidden />
             <div className="flex gap-12">
-              <Navigation
-                className="h-16 w-16 shrink-0 text-muted-foreground mt-4"
-                aria-hidden
-              />
+              <Navigation className="text-muted-foreground mt-4 h-16 w-16 shrink-0" aria-hidden />
               <div className="flex-1">
                 <div className="text-base">
-                  {joinAddress(
-                    ride.dropoff_address,
-                    ride.dropoff_postal_code,
-                    ride.dropoff_city,
-                  )}
+                  {joinAddress(ride.dropoff_address, ride.dropoff_postal_code, ride.dropoff_city)}
                 </div>
-                <div className="text-xs uppercase tracking-wide text-muted-foreground mt-4">
+                <div className="text-muted-foreground mt-4 text-xs uppercase tracking-wide">
                   Arrivée
                 </div>
               </div>
@@ -142,13 +107,11 @@ export function RideDetail({ ride }: Props): JSX.Element {
           </section>
 
           {ride.notes_regulateur && (
-            <section className="rounded-md border border-border bg-muted/40 px-16 py-12">
-              <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-4">
+            <section className="border-border bg-muted/40 rounded-md border px-16 py-12">
+              <div className="text-muted-foreground mb-4 text-xs font-semibold uppercase tracking-wide">
                 Note régulation
               </div>
-              <p className="text-sm whitespace-pre-line">
-                {ride.notes_regulateur}
-              </p>
+              <p className="whitespace-pre-line text-sm">{ride.notes_regulateur}</p>
             </section>
           )}
 
@@ -157,17 +120,13 @@ export function RideDetail({ ride }: Props): JSX.Element {
               {ride.started_at && (
                 <div className="flex justify-between gap-12">
                   <span className="text-muted-foreground">Démarrée</span>
-                  <span className="tabular-nums">
-                    {formatRelativeFr(ride.started_at)}
-                  </span>
+                  <span className="tabular-nums">{formatRelativeFr(ride.started_at)}</span>
                 </div>
               )}
               {ride.ended_at && (
                 <div className="flex justify-between gap-12">
                   <span className="text-muted-foreground">Terminée</span>
-                  <span className="tabular-nums">
-                    à {formatTimeFr(ride.ended_at)}
-                  </span>
+                  <span className="tabular-nums">à {formatTimeFr(ride.ended_at)}</span>
                 </div>
               )}
             </section>
@@ -175,12 +134,7 @@ export function RideDetail({ ride }: Props): JSX.Element {
         </div>
       </article>
 
-      <RideActions
-        rideId={ride.id}
-        status={ride.status}
-        endedAt={ride.ended_at}
-        variant="sticky"
-      />
+      <RideActions rideId={ride.id} status={ride.status} endedAt={ride.ended_at} variant="sticky" />
     </div>
   );
 }

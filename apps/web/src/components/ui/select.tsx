@@ -58,21 +58,18 @@ export function Select({
       <DropdownMenuTrigger
         aria-label={ariaLabel}
         className={cn(
-          'inline-flex h-10 items-center justify-between gap-8 rounded-md border border-input bg-background px-12 text-sm',
-          'transition-colors duration-150 hover:bg-muted hover:text-foreground',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+          'border-input bg-background inline-flex h-10 items-center justify-between gap-8 rounded-md border px-12 text-sm',
+          'hover:bg-muted hover:text-foreground transition-colors duration-150',
+          'focus-visible:ring-ring focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
           'disabled:pointer-events-none disabled:opacity-50',
-          'data-[state=open]:ring-2 data-[state=open]:ring-ring data-[state=open]:ring-offset-2 data-[state=open]:ring-offset-background',
+          'data-[state=open]:ring-ring data-[state=open]:ring-offset-background data-[state=open]:ring-2 data-[state=open]:ring-offset-2',
           triggerClassName,
         )}
       >
         <span className={cn('truncate', !current && 'text-muted-foreground')}>
           {current?.label ?? placeholder ?? ''}
         </span>
-        <ChevronDown
-          className="h-16 w-16 shrink-0 text-muted-foreground"
-          aria-hidden
-        />
+        <ChevronDown className="text-muted-foreground h-16 w-16 shrink-0" aria-hidden />
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
@@ -89,9 +86,7 @@ export function Select({
             className="gap-8"
           >
             <span className="flex h-16 w-16 items-center justify-center">
-              {value === item.value ? (
-                <Check className="h-12 w-12" aria-hidden />
-              ) : null}
+              {value === item.value ? <Check className="h-12 w-12" aria-hidden /> : null}
             </span>
             {renderItem ? renderItem(item) : <span>{item.label}</span>}
           </DropdownMenuItem>

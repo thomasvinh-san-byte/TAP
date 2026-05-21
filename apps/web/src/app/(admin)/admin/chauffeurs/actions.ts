@@ -49,9 +49,7 @@ function parseFormData(formData: FormData) {
   });
 }
 
-function flattenFieldErrors(
-  err: z.ZodError,
-): Record<string, string> {
+function flattenFieldErrors(err: z.ZodError): Record<string, string> {
   const out: Record<string, string> = {};
   for (const [k, v] of Object.entries(err.flatten().fieldErrors)) {
     if (v && v[0]) out[k] = v[0];
@@ -285,9 +283,7 @@ export async function deactivateDriverAction(
  * aux courses. Régulateur autorisé. Ne s'applique pas aux chauffeurs
  * archivés (passer par désarchivage d'abord).
  */
-export async function reactivateDriverAction(
-  driverId: string,
-): Promise<ActionState> {
+export async function reactivateDriverAction(driverId: string): Promise<ActionState> {
   if (!z.string().uuid().safeParse(driverId).success) {
     return { error: 'Identifiant chauffeur invalide.' };
   }
@@ -449,12 +445,9 @@ export async function inviteDriverAction(
   // 3. Check collision email autre rôle
   //    auth.admin.listUsers() scanne tous les users de l'instance Supabase.
   //    Acceptable V1 (peu de users) ; à indexer en Phase 06+ si besoin perf.
-  const { data: usersList, error: listErr } =
-    await supabaseAdmin.auth.admin.listUsers();
+  const { data: usersList, error: listErr } = await supabaseAdmin.auth.admin.listUsers();
   if (listErr) return { error: 'Vérification email impossible.' };
-  const collision = usersList?.users?.find(
-    (u) => u.email?.toLowerCase() === email,
-  );
+  const collision = usersList?.users?.find((u) => u.email?.toLowerCase() === email);
   if (collision) {
     return { error: 'Cet email est déjà utilisé pour un autre rôle.' };
   }
@@ -488,27 +481,22 @@ export async function inviteDriverAction(
 
   // 5. Magic link invitation (Supabase Auth admin)
   const origin = resolveOrigin();
-  const { error: inviteErr } =
-    await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
-      data: {
-        role: 'chauffeur',
-        driver_id: driverId,
-        organization_id: ctx.organizationId,
-      },
-      redirectTo: `${origin}/accept-invite/verify`,
-    });
+  const { error: inviteErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+    data: {
+      role: 'chauffeur',
+      driver_id: driverId,
+      organization_id: ctx.organizationId,
+    },
+    redirectTo: `${origin}/accept-invite/verify`,
+  });
   if (inviteErr) {
     // Rate limit Supabase (3 emails/h défaut SMTP intégré)
-    if (
-      inviteErr.status === 429 ||
-      (inviteErr.message ?? '').toLowerCase().includes('rate')
-    ) {
+    if (inviteErr.status === 429 || (inviteErr.message ?? '').toLowerCase().includes('rate')) {
       return {
-        error:
-          'Email non envoyé (limite atteinte, ré-essayer dans 1h ou contacter support).',
+        error: 'Email non envoyé (limite atteinte, ré-essayer dans 1h ou contacter support).',
       };
     }
-    return { error: 'Envoi de l\'invitation impossible.' };
+    return { error: "Envoi de l'invitation impossible." };
   }
 
   // 6. INSERT driver_invitations (RLS-protégé : dirigeant same-org via policy
@@ -532,7 +520,7 @@ export async function inviteDriverAction(
     if (insertErr?.code === '23505') {
       return { error: 'Une invitation est déjà en cours pour cet email.' };
     }
-    return { error: 'Enregistrement de l\'invitation impossible.' };
+    return { error: "Enregistrement de l'invitation impossible." };
   }
 
   // 7. Revalidate liste chauffeurs (badge « invitation envoyée »)
@@ -550,9 +538,7 @@ export async function inviteDriverAction(
  *
  * Trigger Postgres émet `driver_invitation_resent` au UPDATE de `expires_at`.
  */
-export async function resendInvitationAction(
-  invitationId: string,
-): Promise<ActionState> {
+export async function resendInvitationAction(invitationId: string): Promise<ActionState> {
   if (!z.string().uuid().safeParse(invitationId).success) {
     return { error: 'Identifiant invitation invalide.' };
   }
@@ -576,7 +562,7 @@ export async function resendInvitationAction(
     expires_at: string;
   };
   if (inv.status !== 'pending') {
-    return { error: 'Cette invitation n\'est plus en attente.' };
+    return { error: "Cette invitation n'est plus en attente." };
   }
 
   // 2. Anti-race : refuser un resend si expires_at - now() > 23h59m
@@ -584,28 +570,23 @@ export async function resendInvitationAction(
   const remainingMs = new Date(inv.expires_at).getTime() - Date.now();
   if (remainingMs > 23 * 60 * 60 * 1000 + 59 * 60 * 1000) {
     return {
-      error:
-        'Invitation envoyée à l\'instant. Patientez quelques minutes avant relance.',
+      error: "Invitation envoyée à l'instant. Patientez quelques minutes avant relance.",
     };
   }
 
   // 3. Re-call Supabase Auth invite (regen token magic link)
   const supabaseAdmin = createAdminClient();
   const origin = resolveOrigin();
-  const { error: resendErr } =
-    await supabaseAdmin.auth.admin.inviteUserByEmail(inv.email, {
-      redirectTo: `${origin}/accept-invite/verify`,
-    });
+  const { error: resendErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(inv.email, {
+    redirectTo: `${origin}/accept-invite/verify`,
+  });
   if (resendErr) {
-    if (
-      resendErr.status === 429 ||
-      (resendErr.message ?? '').toLowerCase().includes('rate')
-    ) {
+    if (resendErr.status === 429 || (resendErr.message ?? '').toLowerCase().includes('rate')) {
       return {
         error: 'Email non envoyé (limite atteinte, ré-essayer dans 1h).',
       };
     }
-    return { error: 'Renvoi de l\'invitation impossible.' };
+    return { error: "Renvoi de l'invitation impossible." };
   }
 
   // 4. Bump expires_at à +24h (trigger émet `driver_invitation_resent`)

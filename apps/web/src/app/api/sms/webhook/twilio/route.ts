@@ -26,13 +26,7 @@ import type { Database } from '@tap/database';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const SUPPORTED_STATUSES = new Set([
-  'queued',
-  'sent',
-  'delivered',
-  'failed',
-  'undelivered',
-]);
+const SUPPORTED_STATUSES = new Set(['queued', 'sent', 'delivered', 'failed', 'undelivered']);
 
 function validateTwilioSignature(
   url: string,

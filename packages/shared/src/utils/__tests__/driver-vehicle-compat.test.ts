@@ -27,10 +27,8 @@ function call(permisSet: ReadonlyArray<string>, vehicleType: string): boolean {
 describe('isCompatible — matrice 16 cas', () => {
   // Véhicule tpmr (exige permis tpmr)
   it('tpmr × [b] = false', () => expect(call(PERMIS_SETS.bOnly, 'tpmr')).toBe(false));
-  it('tpmr × [taxi] = false', () =>
-    expect(call(PERMIS_SETS.taxiOnly, 'tpmr')).toBe(false));
-  it('tpmr × [tpmr] = true', () =>
-    expect(call(PERMIS_SETS.tpmrOnly, 'tpmr')).toBe(true));
+  it('tpmr × [taxi] = false', () => expect(call(PERMIS_SETS.taxiOnly, 'tpmr')).toBe(false));
+  it('tpmr × [tpmr] = true', () => expect(call(PERMIS_SETS.tpmrOnly, 'tpmr')).toBe(true));
   it('tpmr × [taxi,tpmr,ambulance] = true', () =>
     expect(call(PERMIS_SETS.multi, 'tpmr')).toBe(true));
 
@@ -40,21 +38,17 @@ describe('isCompatible — matrice 16 cas', () => {
     expect(call(PERMIS_SETS.taxiOnly, 'vsl')).toBe(true));
   it('vsl × [tpmr] = false (TPMR seul ne fait pas VSL)', () =>
     expect(call(PERMIS_SETS.tpmrOnly, 'vsl')).toBe(false));
-  it('vsl × [taxi,tpmr,ambulance] = true', () =>
-    expect(call(PERMIS_SETS.multi, 'vsl')).toBe(true));
+  it('vsl × [taxi,tpmr,ambulance] = true', () => expect(call(PERMIS_SETS.multi, 'vsl')).toBe(true));
 
   // Véhicule taxi (exige permis taxi)
   it('taxi × [b] = false', () => expect(call(PERMIS_SETS.bOnly, 'taxi')).toBe(false));
-  it('taxi × [taxi] = true', () =>
-    expect(call(PERMIS_SETS.taxiOnly, 'taxi')).toBe(true));
-  it('taxi × [tpmr] = false', () =>
-    expect(call(PERMIS_SETS.tpmrOnly, 'taxi')).toBe(false));
+  it('taxi × [taxi] = true', () => expect(call(PERMIS_SETS.taxiOnly, 'taxi')).toBe(true));
+  it('taxi × [tpmr] = false', () => expect(call(PERMIS_SETS.tpmrOnly, 'taxi')).toBe(false));
   it('taxi × [taxi,tpmr,ambulance] = true', () =>
     expect(call(PERMIS_SETS.multi, 'taxi')).toBe(true));
 
   // Véhicule ambulance (exige permis ambulance)
-  it('ambulance × [b] = false', () =>
-    expect(call(PERMIS_SETS.bOnly, 'ambulance')).toBe(false));
+  it('ambulance × [b] = false', () => expect(call(PERMIS_SETS.bOnly, 'ambulance')).toBe(false));
   it('ambulance × [taxi] = false', () =>
     expect(call(PERMIS_SETS.taxiOnly, 'ambulance')).toBe(false));
   it('ambulance × [tpmr] = false', () =>

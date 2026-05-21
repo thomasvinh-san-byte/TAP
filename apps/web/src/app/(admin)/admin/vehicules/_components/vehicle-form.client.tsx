@@ -8,11 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import {
-  type ActionState,
-  createVehicleAction,
-  updateVehicleAction,
-} from '../actions';
+import { type ActionState, createVehicleAction, updateVehicleAction } from '../actions';
 import type { VehicleRow } from '../page';
 
 const TYPE_LABELS: Record<VehicleType, string> = {
@@ -28,17 +24,10 @@ interface Props {
 }
 
 export function VehicleForm({ initial, onSuccess }: Props): JSX.Element {
-  const action = initial
-    ? updateVehicleAction.bind(null, initial.id)
-    : createVehicleAction;
-  const [state, formAction] = useFormState<ActionState, FormData>(
-    action,
-    {},
-  );
+  const action = initial ? updateVehicleAction.bind(null, initial.id) : createVehicleAction;
+  const [state, formAction] = useFormState<ActionState, FormData>(action, {});
 
-  const [type, setType] = React.useState<VehicleType>(
-    initial?.type ?? 'taxi_conventionne',
-  );
+  const [type, setType] = React.useState<VehicleType>(initial?.type ?? 'taxi_conventionne');
 
   const previouslyOk = React.useRef(false);
   React.useEffect(() => {
@@ -63,18 +52,8 @@ export function VehicleForm({ initial, onSuccess }: Props): JSX.Element {
       />
 
       <div className="grid grid-cols-2 gap-12">
-        <Field
-          id="marque"
-          label="Marque"
-          defaultValue={initial?.marque ?? ''}
-          error={fe.marque}
-        />
-        <Field
-          id="modele"
-          label="Modèle"
-          defaultValue={initial?.modele ?? ''}
-          error={fe.modele}
-        />
+        <Field id="marque" label="Marque" defaultValue={initial?.marque ?? ''} error={fe.marque} />
+        <Field id="modele" label="Modèle" defaultValue={initial?.modele ?? ''} error={fe.modele} />
       </div>
 
       <div className="space-y-8">
@@ -91,7 +70,7 @@ export function VehicleForm({ initial, onSuccess }: Props): JSX.Element {
           triggerClassName="w-full"
         />
         {fe.type && (
-          <p className="text-xs text-destructive" role="alert">
+          <p className="text-destructive text-xs" role="alert">
             {fe.type}
           </p>
         )}
@@ -118,7 +97,7 @@ export function VehicleForm({ initial, onSuccess }: Props): JSX.Element {
         />
       </div>
 
-      <label className="flex items-center gap-8 rounded-md border border-input px-12 py-8 text-sm cursor-pointer hover:bg-muted">
+      <label className="border-input hover:bg-muted flex cursor-pointer items-center gap-8 rounded-md border px-12 py-8 text-sm">
         <input
           type="checkbox"
           name="actif"
@@ -129,7 +108,7 @@ export function VehicleForm({ initial, onSuccess }: Props): JSX.Element {
       </label>
 
       {state.error && !state.fieldErrors && (
-        <p className="text-sm text-destructive" role="alert">
+        <p className="text-destructive text-sm" role="alert">
           {state.error}
         </p>
       )}
@@ -157,15 +136,12 @@ function Field({
         id={id}
         name={id}
         aria-invalid={error ? true : undefined}
-        className={cn(
-          error && 'border-destructive focus-visible:ring-destructive',
-          className,
-        )}
+        className={cn(error && 'border-destructive focus-visible:ring-destructive', className)}
         autoComplete="off"
         {...rest}
       />
       {error && (
-        <p className="text-xs text-destructive" role="alert">
+        <p className="text-destructive text-xs" role="alert">
           {error}
         </p>
       )}

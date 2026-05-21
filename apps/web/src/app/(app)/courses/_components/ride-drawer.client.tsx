@@ -4,26 +4,14 @@ import * as React from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ArrowDown, MapPin, Navigation, Trash2 } from 'lucide-react';
-import {
-  computeCgssShortTrip,
-  type TransportMode,
-} from '@tap/pricing';
+import { computeCgssShortTrip, type TransportMode } from '@tap/pricing';
 import { PricingBreakdown } from './pricing-breakdown.client';
 import { OverrideTarifModal } from './override-tarif-modal.client';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
-import {
-  formatDateTimeFr,
-  formatRelativeFr,
-  formatTimeFr,
-} from '@/lib/dates-fr';
+import { formatDateTimeFr, formatRelativeFr, formatTimeFr } from '@/lib/dates-fr';
 import {
   getActiveTariffGridAction,
   getRideAuditLogAction,
@@ -51,12 +39,7 @@ interface Props {
  * (unassign + paiement). useQuery + invalidate sur succès → recharge la
  * liste courses + drawer.
  */
-export function RideDrawer({
-  rideId,
-  open,
-  onOpenChange,
-  onRequestAssign,
-}: Props): JSX.Element {
+export function RideDrawer({ rideId, open, onOpenChange, onRequestAssign }: Props): JSX.Element {
   const qc = useQueryClient();
   const { dispatch } = useRideOrchestrator();
   const [payOpen, setPayOpen] = React.useState(false);
@@ -118,7 +101,7 @@ export function RideDrawer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-[480px] sm:w-[480px] sm:max-w-[480px] overflow-y-auto"
+        className="w-[480px] overflow-y-auto sm:w-[480px] sm:max-w-[480px]"
       >
         {rideQuery.isPending || !ride ? (
           <DrawerSkeleton />
@@ -156,18 +139,15 @@ export function RideDrawer({
             <section className="space-y-12">
               <div className="flex items-center gap-12">
                 {ride.patient && (
-                  <InitialsAvatar
-                    name={`${ride.patient.nom} ${ride.patient.prenom}`}
-                    size={48}
-                  />
+                  <InitialsAvatar name={`${ride.patient.nom} ${ride.patient.prenom}`} size={48} />
                 )}
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold truncate">
+                <div className="min-w-0 flex-1">
+                  <div className="truncate font-semibold">
                     {ride.patient
                       ? `${ride.patient.nom} ${ride.patient.prenom}`
                       : 'Patient inconnu'}
                   </div>
-                  <div className="text-sm text-muted-foreground tabular-nums">
+                  <div className="text-muted-foreground text-sm tabular-nums">
                     {formatDateTimeFr(ride.scheduled_at)}
                   </div>
                 </div>
@@ -179,28 +159,24 @@ export function RideDrawer({
               <SectionTitle>Trajet</SectionTitle>
               <div className="flex flex-col gap-8">
                 <div className="flex gap-12">
-                  <MapPin className="h-16 w-16 text-muted-foreground shrink-0 mt-4" aria-hidden />
+                  <MapPin className="text-muted-foreground mt-4 h-16 w-16 shrink-0" aria-hidden />
                   <div className="flex-1">
                     <div className="text-sm">{ride.pickup_address}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {[ride.pickup_postal_code, ride.pickup_city]
-                        .filter(Boolean)
-                        .join(' ')}
+                    <div className="text-muted-foreground text-xs">
+                      {[ride.pickup_postal_code, ride.pickup_city].filter(Boolean).join(' ')}
                     </div>
                   </div>
                 </div>
-                <ArrowDown
-                  className="h-12 w-12 text-muted-foreground ml-4"
-                  aria-hidden
-                />
+                <ArrowDown className="text-muted-foreground ml-4 h-12 w-12" aria-hidden />
                 <div className="flex gap-12">
-                  <Navigation className="h-16 w-16 text-muted-foreground shrink-0 mt-4" aria-hidden />
+                  <Navigation
+                    className="text-muted-foreground mt-4 h-16 w-16 shrink-0"
+                    aria-hidden
+                  />
                   <div className="flex-1">
                     <div className="text-sm">{ride.dropoff_address}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {[ride.dropoff_postal_code, ride.dropoff_city]
-                        .filter(Boolean)
-                        .join(' ')}
+                    <div className="text-muted-foreground text-xs">
+                      {[ride.dropoff_postal_code, ride.dropoff_city].filter(Boolean).join(' ')}
                     </div>
                   </div>
                 </div>
@@ -216,17 +192,11 @@ export function RideDrawer({
               <SectionTitle>Affectation</SectionTitle>
               {ride.driver ? (
                 <div className="flex items-center gap-12">
-                  <InitialsAvatar
-                    name={ride.driver.nom_affichage}
-                    role="chauffeur"
-                    size={32}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate">
-                      {ride.driver.nom_affichage}
-                    </div>
+                  <InitialsAvatar name={ride.driver.nom_affichage} role="chauffeur" size={32} />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-medium">{ride.driver.nom_affichage}</div>
                     {ride.vehicle && (
-                      <div className="text-xs text-muted-foreground tabular-nums">
+                      <div className="text-muted-foreground text-xs tabular-nums">
                         {ride.vehicle.immatriculation}
                         {ride.vehicle.marque && ride.vehicle.modele
                           ? ` · ${ride.vehicle.marque} ${ride.vehicle.modele}`
@@ -247,17 +217,11 @@ export function RideDrawer({
                   )}
                 </div>
               ) : ride.status === 'validee' ? (
-                <Button
-                  type="button"
-                  onClick={() => onRequestAssign(ride.id)}
-                  className="w-full"
-                >
+                <Button type="button" onClick={() => onRequestAssign(ride.id)} className="w-full">
                   Affecter un chauffeur
                 </Button>
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  Aucun chauffeur affecté.
-                </p>
+                <p className="text-muted-foreground text-sm">Aucun chauffeur affecté.</p>
               )}
             </section>
 
@@ -268,17 +232,13 @@ export function RideDrawer({
                   {ride.started_at && (
                     <li className="flex justify-between gap-12">
                       <span className="text-muted-foreground">Démarrée</span>
-                      <span className="tabular-nums">
-                        {formatRelativeFr(ride.started_at)}
-                      </span>
+                      <span className="tabular-nums">{formatRelativeFr(ride.started_at)}</span>
                     </li>
                   )}
                   {ride.ended_at && (
                     <li className="flex justify-between gap-12">
                       <span className="text-muted-foreground">Terminée</span>
-                      <span className="tabular-nums">
-                        à {formatTimeFr(ride.ended_at)}
-                      </span>
+                      <span className="tabular-nums">à {formatTimeFr(ride.ended_at)}</span>
                     </li>
                   )}
                 </ul>
@@ -291,18 +251,10 @@ export function RideDrawer({
                 <PricingBreakdown
                   pricing={computeCgssShortTrip(
                     {
-                      pickup_lat:
-                        (ride as { pickup_lat?: number | null }).pickup_lat ??
-                        null,
-                      pickup_lng:
-                        (ride as { pickup_lng?: number | null }).pickup_lng ??
-                        null,
-                      dropoff_lat:
-                        (ride as { dropoff_lat?: number | null })
-                          .dropoff_lat ?? null,
-                      dropoff_lng:
-                        (ride as { dropoff_lng?: number | null })
-                          .dropoff_lng ?? null,
+                      pickup_lat: (ride as { pickup_lat?: number | null }).pickup_lat ?? null,
+                      pickup_lng: (ride as { pickup_lng?: number | null }).pickup_lng ?? null,
+                      dropoff_lat: (ride as { dropoff_lat?: number | null }).dropoff_lat ?? null,
+                      dropoff_lng: (ride as { dropoff_lng?: number | null }).dropoff_lng ?? null,
                       scheduled_at: ride.scheduled_at,
                       transport_mode: ride.transport_mode as TransportMode,
                       holidays974,
@@ -313,16 +265,9 @@ export function RideDrawer({
                   onOverride={() => setOverrideOpen(true)}
                 />
                 <div className="flex items-center justify-between gap-12">
-                  <PaymentBadge
-                    status={ride.payment_status}
-                    amountEur={ride.tarif_amount_eur}
-                  />
+                  <PaymentBadge status={ride.payment_status} amountEur={ride.tarif_amount_eur} />
                   {ride.payment_status === 'a_encaisser' && (
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => setPayOpen(true)}
-                    >
+                    <Button type="button" size="sm" onClick={() => setPayOpen(true)}>
                       Marquer encaissé
                     </Button>
                   )}
@@ -378,7 +323,7 @@ export function RideDrawer({
 }
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
-  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+  <h3 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
     {children}
   </h3>
 );

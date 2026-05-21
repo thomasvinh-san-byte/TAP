@@ -24,14 +24,12 @@ export async function acceptCguAction(version: string): Promise<ActionState> {
 
   const now = new Date().toISOString();
 
-  const { error: insertError } = await supabase
-    .from('cgu_acceptance')
-    .insert({
-      profile_id: user.id,
-      version,
-      document_type: 'cgu',
-      accepted_at: now,
-    } as never);
+  const { error: insertError } = await supabase.from('cgu_acceptance').insert({
+    profile_id: user.id,
+    version,
+    document_type: 'cgu',
+    accepted_at: now,
+  } as never);
 
   if (insertError) return { error: 'Acceptation impossible.' };
 

@@ -33,12 +33,7 @@ interface Props {
   variant?: 'inline' | 'sticky';
 }
 
-export function RideActions({
-  rideId,
-  status,
-  endedAt,
-  variant = 'inline',
-}: Props): JSX.Element {
+export function RideActions({ rideId, status, endedAt, variant = 'inline' }: Props): JSX.Element {
   const router = useRouter();
   const [pending, setPending] = React.useState(false);
   const [endOpen, setEndOpen] = React.useState(false);
@@ -111,7 +106,7 @@ export function RideActions({
 
   if (status === 'terminee') {
     return (
-      <div className="flex h-14 items-center justify-center rounded-md border border-success/30 bg-success/10 text-sm font-medium text-success tabular-nums">
+      <div className="border-success/30 bg-success/10 text-success flex h-14 items-center justify-center rounded-md border text-sm font-medium tabular-nums">
         Terminée{endedAt ? ` à ${formatTimeFr(endedAt)}` : ''}
       </div>
     );
@@ -119,7 +114,7 @@ export function RideActions({
 
   if (status.startsWith('annulee')) {
     return (
-      <div className="flex h-14 items-center justify-center rounded-md border border-border bg-muted text-sm font-medium text-muted-foreground">
+      <div className="border-border bg-muted text-muted-foreground flex h-14 items-center justify-center rounded-md border text-sm font-medium">
         Course annulée
       </div>
     );
@@ -138,18 +133,12 @@ export function RideActions({
             type="button"
             onClick={() => setEndOpen(true)}
             disabled={hasPendingSync}
-            className="h-14 w-full text-base font-semibold bg-warning text-white hover:bg-warning/90 focus-visible:ring-warning disabled:opacity-60"
+            className="bg-warning hover:bg-warning/90 focus-visible:ring-warning h-14 w-full text-base font-semibold text-white disabled:opacity-60"
           >
-            {hasPendingSync
-              ? 'Clôture en attente de sync…'
-              : 'Clôturer la course'}
+            {hasPendingSync ? 'Clôture en attente de sync…' : 'Clôturer la course'}
           </Button>
         </div>
-        <EndRideModal
-          rideId={rideId}
-          open={endOpen}
-          onOpenChange={setEndOpen}
-        />
+        <EndRideModal rideId={rideId} open={endOpen} onOpenChange={setEndOpen} />
       </>
     );
   }

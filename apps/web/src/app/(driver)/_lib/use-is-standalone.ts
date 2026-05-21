@@ -22,9 +22,7 @@ export function useIsStandalone(): boolean {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const android = window.matchMedia('(display-mode: standalone)').matches;
-    const ios =
-      (window.navigator as Navigator & { standalone?: boolean }).standalone ===
-      true;
+    const ios = (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
     setIsStandalone(android || ios);
   }, []);
 

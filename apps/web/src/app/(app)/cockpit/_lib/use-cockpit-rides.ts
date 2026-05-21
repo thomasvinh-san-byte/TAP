@@ -60,9 +60,7 @@ export function useCockpitRides(initial: CockpitRide[]): UseCockpitRidesResult {
             }
             if (payload.eventType === 'UPDATE' && payload.new.id) {
               const updatedId = payload.new.id;
-              return current.map((r) =>
-                r.id === updatedId ? { ...r, ...payload.new } : r,
-              );
+              return current.map((r) => (r.id === updatedId ? { ...r, ...payload.new } : r));
             }
             if (payload.eventType === 'DELETE' && payload.old.id) {
               const deletedId = payload.old.id;

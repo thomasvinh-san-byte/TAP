@@ -12,9 +12,7 @@ export default async function DpoPage() {
   const { frontmatter, rendered } = await loadLegalDoc('dpo');
   return (
     <article className="prose prose-sm max-w-none">
-      <p className="text-sm text-muted-foreground mb-32">
-        Version : {frontmatter.version}
-      </p>
+      <p className="text-muted-foreground mb-32 text-sm">Version : {frontmatter.version}</p>
       {rendered}
     </article>
   );

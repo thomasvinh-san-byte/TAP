@@ -19,21 +19,15 @@ function formatName(person: CockpitRide['patient']): string {
   return parts.length > 0 ? parts.join(' ') : '—';
 }
 
-export function CourseRow({
-  ride,
-  isNew,
-}: {
-  ride: CockpitRide;
-  isNew: boolean;
-}): JSX.Element {
+export function CourseRow({ ride, isNew }: { ride: CockpitRide; isNew: boolean }): JSX.Element {
   const animationClass = isNew ? 'cockpit-row-fade-in' : '';
   return (
-    <tr className={`h-10 border-b border-border hover:bg-muted/30 ${animationClass}`}>
-      <td className="px-12 tabular-nums text-sm">{formatTime(ride.scheduled_at)}</td>
-      <td className="px-12 truncate text-sm font-medium text-foreground">
+    <tr className={`border-border hover:bg-muted/30 h-10 border-b ${animationClass}`}>
+      <td className="px-12 text-sm tabular-nums">{formatTime(ride.scheduled_at)}</td>
+      <td className="text-foreground truncate px-12 text-sm font-medium">
         {formatName(ride.patient)}
       </td>
-      <td className="px-12 truncate text-sm text-muted-foreground max-w-[280px]">
+      <td className="text-muted-foreground max-w-[280px] truncate px-12 text-sm">
         {ride.pickup_address || '—'}
       </td>
       <td className="px-12 text-sm">{ride.driver?.prenom ?? '—'}</td>

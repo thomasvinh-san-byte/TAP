@@ -12,12 +12,7 @@ import { z } from 'zod';
  * `public.ride_transport_mode` (rideTransportModeSchema) sans coupler
  * les deux types (un véhicule a un type, une course a un mode demandé).
  */
-export const VEHICLE_TYPE_VALUES = [
-  'taxi_conventionne',
-  'tpmr',
-  'vsl',
-  'ambulance',
-] as const;
+export const VEHICLE_TYPE_VALUES = ['taxi_conventionne', 'tpmr', 'vsl', 'ambulance'] as const;
 export type VehicleType = (typeof VEHICLE_TYPE_VALUES)[number];
 
 export const vehicleInputSchema = z.object({
@@ -37,12 +32,7 @@ export const vehicleInputSchema = z.object({
     .min(1, 'Au moins 1 place assise.')
     .max(9, 'Au maximum 9 places assises.')
     .optional(),
-  places_tpmr: z
-    .number()
-    .int()
-    .min(0)
-    .max(3, 'Au maximum 3 places TPMR.')
-    .optional(),
+  places_tpmr: z.number().int().min(0).max(3, 'Au maximum 3 places TPMR.').optional(),
   actif: z.boolean().default(true),
 });
 

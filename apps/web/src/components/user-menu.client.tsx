@@ -36,12 +36,7 @@ const ROLE_LABELS: Record<Role, string> = {
  *   déconnexion. Persistance theme via localStorage clé `theme`
  *   (compatible avec le script anti-FOUC dans app/layout.tsx).
  */
-export function UserMenu({
-  prenom,
-  nom,
-  email,
-  role,
-}: UserMenuProps): JSX.Element {
+export function UserMenu({ prenom, nom, email, role }: UserMenuProps): JSX.Element {
   const fullName = `${prenom} ${nom}`.trim();
   const [theme, setTheme] = React.useState<'light' | 'dark'>('light');
 
@@ -74,9 +69,9 @@ export function UserMenu({
           className={cn(
             'inline-flex items-center justify-center rounded-full',
             'transition-[box-shadow,transform] duration-150',
-            'hover:ring-2 hover:ring-ring/30 hover:ring-offset-2 hover:ring-offset-background',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-            'data-[state=open]:ring-2 data-[state=open]:ring-ring data-[state=open]:ring-offset-2 data-[state=open]:ring-offset-background',
+            'hover:ring-ring/30 hover:ring-offset-background hover:ring-2 hover:ring-offset-2',
+            'focus-visible:ring-ring focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+            'data-[state=open]:ring-ring data-[state=open]:ring-offset-background data-[state=open]:ring-2 data-[state=open]:ring-offset-2',
           )}
         >
           <InitialsAvatar name={fullName} role={role} size={32} />
@@ -84,15 +79,9 @@ export function UserMenu({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" sideOffset={8} className="w-[280px]">
         <div className="flex flex-col gap-4 px-12 py-12">
-          <span className="text-sm font-semibold text-foreground truncate">
-            {fullName}
-          </span>
-          <span className="text-xs text-muted-foreground">
-            {ROLE_LABELS[role]}
-          </span>
-          <span className="text-xs text-muted-foreground truncate">
-            {email}
-          </span>
+          <span className="text-foreground truncate text-sm font-semibold">{fullName}</span>
+          <span className="text-muted-foreground text-xs">{ROLE_LABELS[role]}</span>
+          <span className="text-muted-foreground truncate text-xs">{email}</span>
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -116,10 +105,7 @@ export function UserMenu({
         <DropdownMenuSeparator />
         <form action={signOutAction}>
           <DropdownMenuItem asChild>
-            <button
-              type="submit"
-              className="w-full gap-12 text-destructive focus:text-destructive"
-            >
+            <button type="submit" className="text-destructive focus:text-destructive w-full gap-12">
               <LogOut className="h-16 w-16" aria-hidden />
               <span>Déconnexion</span>
             </button>

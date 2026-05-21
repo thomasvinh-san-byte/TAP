@@ -1,10 +1,6 @@
 import Link from 'next/link';
 import { Plus } from 'lucide-react';
-import {
-  HydrationBoundary,
-  dehydrate,
-  QueryClient,
-} from '@tanstack/react-query';
+import { HydrationBoundary, dehydrate, QueryClient } from '@tanstack/react-query';
 import { searchPatients } from './queries';
 import { PatientsList } from './_components/patients-list.client';
 import { Button } from '@/components/ui/button';

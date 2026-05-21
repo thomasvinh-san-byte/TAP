@@ -98,10 +98,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     .maybeSingle();
   const tpl = tplRes.data as { body: string } | null;
   if (tplRes.error || !tpl) {
-    return NextResponse.json(
-      { error: 'Template j2h_reminder introuvable' },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: 'Template j2h_reminder introuvable' }, { status: 500 });
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';

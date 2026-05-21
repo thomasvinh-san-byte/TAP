@@ -36,11 +36,7 @@ function SubmitButton({ children }: { children: React.ReactNode }) {
  *   (CLAUDE.md § 11). Validation zod côté serveur (actions.ts).
  * - Labels exacts pour le test E2E PLAN-1 (`getByLabel`).
  */
-export function PatientForm({
-  action,
-  defaultValues = {},
-  submitLabel,
-}: Props) {
+export function PatientForm({ action, defaultValues = {}, submitLabel }: Props) {
   const [state, formAction] = useFormState<ActionState, FormData>(action, {});
   const dv = defaultValues;
   return (
@@ -50,7 +46,7 @@ export function PatientForm({
       <PreferencesSection dv={dv} />
       <PatientFormNote defaultValue={dv.notes_operationnelles} />
       {state.error && (
-        <p role="alert" className="text-sm text-destructive">
+        <p role="alert" className="text-destructive text-sm">
           {state.error}
         </p>
       )}

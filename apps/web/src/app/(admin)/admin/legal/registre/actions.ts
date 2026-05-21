@@ -37,8 +37,7 @@ function parseRegistreForm(formData: FormData) {
     retention_period_days: Number(raw.retention_period_days),
     security_measures: raw.security_measures,
     international_transfer: raw.international_transfer === 'on',
-    international_transfer_safeguards:
-      raw.international_transfer_safeguards?.trim() || null,
+    international_transfer_safeguards: raw.international_transfer_safeguards?.trim() || null,
   });
 }
 
@@ -76,8 +75,7 @@ export async function createDataProcessingRegisterAction(
     retention_period_days: data.retention_period_days,
     security_measures: data.security_measures,
     international_transfer: data.international_transfer,
-    international_transfer_safeguards:
-      data.international_transfer_safeguards ?? null,
+    international_transfer_safeguards: data.international_transfer_safeguards ?? null,
     created_by: user.id,
     updated_by: user.id,
   } as never);

@@ -35,9 +35,9 @@ test.describe('Hotfix 04.7-bis — Courses modal/filter/pagination', () => {
   test.beforeEach(async ({ page }) => {
     await loginAsRegulateur(page);
     await page.goto('/courses');
-    await expect(
-      page.getByRole('heading', { name: 'Courses', level: 1 }),
-    ).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Courses', level: 1 })).toBeVisible({
+      timeout: 5000,
+    });
   });
 
   test('F1 — Modal saisie course max-width respecté', async ({ page }) => {
@@ -67,18 +67,14 @@ test.describe('Hotfix 04.7-bis — Courses modal/filter/pagination', () => {
     }
   });
 
-  test('F2 — Filtre date présent + valeur aujourd\'hui par défaut', async ({
-    page,
-  }) => {
+  test("F2 — Filtre date présent + valeur aujourd'hui par défaut", async ({ page }) => {
     const dateInput = page.getByLabel('Filtre date des courses');
     await expect(dateInput).toBeVisible({ timeout: 5000 });
     const today = new Date().toISOString().slice(0, 10);
     await expect(dateInput).toHaveValue(today);
   });
 
-  test('F2bis — Bouton Effacer date remet liste sans filtre', async ({
-    page,
-  }) => {
+  test('F2bis — Bouton Effacer date remet liste sans filtre', async ({ page }) => {
     const dateInput = page.getByLabel('Filtre date des courses');
     await expect(dateInput).toBeVisible({ timeout: 5000 });
     const clearBtn = page.getByRole('button', {
@@ -89,9 +85,7 @@ test.describe('Hotfix 04.7-bis — Courses modal/filter/pagination', () => {
     await expect(dateInput).toHaveValue('');
   });
 
-  test('F3 — Compteur « X courses affichées » visible si rides présentes', async ({
-    page,
-  }) => {
+  test('F3 — Compteur « X courses affichées » visible si rides présentes', async ({ page }) => {
     // Effacer date pour voir tout
     const clearBtn = page.getByRole('button', {
       name: 'Effacer le filtre date',

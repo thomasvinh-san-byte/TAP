@@ -32,10 +32,7 @@ export default async function AcceptInvitePage({
   searchParams: { error?: string };
 }) {
   // Erreur transmise par Route Handler (token invalide ou expiré)
-  if (
-    searchParams.error === 'expired' ||
-    searchParams.error === 'invalid_link'
-  ) {
+  if (searchParams.error === 'expired' || searchParams.error === 'invalid_link') {
     return (
       <AuthShell title="Activer mon compte">
         <InvitationErrorPanel

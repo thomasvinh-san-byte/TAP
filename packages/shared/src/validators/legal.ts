@@ -43,21 +43,12 @@ export const dataProcessingRegisterSchema = z.object({
     .min(1, { message: 'Mesures de sécurité requises.' })
     .max(2000),
   international_transfer: z.boolean(),
-  international_transfer_safeguards: z
-    .string()
-    .trim()
-    .max(2000)
-    .optional()
-    .nullable(),
+  international_transfer_safeguards: z.string().trim().max(2000).optional().nullable(),
 });
 
 // ─── dpa_record (D-06) ──────────────────────────────────────────────────
 export const dpaRecordSchema = z.object({
-  subprocessor_name: z
-    .string()
-    .trim()
-    .min(1, { message: 'Nom du sous-traitant requis.' })
-    .max(200),
+  subprocessor_name: z.string().trim().min(1, { message: 'Nom du sous-traitant requis.' }).max(200),
   subprocessor_role: z.string().trim().min(1).max(100),
   dpa_version: z.string().trim().min(1).max(100),
   dpa_document_url: z.string().url({ message: 'URL invalide.' }).optional().nullable(),
@@ -84,9 +75,7 @@ export const dpiaSchema = z
         }),
       )
       .default([]),
-    mitigations: z
-      .array(z.object({ risk_id: z.string(), measure: z.string() }))
-      .default([]),
+    mitigations: z.array(z.object({ risk_id: z.string(), measure: z.string() })).default([]),
     residual_risk_level: dpiaResidualRiskEnum,
     cnil_consultation_required: z.boolean(),
     cnil_consultation_date: z.coerce.date().optional().nullable(),
@@ -101,11 +90,7 @@ export const dpiaSchema = z
 
 // ─── data_breach_incident (D-08) ────────────────────────────────────────
 export const breachSeverityEnum = z.enum(['faible', 'moyen', 'eleve', 'critique']);
-export const breachNatureEnum = z.enum([
-  'confidentialite',
-  'integrite',
-  'disponibilite',
-]);
+export const breachNatureEnum = z.enum(['confidentialite', 'integrite', 'disponibilite']);
 
 export const breachIncidentSchema = z.object({
   detected_at: z.coerce.date(),
@@ -113,11 +98,7 @@ export const breachIncidentSchema = z.object({
   nature: breachNatureEnum,
   affected_data_categories: z.array(z.string().trim().min(1)).min(1),
   affected_subjects_count: z.number().int().min(0).optional().nullable(),
-  description: z
-    .string()
-    .trim()
-    .min(1, { message: 'Description requise.' })
-    .max(5000),
+  description: z.string().trim().min(1, { message: 'Description requise.' }).max(5000),
   immediate_measures: z
     .string()
     .trim()
@@ -156,11 +137,7 @@ export const dataRequestSchema = z.object({
 
 // ─── DPO contact (D-15) ─────────────────────────────────────────────────
 export const dpoContactSchema = z.object({
-  dpo_contact_email: z
-    .string()
-    .email({ message: 'Email DPO invalide.' })
-    .optional()
-    .nullable(),
+  dpo_contact_email: z.string().email({ message: 'Email DPO invalide.' }).optional().nullable(),
   dpo_contact_phone: z.string().trim().max(40).optional().nullable(),
   dpo_contact_address: z.string().trim().max(500).optional().nullable(),
   dpo_external: z.boolean().default(false),

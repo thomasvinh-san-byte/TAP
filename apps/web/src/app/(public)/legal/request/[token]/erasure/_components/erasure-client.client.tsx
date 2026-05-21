@@ -19,24 +19,18 @@ interface Props {
  */
 export function ErasureClient({ token }: Props) {
   const [confirming, setConfirming] = useState(false);
-  const [result, setResult] = useState<{ ok?: true; error?: string } | null>(
-    null,
-  );
+  const [result, setResult] = useState<{ ok?: true; error?: string } | null>(null);
   const [pending, startTransition] = useTransition();
 
   if (result?.ok) {
     return (
       <div className="space-y-16">
-        <h2 className="text-xl font-semibold tracking-tight">
-          Effacement effectué
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Vos données identifiantes ont été anonymisées de manière
-          irréversible. Conformément à la durée légale CGSS (5 ans, CSS
-          L114-19), les courses passées sont conservées sans lien
-          identitaire pour des raisons comptables. En cas de désaccord,
-          vous pouvez saisir la Commission Nationale de l&apos;Informatique
-          et des Libertés (cnil.fr).
+        <h2 className="text-xl font-semibold tracking-tight">Effacement effectué</h2>
+        <p className="text-muted-foreground text-sm">
+          Vos données identifiantes ont été anonymisées de manière irréversible. Conformément à la
+          durée légale CGSS (5 ans, CSS L114-19), les courses passées sont conservées sans lien
+          identitaire pour des raisons comptables. En cas de désaccord, vous pouvez saisir la
+          Commission Nationale de l&apos;Informatique et des Libertés (cnil.fr).
         </p>
       </div>
     );
@@ -44,7 +38,7 @@ export function ErasureClient({ token }: Props) {
 
   if (result?.error) {
     return (
-      <p role="alert" className="text-sm text-destructive">
+      <p role="alert" className="text-destructive text-sm">
         {result.error}
       </p>
     );
@@ -71,15 +65,12 @@ export function ErasureClient({ token }: Props) {
   }
 
   return (
-    <div className="space-y-16 rounded-md border border-destructive/40 bg-destructive/5 p-24">
-      <h2 className="text-xl font-semibold tracking-tight">
-        Confirmer l&apos;anonymisation
-      </h2>
-      <p className="text-sm text-muted-foreground">
-        L&apos;effacement de vos données identifiantes est irréversible.
-        Cette action ne peut pas être annulée. Vos courses passées
-        resteront conservées sous forme anonymisée pour respecter la durée
-        légale CGSS de 5 ans (CSS L114-19).
+    <div className="border-destructive/40 bg-destructive/5 space-y-16 rounded-md border p-24">
+      <h2 className="text-xl font-semibold tracking-tight">Confirmer l&apos;anonymisation</h2>
+      <p className="text-muted-foreground text-sm">
+        L&apos;effacement de vos données identifiantes est irréversible. Cette action ne peut pas
+        être annulée. Vos courses passées resteront conservées sous forme anonymisée pour respecter
+        la durée légale CGSS de 5 ans (CSS L114-19).
       </p>
       <div className="flex gap-12">
         <Button

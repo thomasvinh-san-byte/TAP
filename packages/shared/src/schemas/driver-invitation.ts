@@ -23,9 +23,7 @@ export const driverInvitationSchema = z.object({
     .toLowerCase()
     .email({ message: 'Adresse e-mail invalide.' })
     .max(254, { message: 'Adresse e-mail trop longue.' }),
-  driverId: z
-    .string()
-    .uuid({ message: 'Identifiant chauffeur invalide.' }),
+  driverId: z.string().uuid({ message: 'Identifiant chauffeur invalide.' }),
 });
 export type DriverInvitationInput = z.infer<typeof driverInvitationSchema>;
 

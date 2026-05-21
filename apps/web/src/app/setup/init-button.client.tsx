@@ -26,7 +26,7 @@ export function InitButton() {
         type="button"
         onClick={handleClick}
         disabled={pending || result?.ok === true}
-        className="w-full h-48 px-24 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="bg-primary text-primary-foreground hover:bg-primary/90 h-48 w-full rounded-md px-24 font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
       >
         {pending
           ? 'Initialisation en cours…'
@@ -36,20 +36,16 @@ export function InitButton() {
       </button>
 
       {result?.ok === true && (
-        <div className="rounded-md border border-emerald-500/40 bg-emerald-500/5 p-12 text-sm space-y-4">
-          <p className="font-medium text-foreground">{result.message}</p>
-          <p className="text-muted-foreground text-xs">
-            Redirection vers la page de connexion…
-          </p>
+        <div className="space-y-4 rounded-md border border-emerald-500/40 bg-emerald-500/5 p-12 text-sm">
+          <p className="text-foreground font-medium">{result.message}</p>
+          <p className="text-muted-foreground text-xs">Redirection vers la page de connexion…</p>
         </div>
       )}
 
       {result?.ok === false && (
-        <div className="rounded-md border border-destructive/40 bg-destructive/5 p-12 text-sm space-y-4">
-          <p className="font-medium text-foreground">Erreur</p>
-          <p className="text-muted-foreground text-xs font-mono break-all">
-            {result.error}
-          </p>
+        <div className="border-destructive/40 bg-destructive/5 space-y-4 rounded-md border p-12 text-sm">
+          <p className="text-foreground font-medium">Erreur</p>
+          <p className="text-muted-foreground break-all font-mono text-xs">{result.error}</p>
         </div>
       )}
     </div>

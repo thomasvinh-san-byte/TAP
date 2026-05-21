@@ -34,13 +34,12 @@ export function CguAcceptanceBanner({ currentVersion, acceptedVersion }: Props) 
   return (
     <div
       role="status"
-      className="rounded-lg border border-info bg-info/5 p-16 flex items-center justify-between gap-16"
+      className="border-info bg-info/5 flex items-center justify-between gap-16 rounded-lg border p-16"
     >
       <div className="flex-1">
         <p className="font-medium">Nos CGU ont été mises à jour</p>
-        <p className="text-sm text-muted-foreground mt-4">
-          Version {currentVersion} : merci de prendre connaissance des nouvelles
-          conditions.
+        <p className="text-muted-foreground mt-4 text-sm">
+          Version {currentVersion} : merci de prendre connaissance des nouvelles conditions.
         </p>
       </div>
       <div className="flex gap-8">

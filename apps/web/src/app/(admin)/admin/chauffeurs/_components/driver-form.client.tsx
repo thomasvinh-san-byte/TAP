@@ -2,19 +2,12 @@
 
 import * as React from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import {
-  TYPE_PERMIS_VALUES,
-  type TypePermis,
-} from '@tap/shared';
+import { TYPE_PERMIS_VALUES, type TypePermis } from '@tap/shared';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import {
-  type ActionState,
-  createDriverAction,
-  updateDriverAction,
-} from '../actions';
+import { type ActionState, createDriverAction, updateDriverAction } from '../actions';
 import type { DriverRow } from '../page';
 
 const TYPE_PERMIS_LABELS: Record<TypePermis, string> = {
@@ -40,13 +33,8 @@ interface Props {
  * pattern de courses/edit + ride-express-modal).
  */
 export function DriverForm({ initial, onSuccess }: Props): JSX.Element {
-  const action = initial
-    ? updateDriverAction.bind(null, initial.id)
-    : createDriverAction;
-  const [state, formAction] = useFormState<ActionState, FormData>(
-    action,
-    {},
-  );
+  const action = initial ? updateDriverAction.bind(null, initial.id) : createDriverAction;
+  const [state, formAction] = useFormState<ActionState, FormData>(action, {});
 
   const previouslyOk = React.useRef(false);
   React.useEffect(() => {
@@ -90,7 +78,7 @@ export function DriverForm({ initial, onSuccess }: Props): JSX.Element {
           {TYPE_PERMIS_VALUES.map((v) => (
             <label
               key={v}
-              className="flex items-center gap-8 rounded-md border border-input px-12 py-8 text-sm cursor-pointer hover:bg-muted"
+              className="border-input hover:bg-muted flex cursor-pointer items-center gap-8 rounded-md border px-12 py-8 text-sm"
             >
               <input
                 type="checkbox"
@@ -105,7 +93,7 @@ export function DriverForm({ initial, onSuccess }: Props): JSX.Element {
         </div>
       </fieldset>
 
-      <label className="flex items-center gap-8 rounded-md border border-input px-12 py-8 text-sm cursor-pointer hover:bg-muted">
+      <label className="border-input hover:bg-muted flex cursor-pointer items-center gap-8 rounded-md border px-12 py-8 text-sm">
         <input
           type="checkbox"
           name="actif"
@@ -116,7 +104,7 @@ export function DriverForm({ initial, onSuccess }: Props): JSX.Element {
       </label>
 
       {state.error && !state.fieldErrors && (
-        <p className="text-sm text-destructive" role="alert">
+        <p className="text-destructive text-sm" role="alert">
           {state.error}
         </p>
       )}
@@ -148,7 +136,7 @@ function Field({
         {...rest}
       />
       {error && (
-        <p className="text-xs text-destructive" role="alert">
+        <p className="text-destructive text-xs" role="alert">
           {error}
         </p>
       )}

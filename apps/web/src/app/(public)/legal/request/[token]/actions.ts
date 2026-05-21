@@ -63,11 +63,7 @@ async function loadRequest(
   const cols = withType
     ? 'id, patient_id, request_type, organization_id, status'
     : 'id, patient_id, organization_id, status';
-  const { data } = await sb
-    .from('patient_data_request')
-    .select(cols)
-    .eq('id', requestId)
-    .single();
+  const { data } = await sb.from('patient_data_request').select(cols).eq('id', requestId).single();
   return (data as DataRequestRow | null) ?? null;
 }
 
@@ -90,10 +86,7 @@ export async function verifyIdentityAction(
     }
     const sb = createAdminClient();
     const request = await loadRequest(sb, claims.sub, true);
-    if (
-      !request ||
-      (request.status !== 'recue' && request.status !== 'en_cours')
-    ) {
+    if (!request || (request.status !== 'recue' && request.status !== 'en_cours')) {
       return { error: 'Identité non vérifiée.' };
     }
     const searchHash = computeNirSearchHash(parsed.data.nir);
@@ -103,9 +96,7 @@ export async function verifyIdentityAction(
         p_request_id: request.id,
         p_nir_search_hash: `\\x${searchHash.toString('hex')}`,
         p_nom: parsed.data.nom,
-        p_date_naissance: parsed.data.date_naissance
-          .toISOString()
-          .slice(0, 10),
+        p_date_naissance: parsed.data.date_naissance.toISOString().slice(0, 10),
       },
     );
     if (matchError || !matchedId) {
@@ -160,9 +151,7 @@ export async function fulfillAccessAction(
   }
 }
 
-export async function fulfillErasureAction(
-  token: string,
-): Promise<{ ok?: true; error?: string }> {
+export async function fulfillErasureAction(token: string): Promise<{ ok?: true; error?: string }> {
   try {
     const claims = await verifyRequestToken(token);
     const sb = createAdminClient();
@@ -179,8 +168,7 @@ export async function fulfillErasureAction(
       .update({
         status: 'satisfaite',
         response_at: new Date().toISOString(),
-        response:
-          'Anonymisation effectuée. Les courses sont conservées 5 ans (CSS L114-19).',
+        response: 'Anonymisation effectuée. Les courses sont conservées 5 ans (CSS L114-19).',
       })
       .eq('id', request.id);
     return { ok: true };

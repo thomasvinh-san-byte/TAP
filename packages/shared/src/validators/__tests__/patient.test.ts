@@ -32,15 +32,11 @@ describe('patientSchema — cas existants (cas 1-5)', () => {
   });
 
   it('2. refuse un prénom vide', () => {
-    expect(() =>
-      patientSchema.parse({ ...baseValide, prenom: '' }),
-    ).toThrow();
+    expect(() => patientSchema.parse({ ...baseValide, prenom: '' })).toThrow();
   });
 
   it('3. refuse une date_naissance au mauvais format', () => {
-    expect(() =>
-      patientSchema.parse({ ...baseValide, date_naissance: '23/01/1980' }),
-    ).toThrow();
+    expect(() => patientSchema.parse({ ...baseValide, date_naissance: '23/01/1980' })).toThrow();
   });
 
   it('4. NIR optionnel — accepté absent', () => {

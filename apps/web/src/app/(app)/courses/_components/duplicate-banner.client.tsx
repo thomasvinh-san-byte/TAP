@@ -25,12 +25,12 @@ export function DuplicateBanner(props: DuplicateBannerProps): JSX.Element | null
     <div
       role="alert"
       aria-live="polite"
-      className="rounded-md border border-amber-500/50 bg-amber-50 dark:bg-amber-950/30 px-16 py-12 space-y-8"
+      className="space-y-8 rounded-md border border-amber-500/50 bg-amber-50 px-16 py-12 dark:bg-amber-950/30"
     >
       <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
         Course en doublon détectée
       </p>
-      <ul className="text-sm text-amber-900/80 dark:text-amber-100/80 space-y-4">
+      <ul className="space-y-4 text-sm text-amber-900/80 dark:text-amber-100/80">
         {props.duplicates.slice(0, 3).map((d) => (
           <li key={d.id}>
             {formatHourFR(d.scheduled_at)} — {STATUS_LABELS_FR[d.status] ?? d.status}
@@ -38,7 +38,7 @@ export function DuplicateBanner(props: DuplicateBannerProps): JSX.Element | null
         ))}
       </ul>
       {/* `pt-4` = 16 px Tailwind default, conforme scale 4/8/12/16/24/32/48/64. */}
-      <div className="flex gap-8 justify-end pt-4">
+      <div className="flex justify-end gap-8 pt-4">
         <Button
           type="button"
           variant="outline"

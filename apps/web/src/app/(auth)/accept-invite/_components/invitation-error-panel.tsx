@@ -12,16 +12,13 @@ export function InvitationErrorPanel({ message }: { message: string }) {
   return (
     <div
       role="alert"
-      className="flex flex-col items-start gap-16 p-24 bg-muted/40 rounded-md border border-border"
+      className="bg-muted/40 border-border flex flex-col items-start gap-16 rounded-md border p-24"
     >
-      <AlertCircle
-        className="h-8 w-8 text-destructive"
-        aria-hidden="true"
-      />
-      <p className="text-base text-foreground">{message}</p>
-      <p className="text-sm text-muted-foreground">
-        Aucune action à effectuer ici. Contactez votre régulateur pour obtenir
-        un nouveau lien d&apos;invitation.
+      <AlertCircle className="text-destructive h-8 w-8" aria-hidden="true" />
+      <p className="text-foreground text-base">{message}</p>
+      <p className="text-muted-foreground text-sm">
+        Aucune action à effectuer ici. Contactez votre régulateur pour obtenir un nouveau lien
+        d&apos;invitation.
       </p>
     </div>
   );

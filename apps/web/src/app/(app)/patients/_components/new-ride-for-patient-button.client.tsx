@@ -16,11 +16,7 @@ import { useRideOrchestrator } from '../../courses/_components/ride-orchestrator
  * `initialPatientId` (pattern Radix Dialog au-dessus de Sheet : focus
  * trap empilé, Esc ferme la modal en premier).
  */
-export function NewRideForPatientButton({
-  patientId,
-}: {
-  patientId: string;
-}): JSX.Element {
+export function NewRideForPatientButton({ patientId }: { patientId: string }): JSX.Element {
   const { dispatch } = useRideOrchestrator();
   return (
     <Button

@@ -1,12 +1,5 @@
 import * as React from 'react';
-import {
-  Activity,
-  CheckCircle2,
-  Edit3,
-  Plus,
-  Trash2,
-  type LucideIcon,
-} from 'lucide-react';
+import { Activity, CheckCircle2, Edit3, Plus, Trash2, type LucideIcon } from 'lucide-react';
 import { formatRelativeFr } from '@/lib/dates-fr';
 import type { RideAuditEntry } from '../_lib/queries';
 
@@ -51,44 +44,35 @@ function describeUpdate(entry: RideAuditEntry): string {
   return 'Course modifiée';
 }
 
-export function RideAuditTimeline({
-  entries,
-}: {
-  entries: RideAuditEntry[];
-}): JSX.Element {
+export function RideAuditTimeline({ entries }: { entries: RideAuditEntry[] }): JSX.Element {
   if (entries.length === 0) {
-    return (
-      <p className="text-sm text-muted-foreground">
-        Pas encore d'historique.
-      </p>
-    );
+    return <p className="text-muted-foreground text-sm">Pas encore d'historique.</p>;
   }
   return (
     <ol className="relative space-y-12" aria-label="Historique de la course">
       {entries.map((entry, idx) => {
         const Icon =
-          ACTION_ICON[entry.action] ??
-          (entry.action.includes('payment') ? CheckCircle2 : Activity);
+          ACTION_ICON[entry.action] ?? (entry.action.includes('payment') ? CheckCircle2 : Activity);
         const label =
           entry.action === 'ride.update'
             ? describeUpdate(entry)
-            : ACTION_LABEL[entry.action] ?? entry.action;
+            : (ACTION_LABEL[entry.action] ?? entry.action);
         return (
           <li key={entry.id} className="flex gap-12">
             <div className="relative shrink-0">
-              <div className="flex h-24 w-24 items-center justify-center rounded-full border border-border bg-background">
-                <Icon className="h-12 w-12 text-muted-foreground" aria-hidden />
+              <div className="border-border bg-background flex h-24 w-24 items-center justify-center rounded-full border">
+                <Icon className="text-muted-foreground h-12 w-12" aria-hidden />
               </div>
               {idx < entries.length - 1 && (
                 <span
                   aria-hidden
-                  className="absolute left-1/2 top-24 h-12 w-[1px] -translate-x-1/2 bg-border"
+                  className="bg-border absolute left-1/2 top-24 h-12 w-[1px] -translate-x-1/2"
                 />
               )}
             </div>
-            <div className="flex-1 min-w-0 flex flex-col gap-4 pb-8">
-              <span className="text-sm text-foreground">{label}</span>
-              <span className="text-xs text-muted-foreground tabular-nums">
+            <div className="flex min-w-0 flex-1 flex-col gap-4 pb-8">
+              <span className="text-foreground text-sm">{label}</span>
+              <span className="text-muted-foreground text-xs tabular-nums">
                 {formatRelativeFr(entry.created_at)}
                 {entry.actor_role ? ` · ${entry.actor_role}` : ''}
               </span>

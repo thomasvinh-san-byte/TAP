@@ -19,16 +19,9 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import {
-  patientSchema,
-  normalizePhone,
-  replacePatientNote,
-} from '@tap/shared';
+import { patientSchema, normalizePhone, replacePatientNote } from '@tap/shared';
 import { createClient } from '@/lib/supabase/server';
-import {
-  encryptAndHashNir,
-  decryptNir as decryptNirEdge,
-} from '@/lib/nir-client';
+import { encryptAndHashNir, decryptNir as decryptNirEdge } from '@/lib/nir-client';
 import { searchPatients, getPatientById } from '../queries';
 
 export type ActionState = { error?: string; success?: boolean };
@@ -54,8 +47,7 @@ function parsePatientForm(formData: FormData) {
     },
     canal_contact_prefere: raw.canal_contact_prefere || 'appel',
     consentement_sms: raw.consentement_sms === 'on',
-    consentement_sms_at:
-      raw.consentement_sms === 'on' ? new Date().toISOString() : undefined,
+    consentement_sms_at: raw.consentement_sms === 'on' ? new Date().toISOString() : undefined,
     notes_operationnelles: raw.notes_operationnelles?.trim() || undefined,
     archive: false,
   });
@@ -108,7 +100,7 @@ export async function createPatientAction(
       console.error('[patient] NIR encryption failed (V1.5 deferred Phase 06):', err);
       return {
         error:
-          "Chiffrement NIR temporairement indisponible. Vous pouvez créer le patient sans NIR pour la démo, ou réessayer plus tard.",
+          'Chiffrement NIR temporairement indisponible. Vous pouvez créer le patient sans NIR pour la démo, ou réessayer plus tard.',
       };
     }
   }
@@ -122,9 +114,7 @@ export async function createPatientAction(
       date_naissance: data.date_naissance,
       genre: data.genre ?? null,
       telephone: data.telephone ?? null,
-      telephone_normalized: data.telephone
-        ? normalizePhone(data.telephone)
-        : null,
+      telephone_normalized: data.telephone ? normalizePhone(data.telephone) : null,
       adresse_ligne1: data.adresse.ligne1,
       adresse_ligne2: data.adresse.ligne2 ?? null,
       code_postal: data.adresse.code_postal,
@@ -147,8 +137,7 @@ export async function createPatientAction(
   const insertedRow = row as { id: string } | null;
   if (error || !insertedRow) {
     return {
-      error:
-        'Création impossible (un patient avec ce NIR existe peut-être déjà).',
+      error: 'Création impossible (un patient avec ce NIR existe peut-être déjà).',
     };
   }
 
@@ -194,9 +183,7 @@ export async function updatePatientAction(
     date_naissance: data.date_naissance,
     genre: data.genre ?? null,
     telephone: data.telephone ?? null,
-    telephone_normalized: data.telephone
-      ? normalizePhone(data.telephone)
-      : null,
+    telephone_normalized: data.telephone ? normalizePhone(data.telephone) : null,
     adresse_ligne1: data.adresse.ligne1,
     adresse_ligne2: data.adresse.ligne2 ?? null,
     code_postal: data.adresse.code_postal,
@@ -220,7 +207,7 @@ export async function updatePatientAction(
       console.error('[patient] NIR encryption failed (V1.5 deferred Phase 06):', err);
       return {
         error:
-          "Chiffrement NIR temporairement indisponible. Vous pouvez enregistrer le patient sans modifier le NIR, ou réessayer plus tard.",
+          'Chiffrement NIR temporairement indisponible. Vous pouvez enregistrer le patient sans modifier le NIR, ou réessayer plus tard.',
       };
     }
   }
@@ -234,12 +221,7 @@ export async function updatePatientAction(
   // Note opérationnelle (B-1, pattern replaced_by_id D-18).
   if (typeof data.notes_operationnelles === 'string') {
     try {
-      await replacePatientNote(
-        supabase as never,
-        id,
-        data.notes_operationnelles,
-        user.id,
-      );
+      await replacePatientNote(supabase as never, id, data.notes_operationnelles, user.id);
     } catch {
       return { error: 'Note opérationnelle non enregistrée.' };
     }
@@ -297,10 +279,7 @@ export async function decryptNirAction(
 // QUERY WRAPPERS (callable depuis Client Components via Server Actions)
 // --------------------------------------------------------------------------
 
-export async function searchPatientsAction(
-  q: string,
-  scope: 'active' | 'archived' = 'active',
-) {
+export async function searchPatientsAction(q: string, scope: 'active' | 'archived' = 'active') {
   return searchPatients(q, scope);
 }
 

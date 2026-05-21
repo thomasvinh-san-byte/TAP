@@ -33,8 +33,7 @@ export async function overrideRideTarifAction(
   if (!parsed.success) return { error: 'Saisie invalide.' };
 
   const ctx = await requireAdminOrRegulateur();
-  if (!ctx)
-    return { error: 'Action réservée au régulateur ou dirigeant.' };
+  if (!ctx) return { error: 'Action réservée au régulateur ou dirigeant.' };
 
   const supabase = createClient();
 
@@ -44,15 +43,12 @@ export async function overrideRideTarifAction(
     .select('tarif_amount_eur, tarif_source, organization_id')
     .eq('id', parsed.data.rideId)
     .single();
-  const beforeRow = beforeRes.data as
-    | {
-        tarif_amount_eur: number | null;
-        tarif_source: string | null;
-        organization_id: string;
-      }
-    | null;
-  if (beforeRes.error || !beforeRow)
-    return { error: 'Course introuvable.' };
+  const beforeRow = beforeRes.data as {
+    tarif_amount_eur: number | null;
+    tarif_source: string | null;
+    organization_id: string;
+  } | null;
+  if (beforeRes.error || !beforeRow) return { error: 'Course introuvable.' };
 
   // 2. UPDATE avec pattern DEC-041 row count check
   const updated = await supabase
@@ -64,8 +60,7 @@ export async function overrideRideTarifAction(
     } as never)
     .eq('id', parsed.data.rideId)
     .select('id');
-  if (updated.error)
-    return { error: 'Modification impossible.' };
+  if (updated.error) return { error: 'Modification impossible.' };
   if (!updated.data || updated.data.length === 0) {
     return { error: 'Modification refusée — droits insuffisants.' };
   }

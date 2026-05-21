@@ -1,8 +1,5 @@
 import { Calendar } from 'lucide-react';
-import {
-  listMyRidesUpcoming,
-  type RideForDriverWithBucket,
-} from './_lib/queries';
+import { listMyRidesUpcoming, type RideForDriverWithBucket } from './_lib/queries';
 import { RideCard } from './_components/ride-card.client';
 import { ActivationToast } from './_components/activation-toast.client';
 
@@ -28,13 +25,9 @@ export default async function ConduitePage() {
       <>
         <ActivationToast />
         <div className="flex flex-col items-center gap-12 py-48 text-center">
-          <Calendar
-            className="h-48 w-48 text-muted-foreground"
-            aria-hidden
-            strokeWidth={1.5}
-          />
+          <Calendar className="text-muted-foreground h-48 w-48" aria-hidden strokeWidth={1.5} />
           <h1 className="text-lg font-semibold">Aucune course planifiée</h1>
-          <p className="max-w-[320px] text-sm text-muted-foreground">
+          <p className="text-muted-foreground max-w-[320px] text-sm">
             Les courses à venir s&apos;afficheront ici.
           </p>
         </div>
@@ -51,32 +44,22 @@ export default async function ConduitePage() {
       <div className="space-y-24">
         <header className="flex items-baseline justify-between">
           <h1 className="text-2xl font-semibold tracking-tight">Ma journée</h1>
-          <span className="text-sm text-muted-foreground tabular-nums">
+          <span className="text-muted-foreground text-sm tabular-nums">
             {rides.length} course{rides.length > 1 ? 's' : ''}
           </span>
         </header>
 
-        {today.length > 0 && (
-          <RideCluster label="Aujourd'hui" rides={today} />
-        )}
-        {tomorrow.length > 0 && (
-          <RideCluster label="Demain" rides={tomorrow} />
-        )}
+        {today.length > 0 && <RideCluster label="Aujourd'hui" rides={today} />}
+        {tomorrow.length > 0 && <RideCluster label="Demain" rides={tomorrow} />}
       </div>
     </>
   );
 }
 
-function RideCluster({
-  label,
-  rides,
-}: {
-  label: string;
-  rides: RideForDriverWithBucket[];
-}) {
+function RideCluster({ label, rides }: { label: string; rides: RideForDriverWithBucket[] }) {
   return (
     <section className="space-y-12">
-      <h2 className="text-sm font-medium text-muted-foreground">{label}</h2>
+      <h2 className="text-muted-foreground text-sm font-medium">{label}</h2>
       <ul className="space-y-16" aria-label={`Courses ${label.toLowerCase()}`}>
         {rides.map((r) => (
           // Clé inclut `status` pour forcer le re-mount de RideCard et son

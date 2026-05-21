@@ -49,12 +49,9 @@ export function useInstallPrompt(): InstallPromptState {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const isStandaloneMatch = window.matchMedia(
-      '(display-mode: standalone)',
-    ).matches;
+    const isStandaloneMatch = window.matchMedia('(display-mode: standalone)').matches;
     const isIosStandalone =
-      (window.navigator as Navigator & { standalone?: boolean }).standalone ===
-      true;
+      (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
     if (isStandaloneMatch || isIosStandalone) {
       setState({ kind: 'standalone' });
       return;
@@ -65,9 +62,7 @@ export function useInstallPrompt(): InstallPromptState {
     const ua = window.navigator.userAgent;
     const isIos = /iPhone|iPad|iPod/.test(ua) && !('MSStream' in window);
     const isIosSafari =
-      isIos &&
-      (window.navigator as Navigator & { standalone?: boolean }).standalone ===
-        false;
+      isIos && (window.navigator as Navigator & { standalone?: boolean }).standalone === false;
     if (isIosSafari) {
       setState({ kind: 'ios-safari' });
       return;

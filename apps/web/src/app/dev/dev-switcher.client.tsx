@@ -60,7 +60,7 @@ function SubmitButton(): JSX.Element {
       variant="default"
       disabled={pending}
       aria-busy={pending}
-      className="w-full h-12 justify-center gap-8"
+      className="h-12 w-full justify-center gap-8"
     >
       <LogIn className="h-16 w-16" aria-hidden />
       <span>{pending ? 'Connexion…' : 'Ouvrir la session'}</span>
@@ -73,19 +73,13 @@ function AccountCard({ acc }: { acc: DemoAccount }): JSX.Element {
   return (
     <form
       action={formAction}
-      className="flex flex-col gap-12 rounded-md border border-border bg-background p-16 shadow-sm"
+      className="border-border bg-background flex flex-col gap-12 rounded-md border p-16 shadow-sm"
     >
       <div className="flex items-center gap-12">
-        <InitialsAvatar
-          name={acc.roleLabel}
-          role={acc.role}
-          size={48}
-        />
+        <InitialsAvatar name={acc.roleLabel} role={acc.role} size={48} />
         <div className="min-w-0">
           <p className="text-sm font-semibold leading-tight">{acc.roleLabel}</p>
-          <p className="truncate text-xs text-muted-foreground tabular-nums">
-            {acc.email}
-          </p>
+          <p className="text-muted-foreground truncate text-xs tabular-nums">{acc.email}</p>
         </div>
       </div>
       <input type="hidden" name="email" value={acc.email} />
@@ -93,11 +87,7 @@ function AccountCard({ acc }: { acc: DemoAccount }): JSX.Element {
       <input type="hidden" name="redirectTo" value={acc.redirectTo} />
       <SubmitButton />
       {state.error ? (
-        <p
-          role="alert"
-          aria-live="polite"
-          className="text-xs text-destructive"
-        >
+        <p role="alert" aria-live="polite" className="text-destructive text-xs">
           {state.error}
         </p>
       ) : null}

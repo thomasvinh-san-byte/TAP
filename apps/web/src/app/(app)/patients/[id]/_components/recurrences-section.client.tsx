@@ -57,7 +57,9 @@ export function RecurrencesSection({
   const [, startTransition] = useTransition();
 
   function handleArchive(recurrence: RideRecurrence): void {
-    if (!window.confirm('Archiver cette récurrence ? Les courses déjà générées seront préservées.')) {
+    if (
+      !window.confirm('Archiver cette récurrence ? Les courses déjà générées seront préservées.')
+    ) {
       return;
     }
     setArchiveError(null);
@@ -74,9 +76,7 @@ export function RecurrencesSection({
   return (
     <section className="space-y-12">
       <header className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold uppercase text-muted-foreground">
-          Récurrences
-        </h2>
+        <h2 className="text-muted-foreground text-sm font-semibold uppercase">Récurrences</h2>
         <Button size="sm" onClick={() => setCreateOpen(true)}>
           <Plus aria-hidden className="mr-8 h-16 w-16" />
           Nouvelle récurrence
@@ -84,20 +84,17 @@ export function RecurrencesSection({
       </header>
 
       {archiveError && (
-        <p role="alert" className="text-sm text-destructive">
+        <p role="alert" className="text-destructive text-sm">
           {archiveError}
         </p>
       )}
 
       {recurrences.length === 0 ? (
-        <div className="flex flex-col items-center rounded-lg border border-dashed border-border bg-muted/20 px-24 py-32 text-center">
-          <Calendar aria-hidden className="h-32 w-32 text-muted-foreground/60" />
-          <p className="mt-12 text-sm font-medium text-foreground">
-            Aucune récurrence active
-          </p>
-          <p className="mt-4 text-xs text-muted-foreground">
-            Crée une série de courses récurrentes pour ce patient (dialyse,
-            chimiothérapie…).
+        <div className="border-border bg-muted/20 flex flex-col items-center rounded-lg border border-dashed px-24 py-32 text-center">
+          <Calendar aria-hidden className="text-muted-foreground/60 h-32 w-32" />
+          <p className="text-foreground mt-12 text-sm font-medium">Aucune récurrence active</p>
+          <p className="text-muted-foreground mt-4 text-xs">
+            Crée une série de courses récurrentes pour ce patient (dialyse, chimiothérapie…).
           </p>
         </div>
       ) : (
@@ -106,23 +103,18 @@ export function RecurrencesSection({
             const futureCount = futureCounts[rec.id] ?? 0;
             const isPending = pendingId === rec.id;
             return (
-              <li
-                key={rec.id}
-                className="rounded-md border border-border bg-background p-12"
-              >
+              <li key={rec.id} className="border-border bg-background rounded-md border p-12">
                 <div className="flex items-center justify-between gap-16">
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium text-foreground">
-                      {humanizeRrule(rec.rrule_str)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-foreground font-medium">{humanizeRrule(rec.rrule_str)}</p>
+                    <p className="text-muted-foreground text-xs">
                       Depuis le {formatDateFr(rec.start_date)}
                       {rec.end_date ? ` jusqu'au ${formatDateFr(rec.end_date)}` : ''}
                       {' · '}
                       {MODE_LABEL[rec.transport_mode]}
                       {rec.urgency === 'prioritaire' ? ' · prioritaire' : ''}
                     </p>
-                    <p className="mt-4 truncate text-xs text-muted-foreground">
+                    <p className="text-muted-foreground mt-4 truncate text-xs">
                       {rec.pickup_address} → {rec.dropoff_address}
                     </p>
                   </div>
@@ -151,11 +143,7 @@ export function RecurrencesSection({
         </ul>
       )}
 
-      <RecurrenceCreateModal
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        patientId={patientId}
-      />
+      <RecurrenceCreateModal open={createOpen} onOpenChange={setCreateOpen} patientId={patientId} />
 
       {editing && (
         <RecurrenceEditModal

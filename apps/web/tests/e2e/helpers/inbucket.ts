@@ -63,9 +63,7 @@ export async function fetchLatestInviteUrl(
           body: { text: string; html: string };
         };
         const text = body.body.text ?? body.body.html ?? '';
-        const match = text.match(
-          /https?:\/\/[^\s)"<]+(?:accept-invite|verify)[^\s)"<]*/,
-        );
+        const match = text.match(/https?:\/\/[^\s)"<]+(?:accept-invite|verify)[^\s)"<]*/);
         if (match) return match[0];
       }
     }

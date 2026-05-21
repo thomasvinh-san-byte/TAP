@@ -21,9 +21,7 @@ export function CockpitContent({
 }): JSX.Element {
   const { rides, status, newRideIds } = useCockpitRides(initialRides);
   const { alerts } = useCockpitAlerts(initialAlerts);
-  const [dismissedNoShowIds, setDismissedNoShowIds] = useState<Set<string>>(
-    () => new Set(),
-  );
+  const [dismissedNoShowIds, setDismissedNoShowIds] = useState<Set<string>>(() => new Set());
 
   const recentNoShow = useMemo<CockpitAlert | null>(() => {
     const cutoff = Date.now() - NOSHOW_DETECTION_WINDOW_MS;
@@ -65,10 +63,7 @@ export function CockpitContent({
       next.add(recentNoShow.id);
       if (typeof window !== 'undefined') {
         try {
-          window.sessionStorage.setItem(
-            NOSHOW_DISMISSED_KEY,
-            JSON.stringify(Array.from(next)),
-          );
+          window.sessionStorage.setItem(NOSHOW_DISMISSED_KEY, JSON.stringify(Array.from(next)));
         } catch {
           // ignore
         }
@@ -83,7 +78,7 @@ export function CockpitContent({
         <header className="flex items-center justify-between gap-16">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Ma journée</h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               {rides.length} course{rides.length > 1 ? 's' : ''} planifiée
               {rides.length > 1 ? 's' : ''} aujourd&apos;hui
             </p>
@@ -92,12 +87,10 @@ export function CockpitContent({
         </header>
         <CoursesTable rides={rides} newRideIds={newRideIds} />
       </section>
-      <aside className="w-full shrink-0 lg:w-80 lg:border-l lg:border-border lg:pl-24">
+      <aside className="lg:border-border w-full shrink-0 lg:w-80 lg:border-l lg:pl-24">
         <AlertsPanel alerts={alerts} />
       </aside>
-      {recentNoShowRide && (
-        <NoShowAlertModal ride={recentNoShowRide} onClose={dismissNoShow} />
-      )}
+      {recentNoShowRide && <NoShowAlertModal ride={recentNoShowRide} onClose={dismissNoShow} />}
     </div>
   );
 }

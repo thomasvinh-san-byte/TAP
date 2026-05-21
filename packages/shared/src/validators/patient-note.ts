@@ -7,12 +7,6 @@ import { z } from 'zod';
  */
 export const patientOperationalNoteInputSchema = z.object({
   patient_id: z.string().uuid('Identifiant patient invalide'),
-  content: z
-    .string()
-    .trim()
-    .min(1, 'Contenu requis')
-    .max(500, 'Note limitée à 500 caractères'),
+  content: z.string().trim().min(1, 'Contenu requis').max(500, 'Note limitée à 500 caractères'),
 });
-export type PatientOperationalNoteInput = z.infer<
-  typeof patientOperationalNoteInputSchema
->;
+export type PatientOperationalNoteInput = z.infer<typeof patientOperationalNoteInputSchema>;

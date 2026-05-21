@@ -19,7 +19,7 @@ const DropdownMenuContent = React.forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        'z-[60] min-w-[8rem] overflow-hidden rounded-md border border-border bg-background p-4 text-foreground shadow-lg pointer-events-auto',
+        'border-border bg-background text-foreground pointer-events-auto z-[60] min-w-[8rem] overflow-hidden rounded-md border p-4 shadow-lg',
         'data-[state=open]:animate-in data-[state=closed]:animate-out',
         'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
         'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
@@ -59,11 +59,7 @@ const DropdownMenuLabel = React.forwardRef<
 >(({ className, inset, ...props }, ref) => (
   <DropdownMenuPrimitive.Label
     ref={ref}
-    className={cn(
-      'px-8 py-4 text-sm font-semibold',
-      inset && 'pl-32',
-      className,
-    )}
+    className={cn('px-8 py-4 text-sm font-semibold', inset && 'pl-32', className)}
     {...props}
   />
 ));
@@ -75,12 +71,11 @@ const DropdownMenuSeparator = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DropdownMenuPrimitive.Separator
     ref={ref}
-    className={cn('-mx-4 my-4 h-[1px] bg-muted', className)}
+    className={cn('bg-muted -mx-4 my-4 h-[1px]', className)}
     {...props}
   />
 ));
-DropdownMenuSeparator.displayName =
-  DropdownMenuPrimitive.Separator.displayName;
+DropdownMenuSeparator.displayName = DropdownMenuPrimitive.Separator.displayName;
 
 export {
   DropdownMenu,

@@ -5,7 +5,14 @@
   "manifest_override": true,
   "title": "Observations terrain",
   "summary": "Guide et template pour consigner les notes d'immersion auprès des design partners (sociétés TAP et taxiteurs conventionnés CGSS de La Réunion).",
-  "scope": ["observations terrain", "design partners", "immersion régulatrice", "immersion chauffeur", "template de note", "confidentialité données"],
+  "scope": [
+    "observations terrain",
+    "design partners",
+    "immersion régulatrice",
+    "immersion chauffeur",
+    "template de note",
+    "confidentialité données"
+  ],
   "cross_refs": [],
   "locked": false,
   "precedence": null,

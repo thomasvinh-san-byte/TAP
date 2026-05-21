@@ -37,11 +37,9 @@ function makeMock(results: MockResults) {
     builder.select = () => builder;
     builder.eq = () => builder;
     builder.single = async () => tableMap[table] ?? { data: null, error: null };
-    builder.maybeSingle = async () =>
-      tableMap[table] ?? { data: null, error: null };
-    builder.then = (
-      onFulfilled: (v: { data: unknown; error: unknown }) => unknown,
-    ) => Promise.resolve(tableMap[table] ?? { data: [], error: null }).then(onFulfilled);
+    builder.maybeSingle = async () => tableMap[table] ?? { data: null, error: null };
+    builder.then = (onFulfilled: (v: { data: unknown; error: unknown }) => unknown) =>
+      Promise.resolve(tableMap[table] ?? { data: [], error: null }).then(onFulfilled);
     return builder;
   };
 
@@ -70,9 +68,7 @@ describe('generatePatientDataExport', () => {
     const exportData = await generatePatientDataExport(supabase, 'pat-1');
     expect(exportData.format_version).toBe('1.0');
     expect(typeof exportData.exported_at).toBe('string');
-    expect(new Date(exportData.exported_at).toISOString()).toBe(
-      exportData.exported_at,
-    );
+    expect(new Date(exportData.exported_at).toISOString()).toBe(exportData.exported_at);
     expect((exportData.patient as { nir?: unknown }).nir ?? null).toBeNull();
   });
 
@@ -101,8 +97,8 @@ describe('generatePatientDataExport', () => {
       audits: { data: [], error: null },
     });
 
-    await expect(
-      generatePatientDataExport(supabase, 'inconnu'),
-    ).rejects.toThrow(/(introuvable|inconnu|trouvé)/i);
+    await expect(generatePatientDataExport(supabase, 'inconnu')).rejects.toThrow(
+      /(introuvable|inconnu|trouvé)/i,
+    );
   });
 });

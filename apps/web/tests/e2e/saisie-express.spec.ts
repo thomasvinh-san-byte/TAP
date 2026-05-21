@@ -35,10 +35,7 @@ const REG_DEMO_PASSWORD = 'demo1234!';
 const PATIENT_QUERY = 'Ho';
 const PATIENT_NAME_RE = /Ho\w*/i;
 
-const SHOWCASE_DIR = path.resolve(
-  __dirname,
-  '../../../../docs/showcase/02-saisie-express-course',
-);
+const SHOWCASE_DIR = path.resolve(__dirname, '../../../../docs/showcase/02-saisie-express-course');
 const CAPTURE_FLAG = process.env.PHASE_2_CAPTURES === '1';
 
 async function screenshotIfFlag(page: Page, fileName: string): Promise<void> {
@@ -104,12 +101,8 @@ test.describe('Saisie express course (SAIS-01..06)', () => {
     await page.getByLabel('Date et heure').fill('demain 14h');
     await page.getByLabel('Date et heure').blur();
 
-    await page
-      .getByLabel('Adresse de prise en charge')
-      .fill('12 rue Pasteur, Saint-Denis');
-    await page
-      .getByLabel('Adresse de destination')
-      .fill('CHU Bellepierre, Saint-Denis');
+    await page.getByLabel('Adresse de prise en charge').fill('12 rue Pasteur, Saint-Denis');
+    await page.getByLabel('Adresse de destination').fill('CHU Bellepierre, Saint-Denis');
 
     await screenshotIfFlag(page, '03-modal-rempli-pret-submit.png');
 
@@ -150,9 +143,7 @@ test.describe('Saisie express course (SAIS-01..06)', () => {
     await page.goto('/patients');
     await openModalShortcut(page);
     await selectFirstPatient(page);
-    await page
-      .getByLabel('Adresse de prise en charge')
-      .fill('12 rue Pasteur Test SAIS-04');
+    await page.getByLabel('Adresse de prise en charge').fill('12 rue Pasteur Test SAIS-04');
 
     // « Mettre en pause » minimise + flushSave → ride_draft persisté.
     await page.getByRole('button', { name: /Mettre en pause/i }).click();
@@ -161,11 +152,9 @@ test.describe('Saisie express course (SAIS-01..06)', () => {
     // DraftQueue badge ≥ 1 — laisser le refetchInterval/staleTime se rafraîchir.
     const draftButton = page.getByRole('button', { name: /^Brouillons \(/ });
     await expect(draftButton).toBeVisible();
-    await expect(draftButton).toHaveAttribute(
-      'aria-label',
-      /Brouillons \(([1-9]|\d{2,})\)/,
-      { timeout: 12_000 },
-    );
+    await expect(draftButton).toHaveAttribute('aria-label', /Brouillons \(([1-9]|\d{2,})\)/, {
+      timeout: 12_000,
+    });
     await draftButton.click();
     await screenshotIfFlag(page, '05-brouillons-dropdown-3-en-attente.png');
 
@@ -204,16 +193,12 @@ test.describe('Saisie express course (SAIS-01..06)', () => {
     // (les 2 minimisés A+B ont flushSave persisté ride_draft).
     const draftButton = page.getByRole('button', { name: /^Brouillons \(/ });
     await expect(draftButton).toBeVisible();
-    await expect(draftButton).toHaveAttribute(
-      'aria-label',
-      /Brouillons \(([2-9]|\d{2,})\)/,
-      { timeout: 15_000 },
-    );
+    await expect(draftButton).toHaveAttribute('aria-label', /Brouillons \(([2-9]|\d{2,})\)/, {
+      timeout: 15_000,
+    });
   });
 
-  test('SAIS-06 audit log ride.insert créé (preuve indirecte via /courses)', async ({
-    page,
-  }) => {
+  test('SAIS-06 audit log ride.insert créé (preuve indirecte via /courses)', async ({ page }) => {
     // Créer une course identifiable par une adresse unique.
     await page.goto('/patients');
     await openModalShortcut(page);
@@ -222,9 +207,7 @@ test.describe('Saisie express course (SAIS-01..06)', () => {
     await page.getByLabel('Date et heure').blur();
     const uniquePickup = `Audit Test Pickup ${Date.now()}`;
     await page.getByLabel('Adresse de prise en charge').fill(uniquePickup);
-    await page
-      .getByLabel('Adresse de destination')
-      .fill('Audit Test Dropoff CHU Bellepierre');
+    await page.getByLabel('Adresse de destination').fill('Audit Test Dropoff CHU Bellepierre');
     await page.getByRole('button', { name: /Créer la course/i }).click();
     await expect(page.getByText(/Course créée/i)).toBeVisible({
       timeout: 2000,

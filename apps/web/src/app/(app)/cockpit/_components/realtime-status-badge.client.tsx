@@ -15,7 +15,7 @@ export function RealtimeStatusBadge({ status }: { status: RealtimeStatus }): JSX
       <div
         role="status"
         aria-label={LABEL.reconnecting}
-        className="inline-flex items-center gap-8 rounded-full bg-amber-100 px-12 py-4 text-sm text-amber-900 cockpit-status-pulse"
+        className="cockpit-status-pulse inline-flex items-center gap-8 rounded-full bg-amber-100 px-12 py-4 text-sm text-amber-900"
       >
         <RefreshCw aria-hidden className="h-12 w-12" />
         <span>{LABEL.reconnecting}</span>
@@ -28,7 +28,7 @@ export function RealtimeStatusBadge({ status }: { status: RealtimeStatus }): JSX
       <div
         role="status"
         aria-label={LABEL.disconnected}
-        className="inline-flex items-center gap-8 rounded-full bg-destructive/10 px-12 py-4 text-sm text-destructive"
+        className="bg-destructive/10 text-destructive inline-flex items-center gap-8 rounded-full px-12 py-4 text-sm"
       >
         <WifiOff aria-hidden className="h-12 w-12" />
         <span>{LABEL.disconnected}</span>

@@ -87,9 +87,9 @@ export default async function ChauffeursPage({
     <div className="space-y-24">
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">Chauffeurs</h1>
-        <p className="text-sm text-muted-foreground">
-          Référentiel des chauffeurs de l&apos;organisation. Invitez le
-          chauffeur pour lui ouvrir l&apos;accès à l&apos;application.
+        <p className="text-muted-foreground text-sm">
+          Référentiel des chauffeurs de l&apos;organisation. Invitez le chauffeur pour lui ouvrir
+          l&apos;accès à l&apos;application.
         </p>
       </header>
       <DriversList

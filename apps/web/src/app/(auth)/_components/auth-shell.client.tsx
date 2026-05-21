@@ -24,17 +24,12 @@ interface AuthShellProps {
  * Padding échelle stricte 4/8/12/16/24/32/48/64 (NFR-003). Spec complète
  * UI-SPEC § 7.6.
  */
-export function AuthShell({
-  children,
-  title,
-  footerHint,
-  rightSlot,
-}: AuthShellProps) {
+export function AuthShell({ children, title, footerHint, rightSlot }: AuthShellProps) {
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row">
+    <div className="flex min-h-screen flex-col lg:flex-row">
       {/* Colonne identité (gauche desktop, header mobile) */}
       <aside
-        className="bg-muted flex-1 flex flex-col justify-between p-24 lg:p-48"
+        className="bg-muted flex flex-1 flex-col justify-between p-24 lg:p-48"
         aria-label="Identité produit"
       >
         <header className="h-14" /> {/* Header 56 px vide V1 */}
@@ -47,25 +42,25 @@ export function AuthShell({
             className="h-12 w-auto"
             priority
           />
-          <p className="text-base text-muted-foreground leading-[1.5] max-w-[440px]">
+          <p className="text-muted-foreground max-w-[440px] text-base leading-[1.5]">
             Régulation, optimisation, pilotage TAP/CGSS — 974
           </p>
         </div>
-        <footer className="text-xs text-muted-foreground">
+        <footer className="text-muted-foreground text-xs">
           SaaS de régulation TAP — Réunion 974
         </footer>
       </aside>
 
       {/* Colonne form (droite desktop, body mobile) */}
-      <section className="bg-background w-full lg:w-[480px] lg:flex-shrink-0 flex flex-col p-24 lg:p-32">
+      <section className="bg-background flex w-full flex-col p-24 lg:w-[480px] lg:flex-shrink-0 lg:p-32">
         <header className="h-14" /> {/* Header 56 px — toggle nuit Phase UI future */}
-        <div className="flex-1 flex flex-col justify-center">
-          <div className="w-full max-w-[400px] mx-auto space-y-24">
+        <div className="flex flex-1 flex-col justify-center">
+          <div className="mx-auto w-full max-w-[400px] space-y-24">
             <h1 className="text-[28px] font-semibold leading-[1.2]">{title}</h1>
             {children}
             {rightSlot ? <div className="pt-16">{rightSlot}</div> : null}
             {footerHint ? (
-              <p className="text-sm text-muted-foreground pt-16">{footerHint}</p>
+              <p className="text-muted-foreground pt-16 text-sm">{footerHint}</p>
             ) : null}
           </div>
         </div>

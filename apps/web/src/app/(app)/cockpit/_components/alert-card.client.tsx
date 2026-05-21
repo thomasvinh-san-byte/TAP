@@ -43,8 +43,8 @@ export function AlertCard({ alert }: { alert: CockpitAlert }): JSX.Element {
     >
       {iconFor(alert.event_type)}
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-foreground">{TITLES[alert.event_type]}</p>
-        <p className="mt-2 text-xs text-muted-foreground">{formatRelativeTime(alert.created_at)}</p>
+        <p className="text-foreground text-sm font-medium">{TITLES[alert.event_type]}</p>
+        <p className="text-muted-foreground mt-2 text-xs">{formatRelativeTime(alert.created_at)}</p>
       </div>
     </article>
   );

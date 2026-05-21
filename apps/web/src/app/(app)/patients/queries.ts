@@ -59,21 +59,14 @@ export async function searchPatients(
     // Hotfix 04.7-bis élargi : la RPC search_patients ne discrimine pas
     // par archive. On filtre en post-fetch côté JS pour cohérence rapide
     // (volume résultats < 50, négligeable).
-    const { data, error } = await supabase.rpc(
-      'search_patients',
-      { q: trimmed } as never,
-    );
+    const { data, error } = await supabase.rpc('search_patients', { q: trimmed } as never);
     if (error) throw new Error('Recherche impossible');
     const rows = (data ?? []) as PatientSafeRow[];
-    items = rows
-      .filter((r) => (r.archive ?? false) === wantArchived)
-      .map(toListItem);
+    items = rows.filter((r) => (r.archive ?? false) === wantArchived).map(toListItem);
   } else {
     const { data, error } = await supabase
       .from('patients_safe')
-      .select(
-        'id, nom, prenom, telephone, canal_contact_prefere, archive',
-      )
+      .select('id, nom, prenom, telephone, canal_contact_prefere, archive')
       .eq('archive', wantArchived)
       .order('nom', { ascending: true })
       .limit(20);
@@ -152,8 +145,8 @@ function toListItem(row: Partial<PatientSafeRow>): PatientListItem {
     nom: row.nom ?? '',
     prenom: row.prenom ?? '',
     telephone: row.telephone ?? null,
-    canal_contact_prefere:
-      (row.canal_contact_prefere ?? 'appel') as PatientListItem['canal_contact_prefere'],
+    canal_contact_prefere: (row.canal_contact_prefere ??
+      'appel') as PatientListItem['canal_contact_prefere'],
     archive: row.archive ?? false,
   };
 }

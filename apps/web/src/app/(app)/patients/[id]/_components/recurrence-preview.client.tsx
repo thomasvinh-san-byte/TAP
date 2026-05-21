@@ -70,15 +70,15 @@ export function RecurrencePreview({
 
   if (occurrences.length === 0 && skipped.length === 0) {
     return (
-      <div className="rounded-md border border-dashed border-border bg-muted/20 p-12 text-sm text-muted-foreground">
+      <div className="border-border bg-muted/20 text-muted-foreground rounded-md border border-dashed p-12 text-sm">
         Renseignez les jours et la date de début pour voir les occurrences.
       </div>
     );
   }
 
   return (
-    <div className="rounded-md border bg-muted/30 p-12">
-      <h4 className="mb-8 text-sm font-medium text-foreground">
+    <div className="bg-muted/30 rounded-md border p-12">
+      <h4 className="text-foreground mb-8 text-sm font-medium">
         Aperçu des 4 prochaines occurrences
       </h4>
       <ul className="space-y-2 text-sm">
@@ -93,7 +93,7 @@ export function RecurrencePreview({
         {skipped.map((occ) => (
           <li
             key={`skip-${occ.toISOString()}`}
-            className="tabular-nums text-muted-foreground line-through"
+            className="text-muted-foreground tabular-nums line-through"
           >
             <span aria-hidden className="mr-8">
               ⊘

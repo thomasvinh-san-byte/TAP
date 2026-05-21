@@ -23,13 +23,12 @@ export async function generatePatientDataExport(
   supabase: SupabaseClient<Database>,
   patientId: string,
 ): Promise<PatientDataExport> {
-  const [{ data: patient, error: e1 }, notesRes, constraintesRes, auditsRes] =
-    await Promise.all([
-      supabase.from('patients_safe').select('*').eq('id', patientId).single(),
-      supabase.from('patient_operational_note').select('*').eq('patient_id', patientId),
-      supabase.from('patient_constraint').select('*').eq('patient_id', patientId),
-      supabase.from('audit_logs').select('*').eq('entity_id', patientId),
-    ]);
+  const [{ data: patient, error: e1 }, notesRes, constraintesRes, auditsRes] = await Promise.all([
+    supabase.from('patients_safe').select('*').eq('id', patientId).single(),
+    supabase.from('patient_operational_note').select('*').eq('patient_id', patientId),
+    supabase.from('patient_constraint').select('*').eq('patient_id', patientId),
+    supabase.from('audit_logs').select('*').eq('entity_id', patientId),
+  ]);
   if (e1 || !patient) throw new Error('Patient introuvable.');
   return {
     format_version: '1.0',

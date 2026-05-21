@@ -144,9 +144,7 @@ export async function geocodeBanSearch(
 
   return json.features
     .filter((f) =>
-      postcodePrefix
-        ? f.properties.postcode?.startsWith(postcodePrefix) ?? false
-        : true,
+      postcodePrefix ? (f.properties.postcode?.startsWith(postcodePrefix) ?? false) : true,
     )
     .filter((f) => (f.properties.score ?? 0) >= minScore)
     .map((f) => ({

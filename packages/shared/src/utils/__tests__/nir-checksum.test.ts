@@ -9,10 +9,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import {
-  computeNirChecksum,
-  isNirChecksumValid,
-} from '../nir-checksum';
+import { computeNirChecksum, isNirChecksumValid } from '../nir-checksum';
 
 function pad2(n: number): string {
   return n.toString().padStart(2, '0');

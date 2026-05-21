@@ -31,17 +31,15 @@ export default async function TarifsPage(): Promise<JSX.Element> {
   return (
     <div className="space-y-24">
       <header className="space-y-8">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Grille tarifaire CGSS
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Convention-cadre nationale CNAM applicable 2026. Toute modification
-          crée une nouvelle version datée — l&apos;historique est conservé.
+        <h1 className="text-2xl font-semibold tracking-tight">Grille tarifaire CGSS</h1>
+        <p className="text-muted-foreground text-sm">
+          Convention-cadre nationale CNAM applicable 2026. Toute modification crée une nouvelle
+          version datée — l&apos;historique est conservé.
         </p>
       </header>
 
       {activeGrid === null ? (
-        <p className="rounded-md border border-dashed border-border bg-muted/20 p-16 text-sm text-muted-foreground">
+        <p className="border-border bg-muted/20 text-muted-foreground rounded-md border border-dashed p-16 text-sm">
           Aucune grille tarifaire configurée.
         </p>
       ) : (

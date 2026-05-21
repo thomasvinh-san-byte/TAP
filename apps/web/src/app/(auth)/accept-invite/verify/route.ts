@@ -31,9 +31,7 @@ export async function GET(request: Request) {
   const type = url.searchParams.get('type');
 
   if (!token_hash || type !== 'invite') {
-    return NextResponse.redirect(
-      `${url.origin}/accept-invite?error=invalid_link`,
-    );
+    return NextResponse.redirect(`${url.origin}/accept-invite?error=invalid_link`);
   }
 
   const supabase = createClient();
@@ -43,9 +41,7 @@ export async function GET(request: Request) {
     type: 'invite',
   });
   if (error) {
-    return NextResponse.redirect(
-      `${url.origin}/accept-invite?error=expired`,
-    );
+    return NextResponse.redirect(`${url.origin}/accept-invite?error=expired`);
   }
   return NextResponse.redirect(`${url.origin}/accept-invite`);
 }

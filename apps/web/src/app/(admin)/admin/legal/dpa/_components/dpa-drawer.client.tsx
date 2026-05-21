@@ -39,21 +39,31 @@ export function DpaDrawer({ open, onOpenChange }: Props) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="right"
-        className="w-[400px] sm:w-[400px] sm:max-w-[400px] overflow-y-auto"
+        className="w-[400px] overflow-y-auto sm:w-[400px] sm:max-w-[400px]"
       >
         <SheetHeader>
           <SheetTitle>Nouveau DPA sous-traitant</SheetTitle>
           <SheetDescription>Article 28 RGPD</SheetDescription>
         </SheetHeader>
 
-        <form action={onSubmit} className="space-y-16 mt-24">
+        <form action={onSubmit} className="mt-24 space-y-16">
           <div className="space-y-4">
             <Label htmlFor="subprocessor_name">Sous-traitant</Label>
-            <Input id="subprocessor_name" name="subprocessor_name" required placeholder="Supabase" />
+            <Input
+              id="subprocessor_name"
+              name="subprocessor_name"
+              required
+              placeholder="Supabase"
+            />
           </div>
           <div className="space-y-4">
             <Label htmlFor="subprocessor_role">Rôle</Label>
-            <Input id="subprocessor_role" name="subprocessor_role" required placeholder="hebergement" />
+            <Input
+              id="subprocessor_role"
+              name="subprocessor_role"
+              required
+              placeholder="hebergement"
+            />
           </div>
           <div className="space-y-4">
             <Label htmlFor="dpa_version">Version DPA</Label>
@@ -77,11 +87,11 @@ export function DpaDrawer({ open, onOpenChange }: Props) {
               id="notes"
               name="notes"
               rows={3}
-              className="flex w-full rounded-md border border-input bg-background px-12 py-8 text-sm"
+              className="border-input bg-background flex w-full rounded-md border px-12 py-8 text-sm"
             />
           </div>
 
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {error && <p className="text-destructive text-sm">{error}</p>}
 
           <div className="flex gap-8 pt-16">
             <Button

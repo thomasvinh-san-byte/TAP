@@ -14,17 +14,17 @@ export function CoursesTable({
 }): JSX.Element {
   if (rides.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-muted/20 px-24 py-48 text-center">
-        <CalendarPlus aria-hidden className="h-32 w-32 text-muted-foreground/60" />
-        <p className="mt-12 text-base font-medium text-foreground">
+      <div className="border-border bg-muted/20 flex flex-col items-center justify-center rounded-lg border border-dashed px-24 py-48 text-center">
+        <CalendarPlus aria-hidden className="text-muted-foreground/60 h-32 w-32" />
+        <p className="text-foreground mt-12 text-base font-medium">
           Aucune course aujourd&apos;hui
         </p>
-        <p className="mt-4 text-sm text-muted-foreground">
+        <p className="text-muted-foreground mt-4 text-sm">
           Les nouvelles courses apparaîtront ici en temps réel.
         </p>
         <Link
           href="/courses"
-          className="mt-16 inline-flex h-10 items-center rounded-md bg-primary px-16 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          className="bg-primary text-primary-foreground hover:bg-primary/90 mt-16 inline-flex h-10 items-center rounded-md px-16 text-sm font-medium"
         >
           Créer une course
         </Link>
@@ -33,10 +33,10 @@ export function CoursesTable({
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-border bg-background">
+    <div className="border-border bg-background overflow-x-auto rounded-lg border">
       <table className="w-full border-collapse">
         <thead className="bg-muted/40">
-          <tr className="h-10 border-b border-border text-xs uppercase tracking-wide text-muted-foreground">
+          <tr className="border-border text-muted-foreground h-10 border-b text-xs uppercase tracking-wide">
             <th className="px-12 text-left font-medium">Heure</th>
             <th className="px-12 text-left font-medium">Patient</th>
             <th className="px-12 text-left font-medium">Départ</th>

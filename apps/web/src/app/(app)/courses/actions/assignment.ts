@@ -48,10 +48,7 @@ export async function assignRideAction(
   if (!currentRow) return { error: 'Course introuvable.' };
   if (currentRow.status !== 'validee') {
     return {
-      error:
-        'Cette course n\'est plus assignable (statut : ' +
-        currentRow.status +
-        ').',
+      error: "Cette course n'est plus assignable (statut : " + currentRow.status + ').',
     };
   }
 
@@ -93,7 +90,7 @@ export async function unassignRideAction(rideId: string): Promise<ActionState> {
   if (currentRow.status !== 'assignee') {
     return {
       error:
-        'Désaffectation impossible : la course n\'est pas en statut affectée (statut : ' +
+        "Désaffectation impossible : la course n'est pas en statut affectée (statut : " +
         currentRow.status +
         ').',
     };

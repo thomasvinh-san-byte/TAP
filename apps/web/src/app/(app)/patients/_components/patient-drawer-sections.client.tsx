@@ -30,12 +30,10 @@ export interface DrawerPatientShape {
 export function IdentitySection({ d }: { d: DrawerPatientShape }) {
   return (
     <section className="mt-24 space-y-12">
-      <h3 className="text-sm font-semibold uppercase text-muted-foreground">
+      <h3 className="text-muted-foreground text-sm font-semibold uppercase">
         Identité administrative
       </h3>
-      {d.has_nir && (
-        <PatientNirDisplay patientId={d.id} maskedNir={maskNir(d.nir_last4)} />
-      )}
+      {d.has_nir && <PatientNirDisplay patientId={d.id} maskedNir={maskNir(d.nir_last4)} />}
       <p className="text-sm">
         Né(e) le {d.date_naissance}
         {d.genre ? ` — ${d.genre}` : ''}
@@ -47,9 +45,7 @@ export function IdentitySection({ d }: { d: DrawerPatientShape }) {
 export function CoordinatesSection({ d }: { d: DrawerPatientShape }) {
   return (
     <section className="mt-24 space-y-12">
-      <h3 className="text-sm font-semibold uppercase text-muted-foreground">
-        Coordonnées
-      </h3>
+      <h3 className="text-muted-foreground text-sm font-semibold uppercase">Coordonnées</h3>
       {d.telephone && (
         <p className="flex items-center gap-8 text-sm tabular-nums">
           <Phone className="h-16 w-16" aria-hidden />
@@ -77,9 +73,7 @@ export function CoordinatesSection({ d }: { d: DrawerPatientShape }) {
 export function PreferencesSection({ d }: { d: DrawerPatientShape }) {
   return (
     <section className="mt-24 space-y-8">
-      <h3 className="text-sm font-semibold uppercase text-muted-foreground">
-        Préférences
-      </h3>
+      <h3 className="text-muted-foreground text-sm font-semibold uppercase">Préférences</h3>
       <p className="flex items-center gap-8 text-sm">
         <MessageCircle className="h-16 w-16" aria-hidden />
         Canal préféré : <Badge variant="secondary">{d.canal_contact_prefere}</Badge>
@@ -98,9 +92,7 @@ export function ConstraintsSection({ d }: { d: DrawerPatientShape }) {
   const items = d.patient_constraint ?? [];
   return (
     <section className="mt-24 space-y-8">
-      <h3 className="text-sm font-semibold uppercase text-muted-foreground">
-        Contraintes
-      </h3>
+      <h3 className="text-muted-foreground text-sm font-semibold uppercase">Contraintes</h3>
       {items.length > 0 ? (
         <ul className="flex flex-wrap gap-8">
           {items.map((c) => (
@@ -113,7 +105,7 @@ export function ConstraintsSection({ d }: { d: DrawerPatientShape }) {
           ))}
         </ul>
       ) : (
-        <p className="text-sm text-muted-foreground">Aucune contrainte.</p>
+        <p className="text-muted-foreground text-sm">Aucune contrainte.</p>
       )}
     </section>
   );
@@ -123,13 +115,11 @@ export function NoteSection({ d }: { d: DrawerPatientShape }) {
   const note = d.patient_operational_note?.[0];
   return (
     <section className="mt-24 space-y-8">
-      <h3 className="text-sm font-semibold uppercase text-muted-foreground">
-        Note opérationnelle
-      </h3>
+      <h3 className="text-muted-foreground text-sm font-semibold uppercase">Note opérationnelle</h3>
       {note ? (
         <p className="whitespace-pre-line text-sm">{note.content}</p>
       ) : (
-        <p className="text-sm text-muted-foreground">Aucune note.</p>
+        <p className="text-muted-foreground text-sm">Aucune note.</p>
       )}
     </section>
   );

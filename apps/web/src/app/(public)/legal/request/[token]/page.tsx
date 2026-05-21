@@ -18,25 +18,20 @@ export const runtime = 'nodejs';
  * générique en français est affiché — jamais de stack trace ni de
  * détail technique (mitigation T-1.5-19, CLAUDE.md § 1).
  */
-export default async function RequestTokenPage({
-  params,
-}: {
-  params: { token: string };
-}) {
+export default async function RequestTokenPage({ params }: { params: { token: string } }) {
   try {
     await checkRateLimit(params.token);
     const claims = await verifyRequestToken(params.token);
     return (
       <div className="space-y-32">
         <header>
-          <h1 className="text-2xl font-semibold tracking-tight mb-12">
+          <h1 className="mb-12 text-2xl font-semibold tracking-tight">
             Vérification d&apos;identité
           </h1>
-          <p className="text-sm text-muted-foreground">
-            Pour exercer votre droit ({claims.type}) au titre du Règlement
-            Général sur la Protection des Données, nous devons vérifier
-            votre identité. Renseignez votre numéro de sécurité sociale
-            (NIR), votre nom et votre date de naissance.
+          <p className="text-muted-foreground text-sm">
+            Pour exercer votre droit ({claims.type}) au titre du Règlement Général sur la Protection
+            des Données, nous devons vérifier votre identité. Renseignez votre numéro de sécurité
+            sociale (NIR), votre nom et votre date de naissance.
           </p>
         </header>
         <IdentityForm
@@ -50,13 +45,10 @@ export default async function RequestTokenPage({
     const message = e instanceof Error ? e.message : 'Lien invalide ou expiré.';
     return (
       <div className="space-y-16">
-        <h1 className="text-2xl font-semibold tracking-tight mb-12">
-          Lien invalide ou expiré
-        </h1>
-        <p className="text-sm text-muted-foreground">{message}</p>
+        <h1 className="mb-12 text-2xl font-semibold tracking-tight">Lien invalide ou expiré</h1>
+        <p className="text-muted-foreground text-sm">{message}</p>
         <p className="text-sm">
-          Pour formuler une nouvelle demande, contactez le service client
-          de votre transporteur.
+          Pour formuler une nouvelle demande, contactez le service client de votre transporteur.
         </p>
       </div>
     );

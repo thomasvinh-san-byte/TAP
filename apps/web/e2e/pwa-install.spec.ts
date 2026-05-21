@@ -39,9 +39,7 @@ test.describe('PWA install assets', () => {
     expect(manifest.icons.length).toBeGreaterThanOrEqual(4);
 
     // Option A : maskable (Android) + any (iOS fallback + Android home)
-    const hasMaskable = manifest.icons.some((i) =>
-      i.purpose.includes('maskable'),
-    );
+    const hasMaskable = manifest.icons.some((i) => i.purpose.includes('maskable'));
     const hasAny = manifest.icons.some((i) => i.purpose.includes('any'));
     expect(hasMaskable).toBe(true);
     expect(hasAny).toBe(true);
@@ -51,21 +49,15 @@ test.describe('PWA install assets', () => {
     await page.goto('/conduite');
 
     // 3. apple-touch-icon dans head (iOS Safari override manifest icons)
-    const appleTouchIcon = await page
-      .locator('link[rel="apple-touch-icon"]')
-      .count();
+    const appleTouchIcon = await page.locator('link[rel="apple-touch-icon"]').count();
     expect(appleTouchIcon).toBeGreaterThan(0);
 
     // 4. viewport-fit=cover (notch / Dynamic Island)
-    const viewport = await page
-      .locator('meta[name="viewport"]')
-      .getAttribute('content');
+    const viewport = await page.locator('meta[name="viewport"]').getAttribute('content');
     expect(viewport).toContain('viewport-fit=cover');
 
     // 5. manifest link
-    const manifestLink = await page
-      .locator('link[rel="manifest"]')
-      .getAttribute('href');
+    const manifestLink = await page.locator('link[rel="manifest"]').getAttribute('href');
     expect(manifestLink).toBe('/manifest.json');
 
     // 6. SW registration (acceptable 'no-sw' en dev car Serwist disable)
@@ -75,16 +67,12 @@ test.describe('PWA install assets', () => {
     expect(['activated', 'no-sw']).toContain(swState);
   });
 
-  test('apple-touch-startup-image links DPR-specific présents', async ({
-    page,
-  }) => {
+  test('apple-touch-startup-image links DPR-specific présents', async ({ page }) => {
     await loginAsRegulateur(page, 'chauffeur@demo.tap', 'demo1234!');
     await page.goto('/conduite');
 
     // 3 splash iOS DPR Option A cross-platform LOCKED
-    const splashLinks = await page
-      .locator('link[rel="apple-touch-startup-image"]')
-      .count();
+    const splashLinks = await page.locator('link[rel="apple-touch-startup-image"]').count();
     expect(splashLinks).toBeGreaterThanOrEqual(3);
   });
 });

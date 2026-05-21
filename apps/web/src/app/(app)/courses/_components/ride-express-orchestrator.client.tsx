@@ -31,9 +31,7 @@ function generateTempKey(): string {
 function draftsReducer(state: DraftEntry[], a: DraftAction): DraftEntry[] {
   switch (a.type) {
     case 'OPEN_NEW': {
-      const minimized = state.map((d) =>
-        d.minimized ? d : { ...d, minimized: true },
-      );
+      const minimized = state.map((d) => (d.minimized ? d : { ...d, minimized: true }));
       return [
         ...minimized,
         {
@@ -44,9 +42,7 @@ function draftsReducer(state: DraftEntry[], a: DraftAction): DraftEntry[] {
       ];
     }
     case 'OPEN_EDIT': {
-      const minimized = state.map((d) =>
-        d.minimized ? d : { ...d, minimized: true },
-      );
+      const minimized = state.map((d) => (d.minimized ? d : { ...d, minimized: true }));
       return [
         ...minimized,
         {
@@ -59,16 +55,12 @@ function draftsReducer(state: DraftEntry[], a: DraftAction): DraftEntry[] {
     case 'CLOSE':
       return state.filter((d) => d.tempKey !== a.tempKey);
     case 'MINIMIZE':
-      return state.map((d) =>
-        d.tempKey === a.tempKey ? { ...d, minimized: true } : d,
-      );
+      return state.map((d) => (d.tempKey === a.tempKey ? { ...d, minimized: true } : d));
     case 'RESUME': {
       const exists = state.find((d) => d.draftId === a.draftId);
       if (exists) {
         return state.map((d) =>
-          d.draftId === a.draftId
-            ? { ...d, minimized: false }
-            : { ...d, minimized: true },
+          d.draftId === a.draftId ? { ...d, minimized: false } : { ...d, minimized: true },
         );
       }
       const minimized = state.map((d) => ({ ...d, minimized: true }));
@@ -83,9 +75,7 @@ function draftsReducer(state: DraftEntry[], a: DraftAction): DraftEntry[] {
       ];
     }
     case 'SET_DRAFT_ID':
-      return state.map((d) =>
-        d.tempKey === a.tempKey ? { ...d, draftId: a.draftId } : d,
-      );
+      return state.map((d) => (d.tempKey === a.tempKey ? { ...d, draftId: a.draftId } : d));
     default:
       return state;
   }
@@ -100,11 +90,7 @@ function draftsReducer(state: DraftEntry[], a: DraftAction): DraftEntry[] {
  * (cf. CONTEXT.md §Claude's Discretion ; contraste RESEARCH §C4 qui parle
  * du store INTERNE non-partagé). Un seul modal visible à la fois.
  */
-export function RideExpressOrchestrator({
-  children,
-}: {
-  children?: React.ReactNode;
-}): JSX.Element {
+export function RideExpressOrchestrator({ children }: { children?: React.ReactNode }): JSX.Element {
   const [drafts, dispatch] = useReducer(draftsReducer, []);
   const openNew = useCallback(() => dispatch({ type: 'OPEN_NEW' }), []);
 
@@ -122,12 +108,8 @@ export function RideExpressOrchestrator({
           draftId={visible.draftId}
           initialPatientId={visible.patientId}
           rideId={visible.rideId}
-          onClose={() =>
-            dispatch({ type: 'CLOSE', tempKey: visible.tempKey })
-          }
-          onMinimize={() =>
-            dispatch({ type: 'MINIMIZE', tempKey: visible.tempKey })
-          }
+          onClose={() => dispatch({ type: 'CLOSE', tempKey: visible.tempKey })}
+          onMinimize={() => dispatch({ type: 'MINIMIZE', tempKey: visible.tempKey })}
           onDraftIdResolved={(id) =>
             dispatch({
               type: 'SET_DRAFT_ID',

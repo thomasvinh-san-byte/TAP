@@ -82,7 +82,7 @@ export async function startRideAction(rideId: string): Promise<ActionState> {
   if (!myDriverId) {
     return {
       error:
-        'Votre compte chauffeur n\'est pas encore relié à un profil chauffeur. Contactez votre dirigeant.',
+        "Votre compte chauffeur n'est pas encore relié à un profil chauffeur. Contactez votre dirigeant.",
     };
   }
 
@@ -99,7 +99,7 @@ export async function startRideAction(rideId: string): Promise<ActionState> {
   if (currentRow.status !== 'assignee') {
     return {
       error:
-        'Démarrage impossible : la course n\'est pas en attente (statut : ' +
+        "Démarrage impossible : la course n'est pas en attente (statut : " +
         currentRow.status +
         ').',
     };
@@ -118,8 +118,7 @@ export async function startRideAction(rideId: string): Promise<ActionState> {
   if (error) return { error: 'Démarrage course impossible.' };
   if (!updated || updated.length === 0) {
     return {
-      error:
-        'Course non modifiée — vérifiez que vous êtes bien le chauffeur assigné.',
+      error: 'Course non modifiée — vérifiez que vous êtes bien le chauffeur assigné.',
     };
   }
 
@@ -141,14 +140,11 @@ const endRideInputSchema = z
     payment_status: paymentStatusSchema,
     payment_method: paymentMethodSchema.optional(),
   })
-  .refine(
-    (v) => v.payment_status !== 'encaisse' || !!v.payment_method,
-    {
-      message:
-        'Une course encaissée doit indiquer le moyen de paiement (espèces, CB, chèque ou CGSS différé).',
-      path: ['payment_method'],
-    },
-  );
+  .refine((v) => v.payment_status !== 'encaisse' || !!v.payment_method, {
+    message:
+      'Une course encaissée doit indiquer le moyen de paiement (espèces, CB, chèque ou CGSS différé).',
+    path: ['payment_method'],
+  });
 
 export async function endRideAction(
   args: z.infer<typeof endRideInputSchema>,
@@ -168,7 +164,7 @@ export async function endRideAction(
   if (!myDriverId) {
     return {
       error:
-        'Votre compte chauffeur n\'est pas encore relié à un profil chauffeur. Contactez votre dirigeant.',
+        "Votre compte chauffeur n'est pas encore relié à un profil chauffeur. Contactez votre dirigeant.",
     };
   }
 
@@ -185,9 +181,7 @@ export async function endRideAction(
   if (currentRow.status !== 'en_cours') {
     return {
       error:
-        'Clôture impossible : la course n\'est pas en cours (statut : ' +
-        currentRow.status +
-        ').',
+        "Clôture impossible : la course n'est pas en cours (statut : " + currentRow.status + ').',
     };
   }
 
@@ -215,8 +209,7 @@ export async function endRideAction(
   if (error) return { error: 'Clôture course impossible.' };
   if (!updated || updated.length === 0) {
     return {
-      error:
-        'Course non modifiée — vérifiez que vous êtes bien le chauffeur assigné.',
+      error: 'Course non modifiée — vérifiez que vous êtes bien le chauffeur assigné.',
     };
   }
 

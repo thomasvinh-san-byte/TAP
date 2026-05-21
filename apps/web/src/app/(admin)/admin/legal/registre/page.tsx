@@ -20,9 +20,7 @@ export default async function RegistrePage() {
   const supabase = createClient();
   const { data } = await supabase
     .from('data_processing_register')
-    .select(
-      'id, purpose, legal_basis, retention_period_days, international_transfer, created_at',
-    )
+    .select('id, purpose, legal_basis, retention_period_days, international_transfer, created_at')
     .order('created_at', { ascending: false });
 
   const entries = (data ?? []) as Array<{
@@ -38,10 +36,8 @@ export default async function RegistrePage() {
     <div className="space-y-24">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Registre des traitements
-          </h1>
-          <p className="text-sm text-muted-foreground mt-4">
+          <h1 className="text-2xl font-semibold tracking-tight">Registre des traitements</h1>
+          <p className="text-muted-foreground mt-4 text-sm">
             Article 30 RGPD : versioning par lignes
           </p>
         </div>

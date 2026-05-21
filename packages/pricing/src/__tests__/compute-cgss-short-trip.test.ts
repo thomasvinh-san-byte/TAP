@@ -77,10 +77,7 @@ describe('computeCgssShortTrip', () => {
 
   it('5. majoration nuit (départ 21h Réunion)', () => {
     // 21h Réunion = 17h UTC.
-    const r = computeCgssShortTrip(
-      baseInput({ scheduled_at: '2026-06-01T17:00:00.000Z' }),
-      GRID,
-    );
+    const r = computeCgssShortTrip(baseInput({ scheduled_at: '2026-06-01T17:00:00.000Z' }), GRID);
     expect(r.majoration_motif).toBe('nuit');
     expect(r.majoration_pct).toBe(50);
     expect(r.majoration_eur).toBeGreaterThan(0);
@@ -88,19 +85,13 @@ describe('computeCgssShortTrip', () => {
 
   it('6. majoration weekend (samedi 14h Réunion)', () => {
     // 2026-06-06 = samedi ; 14h Réunion = 10h UTC.
-    const r = computeCgssShortTrip(
-      baseInput({ scheduled_at: '2026-06-06T10:00:00.000Z' }),
-      GRID,
-    );
+    const r = computeCgssShortTrip(baseInput({ scheduled_at: '2026-06-06T10:00:00.000Z' }), GRID);
     expect(r.majoration_motif).toBe('weekend');
   });
 
   it('7. majoration weekend (dimanche 10h Réunion)', () => {
     // 2026-06-07 = dimanche ; 10h Réunion = 06h UTC.
-    const r = computeCgssShortTrip(
-      baseInput({ scheduled_at: '2026-06-07T06:00:00.000Z' }),
-      GRID,
-    );
+    const r = computeCgssShortTrip(baseInput({ scheduled_at: '2026-06-07T06:00:00.000Z' }), GRID);
     expect(r.majoration_motif).toBe('weekend');
   });
 
@@ -146,19 +137,13 @@ describe('computeCgssShortTrip', () => {
 
   it('11. samedi avant 12h → pas de majoration weekend', () => {
     // 2026-06-06 samedi ; 09h Réunion = 05h UTC.
-    const r = computeCgssShortTrip(
-      baseInput({ scheduled_at: '2026-06-06T05:00:00.000Z' }),
-      GRID,
-    );
+    const r = computeCgssShortTrip(baseInput({ scheduled_at: '2026-06-06T05:00:00.000Z' }), GRID);
     expect(r.majoration_motif).toBeNull();
   });
 
   it('12. timezone : 23h UTC = 03h Réunion lendemain → nuit', () => {
     // 2026-06-01 23h UTC = 2026-06-02 03h Réunion → nuit (03h < 8h).
-    const r = computeCgssShortTrip(
-      baseInput({ scheduled_at: '2026-06-01T23:00:00.000Z' }),
-      GRID,
-    );
+    const r = computeCgssShortTrip(baseInput({ scheduled_at: '2026-06-01T23:00:00.000Z' }), GRID);
     expect(r.majoration_motif).toBe('nuit');
   });
 });

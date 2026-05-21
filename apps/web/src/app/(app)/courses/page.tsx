@@ -1,8 +1,4 @@
-import {
-  HydrationBoundary,
-  dehydrate,
-  QueryClient,
-} from '@tanstack/react-query';
+import { HydrationBoundary, dehydrate, QueryClient } from '@tanstack/react-query';
 import { listRidesEnriched } from './_lib/queries';
 import { RidesList } from './_components/rides-list.client';
 import { HeaderNewRideButton } from './_components/header-new-ride-button.client';
@@ -28,11 +24,11 @@ export default async function CoursesPage() {
   return (
     <div className="space-y-24">
       <header className="flex flex-col gap-16 md:flex-row md:items-center md:justify-between">
-        <div className="flex flex-col gap-4 min-w-0">
+        <div className="flex min-w-0 flex-col gap-4">
           <h1 className="text-2xl font-semibold tracking-tight">Courses</h1>
-          <p className="hidden md:block text-sm text-muted-foreground">
+          <p className="text-muted-foreground hidden text-sm md:block">
             Astuce :{' '}
-            <kbd className="rounded border border-border bg-muted px-4 py-2 text-xs font-mono">
+            <kbd className="border-border bg-muted rounded border px-4 py-2 font-mono text-xs">
               Cmd/Ctrl+Shift+K
             </kbd>{' '}
             pour saisir une course rapidement.

@@ -7,10 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  addPatientConstraintAction,
-  removePatientConstraintAction,
-} from '../constraints.actions';
+import { addPatientConstraintAction, removePatientConstraintAction } from '../constraints.actions';
 
 const CONSTRAINT_TYPES = [
   { value: 'medical_oxygene', label: 'Oxygène' },
@@ -46,11 +43,7 @@ export function PatientFormConstraints({ patientId, initial }: Props) {
 
   function handleAdd() {
     startTransition(async () => {
-      const res = await addPatientConstraintAction(
-        patientId,
-        type,
-        note || undefined,
-      );
+      const res = await addPatientConstraintAction(patientId, type, note || undefined);
       if ('error' in res) {
         toast.error(res.error);
         return;
@@ -73,12 +66,10 @@ export function PatientFormConstraints({ patientId, initial }: Props) {
 
   return (
     <section className="space-y-12">
-      <h2 className="text-sm font-semibold uppercase text-muted-foreground">
-        Contraintes
-      </h2>
+      <h2 className="text-muted-foreground text-sm font-semibold uppercase">Contraintes</h2>
       <ul className="flex flex-wrap gap-8" aria-label="Contraintes actuelles">
         {items.length === 0 && (
-          <li className="text-sm text-muted-foreground">Aucune contrainte.</li>
+          <li className="text-muted-foreground text-sm">Aucune contrainte.</li>
         )}
         {items.map((c) => (
           <li key={c.id}>
@@ -105,7 +96,7 @@ export function PatientFormConstraints({ patientId, initial }: Props) {
             id="constraint-type"
             value={type}
             onChange={(e) => setType(e.target.value)}
-            className="h-48 w-full rounded-md border border-border bg-background px-12 text-sm"
+            className="border-border bg-background h-48 w-full rounded-md border px-12 text-sm"
           >
             {CONSTRAINT_TYPES.map((t) => (
               <option key={t.value} value={t.value}>
@@ -116,18 +107,9 @@ export function PatientFormConstraints({ patientId, initial }: Props) {
         </div>
         <div className="space-y-8">
           <Label htmlFor="constraint-note">Précision (optionnel)</Label>
-          <Input
-            id="constraint-note"
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-          />
+          <Input id="constraint-note" value={note} onChange={(e) => setNote(e.target.value)} />
         </div>
-        <Button
-          type="button"
-          onClick={handleAdd}
-          disabled={pending}
-          className="h-48"
-        >
+        <Button type="button" onClick={handleAdd} disabled={pending} className="h-48">
           <Plus className="mr-8 h-16 w-16" aria-hidden />
           Ajouter
         </Button>

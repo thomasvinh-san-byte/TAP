@@ -23,10 +23,7 @@ export type SignInState = {
  * - Reformulation FR systématique des erreurs Supabase (CLAUDE.md § 5)
  * - Open redirect protection : `next` doit commencer par `/`, sinon fallback `/patients`
  */
-export async function signInAction(
-  _prev: SignInState,
-  formData: FormData,
-): Promise<SignInState> {
+export async function signInAction(_prev: SignInState, formData: FormData): Promise<SignInState> {
   // FormData.get() retourne null pour un champ absent ou vide (cas d'un hidden
   // input "next" non renseigné). zod .optional() n'accepte que undefined → on
   // coerce null → undefined avant le parse.
@@ -66,11 +63,7 @@ export async function signInAction(
     data: { user },
   } = await supabase.auth.getUser();
   if (user) {
-    const profileRes = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single();
+    const profileRes = await supabase.from('profiles').select('role').eq('id', user.id).single();
     const profile = profileRes.data as { role: string | null } | null;
     if (profile?.role === 'regulateur' || profile?.role === 'dirigeant') {
       redirect('/cockpit');

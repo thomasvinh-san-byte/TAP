@@ -19,26 +19,23 @@ export default function WelcomePage() {
   return (
     <AuthShell title="Configurer l'environnement">
       <div className="space-y-24">
-        <p className="text-sm text-muted-foreground leading-[1.5]">
-          SaaS de régulation pour sociétés de Transport Assis Professionnalisé
-          à La Réunion.
+        <p className="text-muted-foreground text-sm leading-[1.5]">
+          SaaS de régulation pour sociétés de Transport Assis Professionnalisé à La Réunion.
         </p>
 
-        <section className="rounded-md border border-border bg-muted/40 p-16 space-y-8">
-          <p className="font-medium text-foreground text-sm">
-            Une seule étape pour démarrer
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Connecter Vercel à Supabase via le Marketplace. Aucun
-            copier-coller, aucun secret à créer, aucun fichier à toucher.
+        <section className="border-border bg-muted/40 space-y-8 rounded-md border p-16">
+          <p className="text-foreground text-sm font-medium">Une seule étape pour démarrer</p>
+          <p className="text-muted-foreground text-sm">
+            Connecter Vercel à Supabase via le Marketplace. Aucun copier-coller, aucun secret à
+            créer, aucun fichier à toucher.
           </p>
         </section>
 
-        <div className="rounded-md border border-border bg-card p-16 space-y-16">
-          <h2 className="text-base font-medium text-foreground">
+        <div className="border-border bg-card space-y-16 rounded-md border p-16">
+          <h2 className="text-foreground text-base font-medium">
             Installer l&apos;intégration Vercel ↔ Supabase
           </h2>
-          <ol className="text-sm text-muted-foreground space-y-4 list-decimal list-inside marker:text-muted-foreground/50">
+          <ol className="text-muted-foreground marker:text-muted-foreground/50 list-inside list-decimal space-y-4 text-sm">
             <li>Cliquer le bouton ci-dessous</li>
             <li>
               Cliquer <em>Add Integration</em> en haut à droite
@@ -55,24 +52,23 @@ export default function WelcomePage() {
             href={VERCEL_MARKETPLACE}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center w-full h-12 px-16 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring inline-flex h-12 w-full items-center justify-center rounded-md px-16 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           >
             Ouvrir le Marketplace Vercel
           </a>
-          <p className="text-xs text-muted-foreground">
-            Vercel pose les variables d&apos;environnement Supabase et
-            redéploie l&apos;app automatiquement. À l&apos;issue, cette page
-            se transforme en bouton « Initialiser la base » : encore 1 clic
-            et la connexion sera possible.
+          <p className="text-muted-foreground text-xs">
+            Vercel pose les variables d&apos;environnement Supabase et redéploie l&apos;app
+            automatiquement. À l&apos;issue, cette page se transforme en bouton « Initialiser la
+            base » : encore 1 clic et la connexion sera possible.
           </p>
         </div>
 
-        <footer className="text-xs text-muted-foreground">
+        <footer className="text-muted-foreground text-xs">
           <a
             href={`https://github.com/${REPO}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="underline underline-offset-4 hover:text-foreground"
+            className="hover:text-foreground underline underline-offset-4"
           >
             Repo GitHub
           </a>

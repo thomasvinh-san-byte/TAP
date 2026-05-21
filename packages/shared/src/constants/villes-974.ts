@@ -52,42 +52,41 @@ export type Ville974 = (typeof VILLES_974)[number];
  * Liste pragmatique des 12 CP les plus fréquents pour la saisie patient.
  * Compléter si besoin métier émerge.
  */
-export const CP_TO_VILLE_DOMINANTE: Readonly<Record<string, Ville974>> =
-  Object.freeze({
-    '97400': 'Saint-Denis',
-    '97410': 'Saint-Pierre',
-    '97411': 'Saint-Paul', // Bois-de-Nèfles, commune Saint-Paul
-    '97412': 'Bras-Panon',
-    '97413': 'Cilaos',
-    '97417': 'La Plaine-des-Palmistes',
-    '97419': 'La Possession',
-    '97420': 'Le Port',
-    '97421': "L'Étang-Salé",
-    '97422': 'La Possession',
-    '97423': 'Le Tampon',
-    '97425': 'Les Avirons',
-    '97426': 'Trois-Bassins',
-    '97427': 'Saint-Leu',
-    '97429': 'Petite-Île',
-    '97430': 'Le Tampon',
-    '97431': 'La Plaine-des-Palmistes',
-    '97432': 'Saint-Pierre',
-    '97433': 'Salazie',
-    '97434': 'Saint-Paul',
-    '97435': 'Saint-Paul',
-    '97436': 'Saint-Leu',
-    '97437': 'Saint-Benoît', // Sainte-Anne, commune Saint-Benoît
-    '97438': 'Sainte-Marie',
-    '97439': 'Sainte-Rose',
-    '97440': 'Saint-André',
-    '97441': 'Sainte-Suzanne',
-    '97442': 'Saint-Philippe',
-    '97450': 'Saint-Louis',
-    '97460': 'Saint-Paul',
-    '97470': 'Saint-Benoît',
-    '97480': 'Saint-Joseph',
-    '97490': 'Saint-Denis',
-  });
+export const CP_TO_VILLE_DOMINANTE: Readonly<Record<string, Ville974>> = Object.freeze({
+  '97400': 'Saint-Denis',
+  '97410': 'Saint-Pierre',
+  '97411': 'Saint-Paul', // Bois-de-Nèfles, commune Saint-Paul
+  '97412': 'Bras-Panon',
+  '97413': 'Cilaos',
+  '97417': 'La Plaine-des-Palmistes',
+  '97419': 'La Possession',
+  '97420': 'Le Port',
+  '97421': "L'Étang-Salé",
+  '97422': 'La Possession',
+  '97423': 'Le Tampon',
+  '97425': 'Les Avirons',
+  '97426': 'Trois-Bassins',
+  '97427': 'Saint-Leu',
+  '97429': 'Petite-Île',
+  '97430': 'Le Tampon',
+  '97431': 'La Plaine-des-Palmistes',
+  '97432': 'Saint-Pierre',
+  '97433': 'Salazie',
+  '97434': 'Saint-Paul',
+  '97435': 'Saint-Paul',
+  '97436': 'Saint-Leu',
+  '97437': 'Saint-Benoît', // Sainte-Anne, commune Saint-Benoît
+  '97438': 'Sainte-Marie',
+  '97439': 'Sainte-Rose',
+  '97440': 'Saint-André',
+  '97441': 'Sainte-Suzanne',
+  '97442': 'Saint-Philippe',
+  '97450': 'Saint-Louis',
+  '97460': 'Saint-Paul',
+  '97470': 'Saint-Benoît',
+  '97480': 'Saint-Joseph',
+  '97490': 'Saint-Denis',
+});
 
 /**
  * Renvoie la ville dominante pour un CP 5 chiffres, null sinon.

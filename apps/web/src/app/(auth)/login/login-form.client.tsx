@@ -83,7 +83,7 @@ export function LoginForm({ next, prefill }: LoginFormProps) {
           aria-invalid={!!form.formState.errors.email}
         />
         {form.formState.errors.email ? (
-          <p role="alert" className="text-sm text-destructive">
+          <p role="alert" className="text-destructive text-sm">
             {form.formState.errors.email.message}
           </p>
         ) : null}
@@ -100,7 +100,7 @@ export function LoginForm({ next, prefill }: LoginFormProps) {
           aria-invalid={!!form.formState.errors.password}
         />
         {form.formState.errors.password ? (
-          <p role="alert" className="text-sm text-destructive">
+          <p role="alert" className="text-destructive text-sm">
             {form.formState.errors.password.message}
           </p>
         ) : null}
@@ -110,7 +110,7 @@ export function LoginForm({ next, prefill }: LoginFormProps) {
         type="submit"
         disabled={form.formState.isSubmitting}
         aria-busy={form.formState.isSubmitting}
-        className="w-full h-12 text-base"
+        className="h-12 w-full text-base"
       >
         {form.formState.isSubmitting ? 'Connexion en cours…' : 'Se connecter'}
       </Button>

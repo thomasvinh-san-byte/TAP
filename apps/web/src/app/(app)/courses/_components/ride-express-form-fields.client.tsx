@@ -77,12 +77,7 @@ function projectFromIso(iso: string | null): {
   if (!iso) return { date: null, time: null };
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return { date: null, time: null };
-  const dateOnly = new Date(
-    d.getFullYear(),
-    d.getMonth(),
-    d.getDate(),
-    0, 0, 0, 0,
-  );
+  const dateOnly = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
   const timeOnly = new Date(0, 0, 0, d.getHours(), d.getMinutes(), 0, 0);
   return { date: dateOnly, time: timeOnly };
 }
@@ -112,7 +107,8 @@ function combineDateTime(date: Date | null, time: Date | null): string | null {
     date.getDate(),
     time.getHours(),
     time.getMinutes(),
-    0, 0,
+    0,
+    0,
   );
   return Number.isNaN(combined.getTime()) ? null : combined.toISOString();
 }
@@ -161,81 +157,77 @@ const MASKED_FIELD_CLASS = cn(
   'aria-[invalid=true]:border-destructive',
 );
 
-const DateMaskedInput = forwardRef<HTMLInputElement, MaskedFieldProps>(
-  function DateMaskedInput(
-    { value = '', onChange, onClick, onBlur, onFocus, placeholder, disabled, ariaInvalid },
-    ref,
-  ) {
-    const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
-      e.target.value = formatDateMask(digitsOnly(e.target.value));
-      onChange?.(e);
-    };
-    return (
-      <div className="relative w-full">
-        <CalendarIcon
-          className="absolute left-12 top-1/2 h-16 w-16 -translate-y-1/2 text-muted-foreground pointer-events-none"
-          aria-hidden
-        />
-        <input
-          ref={ref}
-          type="text"
-          inputMode="numeric"
-          maxLength={10}
-          enterKeyHint="next"
-          autoComplete="off"
-          aria-label="Date"
-          aria-invalid={ariaInvalid === 'true' || ariaInvalid === true || undefined}
-          value={value}
-          onChange={handleChange}
-          onClick={onClick}
-          onBlur={onBlur}
-          onFocus={onFocus}
-          placeholder={placeholder}
-          disabled={disabled}
-          className={MASKED_FIELD_CLASS}
-        />
-      </div>
-    );
-  },
-);
+const DateMaskedInput = forwardRef<HTMLInputElement, MaskedFieldProps>(function DateMaskedInput(
+  { value = '', onChange, onClick, onBlur, onFocus, placeholder, disabled, ariaInvalid },
+  ref,
+) {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
+    e.target.value = formatDateMask(digitsOnly(e.target.value));
+    onChange?.(e);
+  };
+  return (
+    <div className="relative w-full">
+      <CalendarIcon
+        className="text-muted-foreground pointer-events-none absolute left-12 top-1/2 h-16 w-16 -translate-y-1/2"
+        aria-hidden
+      />
+      <input
+        ref={ref}
+        type="text"
+        inputMode="numeric"
+        maxLength={10}
+        enterKeyHint="next"
+        autoComplete="off"
+        aria-label="Date"
+        aria-invalid={ariaInvalid === 'true' || ariaInvalid === true || undefined}
+        value={value}
+        onChange={handleChange}
+        onClick={onClick}
+        onBlur={onBlur}
+        onFocus={onFocus}
+        placeholder={placeholder}
+        disabled={disabled}
+        className={MASKED_FIELD_CLASS}
+      />
+    </div>
+  );
+});
 
-const TimeMaskedInput = forwardRef<HTMLInputElement, MaskedFieldProps>(
-  function TimeMaskedInput(
-    { value = '', onChange, onClick, onBlur, onFocus, placeholder, disabled, ariaInvalid },
-    ref,
-  ) {
-    const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
-      e.target.value = formatTimeMask(digitsOnly(e.target.value));
-      onChange?.(e);
-    };
-    return (
-      <div className="relative w-full">
-        <ClockIcon
-          className="absolute left-12 top-1/2 h-16 w-16 -translate-y-1/2 text-muted-foreground pointer-events-none"
-          aria-hidden
-        />
-        <input
-          ref={ref}
-          type="text"
-          inputMode="numeric"
-          maxLength={5}
-          enterKeyHint="done"
-          autoComplete="off"
-          aria-label="Heure"
-          aria-invalid={ariaInvalid === 'true' || ariaInvalid === true || undefined}
-          value={value}
-          onChange={handleChange}
-          onClick={onClick}
-          onBlur={onBlur}
-          onFocus={onFocus}
-          placeholder={placeholder}
-          disabled={disabled}
-          className={MASKED_FIELD_CLASS}
-        />
-      </div>
-    );
-  },
-);
+const TimeMaskedInput = forwardRef<HTMLInputElement, MaskedFieldProps>(function TimeMaskedInput(
+  { value = '', onChange, onClick, onBlur, onFocus, placeholder, disabled, ariaInvalid },
+  ref,
+) {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
+    e.target.value = formatTimeMask(digitsOnly(e.target.value));
+    onChange?.(e);
+  };
+  return (
+    <div className="relative w-full">
+      <ClockIcon
+        className="text-muted-foreground pointer-events-none absolute left-12 top-1/2 h-16 w-16 -translate-y-1/2"
+        aria-hidden
+      />
+      <input
+        ref={ref}
+        type="text"
+        inputMode="numeric"
+        maxLength={5}
+        enterKeyHint="done"
+        autoComplete="off"
+        aria-label="Heure"
+        aria-invalid={ariaInvalid === 'true' || ariaInvalid === true || undefined}
+        value={value}
+        onChange={handleChange}
+        onClick={onClick}
+        onBlur={onBlur}
+        onFocus={onFocus}
+        placeholder={placeholder}
+        disabled={disabled}
+        className={MASKED_FIELD_CLASS}
+      />
+    </div>
+  );
+});
 
 // ---------------------------------------------------------------------------
 // DateTimeFields
@@ -256,12 +248,8 @@ export function DateTimeFields({
   error?: string | null;
   disabled?: boolean;
 }): JSX.Element {
-  const [localDate, setLocalDate] = useState<Date | null>(
-    () => projectFromIso(value).date,
-  );
-  const [localTime, setLocalTime] = useState<Date | null>(
-    () => projectFromIso(value).time,
-  );
+  const [localDate, setLocalDate] = useState<Date | null>(() => projectFromIso(value).date);
+  const [localTime, setLocalTime] = useState<Date | null>(() => projectFromIso(value).time);
 
   // Sync externe : si `value` change (prefill async, reset modal, édition
   // existante), reprojeter en local SEULEMENT si la valeur externe ne
@@ -269,10 +257,7 @@ export function DateTimeFields({
   // émit → reset où le parent renverrait la valeur émise.
   useEffect(() => {
     const projected = projectFromIso(value);
-    if (
-      !sameDate(localDate, projected.date) ||
-      !sameTime(localTime, projected.time)
-    ) {
+    if (!sameDate(localDate, projected.date) || !sameTime(localTime, projected.time)) {
       setLocalDate(projected.date);
       setLocalTime(projected.time);
     }
@@ -364,7 +349,7 @@ export function DateTimeFields({
         />
       </div>
       {error && (
-        <p className="text-xs text-destructive" role="alert">
+        <p className="text-destructive text-xs" role="alert">
           {error}
         </p>
       )}
@@ -407,7 +392,7 @@ export function AddressField({
         required
       />
       {error && (
-        <p className="text-xs text-destructive" role="alert">
+        <p className="text-destructive text-xs" role="alert">
           {error}
         </p>
       )}

@@ -60,9 +60,7 @@ function pickFormData(formData: FormData, keys: string[]): Record<string, unknow
   return obj;
 }
 
-async function fetchHolidays(
-  supabase: ReturnType<typeof createClient>,
-): Promise<Set<string>> {
+async function fetchHolidays(supabase: ReturnType<typeof createClient>): Promise<Set<string>> {
   const result = await supabase.from('holidays_974' as never).select('date');
   if (result.error || !result.data) return new Set();
   const rows = result.data as { date: string }[];
@@ -89,9 +87,7 @@ function buildRidesPayload(
   }));
 }
 
-export async function createRecurrenceAction(
-  formData: FormData,
-): Promise<RecurrenceActionState> {
+export async function createRecurrenceAction(formData: FormData): Promise<RecurrenceActionState> {
   const ctx = await requireAdminOrRegulateur();
   if (!ctx) return { error: 'Accès réservé aux régulateurs et dirigeants.' };
 
@@ -211,9 +207,7 @@ async function regenerateOccurrencesFor(
   return { count: occurrences.length };
 }
 
-export async function updateRecurrenceAction(
-  formData: FormData,
-): Promise<RecurrenceActionState> {
+export async function updateRecurrenceAction(formData: FormData): Promise<RecurrenceActionState> {
   const ctx = await requireAdminOrRegulateur();
   if (!ctx) return { error: 'Accès réservé aux régulateurs et dirigeants.' };
 
@@ -286,9 +280,7 @@ export async function updateRecurrenceAction(
   return { success: true, regenerated_count: regen.count };
 }
 
-export async function cancelRecurrenceAction(
-  recurrenceId: string,
-): Promise<RecurrenceActionState> {
+export async function cancelRecurrenceAction(recurrenceId: string): Promise<RecurrenceActionState> {
   const idParsed = z.string().uuid().safeParse(recurrenceId);
   if (!idParsed.success) return { error: 'Identifiant invalide.' };
 
@@ -302,9 +294,7 @@ export async function cancelRecurrenceAction(
     .select('patient_id, archived_at')
     .eq('id', idParsed.data)
     .single();
-  const beforeRow = before.data as
-    | { patient_id: string; archived_at: string | null }
-    | null;
+  const beforeRow = before.data as { patient_id: string; archived_at: string | null } | null;
   if (before.error || !beforeRow) return { error: 'Récurrence introuvable.' };
   if (beforeRow.archived_at) return { error: 'Récurrence déjà archivée.' };
 

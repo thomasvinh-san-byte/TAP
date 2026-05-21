@@ -71,9 +71,11 @@ export async function createDataRequestAction(
     .select('id, organization_id, request_type')
     .single();
 
-  const inserted = insertedRow as
-    | { id: string; organization_id: string; request_type: string }
-    | null;
+  const inserted = insertedRow as {
+    id: string;
+    organization_id: string;
+    request_type: string;
+  } | null;
   if (insertError || !inserted) {
     return { error: 'Création demande impossible.' };
   }

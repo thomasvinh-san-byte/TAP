@@ -26,22 +26,13 @@ export async function POST(req: Request) {
   const json = await req.json().catch(() => null);
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: 'Choix de cookies invalide.' },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: 'Choix de cookies invalide.' }, { status: 400 });
   }
 
   const userAgent = req.headers.get('user-agent') ?? 'unknown';
-  const userAgentHash = crypto
-    .createHash('sha256')
-    .update(userAgent)
-    .digest('hex');
+  const userAgentHash = crypto.createHash('sha256').update(userAgent).digest('hex');
   const sessionToken = crypto.randomBytes(16).toString('hex');
-  const sessionTokenHash = crypto
-    .createHash('sha256')
-    .update(sessionToken)
-    .digest('hex');
+  const sessionTokenHash = crypto.createHash('sha256').update(sessionToken).digest('hex');
 
   const supabase = createAdminClient();
   const { error } = await supabase.from('cookie_consent_log').insert({

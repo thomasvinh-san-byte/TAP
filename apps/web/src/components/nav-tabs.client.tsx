@@ -23,7 +23,7 @@ interface NavTabsProps {
 export function NavTabs({ tabs }: NavTabsProps): JSX.Element {
   const pathname = usePathname() ?? '';
   return (
-    <nav aria-label="Navigation principale" className="flex items-center gap-32 h-full">
+    <nav aria-label="Navigation principale" className="flex h-full items-center gap-32">
       {tabs.map((tab) => {
         const active = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
         return (
@@ -32,8 +32,8 @@ export function NavTabs({ tabs }: NavTabsProps): JSX.Element {
             href={tab.href}
             aria-current={active ? 'page' : undefined}
             className={cn(
-              'relative h-full inline-flex items-center text-sm transition-colors duration-150',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm',
+              'relative inline-flex h-full items-center text-sm transition-colors duration-150',
+              'focus-visible:ring-ring rounded-sm focus-visible:outline-none focus-visible:ring-2',
               active
                 ? 'text-foreground font-medium'
                 : 'text-muted-foreground hover:text-foreground',
@@ -43,7 +43,7 @@ export function NavTabs({ tabs }: NavTabsProps): JSX.Element {
             <span
               aria-hidden
               className={cn(
-                'absolute inset-x-0 -bottom-[1px] h-[2px] bg-primary transition-opacity duration-150',
+                'bg-primary absolute inset-x-0 -bottom-[1px] h-[2px] transition-opacity duration-150',
                 active ? 'opacity-100' : 'opacity-0',
               )}
             />

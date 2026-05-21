@@ -77,7 +77,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          # Version épinglée (D3) — `latest` provoquait un drift non
+          # déterministe du runner pgTAP. Pin = CI reproductible.
+          version: 2.98.2
       - run: supabase db start
       - run: supabase test db
       - if: always()

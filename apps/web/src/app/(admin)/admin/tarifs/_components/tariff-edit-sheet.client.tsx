@@ -49,11 +49,36 @@ export function TariffEditSheet({
   const fields: NumField[] = [
     { name: 'forfait_eur', label: 'Forfait (€)', step: '0.01', defaultValue: current.forfait_eur },
     { name: 'km_inclus', label: 'Km inclus', step: '1', defaultValue: current.km_inclus },
-    { name: 'prix_km_eur', label: 'Prix au km (€)', step: '0.01', defaultValue: current.prix_km_eur },
-    { name: 'supplement_drom_eur', label: 'Supplément DROM (€)', step: '0.01', defaultValue: current.supplement_drom_eur },
-    { name: 'supplement_tpmr_eur', label: 'Supplément TPMR (€)', step: '0.01', defaultValue: current.supplement_tpmr_eur },
-    { name: 'majoration_pct', label: 'Majoration (%)', step: '1', defaultValue: current.majoration_pct },
-    { name: 'facteur_correction_routier', label: 'Facteur correction', step: '0.01', defaultValue: current.facteur_correction_routier },
+    {
+      name: 'prix_km_eur',
+      label: 'Prix au km (€)',
+      step: '0.01',
+      defaultValue: current.prix_km_eur,
+    },
+    {
+      name: 'supplement_drom_eur',
+      label: 'Supplément DROM (€)',
+      step: '0.01',
+      defaultValue: current.supplement_drom_eur,
+    },
+    {
+      name: 'supplement_tpmr_eur',
+      label: 'Supplément TPMR (€)',
+      step: '0.01',
+      defaultValue: current.supplement_tpmr_eur,
+    },
+    {
+      name: 'majoration_pct',
+      label: 'Majoration (%)',
+      step: '1',
+      defaultValue: current.majoration_pct,
+    },
+    {
+      name: 'facteur_correction_routier',
+      label: 'Facteur correction',
+      step: '0.01',
+      defaultValue: current.facteur_correction_routier,
+    },
     { name: 'arrondi_eur', label: 'Arrondi (€)', step: '0.01', defaultValue: current.arrondi_eur },
   ];
 
@@ -75,8 +100,8 @@ export function TariffEditSheet({
         <SheetHeader>
           <SheetTitle>Nouvelle version de grille</SheetTitle>
           <SheetDescription>
-            La grille actuelle reste inchangée. Une nouvelle version datée
-            est créée — l&apos;historique est conservé.
+            La grille actuelle reste inchangée. Une nouvelle version datée est créée —
+            l&apos;historique est conservé.
           </SheetDescription>
         </SheetHeader>
 
@@ -108,7 +133,7 @@ export function TariffEditSheet({
           ))}
 
           {error && (
-            <p role="alert" className="text-sm text-destructive">
+            <p role="alert" className="text-destructive text-sm">
               {error}
             </p>
           )}

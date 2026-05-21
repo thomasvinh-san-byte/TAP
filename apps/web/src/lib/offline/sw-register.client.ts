@@ -45,11 +45,9 @@ export function useServiceWorkerRegister(): void {
 
     try {
       const db = getDb();
-      db.app_meta
-        .put({ key: LAST_USED_KEY, value: Date.now() })
-        .catch((error) => {
-          console.warn('[PWA] Failed to update lastUsedAt:', error);
-        });
+      db.app_meta.put({ key: LAST_USED_KEY, value: Date.now() }).catch((error) => {
+        console.warn('[PWA] Failed to update lastUsedAt:', error);
+      });
 
       // Reset dismiss flag à chaque session active — Phase 04.9-ter #5.
       // Pattern UX 2026 : dismiss éphémère par session (Material

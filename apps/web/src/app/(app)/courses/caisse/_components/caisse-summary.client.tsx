@@ -27,22 +27,20 @@ function formatEur(n: number): string {
 
 export function CaisseSummary({ totals }: Props): JSX.Element {
   return (
-    <div className="rounded-md border border-border bg-muted/20 p-16 space-y-12">
+    <div className="border-border bg-muted/20 space-y-12 rounded-md border p-16">
       <div className="flex items-baseline gap-12">
-        <span className="text-2xl font-semibold tabular-nums">
-          {formatEur(totals.total_eur)}
-        </span>
-        <span className="text-sm text-muted-foreground tabular-nums">
+        <span className="text-2xl font-semibold tabular-nums">{formatEur(totals.total_eur)}</span>
+        <span className="text-muted-foreground text-sm tabular-nums">
           {totals.count} course{totals.count > 1 ? 's' : ''}
         </span>
       </div>
       <div className="grid grid-cols-2 gap-12 sm:grid-cols-4">
         {METHOD_ORDER.map((m) => (
           <div key={m} className="space-y-2">
-            <div className="text-xs uppercase tracking-wide text-muted-foreground">
+            <div className="text-muted-foreground text-xs uppercase tracking-wide">
               {METHOD_LABELS[m]}
             </div>
-            <div className="text-sm font-mono tabular-nums">
+            <div className="font-mono text-sm tabular-nums">
               {formatEur(totals.by_method[m] ?? 0)}
             </div>
           </div>

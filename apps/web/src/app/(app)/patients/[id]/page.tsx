@@ -84,19 +84,15 @@ export default async function PatientPage({ params }: PageProps) {
       </header>
 
       <section className="space-y-12">
-        <h2 className="text-sm font-semibold uppercase text-muted-foreground">
+        <h2 className="text-muted-foreground text-sm font-semibold uppercase">
           Identité administrative
         </h2>
-        {p.has_nir && (
-          <PatientNirDisplay patientId={p.id} maskedNir={maskNir(p.nir_last4)} />
-        )}
+        {p.has_nir && <PatientNirDisplay patientId={p.id} maskedNir={maskNir(p.nir_last4)} />}
         <p className="text-sm">Né(e) le {p.date_naissance}</p>
       </section>
 
       <section className="space-y-12">
-        <h2 className="text-sm font-semibold uppercase text-muted-foreground">
-          Coordonnées
-        </h2>
+        <h2 className="text-muted-foreground text-sm font-semibold uppercase">Coordonnées</h2>
         {p.telephone && <p className="tabular-nums">{p.telephone}</p>}
         <p>
           {p.adresse_ligne1}
@@ -106,16 +102,10 @@ export default async function PatientPage({ params }: PageProps) {
         </p>
       </section>
 
-      <RecurrencesSection
-        patientId={p.id}
-        recurrences={recurrences}
-        futureCounts={futureCounts}
-      />
+      <RecurrencesSection patientId={p.id} recurrences={recurrences} futureCounts={futureCounts} />
 
       <section className="space-y-8">
-        <h2 className="text-sm font-semibold uppercase text-muted-foreground">
-          Préférences
-        </h2>
+        <h2 className="text-muted-foreground text-sm font-semibold uppercase">Préférences</h2>
         <p>
           Canal : <strong>{p.canal_contact_prefere}</strong>
         </p>

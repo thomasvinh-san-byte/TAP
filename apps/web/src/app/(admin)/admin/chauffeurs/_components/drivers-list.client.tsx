@@ -34,11 +34,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-  inviteDriverAction,
-  reactivateDriverAction,
-  resendInvitationAction,
-} from '../actions';
+import { inviteDriverAction, reactivateDriverAction, resendInvitationAction } from '../actions';
 import type { DriverRow } from '../page';
 import { DriverForm } from './driver-form.client';
 import { ArchiveDriverModal } from './archive-driver-modal.client';
@@ -54,10 +50,7 @@ interface Props {
   vue: Vue;
 }
 
-type Mode =
-  | { kind: 'closed' }
-  | { kind: 'create' }
-  | { kind: 'edit'; driver: DriverRow };
+type Mode = { kind: 'closed' } | { kind: 'create' } | { kind: 'edit'; driver: DriverRow };
 
 type InvitationDialogState =
   | { kind: 'closed' }
@@ -75,29 +68,20 @@ function getAccountStatus(d: DriverRow): AccountStatus {
   return 'none';
 }
 
-export function DriversList({
-  initialDrivers,
-  currentRole,
-  vue,
-}: Props): JSX.Element {
+export function DriversList({ initialDrivers, currentRole, vue }: Props): JSX.Element {
   const router = useRouter();
   const isDirigeant = currentRole === 'dirigeant';
 
   const [mode, setMode] = React.useState<Mode>({ kind: 'closed' });
-  const [archiveTarget, setArchiveTarget] = React.useState<DriverRow | null>(
-    null,
-  );
-  const [deactivateTarget, setDeactivateTarget] =
-    React.useState<DriverRow | null>(null);
-  const [unarchiveTarget, setUnarchiveTarget] =
-    React.useState<DriverRow | null>(null);
-  const [invitationDialog, setInvitationDialog] =
-    React.useState<InvitationDialogState>({ kind: 'closed' });
+  const [archiveTarget, setArchiveTarget] = React.useState<DriverRow | null>(null);
+  const [deactivateTarget, setDeactivateTarget] = React.useState<DriverRow | null>(null);
+  const [unarchiveTarget, setUnarchiveTarget] = React.useState<DriverRow | null>(null);
+  const [invitationDialog, setInvitationDialog] = React.useState<InvitationDialogState>({
+    kind: 'closed',
+  });
   const [inviteEmail, setInviteEmail] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [reactivatingId, setReactivatingId] = React.useState<string | null>(
-    null,
-  );
+  const [reactivatingId, setReactivatingId] = React.useState<string | null>(null);
 
   const close = React.useCallback(() => setMode({ kind: 'closed' }), []);
   const closeInvitationDialog = React.useCallback(() => {
@@ -186,7 +170,7 @@ export function DriversList({
       <div className="flex items-center justify-between gap-12">
         <div className="flex items-center gap-12">
           <ViewToggle currentVue={vue} />
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             {initialDrivers.length} chauffeur
             {initialDrivers.length > 1 ? 's' : ''}
             {vue === 'archives' ? ' archivé' : ''}
@@ -194,11 +178,7 @@ export function DriversList({
           </p>
         </div>
         {vue === 'actifs' ? (
-          <Button
-            type="button"
-            onClick={() => setMode({ kind: 'create' })}
-            className="gap-8"
-          >
+          <Button type="button" onClick={() => setMode({ kind: 'create' })} className="gap-8">
             <Plus className="h-16 w-16" aria-hidden />
             Nouveau chauffeur
           </Button>
@@ -206,12 +186,9 @@ export function DriversList({
       </div>
 
       {initialDrivers.length === 0 ? (
-        <EmptyState
-          vue={vue}
-          onCreate={() => setMode({ kind: 'create' })}
-        />
+        <EmptyState vue={vue} onCreate={() => setMode({ kind: 'create' })} />
       ) : (
-        <ul className="divide-y divide-border rounded-md border border-border">
+        <ul className="divide-border border-border divide-y rounded-md border">
           {initialDrivers.map((d) => {
             const status = getAccountStatus(d);
             return (
@@ -226,23 +203,17 @@ export function DriversList({
                 <button
                   type="button"
                   onClick={() => setMode({ kind: 'edit', driver: d })}
-                  className="flex flex-1 items-center gap-12 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset -mx-16 px-16 py-8 rounded-sm"
+                  className="hover:bg-muted focus-visible:ring-ring -mx-16 flex flex-1 items-center gap-12 rounded-sm px-16 py-8 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset"
                 >
-                  <InitialsAvatar
-                    name={d.nom_affichage}
-                    role="chauffeur"
-                    size={32}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium truncate">
-                      {d.nom_affichage}
-                    </div>
-                    <div className="flex items-center gap-8 text-xs text-muted-foreground tabular-nums">
+                  <InitialsAvatar name={d.nom_affichage} role="chauffeur" size={32} />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate font-medium">{d.nom_affichage}</div>
+                    <div className="text-muted-foreground flex items-center gap-8 text-xs tabular-nums">
                       {d.telephone ?? 'Téléphone non renseigné'}
                       {d.numero_licence && <span>· Lic. {d.numero_licence}</span>}
                     </div>
                   </div>
-                  <div className="flex items-center gap-8 shrink-0">
+                  <div className="flex shrink-0 items-center gap-8">
                     {d.type_permis.map((t) => (
                       <Badge key={t} variant="secondary" className="text-xs">
                         {t.toUpperCase()}
@@ -269,9 +240,7 @@ export function DriversList({
                     setInviteEmail('');
                     setInvitationDialog({ kind: 'invite', driver });
                   }}
-                  onResend={(driver) =>
-                    setInvitationDialog({ kind: 'resend', driver })
-                  }
+                  onResend={(driver) => setInvitationDialog({ kind: 'resend', driver })}
                   onDeactivate={(driver) => setDeactivateTarget(driver)}
                   onReactivate={onReactivate}
                   onArchive={(driver) => setArchiveTarget(driver)}
@@ -291,29 +260,24 @@ export function DriversList({
       >
         <SheetContent
           side="right"
-          className="w-[480px] sm:w-[480px] sm:max-w-[480px] overflow-y-auto"
+          className="w-[480px] overflow-y-auto sm:w-[480px] sm:max-w-[480px]"
         >
           <SheetHeader>
             <SheetTitle>
-              {mode.kind === 'edit'
-                ? 'Modifier le chauffeur'
-                : 'Nouveau chauffeur'}
+              {mode.kind === 'edit' ? 'Modifier le chauffeur' : 'Nouveau chauffeur'}
             </SheetTitle>
             <SheetDescription>
-              Les informations sont visibles dans la fenêtre d&apos;affectation
-              de course.
+              Les informations sont visibles dans la fenêtre d&apos;affectation de course.
             </SheetDescription>
           </SheetHeader>
 
           <div className="mt-24">
             {mode.kind === 'create' && <DriverForm onSuccess={onSuccess} />}
-            {mode.kind === 'edit' && (
-              <DriverForm initial={mode.driver} onSuccess={onSuccess} />
-            )}
+            {mode.kind === 'edit' && <DriverForm initial={mode.driver} onSuccess={onSuccess} />}
           </div>
 
           {mode.kind === 'edit' && isDirigeant && !mode.driver.archive ? (
-            <div className="mt-24 border-t border-border pt-16">
+            <div className="border-border mt-24 border-t pt-16">
               <Button
                 type="button"
                 variant="ghost"
@@ -373,13 +337,11 @@ export function DriversList({
           <DialogHeader>
             <DialogTitle>
               Inviter{' '}
-              {invitationDialog.kind === 'invite'
-                ? invitationDialog.driver.nom_affichage
-                : ''}
+              {invitationDialog.kind === 'invite' ? invitationDialog.driver.nom_affichage : ''}
             </DialogTitle>
             <DialogDescription>
-              Un courriel d&apos;invitation sera envoyé. Le chauffeur cliquera
-              le lien pour définir son mot de passe et activer son compte.
+              Un courriel d&apos;invitation sera envoyé. Le chauffeur cliquera le lien pour définir
+              son mot de passe et activer son compte.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={onInviteSubmit} className="space-y-16" noValidate>
@@ -432,8 +394,7 @@ export function DriversList({
                   ? invitationDialog.driver.invitation?.email
                   : ''}
               </span>
-              . L&apos;ancien lien restera valide jusqu&apos;à son expiration
-              naturelle.
+              . L&apos;ancien lien restera valide jusqu&apos;à son expiration naturelle.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -465,16 +426,16 @@ function ViewToggle({ currentVue }: { currentVue: Vue }) {
     <div
       role="tablist"
       aria-label="Filtre chauffeurs"
-      className="inline-flex rounded-md border border-border bg-muted/40 p-2"
+      className="border-border bg-muted/40 inline-flex rounded-md border p-2"
     >
       <Link
         href="/admin/chauffeurs?vue=actifs"
         role="tab"
         aria-selected={currentVue === 'actifs'}
         className={
-          'px-12 py-6 text-sm rounded-sm transition-colors ' +
+          'rounded-sm px-12 py-6 text-sm transition-colors ' +
           (currentVue === 'actifs'
-            ? 'bg-background shadow-sm text-foreground'
+            ? 'bg-background text-foreground shadow-sm'
             : 'text-muted-foreground hover:text-foreground')
         }
       >
@@ -485,9 +446,9 @@ function ViewToggle({ currentVue }: { currentVue: Vue }) {
         role="tab"
         aria-selected={currentVue === 'archives'}
         className={
-          'px-12 py-6 text-sm rounded-sm transition-colors ' +
+          'rounded-sm px-12 py-6 text-sm transition-colors ' +
           (currentVue === 'archives'
-            ? 'bg-background shadow-sm text-foreground'
+            ? 'bg-background text-foreground shadow-sm'
             : 'text-muted-foreground hover:text-foreground')
         }
       >
@@ -505,10 +466,7 @@ function AccountStatusBadge({ status }: { status: AccountStatus }) {
       return <Badge variant="outline">Invité</Badge>;
     case 'expired':
       return (
-        <Badge
-          variant="outline"
-          className="border-destructive/40 text-destructive"
-        >
+        <Badge variant="outline" className="border-destructive/40 text-destructive">
           Lien expiré
         </Badge>
       );
@@ -544,7 +502,7 @@ function DriverRowActions({
 
   if (driver.archive) {
     return (
-      <div className="flex items-center gap-8 shrink-0">
+      <div className="flex shrink-0 items-center gap-8">
         <Button
           type="button"
           size="sm"
@@ -561,9 +519,9 @@ function DriverRowActions({
   }
 
   return (
-    <div className="flex items-center gap-8 shrink-0">
-      {status !== 'active' && (
-        status === 'none' ? (
+    <div className="flex shrink-0 items-center gap-8">
+      {status !== 'active' &&
+        (status === 'none' ? (
           <Button
             type="button"
             size="sm"
@@ -587,8 +545,7 @@ function DriverRowActions({
             <RefreshCw className="h-4 w-4" aria-hidden />
             Renvoyer
           </Button>
-        )
-      )}
+        ))}
 
       {driver.actif ? (
         <Button
@@ -623,7 +580,7 @@ function DriverRowActions({
           size="sm"
           variant="outline"
           onClick={() => onArchive(driver)}
-          className="gap-8 text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30"
+          className="text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30 gap-8"
           aria-label={`Archiver ${driver.nom_affichage}`}
         >
           <Archive className="h-4 w-4" aria-hidden />
@@ -634,24 +591,14 @@ function DriverRowActions({
   );
 }
 
-function EmptyState({
-  vue,
-  onCreate,
-}: {
-  vue: Vue;
-  onCreate: () => void;
-}) {
+function EmptyState({ vue, onCreate }: { vue: Vue; onCreate: () => void }) {
   if (vue === 'archives') {
     return (
-      <div className="flex flex-col items-center gap-12 rounded-md border border-dashed border-border py-48 text-center">
-        <UserCircle2
-          className="h-48 w-48 text-muted-foreground"
-          strokeWidth={1.5}
-          aria-hidden
-        />
+      <div className="border-border flex flex-col items-center gap-12 rounded-md border border-dashed py-48 text-center">
+        <UserCircle2 className="text-muted-foreground h-48 w-48" strokeWidth={1.5} aria-hidden />
         <div>
           <h2 className="text-base font-semibold">Aucun chauffeur archivé</h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Les chauffeurs sortis du système apparaîtront ici.
           </p>
         </div>
@@ -659,15 +606,11 @@ function EmptyState({
     );
   }
   return (
-    <div className="flex flex-col items-center gap-12 rounded-md border border-dashed border-border py-48 text-center">
-      <UserCircle2
-        className="h-48 w-48 text-muted-foreground"
-        strokeWidth={1.5}
-        aria-hidden
-      />
+    <div className="border-border flex flex-col items-center gap-12 rounded-md border border-dashed py-48 text-center">
+      <UserCircle2 className="text-muted-foreground h-48 w-48" strokeWidth={1.5} aria-hidden />
       <div>
         <h2 className="text-base font-semibold">Aucun chauffeur</h2>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           Ajoutez un premier chauffeur pour pouvoir lui affecter des courses.
         </p>
       </div>

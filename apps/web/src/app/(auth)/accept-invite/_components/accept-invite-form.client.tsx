@@ -21,10 +21,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import Link from 'next/link';
 
-import {
-  acceptInvitationSchema,
-  type AcceptInvitationInput,
-} from '@tap/shared';
+import { acceptInvitationSchema, type AcceptInvitationInput } from '@tap/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -57,12 +54,7 @@ export function AcceptInviteForm({ userEmail }: { userEmail: string }) {
     <form onSubmit={onSubmit} className="space-y-16" noValidate>
       <div className="space-y-8">
         <Label htmlFor="email">Adresse e-mail</Label>
-        <Input
-          id="email"
-          value={userEmail}
-          readOnly
-          className="h-10 bg-muted/40"
-        />
+        <Input id="email" value={userEmail} readOnly className="bg-muted/40 h-10" />
       </div>
 
       <div className="space-y-8">
@@ -75,9 +67,9 @@ export function AcceptInviteForm({ userEmail }: { userEmail: string }) {
           {...form.register('password')}
           aria-invalid={!!form.formState.errors.password}
         />
-        <p className="text-xs text-muted-foreground">8 caractères minimum.</p>
+        <p className="text-muted-foreground text-xs">8 caractères minimum.</p>
         {form.formState.errors.password ? (
-          <p role="alert" className="text-sm text-destructive">
+          <p role="alert" className="text-destructive text-sm">
             {form.formState.errors.password.message}
           </p>
         ) : null}
@@ -94,7 +86,7 @@ export function AcceptInviteForm({ userEmail }: { userEmail: string }) {
           aria-invalid={!!form.formState.errors.confirmPassword}
         />
         {form.formState.errors.confirmPassword ? (
-          <p role="alert" className="text-sm text-destructive">
+          <p role="alert" className="text-destructive text-sm">
             {form.formState.errors.confirmPassword.message}
           </p>
         ) : null}
@@ -105,22 +97,18 @@ export function AcceptInviteForm({ userEmail }: { userEmail: string }) {
           id="cguAccepted"
           type="checkbox"
           {...form.register('cguAccepted')}
-          className="h-4 w-4 mt-4 rounded border-border focus-visible:ring-2 focus-visible:ring-ring"
+          className="border-border focus-visible:ring-ring mt-4 h-4 w-4 rounded focus-visible:ring-2"
         />
         <Label htmlFor="cguAccepted" className="text-sm leading-[1.4]">
           J&apos;accepte les{' '}
-          <Link
-            href="/legal/cgu"
-            target="_blank"
-            className="underline underline-offset-4"
-          >
+          <Link href="/legal/cgu" target="_blank" className="underline underline-offset-4">
             conditions générales d&apos;utilisation
           </Link>
           .
         </Label>
       </div>
       {form.formState.errors.cguAccepted ? (
-        <p role="alert" className="text-sm text-destructive">
+        <p role="alert" className="text-destructive text-sm">
           {form.formState.errors.cguAccepted.message}
         </p>
       ) : null}
@@ -129,11 +117,9 @@ export function AcceptInviteForm({ userEmail }: { userEmail: string }) {
         type="submit"
         disabled={form.formState.isSubmitting}
         aria-busy={form.formState.isSubmitting}
-        className="w-full h-12"
+        className="h-12 w-full"
       >
-        {form.formState.isSubmitting
-          ? 'Activation en cours…'
-          : 'Activer mon compte'}
+        {form.formState.isSubmitting ? 'Activation en cours…' : 'Activer mon compte'}
       </Button>
     </form>
   );

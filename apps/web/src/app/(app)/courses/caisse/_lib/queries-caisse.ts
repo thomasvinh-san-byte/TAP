@@ -79,8 +79,7 @@ export async function listRidesEncaissees(
     .lte('ended_at', dateEnd);
 
   if (filters.driverId) q = q.eq('driver_id', filters.driverId);
-  if (filters.paymentMethod)
-    q = q.eq('payment_method', filters.paymentMethod);
+  if (filters.paymentMethod) q = q.eq('payment_method', filters.paymentMethod);
 
   const sortCol = filters.sort === 'tarif' ? 'tarif_amount_eur' : 'ended_at';
   const ascending = filters.dir === 'asc';

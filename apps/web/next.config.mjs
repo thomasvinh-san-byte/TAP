@@ -24,6 +24,12 @@ const nextConfig = {
     typedRoutes: false,
   },
   transpilePackages: ['@tap/database', '@tap/shared'],
+  // Le lint est assuré par le job CI dédié (`eslint`, flat config ESLint 9 —
+  // D1). Next 14 ne supporte pas la flat config à la compilation : on
+  // désactive le lint intégré au build pour éviter un faux échec Vercel.
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 export default withSerwist(nextConfig);

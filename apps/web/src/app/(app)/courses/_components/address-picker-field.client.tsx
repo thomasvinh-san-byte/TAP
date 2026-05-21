@@ -8,10 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import {
-  geocodeBanSearch,
-  type BanSuggestion,
-} from '@/lib/geocoding/ban';
+import { geocodeBanSearch, type BanSuggestion } from '@/lib/geocoding/ban';
 
 /**
  * Sélecteur d'adresse — autocomplétion via Base Adresse Nationale gouv.fr
@@ -122,9 +119,7 @@ export function AddressPickerField({
 
   useEffect(() => {
     if (results.isError) {
-      toast.warning(
-        "Suggestions d'adresse indisponibles, saisie libre acceptée.",
-      );
+      toast.warning("Suggestions d'adresse indisponibles, saisie libre acceptée.");
     }
   }, [results.isError]);
 
@@ -135,16 +130,13 @@ export function AddressPickerField({
         <Label>{label}</Label>
         <div
           className={cn(
-            'flex items-center justify-between gap-12 rounded-md border border-input bg-muted/30 px-12 py-12',
+            'border-input bg-muted/30 flex items-center justify-between gap-12 rounded-md border px-12 py-12',
             error && 'border-destructive',
           )}
         >
-          <div className="flex items-center gap-12 min-w-0">
-            <MapPin
-              className="h-16 w-16 shrink-0 text-muted-foreground"
-              aria-hidden
-            />
-            <span className="font-medium truncate">{value}</span>
+          <div className="flex min-w-0 items-center gap-12">
+            <MapPin className="text-muted-foreground h-16 w-16 shrink-0" aria-hidden />
+            <span className="truncate font-medium">{value}</span>
           </div>
           <Button
             type="button"
@@ -163,7 +155,7 @@ export function AddressPickerField({
           </Button>
         </div>
         {error && (
-          <p className="text-xs text-destructive" role="alert">
+          <p className="text-destructive text-xs" role="alert">
             {error}
           </p>
         )}
@@ -178,7 +170,7 @@ export function AddressPickerField({
       <Label htmlFor={id}>{label}</Label>
       <div className="relative">
         <MapPin
-          className="pointer-events-none absolute left-12 top-1/2 -translate-y-1/2 h-16 w-16 text-muted-foreground"
+          className="text-muted-foreground pointer-events-none absolute left-12 top-1/2 h-16 w-16 -translate-y-1/2"
           aria-hidden
         />
         <Input
@@ -192,22 +184,19 @@ export function AddressPickerField({
           aria-invalid={error ? true : undefined}
           autoComplete="off"
           tabIndex={tabIndex}
-          className={cn(
-            'pl-32',
-            error && 'border-destructive focus-visible:ring-destructive',
-          )}
+          className={cn('pl-32', error && 'border-destructive focus-visible:ring-destructive')}
         />
       </div>
 
       {value.trim().length > 0 && value.trim().length < MIN_QUERY_LENGTH && (
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-xs">
           Tapez au moins {MIN_QUERY_LENGTH} caractères pour rechercher.
         </p>
       )}
 
       {suggestions.length > 0 && (
         <ul
-          className="max-h-[200px] overflow-y-auto divide-y divide-border rounded-md border border-border"
+          className="divide-border border-border max-h-[200px] divide-y overflow-y-auto rounded-md border"
           aria-label="Suggestions d'adresses"
         >
           {suggestions.map((s) => (
@@ -220,15 +209,12 @@ export function AddressPickerField({
                   onSelect?.(s);
                   onBlur?.();
                 }}
-                className="flex w-full items-center gap-12 px-12 py-12 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
+                className="hover:bg-muted focus-visible:ring-ring flex w-full items-center gap-12 px-12 py-12 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset"
               >
-                <MapPin
-                  className="h-16 w-16 shrink-0 text-muted-foreground"
-                  aria-hidden
-                />
+                <MapPin className="text-muted-foreground h-16 w-16 shrink-0" aria-hidden />
                 <div className="min-w-0">
-                  <div className="font-medium truncate">{s.label}</div>
-                  <div className="text-xs text-muted-foreground truncate">
+                  <div className="truncate font-medium">{s.label}</div>
+                  <div className="text-muted-foreground truncate text-xs">
                     {s.postcode} {s.city}
                   </div>
                 </div>
@@ -242,14 +228,13 @@ export function AddressPickerField({
         !results.isPending &&
         !results.isError &&
         suggestions.length === 0 && (
-          <p className="text-xs text-muted-foreground">
-            Aucune adresse 974 ne correspond à « {value.trim()} ». La saisie
-            libre est conservée.
+          <p className="text-muted-foreground text-xs">
+            Aucune adresse 974 ne correspond à « {value.trim()} ». La saisie libre est conservée.
           </p>
         )}
 
       {error && (
-        <p className="text-xs text-destructive" role="alert">
+        <p className="text-destructive text-xs" role="alert">
           {error}
         </p>
       )}
