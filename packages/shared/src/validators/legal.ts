@@ -20,6 +20,16 @@ export const legalBasisEnum = z.enum(
   { errorMap: () => ({ message: 'Base légale invalide.' }) },
 );
 
+/** Libellés lisibles des bases légales — partagés entre le formulaire et les exports PDF. */
+export const legalBasisLabels: Record<z.infer<typeof legalBasisEnum>, string> = {
+  consentement: 'Consentement',
+  contrat: 'Contrat',
+  obligation_legale: 'Obligation légale',
+  mission_interet_public: "Mission d'intérêt public",
+  interet_legitime: 'Intérêt légitime',
+  sauvegarde_vie: 'Sauvegarde des intérêts vitaux',
+};
+
 export const dataProcessingRegisterSchema = z.object({
   purpose: z.string().trim().min(1, { message: 'Finalité requise.' }).max(500),
   legal_basis: legalBasisEnum,
