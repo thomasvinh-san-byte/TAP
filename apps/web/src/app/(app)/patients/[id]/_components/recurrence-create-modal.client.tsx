@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { TimeField24 } from '@/components/time-field-24.client';
 import { createRecurrenceAction } from '../../actions/recurrences';
 import { useHolidays974 } from '../_lib/use-holidays-974';
 import { RecurrencePreview } from './recurrence-preview.client';
@@ -112,14 +113,7 @@ export function RecurrenceCreateModal({
           <div className="grid grid-cols-2 gap-16">
             <div className="space-y-4">
               <Label htmlFor="rec-hour">Heure</Label>
-              <Input
-                id="rec-hour"
-                type="time"
-                lang="fr-FR"
-                value={hour}
-                onChange={(e) => setHour(e.target.value)}
-                required
-              />
+              <TimeField24 id="rec-hour" value={hour} onChange={setHour} />
             </div>
             <div className="space-y-4">
               <Label htmlFor="rec-start">Date de début</Label>

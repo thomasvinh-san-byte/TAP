@@ -5,6 +5,7 @@ import { Calculator } from 'lucide-react';
 import { computeCgssFromDistance, type MajorationMotif, type TariffGrid } from '@tap/pricing';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { TimeField24 } from '@/components/time-field-24.client';
 
 /**
  * Simulateur de tarif live (Surface C — UI-SPEC §5).
@@ -72,13 +73,7 @@ export function TariffSimulator({ grid }: { grid: TariffGrid }): JSX.Element {
         </div>
         <div className="space-y-4">
           <Label htmlFor="sim-heure">Heure de prise en charge</Label>
-          <Input
-            id="sim-heure"
-            type="time"
-            lang="fr-FR"
-            value={heure}
-            onChange={(e) => setHeure(e.target.value)}
-          />
+          <TimeField24 id="sim-heure" value={heure} onChange={setHeure} />
         </div>
       </div>
 
