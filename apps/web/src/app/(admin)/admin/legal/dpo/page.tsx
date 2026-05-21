@@ -42,7 +42,8 @@ export default async function DpoPage() {
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">Contact DPO</h1>
         <p className="text-muted-foreground mt-4 text-sm">
-          Délégué à la Protection des Données : visible sur la page publique /legal/dpo.
+          La personne à contacter pour les questions de données ; ses coordonnées s&apos;affichent
+          pour vos patients sur le site public. (RGPD art. 37-39)
         </p>
       </header>
 

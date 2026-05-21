@@ -31,7 +31,8 @@ export default async function DpaPage() {
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">DPA sous-traitants</h1>
         <p className="text-muted-foreground mt-4 text-sm">
-          Article 28 RGPD : accords de traitement signés
+          Vos prestataires qui accèdent aux données patients doivent signer un contrat —
+          conservez-les ici pour prouver que vous êtes en règle. (RGPD art. 28)
         </p>
       </header>
 

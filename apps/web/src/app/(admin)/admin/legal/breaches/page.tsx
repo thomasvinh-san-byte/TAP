@@ -35,7 +35,8 @@ export default async function BreachesPage() {
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">Violations de données</h1>
         <p className="text-muted-foreground mt-4 text-sm">
-          Article 33 RGPD : notification CNIL sous 72h
+          Une donnée patient a fuité ou été perdue ? Déclarez-le ici : vous avez 72 h pour prévenir
+          la CNIL. (RGPD art. 33)
         </p>
       </header>
 

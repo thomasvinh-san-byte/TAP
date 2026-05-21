@@ -1330,3 +1330,7 @@ Consolidation post-Phase 05.5 LIVRÉE (PR #136-#142, clôture 2026-05-19).
 
 - **Tableau de bord dirigeant (KPIs / vue de pilotage)** — le dirigeant dispose de pages-outils éparses (tarifs, facturation, maintenance, légal) mais d'aucune **vue d'ensemble** : CA mensuel, courses à facturer, alertes, activité chauffeurs. Candidat à une **phase dédiée** (discuss propre). Noté suite à l'arbitrage UI 2026-05-21.
 - **Onglet SMS** — `/admin/sms-templates` reste accessible par URL mais **sans onglet de navigation** : le SMS est différé (ADR-004, crons en pause). L'onglet sera réintroduit au **rebranchement du fournisseur SMS**.
+
+### Hub /admin/legal — piste indicateurs de conformité (2026-05-21, mini-PR legal hub)
+
+Le hub `/admin/legal` livré est **explicatif statique** (cartes vulgarisées). La recherche pattern (compliance dashboards 2026) montre que les hubs RGPD matures affichent un **état de complétude par section** (ex. « Registre : à jour » / « DPIA : à compléter »). NON fait ici — cela suppose d'évaluer la complétude de chaque section (logique + données). À rattacher à la future phase **Tableau de bord dirigeant** (cf. item ci-dessus).

@@ -38,7 +38,8 @@ export default async function RegistrePage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Registre des traitements</h1>
           <p className="text-muted-foreground mt-4 text-sm">
-            Article 30 RGPD : versioning par lignes
+            Recensez quelles données patients vous utilisez et pourquoi — la première chose
+            qu&apos;un contrôle vous demandera. (RGPD art. 30)
           </p>
         </div>
         <div className="flex gap-12">
