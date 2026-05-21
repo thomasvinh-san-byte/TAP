@@ -30,7 +30,12 @@ export function RequestsList({ entries }: { entries: Entry[] }) {
 
       {entries.length === 0 ? (
         <div className="rounded-lg border border-dashed p-48 text-center">
-          <p className="text-muted-foreground">Aucune demande enregistrée.</p>
+          <p className="text-foreground font-medium">Aucune demande en cours.</p>
+          <p className="text-muted-foreground mx-auto mt-8 max-w-md text-sm">
+            Vous suivrez ici les demandes RGPD de vos patients (accès, rectification, effacement…).
+            Une page vide signifie qu&apos;aucune demande n&apos;est en cours. Vous disposez de 30
+            jours pour répondre à chaque demande.
+          </p>
         </div>
       ) : (
         <div className="rounded-lg border">

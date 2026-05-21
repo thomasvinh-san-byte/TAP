@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import Link from 'next/link';
+import { Plus, FileSignature } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DpaDrawer } from './dpa-drawer.client';
 
@@ -28,7 +29,15 @@ export function DpaList({ entries }: { entries: Entry[] }) {
 
       {entries.length === 0 ? (
         <div className="rounded-lg border border-dashed p-48 text-center">
-          <p className="text-muted-foreground">Aucun DPA enregistré.</p>
+          <FileSignature className="text-muted-foreground mx-auto h-32 w-32" aria-hidden />
+          <p className="text-foreground mt-16 font-medium">Aucune fiche DPA enregistrée.</p>
+          <p className="text-muted-foreground mx-auto mt-8 max-w-md text-sm">
+            TAP peut pré-remplir les fiches de vos sous-traitants techniques (hébergeurs) — à relire
+            et compléter.
+          </p>
+          <Button asChild className="mt-24">
+            <Link href="/admin/legal/dpa/pre-remplir">Pré-remplir les fiches sous-traitants</Link>
+          </Button>
         </div>
       ) : (
         <div className="rounded-lg border">

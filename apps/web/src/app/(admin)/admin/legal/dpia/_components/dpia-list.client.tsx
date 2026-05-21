@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import Link from 'next/link';
+import { Plus, ClipboardCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DpiaForm } from './dpia-form.client';
@@ -30,7 +31,15 @@ export function DpiaList({ entries }: { entries: Entry[] }) {
 
       {entries.length === 0 ? (
         <div className="rounded-lg border border-dashed p-48 text-center">
-          <p className="text-muted-foreground">Aucune DPIA.</p>
+          <ClipboardCheck className="text-muted-foreground mx-auto h-32 w-32" aria-hidden />
+          <p className="text-foreground mt-16 font-medium">Aucune analyse d&apos;impact.</p>
+          <p className="text-muted-foreground mx-auto mt-8 max-w-md text-sm">
+            TAP peut créer une trame d&apos;analyse d&apos;impact pour le transport de données de
+            santé — la structure, à compléter par vos soins.
+          </p>
+          <Button asChild className="mt-24">
+            <Link href="/admin/legal/dpia/pre-remplir">Créer une trame DPIA</Link>
+          </Button>
         </div>
       ) : (
         <div className="rounded-lg border">

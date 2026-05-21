@@ -6,6 +6,7 @@
  */
 
 import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
 import { dpiaSchema } from '@tap/shared';
 import { createClient } from '@/lib/supabase/server';
 import { requireDirigeant } from '@/lib/auth/require-dirigeant';
@@ -137,6 +138,84 @@ export async function updateDpiaAction(
     .eq('id', id);
 
   if (error) return { error: 'Modification impossible.' };
+  revalidatePath('/admin/legal/dpia');
+  return { success: true };
+}
+
+const dpiaPrefillSchema = z
+  .object({
+    title: z.string().trim().min(1, { message: 'Titre requis.' }).max(200),
+    scope: z.string().trim().min(1, { message: 'Périmètre requis.' }).max(2000),
+    reviewed_at: z.coerce.date(),
+    next_review_at: z.coerce.date(),
+  })
+  .refine((d) => d.next_review_at > d.reviewed_at, {
+    message: 'La prochaine revue doit être postérieure à la date de revue.',
+    path: ['next_review_at'],
+  });
+
+export type DpiaPrefillInput = {
+  title: string;
+  scope: string;
+  reviewed_at: string;
+  next_review_at: string;
+};
+
+/**
+ * Crée une trame squelette DPIA (D-05).
+ *
+ * `risks_identified` et `mitigations` restent vides — TAP n'émet aucun
+ * verdict de risque. Insérée en statut « brouillon », éditable et archivable.
+ * Idempotence : refuse si une DPIA existe déjà.
+ */
+export async function prefillDpiaRecordAction(input: DpiaPrefillInput): Promise<ActionState> {
+  const guard = await requireDirigeant();
+  if (!guard) return { error: 'Action réservée au dirigeant.' };
+
+  const parsed = dpiaPrefillSchema.safeParse(input);
+  if (!parsed.success) {
+    return { error: parsed.error.errors[0]?.message ?? 'Saisie invalide.' };
+  }
+
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: 'Session expirée.' };
+
+  const profileRes = await supabase
+    .from('profiles')
+    .select('organization_id')
+    .eq('id', user.id)
+    .single();
+  const profile = profileRes.data as { organization_id: string } | null;
+  if (!profile) return { error: 'Profil introuvable.' };
+
+  const { count, error: countError } = await supabase
+    .from('dpia_record')
+    .select('id', { count: 'exact', head: true })
+    .eq('organization_id', profile.organization_id);
+  if (countError) return { error: 'Vérification des DPIA impossible.' };
+  if ((count ?? 0) > 0) return { error: 'Une analyse d’impact existe déjà.' };
+
+  const d = parsed.data;
+  const { error } = await supabase.from('dpia_record').insert({
+    organization_id: profile.organization_id,
+    title: d.title,
+    scope: d.scope,
+    data_flow_diagram: null,
+    risks_identified: [],
+    mitigations: [],
+    residual_risk_level: null,
+    cnil_consultation_required: false,
+    cnil_consultation_date: null,
+    reviewed_at: d.reviewed_at.toISOString().slice(0, 10),
+    next_review_at: d.next_review_at.toISOString().slice(0, 10),
+    status: 'brouillon',
+    created_by: user.id,
+  } as never);
+
+  if (error) return { error: 'Création impossible.' };
   revalidatePath('/admin/legal/dpia');
   return { success: true };
 }
