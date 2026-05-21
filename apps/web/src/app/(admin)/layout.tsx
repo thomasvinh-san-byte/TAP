@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { NavTabs } from '@/components/nav-tabs.client';
+import { LegalNavMenu } from '@/components/legal-nav-menu.client';
 import { UserMenu } from '@/components/user-menu';
 import { Providers } from '@/app/(app)/providers.client';
 
@@ -59,12 +60,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     { href: '/courses/caisse', label: 'Caisse' },
     { href: '/admin/chauffeurs', label: 'Chauffeurs' },
   ];
+  // Onglets directs admin. Les 6 pages RGPD sont regroupées dans le
+  // sous-menu « Légal » (LegalNavMenu) pour ne pas surcharger la barre.
   const ADMIN_EXTRAS = [
     { href: '/admin/vehicules', label: 'Véhicules' },
     { href: '/admin/tarifs', label: 'Tarifs' },
     { href: '/admin/facturation', label: 'Facturation' },
-    { href: '/admin/legal/registre', label: 'Registre' },
-    { href: '/admin/legal/breaches', label: 'Violations' },
+    { href: '/admin/maintenance', label: 'Maintenance' },
   ];
   const tabs = isDirigeant ? [...BASE_TABS, ...ADMIN_EXTRAS] : BASE_TABS;
 
@@ -85,7 +87,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               <span className="text-foreground font-semibold tracking-tight">TAP</span>
               <span className="text-muted-foreground text-sm">Régulation</span>
             </Link>
-            <NavTabs tabs={tabs} />
+            <div className="flex h-full items-center gap-32">
+              <NavTabs tabs={tabs} />
+              {isDirigeant && <LegalNavMenu />}
+            </div>
             <div className="flex items-center gap-16">
               <UserMenu />
             </div>

@@ -1325,3 +1325,8 @@ Consolidation post-Phase 05.5 LIVRÉE (PR #136-#142, clôture 2026-05-19).
 - **Décomposition tarif par course dans le PDF** — V1.5 affiche le montant total stocké (`tarif_amount_eur`). Une décomposition ligne à ligne (forfait/km/majoration) supposerait de persister `PricingResult` sur `rides` (colonnes nouvelles) — à arbitrer si demandé.
 
 *Clôture Phase 06 ajoutée 2026-05-21 (PLAN-4).*
+
+### Navigation dirigeant — items notés (2026-05-21, mini-PR nav)
+
+- **Tableau de bord dirigeant (KPIs / vue de pilotage)** — le dirigeant dispose de pages-outils éparses (tarifs, facturation, maintenance, légal) mais d'aucune **vue d'ensemble** : CA mensuel, courses à facturer, alertes, activité chauffeurs. Candidat à une **phase dédiée** (discuss propre). Noté suite à l'arbitrage UI 2026-05-21.
+- **Onglet SMS** — `/admin/sms-templates` reste accessible par URL mais **sans onglet de navigation** : le SMS est différé (ADR-004, crons en pause). L'onglet sera réintroduit au **rebranchement du fournisseur SMS**.
