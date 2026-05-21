@@ -53,10 +53,10 @@ L'advisor Supabase signale les `SECURITY DEFINER` exécutables par `anon`/`authe
 
 | Fonction | Nature | Appelée par | Verdict |
 |---|---|---|---|
-| `rides_audit_trigger` … `dpia_record_audit_trigger` (13) | trigger d'audit | moteur de triggers | **EXECUTE révoqué de `public`** — un trigger se déclenche sans EXECUTE direct |
-| `profiles_prevent_self_escalation`, `drivers_archive_columns_dirigeant_only` | trigger de garde | moteur de triggers | **EXECUTE révoqué de `public`** |
-| `set_updated_at`, `patient_data_request_set_deadline` | trigger utilitaire | moteur de triggers | **EXECUTE révoqué de `public`** |
-| `check_breach_deadlines`, `purge_legal_request_attempts` | cron | `pg_cron` (rôle `postgres`) | **EXECUTE révoqué de `public`** |
+| `rides_audit_trigger` … `dpia_record_audit_trigger` (13) | trigger d'audit | moteur de triggers | **EXECUTE révoqué de `anon`, `authenticated`, `public`** — un trigger se déclenche sans EXECUTE direct |
+| `profiles_prevent_self_escalation`, `drivers_archive_columns_dirigeant_only` | trigger de garde | moteur de triggers | **EXECUTE révoqué de `anon`, `authenticated`, `public`** |
+| `set_updated_at`, `patient_data_request_set_deadline` | trigger utilitaire | moteur de triggers | **EXECUTE révoqué de `anon`, `authenticated`, `public`** |
+| `check_breach_deadlines`, `purge_legal_request_attempts` | cron | `pg_cron` (rôle `postgres`) | **EXECUTE révoqué de `anon`, `authenticated`, `public`** |
 | `has_role`, `current_organization_id`, `current_user_role` | helper RLS | expressions de policy RLS | **conservé exécutable par `authenticated`** — légitime par conception |
 | `search_patients` | RPC | `.rpc()` app (authenticated) | **conservé** — déjà `revoke from public` + `grant to authenticated` |
 | `rgpd_anonymize_patient` | RPC | `.rpc()` effacement RGPD (authenticated) | **conservé** — déjà `revoke from public, anon` + `grant to authenticated` |
@@ -65,7 +65,9 @@ L'advisor Supabase signale les `SECURITY DEFINER` exécutables par `anon`/`authe
 
 > **Pourquoi les helpers RLS et les RPC restent exécutables** : une expression de policy RLS s'évalue avec les privilèges du rôle qui requête. Révoquer l'`EXECUTE` de `has_role` / `current_organization_id` / `current_user_role` à `authenticated` ferait échouer **toute requête authentifiée** (« permission denied for function »). De même, révoquer `rgpd_anonymize_patient` / `nir_match_patient_for_legal_request` casserait l'effacement RGPD et le portail légal patient (appels `.rpc()`). Pour ces fonctions, l'advisor « exécutable par `authenticated` » est **attendu par conception** ; le durcissement réel (`revoke from anon`) est déjà en place sur les RPC. Arbitrage dirigeant 2026-05-21 — périmètre sûr : REVOKE limité aux triggers et crons.
 
-Migration : `supabase/migrations/20260525000001_security_advisors.sql`.
+Migrations : `20260525000001_security_advisors.sql` (search_path + REVOKE initial) puis `20260526000001_revoke_execute_anon_auth.sql` (correctif).
+
+> **Correctif `20260526000001`** : le REVOKE initial ciblait seulement `public`. Supabase accorde des `GRANT EXECUTE` **explicites** à `anon` et `authenticated` (default privileges), indépendants de l'héritage de `public` — `REVOKE FROM public` ne les retirait donc pas (vérifié en prod : `has_function_privilege('anon'|'authenticated', …)` restait `true`). Le correctif refait le REVOKE en ciblant `anon, authenticated, public` sur les 19 mêmes fonctions.
 
 ---
 
