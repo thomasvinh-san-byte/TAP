@@ -42,7 +42,9 @@ Sources de vérité de ce séquencement : ADR-003 (LOCKED) +
 - [x] **Phase 05.5: Tarif CGSS réel** — Implémentation calcul réel `computeCgssShortTrip` (remplace stub Phase 04.7), grille tarif CGSS 2026 (forfait/km/majo nuit/dim/férié/supp TPMR), page grille active + historique + simulation, recalcul rétroactif courses historiques. 100% branch coverage Vitest (DEC-021). **Estimation : 8-12 h. Livré 2026-05-19, 6 PR (#136-#142)** (pipeline GSD 5/5 complet, migration `tariff_grids` versionnée + `computeCgssShortTrip`/`computeCgssFromDistance` fonction pure 15 cas 100% branches, page `/admin/tarifs` grille active + simulateur live + historique + édition INSERT-only, `PricingBreakdown` enrichi sans badge DEMO + disclaimer estimatif, recalcul rétroactif garde-fous DEC-060, DEC-056..061 LOCKED).
 - [x] **Phase 06: E2E Passe 4 (resserrée) — Facturation CGSS PDF + audit RLS/Server Actions + dettes CI** — Périmètre resserré par le discuss (DEC-063) : facturation CGSS PDF récapitulatif mensuel (`/admin/facturation`) + audit RLS systémique (28 tables) + advisors sécurité + audit des 38 Server Actions (DEC-040/041) + résolution des dettes CI V1.5 (ESLint flat config, SIRET Luhn, runner pgTAP). HDS, OR-Tools, portail B2B et télétransmission B2/CNDA sortis du périmètre (sous-phases 06.5 / 06.7 et reports ADR-005/006). **Livré 2026-05-21, 4 waves (#148/#149 dettes CI, #150 facturation, #151/#152 audit RLS, audit SA + clôture).**
 - [ ] **Phase 06.5: Migration HDS** — Migration de l'hébergement vers une infra HDS-certifiée (DEC-065). Sous-phase dédiée : discuss propre + ADR pour le choix fournisseur (Scaleway HDS / OVHcloud HDS / validation Supabase EU + DPA). Prérequis : audit RLS Phase 06. **Depends on: Phase 06.**
+- [ ] **Phase 06.6: Conformité assistée (Espace dirigeant)** — Pré-remplissage des pages RGPD pour que le dirigeant n'ait plus à les rédiger de zéro. Bouton « pré-remplir » DÉCLENCHÉ (jamais auto), entrées éditables/supprimables, disclaimers (point de départ à valider, pas conseil juridique). Pré-remplissage RÉEL = registre des traitements (traitements-types transport sanitaire) ± DPA (fiches sous-traitants techniques) ± DPIA (trame ou différé) ; breaches/requests/dpo = aide contextuelle seule (vides par nature). **Depends on: Phase 06 (autonome — fonctionnel pur livrable en bêta, n'attend PAS HDS ; les entrées du registre sont quelques lignes re-migrables sans douleur si HDS arrive ensuite). Décision 2026-05-21 : faite AVANT HDS. Retour terrain dirigeant.**
 - [ ] **Phase 06.7: OR-Tools optimisation de tournées** — Microservice Python OR-Tools (`services/optimizer`) + `packages/optimizer-client` (DEC-066). Distance V1 = Haversine × facteur (DEC-056) ; OSRM avec la géoloc certifiée 2027. **Depends on: Phase 06.**
+- [ ] **Phase 06.8: Tableau de bord dirigeant (Espace dirigeant)** — Page d'accueil de pilotage : CA mensuel, courses à facturer, alertes, activité chauffeurs. Comble l'absence de vue d'ensemble dirigeant (pages-outils éparses aujourd'hui). Piste « indicateurs de statut de conformité par section » à intégrer (cf. Phase 06.6). **Depends on: Phase 06 (autonome — fonctionnel pur, n'attend pas HDS). Retour terrain dirigeant 2026-05-21.**
 - [ ] **Phase 07: Mobile native chauffeur (OPTIONNEL — décision business V2)** — App native iOS + Android (React Native ou Capacitor) + géoloc continue + mode hors-ligne complet + reconnaissance vocale + push natives + mode lecture seule chauffeur. Phase 04.9 PWA peut suffire si business case mobile natif non validé (coût 10× inférieur, même périmètre fonctionnel). **Estimation : 25-40 h.**
 
 ## Phase Details
@@ -369,11 +371,25 @@ Plans:
 **Périmètre — à cadrer en discuss dédié** : choix du fournisseur (Scaleway HDS / OVHcloud HDS / validation Supabase EU + DPA, ADR), provisioning, migration des données, bascule DNS, suivi de RLS/Auth/pg_cron/Vault/Realtime. Inclut, à confirmer : NIR Edge Function 401, 2FA TOTP dirigeant, rotation des tokens Supabase, déplacement `pg_net` hors `public`, activation `leaked_password_protection`, pen test externe.
 **Plans**: TBD — `/gsd-discuss-phase 06.5`.
 
+### Phase 06.6: Conformité assistée (Espace dirigeant)
+**Goal**: Le dirigeant ne rédige plus ses pages RGPD de zéro — TAP propose un pré-remplissage des traitements-types d'un transport sanitaire, qu'il relit et ajuste.
+**Depends on**: Phase 06 (autonome — fonctionnel pur, livrable en bêta sans attendre HDS. Décision dirigeant 2026-05-21 : faite AVANT 06.5. Les entrées du registre sont quelques lignes re-migrables sans douleur si la migration HDS suit.)
+**Périmètre — à cadrer en discuss dédié** : bouton « pré-remplir » DÉCLENCHÉ par le dirigeant (jamais auto-remplissage — protège la responsabilité), entrées éditables/supprimables, disclaimers (« point de départ à vérifier et adapter, ne constitue pas un conseil juridique »). Nuance clé : pré-remplissage RÉEL = registre des traitements (courses patients, facturation CGSS, chauffeurs, données santé) ± DPA (fiches sous-traitants techniques Supabase/Vercel) ± DPIA (trame squelette ou différé) ; breaches/requests/dpo = aide contextuelle (textes guides), PAS de données fictives car vides par nature. Pattern industrie validé (templates RoPA pré-remplis, RGPD art. 30). Issu du retour terrain dirigeant 2026-05-21.
+**UI hint**: yes (boutons + textes sur les pages `/admin/legal/*` existantes)
+**Plans**: discuss livré (#157) — TBD `/gsd-ui-spec-phase 06.6`.
+
 ### Phase 06.7: OR-Tools optimisation de tournées
 **Goal**: Proposer à la régulatrice une optimisation des tournées (affectation courses ↔ chauffeurs, ordre de passage) via un microservice Python OR-Tools.
 **Depends on**: Phase 06
 **Périmètre — à cadrer en discuss dédié** : `services/optimizer` (Python OR-Tools), `packages/optimizer-client` (contrats TS). Distance V1 = Haversine × facteur de correction (DEC-056) ; OSRM auto-hébergé avec la géoloc certifiée Assurance maladie (1er janvier 2027).
 **Plans**: TBD — `/gsd-discuss-phase 06.7`.
+
+### Phase 06.8: Tableau de bord dirigeant (Espace dirigeant)
+**Goal**: Donner au dirigeant une vue d'ensemble de pilotage à l'ouverture de l'app, au lieu de pages-outils éparses.
+**Depends on**: Phase 06 (autonome — fonctionnel pur, n'attend pas HDS)
+**Périmètre — à cadrer en discuss dédié** : page d'accueil dirigeant avec KPIs (CA mensuel, courses à facturer ce mois, alertes, activité des chauffeurs). Données agrégées des modules existants (facturation 06, courses, chauffeurs). Piste « indicateurs de statut de conformité par section » (ex. « Registre : à jour ») à intégrer en lien avec la Phase 06.6. Issu du retour terrain dirigeant 2026-05-21 (initialement noté CONCERNS « tableau de bord pilotage »).
+**UI hint**: yes (nouvelle page d'accueil dirigeant)
+**Plans**: TBD — `/gsd-discuss-phase 06.8`.
 
 ---
 
