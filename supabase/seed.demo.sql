@@ -466,7 +466,148 @@ begin
     -- Notes runtime
     notes_regulateur = null;
 
-  raise notice 'Seed démo : 12 courses fictives créées (5 historiques + 4 jour + 3 J+1)';
+  -- 12 courses facturables CGSS — mois complet précédent (Phase 06 PLAN-2).
+  -- Toutes terminées + tarifées + payment_status défaut 'non_concerne'
+  -- (tiers payant CGSS) → peuplent l'aperçu /admin/facturation dès le login
+  -- démo dirigeant. Dates relatives à date_trunc('month', now()) - 1 mois.
+  insert into public.rides (
+    id, organization_id, patient_id, driver_id, vehicle_id,
+    pickup_address, dropoff_address,
+    scheduled_at, status, transport_mode, urgency,
+    started_at, ended_at, tarif_amount_eur, tarif_source,
+    cancel_motif, created_at, created_by, updated_by
+  ) values
+    ('44444444-0000-0000-0000-000000000041', org_id, patient_ids[1], vergoz_id, vehicle_dacia,
+     '12 Rue de Paris, 97400 Saint-Denis', 'CHU Félix Guyon, 97400 Saint-Denis',
+     date_trunc('month', now()) - interval '1 month' + interval '1 day' + interval '8 hours',
+     'terminee', 'taxi_conventionne', 'programmee',
+     date_trunc('month', now()) - interval '1 month' + interval '1 day' + interval '8 hours',
+     date_trunc('month', now()) - interval '1 month' + interval '1 day' + interval '9 hours 30 minutes',
+     24.50, 'manuel', null,
+     date_trunc('month', now()) - interval '1 month' + interval '1 day', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-000000000042', org_id, patient_ids[2], maillot_id, vehicle_dacia,
+     '45 Avenue de la République, 97410 Saint-Pierre', 'Centre de dialyse Sud, 97410 Saint-Pierre',
+     date_trunc('month', now()) - interval '1 month' + interval '3 days' + interval '7 hours',
+     'terminee', 'taxi_conventionne', 'programmee',
+     date_trunc('month', now()) - interval '1 month' + interval '3 days' + interval '7 hours',
+     date_trunc('month', now()) - interval '1 month' + interval '3 days' + interval '8 hours',
+     18.00, 'manuel', null,
+     date_trunc('month', now()) - interval '1 month' + interval '3 days', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-000000000043', org_id, patient_ids[3], boyer_id, vehicle_master,
+     'Foyer médicalisé Les Avirons, 97425 Les Avirons', 'CHU Sud Saint-Pierre, 97448 Saint-Pierre',
+     date_trunc('month', now()) - interval '1 month' + interval '4 days' + interval '13 hours',
+     'terminee', 'tpmr', 'programmee',
+     date_trunc('month', now()) - interval '1 month' + interval '4 days' + interval '13 hours',
+     date_trunc('month', now()) - interval '1 month' + interval '4 days' + interval '14 hours 45 minutes',
+     52.00, 'manuel', null,
+     date_trunc('month', now()) - interval '1 month' + interval '4 days', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-000000000044', org_id, patient_ids[4], vergoz_id, vehicle_dacia,
+     '8 Chemin des Frangipaniers, 97419 La Possession', 'Centre de dialyse Nord, 97400 Saint-Denis',
+     date_trunc('month', now()) - interval '1 month' + interval '6 days' + interval '9 hours',
+     'terminee', 'taxi_conventionne', 'programmee',
+     date_trunc('month', now()) - interval '1 month' + interval '6 days' + interval '9 hours',
+     date_trunc('month', now()) - interval '1 month' + interval '6 days' + interval '10 hours 15 minutes',
+     31.50, 'manuel', null,
+     date_trunc('month', now()) - interval '1 month' + interval '6 days', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-000000000045', org_id, patient_ids[5], maillot_id, vehicle_dacia,
+     '23 Rue Maréchal Leclerc, 97400 Saint-Denis', 'Clinique Saint-Vincent, 97400 Saint-Denis',
+     date_trunc('month', now()) - interval '1 month' + interval '8 days' + interval '10 hours',
+     'terminee', 'taxi_conventionne', 'programmee',
+     date_trunc('month', now()) - interval '1 month' + interval '8 days' + interval '10 hours',
+     date_trunc('month', now()) - interval '1 month' + interval '8 days' + interval '11 hours',
+     27.00, 'manuel', null,
+     date_trunc('month', now()) - interval '1 month' + interval '8 days', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-000000000046', org_id, patient_ids[6], boyer_id, vehicle_master,
+     'Résidence Les Mascareignes, 97432 Ravine-des-Cabris', 'Centre de rééducation Tampon, 97430 Le Tampon',
+     date_trunc('month', now()) - interval '1 month' + interval '10 days' + interval '14 hours',
+     'terminee', 'tpmr', 'programmee',
+     date_trunc('month', now()) - interval '1 month' + interval '10 days' + interval '14 hours',
+     date_trunc('month', now()) - interval '1 month' + interval '10 days' + interval '15 hours 30 minutes',
+     44.50, 'manuel', null,
+     date_trunc('month', now()) - interval '1 month' + interval '10 days', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-000000000047', org_id, patient_ids[7], vergoz_id, vehicle_dacia,
+     '17 Rue Sainte-Anne, 97410 Saint-Pierre', 'Cabinet médical Saint-Louis, 97450 Saint-Louis',
+     date_trunc('month', now()) - interval '1 month' + interval '12 days' + interval '8 hours 30 minutes',
+     'terminee', 'taxi_conventionne', 'programmee',
+     date_trunc('month', now()) - interval '1 month' + interval '12 days' + interval '8 hours 30 minutes',
+     date_trunc('month', now()) - interval '1 month' + interval '12 days' + interval '9 hours 15 minutes',
+     16.50, 'manuel', null,
+     date_trunc('month', now()) - interval '1 month' + interval '12 days', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-000000000048', org_id, patient_ids[8], maillot_id, vehicle_dacia,
+     '5 Boulevard Lacaussade, 97400 Saint-Denis', 'CHU Félix Guyon, 97400 Saint-Denis',
+     date_trunc('month', now()) - interval '1 month' + interval '14 days' + interval '11 hours',
+     'terminee', 'taxi_conventionne', 'programmee',
+     date_trunc('month', now()) - interval '1 month' + interval '14 days' + interval '11 hours',
+     date_trunc('month', now()) - interval '1 month' + interval '14 days' + interval '12 hours 20 minutes',
+     38.00, 'manuel', null,
+     date_trunc('month', now()) - interval '1 month' + interval '14 days', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-000000000049', org_id, patient_ids[9], boyer_id, vehicle_master,
+     'EHPAD Les Lataniers, 97419 La Possession', 'CHU Sud Saint-Pierre, 97448 Saint-Pierre',
+     date_trunc('month', now()) - interval '1 month' + interval '16 days' + interval '13 hours 30 minutes',
+     'terminee', 'tpmr', 'programmee',
+     date_trunc('month', now()) - interval '1 month' + interval '16 days' + interval '13 hours 30 minutes',
+     date_trunc('month', now()) - interval '1 month' + interval '16 days' + interval '15 hours',
+     49.00, 'manuel', null,
+     date_trunc('month', now()) - interval '1 month' + interval '16 days', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-000000000050', org_id, patient_ids[10], vergoz_id, vehicle_dacia,
+     '34 Rue Jean Jaurès, 97400 Saint-Denis', 'Centre de dialyse Nord, 97400 Saint-Denis',
+     date_trunc('month', now()) - interval '1 month' + interval '18 days' + interval '7 hours',
+     'terminee', 'taxi_conventionne', 'programmee',
+     date_trunc('month', now()) - interval '1 month' + interval '18 days' + interval '7 hours',
+     date_trunc('month', now()) - interval '1 month' + interval '18 days' + interval '8 hours',
+     22.50, 'manuel', null,
+     date_trunc('month', now()) - interval '1 month' + interval '18 days', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-000000000051', org_id, patient_ids[1], maillot_id, vehicle_dacia,
+     '12 Rue de Paris, 97400 Saint-Denis', 'Clinique Saint-Vincent, 97400 Saint-Denis',
+     date_trunc('month', now()) - interval '1 month' + interval '20 days' + interval '9 hours 30 minutes',
+     'terminee', 'taxi_conventionne', 'programmee',
+     date_trunc('month', now()) - interval '1 month' + interval '20 days' + interval '9 hours 30 minutes',
+     date_trunc('month', now()) - interval '1 month' + interval '20 days' + interval '10 hours 45 minutes',
+     35.00, 'manuel', null,
+     date_trunc('month', now()) - interval '1 month' + interval '20 days', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-000000000052', org_id, patient_ids[2], boyer_id, vehicle_master,
+     'Résidence Les Mascareignes, 97432 Ravine-des-Cabris', 'CHU Sud Saint-Pierre, 97448 Saint-Pierre',
+     date_trunc('month', now()) - interval '1 month' + interval '23 days' + interval '14 hours',
+     'terminee', 'tpmr', 'programmee',
+     date_trunc('month', now()) - interval '1 month' + interval '23 days' + interval '14 hours',
+     date_trunc('month', now()) - interval '1 month' + interval '23 days' + interval '15 hours 20 minutes',
+     41.50, 'manuel', null,
+     date_trunc('month', now()) - interval '1 month' + interval '23 days', regulateur_id, regulateur_id)
+  -- DEC-039 : seed glissant — DO UPDATE exhaustif (dates relatives ré-évaluées
+  -- à chaque run CD ; écrase d'éventuelles modifications manuelles UAT).
+  on conflict (id) do update set
+    scheduled_at = excluded.scheduled_at,
+    created_at = excluded.created_at,
+    pickup_address = excluded.pickup_address,
+    dropoff_address = excluded.dropoff_address,
+    transport_mode = excluded.transport_mode,
+    urgency = excluded.urgency,
+    driver_id = excluded.driver_id,
+    vehicle_id = excluded.vehicle_id,
+    status = excluded.status,
+    started_at = excluded.started_at,
+    ended_at = excluded.ended_at,
+    tarif_amount_eur = excluded.tarif_amount_eur,
+    tarif_source = excluded.tarif_source,
+    payment_status = 'non_concerne',
+    payment_method = null,
+    payment_received_at = null,
+    archive = false,
+    cancel_motif = null,
+    notes_regulateur = null;
+
+  raise notice 'Seed démo : 24 courses fictives créées (5 historiques + 4 jour + 3 J+1 + 12 facturables CGSS mois précédent)';
 end $$;
 
 -- -----------------------------------------------------------------------------
