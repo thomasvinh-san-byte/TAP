@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  codePostalReunionSchema,
-  siretSchema,
-  telephoneReunionSchema,
-} from '../common';
+import { codePostalReunionSchema, siretSchema, telephoneReunionSchema } from '../common';
 
 describe('telephoneReunionSchema', () => {
   it('accepte un mobile 0692', () => {
@@ -30,8 +26,8 @@ describe('codePostalReunionSchema', () => {
 });
 
 describe('siretSchema', () => {
-  it('accepte un SIRET valide (Carrefour)', () => {
-    expect(siretSchema.parse('40483304800010')).toBe('40483304800010');
+  it('accepte un SIRET valide', () => {
+    expect(siretSchema.parse('12345678900007')).toBe('12345678900007');
   });
 
   it('refuse un SIRET trop court', () => {
