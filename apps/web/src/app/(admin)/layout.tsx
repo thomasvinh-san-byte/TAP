@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { tabsForRole } from '@/lib/nav-config';
 import { NavTabs } from '@/components/nav-tabs.client';
 import { LegalNavMenu } from '@/components/legal-nav-menu.client';
 import { UserMenu } from '@/components/user-menu';
@@ -43,32 +44,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   const isDirigeant = role === 'dirigeant';
 
-  // Hotfix 04.7-bis élargi (UX) : layout admin réutilise le même shell que
-  // (app)/layout.tsx (header sticky + NavTabs + UserMenu) pour cohérence
-  // visuelle. Les régulateurs/dirigeants ne voient plus deux apps
-  // disjointes (« TAP Régulation » vs « TAP Administration »). La nav
-  // principale Patients/Courses/Caisse/Chauffeurs reste accessible
-  // depuis n'importe quelle page admin.
+  // Nav unifiée par rôle (lib/nav-config.ts) — identique sur (app) et (admin) :
+  // la barre dépend du rôle, jamais de la page. Le régulateur garde le Cockpit
+  // et n'a pas les outils admin ; le dirigeant a tout + « Légal ▾ ». Les 6
+  // pages RGPD restent regroupées dans le sous-menu <LegalNavMenu />.
   //
-  // Le déplacement physique des routes /admin/* → / serait plus propre
-  // long terme (cohérence URL) mais nécessite un audit + refactor tests
-  // hors scope hotfix-bis : reporté Phase 06 HDS (audit RLS systémique
-  // + restructuration routes).
-  const BASE_TABS = [
-    { href: '/patients', label: 'Patients' },
-    { href: '/courses', label: 'Courses' },
-    { href: '/courses/caisse', label: 'Caisse' },
-    { href: '/admin/chauffeurs', label: 'Chauffeurs' },
-  ];
-  // Onglets directs admin. Les 6 pages RGPD sont regroupées dans le
-  // sous-menu « Légal » (LegalNavMenu) pour ne pas surcharger la barre.
-  const ADMIN_EXTRAS = [
-    { href: '/admin/vehicules', label: 'Véhicules' },
-    { href: '/admin/tarifs', label: 'Tarifs' },
-    { href: '/admin/facturation', label: 'Facturation' },
-    { href: '/admin/maintenance', label: 'Maintenance' },
-  ];
-  const tabs = isDirigeant ? [...BASE_TABS, ...ADMIN_EXTRAS] : BASE_TABS;
+  // Les routes /admin/* ne sont pas déplacées vers / — refactor reporté
+  // (cohérence URL, audit + tests) : seule la liste d'onglets est unifiée.
+  const tabs = tabsForRole(role);
 
   return (
     <Providers>
