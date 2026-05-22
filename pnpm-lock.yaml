@@ -114,7 +114,7 @@ importers:
         specifier: ^0.439.0
         version: 0.439.0(react@18.3.1)
       next:
-        specifier: ^14.2.13
+        specifier: ^14.2.35
         version: 14.2.35(@babel/core@7.29.0)(@playwright/test@1.59.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       next-mdx-remote:
         specifier: 6.0.0
@@ -191,7 +191,7 @@ importers:
         version: 2.105.3
     devDependencies:
       next:
-        specifier: ^14.2.13
+        specifier: ^14.2.35
         version: 14.2.35(@babel/core@7.29.0)(@playwright/test@1.59.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       typescript:
         specifier: ^5.5.4
