@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { TEMPLATE_VARIABLES } from '@tap/sms';
 import { TemplateEditor } from './_components/template-editor.client';
 
-export const metadata = { title: 'Templates SMS — TAP Régulation' };
+export const metadata = { title: 'Modèles SMS' };
 export const dynamic = 'force-dynamic';
 
 interface SmsTemplate {
@@ -29,7 +29,7 @@ export default async function SmsTemplatesPage(): Promise<JSX.Element> {
   return (
     <div className="space-y-24">
       <header className="space-y-8">
-        <h1 className="text-2xl font-semibold tracking-tight">Templates SMS</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Modèles SMS</h1>
         <p className="text-muted-foreground text-sm">
           Rappels automatiques envoyés aux patients consentants. Limite 160 caractères par SMS.
         </p>
@@ -55,7 +55,7 @@ export default async function SmsTemplatesPage(): Promise<JSX.Element> {
 
       {templates.length === 0 ? (
         <p className="text-muted-foreground text-sm">
-          Aucun template seedé. Vérifiez la migration <code>20260519000005_sms_templates.sql</code>.
+          Aucun modèle seedé. Vérifiez la migration <code>20260519000005_sms_templates.sql</code>.
         </p>
       ) : (
         <div className="grid gap-16 lg:grid-cols-2">

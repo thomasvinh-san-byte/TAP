@@ -1,7 +1,7 @@
 import { PatientForm } from '../_components/patient-form.client';
 import { createPatientAction } from '../actions';
 
-export const metadata = { title: 'Nouveau patient — TAP Régulation' };
+export const metadata = { title: 'Nouveau patient' };
 
 /**
  * Création patient (PAT-01). Server Action `createPatientAction` validée

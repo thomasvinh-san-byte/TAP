@@ -3,7 +3,7 @@ import { listMyRidesUpcoming, type RideForDriverWithBucket } from './_lib/querie
 import { RideCard } from './_components/ride-card.client';
 import { ActivationToast } from './_components/activation-toast.client';
 
-export const metadata = { title: 'Ma journée — TAP' };
+export const metadata = { title: 'Ma journée' };
 export const dynamic = 'force-dynamic';
 
 /**

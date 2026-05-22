@@ -6,7 +6,7 @@ import { PatientsList } from './_components/patients-list.client';
 import { Button } from '@/components/ui/button';
 import { HeaderNewRideButton } from '../courses/_components/header-new-ride-button.client';
 
-export const metadata = { title: 'Patients — TAP Régulation' };
+export const metadata = { title: 'Patients' };
 
 /**
  * RSC liste patients (PAT-01, PAT-04).

@@ -3,7 +3,7 @@ import { listRidesEnriched } from './_lib/queries';
 import { RidesList } from './_components/rides-list.client';
 import { HeaderNewRideButton } from './_components/header-new-ride-button.client';
 
-export const metadata = { title: 'Courses — TAP Régulation' };
+export const metadata = { title: 'Courses' };
 export const dynamic = 'force-dynamic';
 
 /**

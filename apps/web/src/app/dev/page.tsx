@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { DevSwitcher } from './dev-switcher.client';
 
-export const metadata = { title: 'Mode démo — TAP' };
+export const metadata = { title: 'Mode démo' };
 export const dynamic = 'force-dynamic';
 
 /**

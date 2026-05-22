@@ -11,7 +11,7 @@ import { CaisseSummary } from './_components/caisse-summary.client';
 import { CaisseTable } from './_components/caisse-table.client';
 import { CaisseToolbar } from './_components/caisse-toolbar.client';
 
-export const metadata = { title: 'Caisse — TAP Régulation' };
+export const metadata = { title: 'Caisse' };
 
 interface PageProps {
   searchParams: {

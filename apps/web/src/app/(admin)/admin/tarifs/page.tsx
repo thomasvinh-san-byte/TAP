@@ -5,7 +5,7 @@ import { TariffGridCard } from './_components/tariff-grid-card.client';
 import { TariffSimulator } from './_components/tariff-simulator.client';
 import { TariffHistoryTable } from './_components/tariff-history-table.client';
 
-export const metadata = { title: 'Grille tarifaire — TAP Régulation' };
+export const metadata = { title: 'Grille tarifaire' };
 export const dynamic = 'force-dynamic';
 
 export interface TariffGridRow extends TariffGrid {

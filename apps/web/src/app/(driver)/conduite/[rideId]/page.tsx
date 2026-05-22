@@ -25,8 +25,8 @@ export default async function RideDetailPage({ params }: Params) {
 
 export async function generateMetadata({ params }: Params) {
   const ride = await getRideForDriver(params.rideId);
-  if (!ride) return { title: 'Course — TAP' };
+  if (!ride) return { title: 'Course' };
   return {
-    title: `${ride.patient.nom || 'Course'} — TAP`,
+    title: ride.patient.nom || 'Course',
   };
 }
