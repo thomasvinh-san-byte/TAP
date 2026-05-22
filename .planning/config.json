@@ -2,7 +2,8 @@
   "workflow": {
     "discuss_mode": "assumptions",
     "context_coverage_gate": true,
-    "drift_action": "warn"
+    "drift_action": "warn",
+    "_auto_chain_active": false
   },
   "agent_skills": {
     "gsd-discuss-phase": "tap-neutralite",
