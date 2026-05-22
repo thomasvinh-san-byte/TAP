@@ -21,7 +21,7 @@
     "@supabase/supabase-js": "^2.45.4"
   },
   "peerDependencies": {
-    "next": "^14.2.13"
+    "next": "^14.2.35"
   },
   "peerDependenciesMeta": {
     "next": {
@@ -29,7 +29,7 @@
     }
   },
   "devDependencies": {
-    "next": "^14.2.13",
+    "next": "^14.2.35",
     "typescript": "^5.5.4"
   }
 }
