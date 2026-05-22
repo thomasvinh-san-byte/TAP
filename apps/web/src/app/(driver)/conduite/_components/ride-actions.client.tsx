@@ -166,7 +166,7 @@ export function RideActions({ rideId, status, endedAt, variant = 'inline' }: Pro
       {/* « Patient absent » : action lourde (course perdue). Écart large +
           frontière pour la détacher du CTA — anti clic accidentel (retour
           terrain). Hiérarchie secondaire DEC-014 inchangée. */}
-      <div className="mt-24 border-t border-border pt-16">
+      <div className="border-border mt-24 border-t pt-16">
         <NoShowButton rideId={rideId} />
       </div>
     </div>
