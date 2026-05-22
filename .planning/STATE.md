@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Phases 06 / 06.6 / 06.8 livrées — Espace dirigeant complet (facturation + conformité assistée + tableau de bord)
-stopped_at: Phase 06.7 context gathered (assumptions mode)
-last_updated: "2026-05-22T11:04:21.852Z"
+stopped_at: Phase 06.7 UI-SPEC approved
+last_updated: "2026-05-22T11:29:53.142Z"
 progress:
   total_phases: 21
   completed_phases: 4
@@ -173,9 +173,9 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-05-22T11:04:21.822Z
-Stopped at: Phase 06.7 context gathered (assumptions mode)
-Resume file: .planning/phases/06.7-or-tools-optimisation-de-tourn-es/06.7-CONTEXT.md
+Last session: 2026-05-22T11:29:53.120Z
+Stopped at: Phase 06.7 UI-SPEC approved
+Resume file: .planning/phases/06.7-or-tools-optimisation-de-tourn-es/06.7-UI-SPEC.md
 Next command suggested: UAT autonome dirigeant (30-90 min) → `/gsd-discuss-phase 04.5` avec frictions UAT en input
 
 ## Ingest Runs
