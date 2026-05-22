@@ -2,18 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phase 06.8 COMPLÈTE — tableau de bord dirigeant
-stopped_at: Phase 06.8 close — ready /gsd-discuss-phase 06.7 (OR-Tools) ou 06.5 (HDS) ou 07
-last_updated: "2026-05-22T18:00:00.000Z"
-last_activity: 2026-05-21 — Pipeline GSD 4/5 execute Phase 06.8 Wave 2 FINALE + CLÔTURE. Page /tableau-de-bord (Server Component requireDirigeantPage + dynamic force-dynamic, layout pyramide inversée : bloc « À traiter » courses à facturer → /admin/facturation + alertes factures incomplètes/no-shows en haut, bloc « Activité » CA+ventilation/volume jour-7j-mois/taux no-show seuil <10%/activité chauffeurs dessous, carte conformité factuelle en pied) composant KpiCard + ComplianceCard de la Wave 1. loading.tsx skeleton + error.tsx frontière sobre. Redirection par rôle : app/page.tsx (dirigeant → /tableau-de-bord, régulateur → /cockpit, chauffeur → /conduite, sinon /login) ET action de login amendée — DEC-054 clause incidente dirigeant→/cockpit remplacée par dirigeant→/tableau-de-bord (cœur régulateur→/cockpit préservé). Onglet « Tableau de bord » en tête de DIRIGEANT_TABS (REGULATEUR_TABS inchangé — le régulateur ne le voit pas). États vide (« Aucune course à facturer ») / chargement / erreur. WCAG 2.2 AA (h1/h2/h3, contraste, couleur doublée de texte, focus clavier, cibles 44px). E2E phase-06.8-tableau-bord (login dirigeant → atterrissage dashboard → blocs + carte conformité → lien Facturer → /admin/facturation). Smoke preview inchangé (il se connecte en régulateur, atterrissage /cockpit déjà couvert par sa regex). CLÔTURE : 06.8-SUMMARY (8/8 success criteria) + ROADMAP [x] + Status Complete + PROJECT.md DEC-071/072/073 LOCKED + note d'amendement sur DEC-054 + CONCERNS item « dashboard global » résolu + 3 pistes différées (ponctualité si pickup réel, flotte si véhicule-heures, graphes V2) + showcase/06.8 .gitkeep. Validation : typecheck 6/6 PASS + build apps/web ✓ Compiled successfully (route /tableau-de-bord présente) + lint 0 erreur (6 warnings pré-existants) + prettier OK. Aucune migration BDD, aucune dépendance. Phase 06.8 COMPLÈTE (pipeline GSD 5/5, 2 waves #171/Wave 2). completed_phases 9→10, completed_plans 57→59. Verrous V1-V10 respectés. Prochaine étape : /gsd-discuss-phase 06.7 (OR-Tools) ou 06.5 (Migration HDS) ou 07.
-
-Historique complet des phases : .planning/STATE-HISTORY.md
+status: Phases 06 / 06.6 / 06.8 livrées — Espace dirigeant complet (facturation + conformité assistée + tableau de bord)
+stopped_at: Phase 06.7 context gathered (assumptions mode)
+last_updated: "2026-05-22T11:04:21.852Z"
 progress:
-  total_phases: 15
-  completed_phases: 10
-  total_plans: 24
-  completed_plans: 59
-  percent: 66
+  total_phases: 21
+  completed_phases: 4
+  total_plans: 23
+  completed_plans: 38
+  percent: 19
 ---
 
 # Project State
@@ -49,6 +46,7 @@ Phases livrées :
 - Phase 04.7 — Pricing mockup + Caisse + Migration géocoding + hotfix-bis + verify (2026-05-15, PR #88..#99 — 11 PR cumulées dont hotfix-bis 04.7-bis + verify-work, ≈1h40 réel total (execute 45min + hotfix-bis 25min + verify 30min) vs 4-5.5h estimé, vélocité -85% confirmée. Méthodologie « pipeline GSD étendu — UAT informel obligatoire » VISION.md PR #97 validée par premier cas concret.)
 
 Phases à venir (réordonnées 2026-05-22 — état bêta, DEC-077) :
+
 - Phase 06.7 — OR-Tools optimisation de tournées (prochaine, bêta — Haversine, aucune donnée sensible)
 - Phase 06.9 — Modernisation Next.js 15 (autonome, bêta — audit cache fetch(), DEC-076)
 - Phase 07   — Mobile native chauffeur (optionnel — décision business)
@@ -175,9 +173,9 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-05-15T06:06:00.250Z
-Stopped at: Phase 04.5 UI-SPEC approved (6/6 dimensions PASS, 4 recommandations non bloquantes)
-Resume file: .planning/phases/04.5-robustesse-regulateur/04.5-UI-SPEC.md
+Last session: 2026-05-22T11:04:21.822Z
+Stopped at: Phase 06.7 context gathered (assumptions mode)
+Resume file: .planning/phases/06.7-or-tools-optimisation-de-tourn-es/06.7-CONTEXT.md
 Next command suggested: UAT autonome dirigeant (30-90 min) → `/gsd-discuss-phase 04.5` avec frictions UAT en input
 
 ## Ingest Runs
