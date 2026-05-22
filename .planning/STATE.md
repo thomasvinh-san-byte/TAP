@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 ## Current Position
 
 Phase: 06.8 (livrée)
-Phase next: au choix — 06.5 (HDS, verrou avant 1er client payant) | 06.7 (OR-Tools) | 08 (géoloc opérationnelle, post-HDS, DEC-075) | 07 (natif, optionnel)
+Phase next: 06.7 — OR-Tools optimisation de tournées (prochaine action, faisable en bêta)
 Status: Phases 06 / 06.6 / 06.8 livrées — Espace dirigeant complet (facturation + conformité assistée + tableau de bord)
 Blockers: aucun bloquant
 
@@ -48,11 +48,12 @@ Phases livrées :
 - Phase 04.5 — Robustesse régulateur (2026-05-15, PR #71..#87 — 13 mergées, ≈3h45 réel vs 14h estimé, vélocité -73%)
 - Phase 04.7 — Pricing mockup + Caisse + Migration géocoding + hotfix-bis + verify (2026-05-15, PR #88..#99 — 11 PR cumulées dont hotfix-bis 04.7-bis + verify-work, ≈1h40 réel total (execute 45min + hotfix-bis 25min + verify 30min) vs 4-5.5h estimé, vélocité -85% confirmée. Méthodologie « pipeline GSD étendu — UAT informel obligatoire » VISION.md PR #97 validée par premier cas concret.)
 
-Phases à venir :
-- Phase 06.5 — Migration HDS (verrou avant 1er client payant)
-- Phase 06.7 — OR-Tools optimisation de tournées (microservice Python)
-- Phase 08   — Géolocalisation opérationnelle temps réel (post-HDS, DEC-075)
-- Phase 07   — Mobile native chauffeur (optionnel — débloque le GPS continu fiable)
+Phases à venir (réordonnées 2026-05-22 — état bêta, DEC-077) :
+- Phase 06.7 — OR-Tools optimisation de tournées (prochaine, bêta — Haversine, aucune donnée sensible)
+- Phase 06.9 — Modernisation Next.js 15 (autonome, bêta — audit cache fetch(), DEC-076)
+- Phase 07   — Mobile native chauffeur (optionnel — décision business)
+- Phase 09   — Migration HDS (ex-06.5 ; fin de parcours, pré-prod commerciale, verrou 1er client payant, DEC-077)
+- Phase 10   — Géolocalisation opérationnelle temps réel (ex-08 ; après HDS, DEC-075)
 
 ## Hotfixes 2026-05-13/14 (Phase 04 post-merge)
 
