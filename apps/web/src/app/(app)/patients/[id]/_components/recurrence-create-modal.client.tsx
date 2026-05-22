@@ -13,6 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { TimeField24 } from '@/components/time-field-24.client';
+import { DateFieldFr } from '@/components/date-field-fr.client';
 import { createRecurrenceAction } from '../../actions/recurrences';
 import { useHolidays974 } from '../_lib/use-holidays-974';
 import { RecurrencePreview } from './recurrence-preview.client';
@@ -117,12 +118,11 @@ export function RecurrenceCreateModal({
             </div>
             <div className="space-y-4">
               <Label htmlFor="rec-start">Date de début</Label>
-              <Input
+              <DateFieldFr
                 id="rec-start"
                 name="start_date"
-                type="date"
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                onChange={setStartDate}
                 required
               />
             </div>
@@ -130,7 +130,7 @@ export function RecurrenceCreateModal({
 
           <div className="space-y-4">
             <Label htmlFor="rec-end">Date de fin (optionnelle)</Label>
-            <Input id="rec-end" name="end_date" type="date" />
+            <DateFieldFr id="rec-end" name="end_date" />
           </div>
 
           <div className="space-y-4">

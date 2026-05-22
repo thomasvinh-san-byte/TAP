@@ -5,6 +5,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { DateFieldFr } from '@/components/date-field-fr.client';
 import { createDpiaAction, updateDpiaAction } from '../actions';
 
 interface Props {
@@ -112,11 +113,11 @@ export function DpiaForm({ mode, dpiaId, onClose }: Props) {
           <div className="grid grid-cols-2 gap-12">
             <div className="space-y-4">
               <Label htmlFor="reviewed_at">Revue le</Label>
-              <Input id="reviewed_at" name="reviewed_at" type="date" required />
+              <DateFieldFr id="reviewed_at" name="reviewed_at" required />
             </div>
             <div className="space-y-4">
               <Label htmlFor="next_review_at">Prochaine revue</Label>
-              <Input id="next_review_at" name="next_review_at" type="date" required />
+              <DateFieldFr id="next_review_at" name="next_review_at" required />
             </div>
           </div>
           <div className="space-y-4">

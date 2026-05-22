@@ -14,6 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { TimeField24 } from '@/components/time-field-24.client';
+import { DateFieldFr } from '@/components/date-field-fr.client';
 import { updateRecurrenceAction } from '../../actions/recurrences';
 import type { RideRecurrence } from '@/types/recurrence';
 import { useHolidays974 } from '../_lib/use-holidays-974';
@@ -164,23 +165,13 @@ export function RecurrenceEditModal({
               </div>
               <div className="space-y-4">
                 <Label htmlFor="edit-start">Date de début</Label>
-                <Input
-                  id="edit-start"
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                />
+                <DateFieldFr id="edit-start" value={startDate} onChange={setStartDate} />
               </div>
             </div>
 
             <div className="space-y-4">
               <Label htmlFor="edit-end">Date de fin (optionnelle)</Label>
-              <Input
-                id="edit-end"
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
+              <DateFieldFr id="edit-end" value={endDate} onChange={setEndDate} />
             </div>
 
             <div className="space-y-4">

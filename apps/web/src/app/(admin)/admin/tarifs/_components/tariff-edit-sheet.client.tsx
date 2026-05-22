@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { DateFieldFr } from '@/components/date-field-fr.client';
 import type { TariffGridRow } from '../page';
 import { saveTariffGridAction } from '../actions';
 
@@ -108,13 +109,7 @@ export function TariffEditSheet({
         <form action={handleSubmit} className="space-y-12 py-16">
           <div className="space-y-4">
             <Label htmlFor="tg-date">Date d&apos;effet</Label>
-            <Input
-              id="tg-date"
-              name="date_effet"
-              type="date"
-              defaultValue={tomorrowIso()}
-              required
-            />
+            <DateFieldFr id="tg-date" name="date_effet" defaultValue={tomorrowIso()} required />
           </div>
 
           {fields.map((f) => (

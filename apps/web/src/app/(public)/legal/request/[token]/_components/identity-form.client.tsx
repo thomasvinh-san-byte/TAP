@@ -4,6 +4,7 @@ import { useFormState, useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { DateFieldFr } from '@/components/date-field-fr.client';
 import type { ActionState } from '../actions';
 
 type FormAction = (prev: ActionState, fd: FormData) => Promise<ActionState>;
@@ -57,7 +58,7 @@ export function IdentityForm({ token, requestType, action }: Props) {
 
       <div className="space-y-8">
         <Label htmlFor="date_naissance">Date de naissance</Label>
-        <Input id="date_naissance" name="date_naissance" type="date" autoComplete="bday" required />
+        <DateFieldFr id="date_naissance" name="date_naissance" autoComplete="bday" required />
       </div>
 
       {state.error && (
