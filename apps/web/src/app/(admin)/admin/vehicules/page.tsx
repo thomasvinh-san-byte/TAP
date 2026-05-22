@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { VehiclesList } from './_components/vehicles-list.client';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 
-export const metadata = { title: 'Véhicules — Admin TAP' };
+export const metadata = { title: 'Véhicules' };
 export const dynamic = 'force-dynamic';
 
 /**

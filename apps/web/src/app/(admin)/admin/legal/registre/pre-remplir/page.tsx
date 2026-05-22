@@ -4,7 +4,7 @@ import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 import { REGISTRE_PREFILL_ENTRIES } from '../_lib/registre-prefill-content';
 import { RegistrePrefillReview } from './_components/registre-prefill-review.client';
 
-export const metadata = { title: 'Pré-remplir le registre — TAP Admin' };
+export const metadata = { title: 'Pré-remplir le registre' };
 
 /**
  * Écran de revue du pré-remplissage du registre (Phase 06.6, Wave 2).

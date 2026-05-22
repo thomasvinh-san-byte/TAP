@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 
-export const metadata = { title: 'Conformité RGPD — TAP Régulation' };
+export const metadata = { title: 'Conformité RGPD' };
 
 /**
  * Hub /admin/legal — page d'accueil explicative de l'espace conformité RGPD.

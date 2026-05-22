@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getAuthContext } from '@/lib/auth/get-auth-context';
 import { DriversList } from './_components/drivers-list.client';
 
-export const metadata = { title: 'Chauffeurs — Admin TAP' };
+export const metadata = { title: 'Chauffeurs' };
 export const dynamic = 'force-dynamic';
 
 /**

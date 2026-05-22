@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { CockpitContent } from './_components/cockpit-content.client';
 import type { CockpitAlert, CockpitRide } from './_lib/types';
 
-export const metadata = { title: 'Cockpit — TAP Régulation' };
+export const metadata = { title: 'Cockpit' };
 export const dynamic = 'force-dynamic';
 
 export default async function CockpitPage() {

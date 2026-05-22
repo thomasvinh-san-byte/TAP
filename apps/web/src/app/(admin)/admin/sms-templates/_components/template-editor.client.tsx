@@ -78,7 +78,7 @@ export function TemplateEditor({
         setFeedback({ error: result.error });
         return;
       }
-      setFeedback({ ok: 'Template enregistré.' });
+      setFeedback({ ok: 'Modèle enregistré.' });
     });
   }
 

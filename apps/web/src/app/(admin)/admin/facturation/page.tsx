@@ -7,7 +7,7 @@ import {
 import { PeriodeSelector } from './_components/periode-selector.client';
 import { FactureApercu } from './_components/facture-apercu';
 
-export const metadata = { title: 'Facturation CGSS — TAP Régulation' };
+export const metadata = { title: 'Facturation CGSS' };
 export const dynamic = 'force-dynamic';
 
 /** Mois complet précédent, format `YYYY-MM` — défaut d'une facture mensuelle. */

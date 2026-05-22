@@ -2,7 +2,7 @@ import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 import { BackfillGeocoding } from './_components/backfill-geocoding.client';
 import { RecomputeTarifs } from './_components/recompute-tarifs.client';
 
-export const metadata = { title: 'Maintenance — TAP Admin' };
+export const metadata = { title: 'Maintenance' };
 
 /**
  * Page maintenance opérations ponctuelles dirigeant.

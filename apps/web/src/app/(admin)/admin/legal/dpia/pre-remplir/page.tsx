@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 import { DpiaPrefillConfirm } from './_components/dpia-prefill-confirm.client';
 
-export const metadata = { title: 'Créer une trame DPIA — TAP Admin' };
+export const metadata = { title: 'Créer une trame DPIA' };
 
 /**
  * Écran de création de la trame squelette DPIA (Phase 06.6, Wave 3).

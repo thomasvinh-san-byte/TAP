@@ -67,7 +67,7 @@ export async function saveTemplateAction(formData: FormData): Promise<SmsTemplat
     .select('key');
   if (upRes.error) return { error: 'Modification refusée.' };
   if (!upRes.data || (upRes.data as unknown[]).length === 0) {
-    return { error: 'Template introuvable ou droits insuffisants.' };
+    return { error: 'Modèle introuvable ou droits insuffisants.' };
   }
 
   await supabase.from('audit_logs').insert({
@@ -112,7 +112,7 @@ export async function testSendSmsAction(formData: FormData): Promise<SmsTemplate
     .eq('key', parsed.data.template_key)
     .single();
   const tpl = tplRes.data as { body: string } | null;
-  if (tplRes.error || !tpl) return { error: 'Template introuvable.' };
+  if (tplRes.error || !tpl) return { error: 'Modèle introuvable.' };
 
   const vars: TemplateVars = {
     patient_prenom: parsed.data.patient_prenom,

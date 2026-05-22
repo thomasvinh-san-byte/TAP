@@ -4,7 +4,7 @@ import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 import { DPA_PREFILL_FICHES } from '../_lib/dpa-prefill-content';
 import { DpaPrefillReview } from './_components/dpa-prefill-review.client';
 
-export const metadata = { title: 'Pré-remplir les fiches DPA — TAP Admin' };
+export const metadata = { title: 'Pré-remplir les fiches DPA' };
 
 /**
  * Écran de revue du pré-remplissage des fiches DPA (Phase 06.6, Wave 3).

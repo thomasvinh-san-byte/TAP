@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { BreachList } from './_components/breach-list.client';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 
-export const metadata = { title: 'Violations de données — TAP Admin' };
+export const metadata = { title: 'Violations de données' };
 
 /**
  * Page admin breaches (DPA-05, D-08).

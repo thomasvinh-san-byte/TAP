@@ -22,7 +22,7 @@ import { InvitationErrorPanel } from './_components/invitation-error-panel';
 import { createClient } from '@/lib/supabase/server';
 
 export const metadata = {
-  title: 'Activer mon compte — TAP Régulation',
+  title: 'Activer mon compte',
 };
 export const dynamic = 'force-dynamic';
 

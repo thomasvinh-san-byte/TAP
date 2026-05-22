@@ -1,9 +1,11 @@
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 import { getDashboardData } from './_lib/queries-dashboard';
 import { KpiCard, type KpiState } from './_components/kpi-card';
 import { ComplianceCard } from './_components/compliance-card';
 
-export const metadata = { title: 'Tableau de bord — TAP Régulation' };
+export const metadata = { title: 'Tableau de bord' };
 export const dynamic = 'force-dynamic';
 
 /**
@@ -32,6 +34,11 @@ function tauxState(taux: number): { state: KpiState; label: string } {
 
 function plural(n: number, sing: string, plur: string): string {
   return `${n} ${n > 1 ? plur : sing}`;
+}
+
+/** `YYYY-MM` → libellé fr « mai 2026 ». */
+function moisEnClair(mois: string): string {
+  return format(new Date(`${mois}-01T00:00:00`), 'MMMM yyyy', { locale: fr });
 }
 
 export default async function TableauDeBordPage(): Promise<JSX.Element> {
@@ -82,9 +89,9 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
             context={
               data.coursesAFacturer === 0
                 ? 'Aucune course à facturer ce mois'
-                : 'ce mois · tiers payant CGSS'
+                : `${moisEnClair(data.moisCourant)} · tiers payant CGSS`
             }
-            action={{ href: '/admin/facturation', label: 'Facturer' }}
+            action={{ href: `/admin/facturation?mois=${data.moisCourant}`, label: 'Facturer' }}
           />
           <KpiCard variant="alerte" label="Alertes" items={alerteItems} />
         </div>

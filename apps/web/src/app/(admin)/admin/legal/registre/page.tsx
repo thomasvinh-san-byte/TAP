@@ -6,7 +6,7 @@ import { ExportPdfButton } from './_components/export-pdf-button.client';
 import { RegistreList } from './_components/registre-list.client';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 
-export const metadata = { title: 'Registre des traitements — TAP Admin' };
+export const metadata = { title: 'Registre des traitements' };
 
 /**
  * Page admin Registre des traitements (DPA-01, D-05, D-16).

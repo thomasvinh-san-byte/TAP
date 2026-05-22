@@ -52,6 +52,7 @@ export interface DashboardConformite {
 
 export interface DashboardData {
   coursesAFacturer: number;
+  moisCourant: string; // YYYY-MM — mois compté par coursesAFacturer (drill-down)
   facturesIncompletes: number;
   noShowsRecents: number;
   caMois: CaisseTotals;
@@ -247,6 +248,7 @@ export async function getDashboardData(): Promise<DashboardData> {
 
   return {
     coursesAFacturer: coursesFacturables.length,
+    moisCourant: mois,
     facturesIncompletes,
     noShowsRecents: noShowsRes.count ?? 0,
     caMois,

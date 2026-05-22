@@ -2,7 +2,7 @@ import { AuthShell } from '../_components/auth-shell.client';
 import { LoginFormShell } from './_components/login-form-shell.client';
 
 export const metadata = {
-  title: 'Connexion — TAP Régulation',
+  title: 'Connexion',
 };
 
 export default function LoginPage({ searchParams }: { searchParams: { next?: string } }) {

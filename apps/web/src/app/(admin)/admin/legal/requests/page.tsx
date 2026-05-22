@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { RequestsList } from './_components/requests-list.client';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 
-export const metadata = { title: 'Demandes RGPD patients — TAP Admin' };
+export const metadata = { title: 'Demandes RGPD patients' };
 
 /**
  * Page admin patient_data_request (DPA-04, D-09).
