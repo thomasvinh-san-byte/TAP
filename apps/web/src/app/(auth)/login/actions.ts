@@ -57,15 +57,21 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
     redirect(next);
   }
 
-  // DEC-054 — redirect role-aware (régulateur+dirigeant → /cockpit,
-  // chauffeur → /conduite, fallback /patients pour rétro-compat).
+  // DEC-054 + DEC-071 — redirect role-aware : dirigeant → /tableau-de-bord,
+  // régulateur → /cockpit, chauffeur → /conduite, fallback /patients.
+  // DEC-071 amende la clause incidente de DEC-054 (le dirigeant n'atterrit
+  // plus sur /cockpit mais sur son tableau de bord) ; le cœur de DEC-054
+  // (régulateur → /cockpit) est préservé.
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (user) {
     const profileRes = await supabase.from('profiles').select('role').eq('id', user.id).single();
     const profile = profileRes.data as { role: string | null } | null;
-    if (profile?.role === 'regulateur' || profile?.role === 'dirigeant') {
+    if (profile?.role === 'dirigeant') {
+      redirect('/tableau-de-bord');
+    }
+    if (profile?.role === 'regulateur') {
       redirect('/cockpit');
     }
     if (profile?.role === 'chauffeur') {

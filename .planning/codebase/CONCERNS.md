@@ -138,11 +138,12 @@ Les items « Phase de résolution : Passe 2 (Phase 04) » référencés ci-desso
 - Phase de résolution : Passe 2 (Phase 04) si volume justifie
 - Workaround : recherche basique client-side.
 
-### Page `/admin/index` dashboard global
+### Page dashboard dirigeant — RÉSOLU (Phase 06.8, 2026-05-21)
 
-- Issue : Pas de dashboard `/admin` agrégeant les KPIs dirigeant.
+- Issue : pas de dashboard agrégeant les KPIs dirigeant ; le dirigeant atterrissait sur `/patients` (page-outil).
 - Sévérité : **minor**
-- Phase de résolution : **Phase 06.8 — Tableau de bord dirigeant** (formalisée ROADMAP 2026-05-21, autonome — avant HDS). KPIs : CA mensuel, courses à facturer, alertes, activité chauffeurs.
+- Résolution : **Phase 06.8 livrée 2026-05-21** (pipeline GSD 5/5, 2 waves). Page `/tableau-de-bord` (Server Component, pyramide inversée, 6 KPIs réutilisant les agrégations Caisse/Facturation + carte de conformité factuelle) + redirection par rôle (DEC-071). DEC-071..073 LOCKED.
+- Pistes reportées : taux de ponctualité on-time (si un horodatage de prise en charge réel est introduit) ; taux d'utilisation de la flotte (si véhicule-heures) ; graphes de tendance long terme (V2).
 
 ### Conformité assistée — pré-remplissage RGPD — RÉSOLU (Phase 06.6, 2026-05-21)
 
