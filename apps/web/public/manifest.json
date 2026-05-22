@@ -5,7 +5,7 @@
   "lang": "fr-FR",
   "dir": "ltr",
   "start_url": "/conduite?source=pwa",
-  "scope": "/conduite/",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "theme_color": "#0944a0",

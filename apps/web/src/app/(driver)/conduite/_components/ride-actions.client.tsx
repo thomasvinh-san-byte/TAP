@@ -146,24 +146,27 @@ export function RideActions({ rideId, status, endedAt, variant = 'inline' }: Pro
   // assignee (par défaut)
   return (
     <div className={stickyCls}>
-      <div className="space-y-12">
-        <Button
-          type="button"
-          onClick={onStart}
-          disabled={pending || hasPendingSync}
-          className="h-14 w-full text-base font-semibold"
-        >
-          {pending ? (
-            <>
-              <Loader2 className="mr-8 h-16 w-16 animate-spin" aria-hidden />
-              Démarrage…
-            </>
-          ) : hasPendingSync ? (
-            'Démarrage en attente de sync…'
-          ) : (
-            'Démarrer la course'
-          )}
-        </Button>
+      <Button
+        type="button"
+        onClick={onStart}
+        disabled={pending || hasPendingSync}
+        className="h-14 w-full text-base font-semibold"
+      >
+        {pending ? (
+          <>
+            <Loader2 className="mr-8 h-16 w-16 animate-spin" aria-hidden />
+            Démarrage…
+          </>
+        ) : hasPendingSync ? (
+          'Démarrage en attente de sync…'
+        ) : (
+          'Démarrer la course'
+        )}
+      </Button>
+      {/* « Patient absent » : action lourde (course perdue). Écart large +
+          frontière pour la détacher du CTA — anti clic accidentel (retour
+          terrain). Hiérarchie secondaire DEC-014 inchangée. */}
+      <div className="mt-24 border-t border-border pt-16">
         <NoShowButton rideId={rideId} />
       </div>
     </div>
