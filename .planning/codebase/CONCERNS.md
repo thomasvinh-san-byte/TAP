@@ -85,10 +85,10 @@ Les items « Phase de résolution : Passe 2 (Phase 04) » référencés ci-desso
 
 ### Découplage architecture Supabase — faciliter une future migration HDS
 
-- Issue : TAP est fortement couplé à l'écosystème Supabase (Auth, RLS, Realtime cockpit, Edge Functions NIR, pg_cron, Vault). Une future migration vers un hébergeur certifié HDS (cf. Phase 06.5) sera d'autant plus lourde que le couplage est fort. Un découplage progressif (couche d'accès données, auth abstraite, Edge Functions portables) réduirait cet effort.
+- Issue : TAP est fortement couplé à l'écosystème Supabase (Auth, RLS, Realtime cockpit, Edge Functions NIR, pg_cron, Vault). Une future migration vers un hébergeur certifié HDS (cf. Phase 06.5, renumérotée Phase 09 le 2026-05-22) sera d'autant plus lourde que le couplage est fort. Un découplage progressif (couche d'accès données, auth abstraite, Edge Functions portables) réduirait cet effort.
 - Sévérité : **minor** (aucun impact fonctionnel ; pure facilitation future)
 - Décision dirigeant (2026-05-21) : **NE PAS faire d'architecture maintenant.** Priorité = mise en place du fonctionnel pendant la bêta. Le découplage se fait au fil de l'eau (construire proprement les nouvelles features) plutôt qu'en chantier dédié. Pas de phase « refonte archi ».
-- Phase de résolution : opportuniste / au fil des features ; jamais un sprint isolé. La migration HDS elle-même = Phase 06.5 (avant 1er client payant).
+- Phase de résolution : opportuniste / au fil des features ; jamais un sprint isolé. La migration HDS elle-même = Phase 06.5, renumérotée Phase 09 le 2026-05-22 — repoussée en fin de parcours (avant 1er client payant ; DEC-077).
 
 ### Modal assignation — pas de filtrage `type_permis` ↔ `vehicle.type`
 
@@ -1153,7 +1153,7 @@ Phase 04.9 PWA chauffeur enveloppe livrée 2026-05-18 (8 PR #109-#116, ~1h40 wal
 - **Optimistic UI miroir Dexie** (NEW Wave 6, section ci-dessous) : flow Démarrer→Terminer offline en chaîne.
 - **Hors-ligne > 1h** : sync delta + cache complet courses du jour (chauffeurs en zones Hauts blanches).
 - **Web Push notifications VAPID** : iOS 16.4+ supporté, alertes régulatrice patient absent.
-- **Géolocalisation opérationnelle temps réel** : déplacée vers la **Phase 08, post-HDS (DEC-075)** — n'est pas livrée par la Phase 06. Suivi position véhicules pour carte cockpit live + ETA ; distincte de la géoloc certifiée facturation (hors périmètre, DEC-074).
+- **Géolocalisation opérationnelle temps réel** : déplacée vers la **Phase 08 (renumérotée Phase 10 le 2026-05-22), post-HDS (DEC-075)** — n'est pas livrée par la Phase 06. Suivi position véhicules pour carte cockpit live + ETA ; distincte de la géoloc certifiée facturation (hors périmètre, DEC-074).
 - **Idempotency cleanup pg_cron** : `DELETE FROM idempotency_keys WHERE expires_at < now()` (table créée Wave 1).
 - **Réplication initiale `rides_mirror`** : sync delta serveur → IndexedDB au mount online.
 - **Vitest setup `apps/web`** : config + mocks `next/headers` + Supabase server client. Deferred Waves 1-6 V1.5 (CLAUDE.md § 9 tests pragmatic). ~30-60 min isolé.
