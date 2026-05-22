@@ -31,7 +31,7 @@ import { useInstallPrompt } from '../_lib/use-install-prompt';
 const DISMISSED_KEY = 'pwaInstallDismissedAt';
 const DISMISS_DURATION_MS = 7 * 24 * 3600 * 1000;
 
-export function InstallPwaBanner(): JSX.Element | null {
+export function InstallPwaBanner(): JSX.Element {
   const promptState = useInstallPrompt();
   const [dismissed, setDismissed] = useState(true);
 
@@ -66,12 +66,19 @@ export function InstallPwaBanner(): JSX.Element | null {
     setDismissed(true);
   };
 
-  if (promptState.kind === 'standalone' || promptState.kind === 'unsupported') {
-    return null;
-  }
-  if (dismissed) return null;
+  // DEBUG PWA — à retirer après diagnostic. Affiche l'état réel détecté par
+  // useInstallPrompt() pour confirmer l'installabilité sur un vrai Android
+  // Chrome (la PWA ne se teste qu'en HTTPS sur mobile).
+  const debugBadge = (
+    <p data-pwa-kind={promptState.kind} className="text-muted-foreground mb-8 text-xs">
+      PWA debug — état détecté : {promptState.kind}
+    </p>
+  );
 
-  return (
+  const bannerHidden =
+    promptState.kind === 'standalone' || promptState.kind === 'unsupported' || dismissed;
+
+  const banner = bannerHidden ? null : (
     <div
       role="region"
       aria-label="Installation de l'application"
@@ -129,5 +136,12 @@ export function InstallPwaBanner(): JSX.Element | null {
         <X aria-hidden className="text-muted-foreground h-16 w-16" />
       </button>
     </div>
+  );
+
+  return (
+    <>
+      {debugBadge}
+      {banner}
+    </>
   );
 }
