@@ -24,9 +24,11 @@ export const REGULATEUR_TABS: NavTab[] = [
   { href: '/admin/chauffeurs', label: 'Chauffeurs' },
 ];
 
-// Nav dirigeant : identique sur (app) ET (admin). Reprend la nav régulateur
-// + les outils admin. « Légal ▾ » est rendu séparément via <LegalNavMenu />.
+// Nav dirigeant : identique sur (app) ET (admin). Tableau de bord en tête
+// (sa page d'accueil — DEC-071), puis la nav régulateur + les outils admin.
+// « Légal ▾ » est rendu séparément via <LegalNavMenu />.
 export const DIRIGEANT_TABS: NavTab[] = [
+  { href: '/tableau-de-bord', label: 'Tableau de bord' },
   ...REGULATEUR_TABS,
   { href: '/admin/vehicules', label: 'Véhicules' },
   { href: '/admin/tarifs', label: 'Tarifs' },
