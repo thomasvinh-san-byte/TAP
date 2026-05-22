@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { DateFieldFr } from '@/components/date-field-fr.client';
 import { createDpaRecordAction } from '../actions';
 
 interface Props {
@@ -75,11 +76,11 @@ export function DpaDrawer({ open, onOpenChange }: Props) {
           </div>
           <div className="space-y-4">
             <Label htmlFor="signed_at">Signé le</Label>
-            <Input id="signed_at" name="signed_at" type="date" required />
+            <DateFieldFr id="signed_at" name="signed_at" required />
           </div>
           <div className="space-y-4">
             <Label htmlFor="expires_at">Expire le (vide = évergreen)</Label>
-            <Input id="expires_at" name="expires_at" type="date" />
+            <DateFieldFr id="expires_at" name="expires_at" />
           </div>
           <div className="space-y-4">
             <Label htmlFor="notes">Notes</Label>

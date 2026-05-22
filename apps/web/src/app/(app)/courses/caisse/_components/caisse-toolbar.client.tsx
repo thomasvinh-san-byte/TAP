@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { DateFieldFr } from '@/components/date-field-fr.client';
 import { exportCaisseCsvAction } from '../../actions';
 import type { CaisseFilters } from '../_lib/queries-caisse';
 
@@ -76,11 +76,10 @@ export function CaisseToolbar({ date, drivers, filters }: Props): JSX.Element {
           <Label htmlFor="caisse-date" className="text-xs">
             Date
           </Label>
-          <Input
+          <DateFieldFr
             id="caisse-date"
-            type="date"
             value={date}
-            onChange={(e) => updateUrl({ date: e.target.value })}
+            onChange={(v) => updateUrl({ date: v })}
             className="h-10 w-[160px] tabular-nums"
           />
         </div>

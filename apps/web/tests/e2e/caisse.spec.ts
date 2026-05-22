@@ -47,7 +47,8 @@ test.describe('Caisse — page admin régulateur', () => {
     await loginAs(page, 'regulateur');
     await page.goto('/courses/caisse');
     const dateInput = page.getByLabel('Date', { exact: true });
-    await dateInput.fill('2026-05-14');
+    // DateFieldFr : saisie au format français JJ/MM/AAAA, valeur émise ISO.
+    await dateInput.fill('14/05/2026');
     await expect(page).toHaveURL(/date=2026-05-14/, { timeout: 5000 });
   });
 

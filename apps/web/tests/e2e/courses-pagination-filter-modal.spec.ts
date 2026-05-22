@@ -70,8 +70,12 @@ test.describe('Hotfix 04.7-bis — Courses modal/filter/pagination', () => {
   test("F2 — Filtre date présent + valeur aujourd'hui par défaut", async ({ page }) => {
     const dateInput = page.getByLabel('Filtre date des courses');
     await expect(dateInput).toBeVisible({ timeout: 5000 });
-    const today = new Date().toISOString().slice(0, 10);
-    await expect(dateInput).toHaveValue(today);
+    // DateFieldFr affiche la date au format français JJ/MM/AAAA.
+    const now = new Date();
+    const todayFr = `${String(now.getDate()).padStart(2, '0')}/${String(
+      now.getMonth() + 1,
+    ).padStart(2, '0')}/${now.getFullYear()}`;
+    await expect(dateInput).toHaveValue(todayFr);
   });
 
   test('F2bis — Bouton Effacer date remet liste sans filtre', async ({ page }) => {

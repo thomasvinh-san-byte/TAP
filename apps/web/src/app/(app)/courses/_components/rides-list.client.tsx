@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
+import { DateFieldFr } from '@/components/date-field-fr.client';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
 import { formatShortDateFr, formatTimeFr, isToday } from '@/lib/dates-fr';
 import { ModeBadge, PaymentBadge, StatusBadge, UrgencyBadge } from './ride-badges';
@@ -124,14 +125,13 @@ export function RidesList(): JSX.Element {
           />
         </div>
         <div className="flex items-end gap-8">
-          <Input
-            type="date"
+          <DateFieldFr
             value={dateFilter}
-            onChange={(e) => {
-              setDateFilter(e.target.value);
+            onChange={(v) => {
+              setDateFilter(v);
               resetOffset();
             }}
-            aria-label="Filtre date des courses"
+            ariaLabel="Filtre date des courses"
             className="h-10 w-[160px] tabular-nums"
           />
           {dateFilter && (

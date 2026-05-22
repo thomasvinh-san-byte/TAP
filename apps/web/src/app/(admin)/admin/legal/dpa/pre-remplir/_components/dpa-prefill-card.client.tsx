@@ -2,6 +2,7 @@
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { DateFieldFr } from '@/components/date-field-fr.client';
 import type { DpaPrefillFiche } from '../../_lib/dpa-prefill-content';
 
 /**
@@ -74,13 +75,7 @@ export function DpaPrefillCard({
         </div>
         <div className="space-y-4">
           <Label htmlFor={fieldId('signed_at')}>Date de signature</Label>
-          <Input
-            id={fieldId('signed_at')}
-            name="signed_at"
-            type="date"
-            lang="fr-FR"
-            defaultValue={fiche.signed_at}
-          />
+          <DateFieldFr id={fieldId('signed_at')} name="signed_at" defaultValue={fiche.signed_at} />
           <p className="text-muted-foreground text-xs">
             Obligatoire — à renseigner. TAP décrit la fiche, vous validez le contrat.
           </p>

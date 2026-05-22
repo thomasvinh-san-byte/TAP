@@ -6,6 +6,7 @@ import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { DateFieldFr } from '@/components/date-field-fr.client';
 import { prefillDpiaRecordAction } from '../../actions';
 import { DPIA_PREFILL_TRAME } from '../../_lib/dpia-prefill-content';
 
@@ -71,22 +72,13 @@ export function DpiaPrefillConfirm(): JSX.Element {
       </div>
       <div className="space-y-4">
         <Label htmlFor="reviewed_at">Date de revue</Label>
-        <Input
-          id="reviewed_at"
-          name="reviewed_at"
-          type="date"
-          lang="fr-FR"
-          required
-          defaultValue={isoDate(today)}
-        />
+        <DateFieldFr id="reviewed_at" name="reviewed_at" required defaultValue={isoDate(today)} />
       </div>
       <div className="space-y-4">
         <Label htmlFor="next_review_at">Prochaine revue</Label>
-        <Input
+        <DateFieldFr
           id="next_review_at"
           name="next_review_at"
-          type="date"
-          lang="fr-FR"
           required
           defaultValue={isoDate(inOneYear)}
         />
