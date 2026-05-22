@@ -1153,7 +1153,7 @@ Phase 04.9 PWA chauffeur enveloppe livrée 2026-05-18 (8 PR #109-#116, ~1h40 wal
 - **Optimistic UI miroir Dexie** (NEW Wave 6, section ci-dessous) : flow Démarrer→Terminer offline en chaîne.
 - **Hors-ligne > 1h** : sync delta + cache complet courses du jour (chauffeurs en zones Hauts blanches).
 - **Web Push notifications VAPID** : iOS 16.4+ supporté, alertes régulatrice patient absent.
-- **Géolocalisation temps réel** : tracking position chauffeur pour cockpit régulateur live map.
+- **Géolocalisation opérationnelle temps réel** : déplacée vers la **Phase 08, post-HDS (DEC-075)** — n'est pas livrée par la Phase 06. Suivi position véhicules pour carte cockpit live + ETA ; distincte de la géoloc certifiée facturation (hors périmètre, DEC-074).
 - **Idempotency cleanup pg_cron** : `DELETE FROM idempotency_keys WHERE expires_at < now()` (table créée Wave 1).
 - **Réplication initiale `rides_mirror`** : sync delta serveur → IndexedDB au mount online.
 - **Vitest setup `apps/web`** : config + mocks `next/headers` + Supabase server client. Deferred Waves 1-6 V1.5 (CLAUDE.md § 9 tests pragmatic). ~30-60 min isolé.
@@ -1300,7 +1300,7 @@ Consolidation post-Phase 05.5 LIVRÉE (PR #136-#142, clôture 2026-05-19).
 - **Suggestion tarif côté PWA chauffeur** : V1.5 le chauffeur saisit le montant manuellement dans `end-ride-modal` (Phase 05.5 Wave 2, Option 1). Phase 06 = afficher le tarif CGSS auto-calculé en suggestion — nécessite un pricing offline-aware (grille fetch + cache PWA).
 
 #### Facturation CGSS (Phase 06 dédié)
-- Facturation CGSS PDF mensuelle + télétransmission B2 via logiciel certifié CNDA (échéance réglementaire **31 mai 2026**).
+- **Cadre réglementaire 2027 (corrigé 2026-05-22).** Géolocalisation certifiée Assurance maladie obligatoire au **1er janvier 2027** pour conserver le conventionnement ; le télé-service **SEFi** remplace la norme B2 comme facturation obligatoire au plus tard au **1er janvier 2027** ; les deux exigent un logiciel certifié **CNDA** (arrêtés Légifrance 16/05 et 29/07/2025). **Positionnement TAP (DEC-074)** : TAP ne porte PAS cette certification — il s'interface par export avec la solution certifiée du taxi. La facturation PDF de TAP reste un récapitulatif estimatif (« ne vaut pas bordereau B2/SEFi »). Risque avant-vente : clarifier que TAP est complémentaire d'une solution certifiée, pas un substitut.
 - Formulaire 606b-09/2025 (remplace l'annexe 4).
 
 #### Bug latent — contrainte CHECK `tarif_source` — ✅ RÉSOLU

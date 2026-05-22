@@ -57,3 +57,15 @@ Au premier client facturant réellement la CGSS via TAP : ouvrir une phase
 dédiée « Télétransmission B2/CNDA » — certification logiciel CNDA, norme B2,
 échange SEFi, formulaire 606b — avec une échéance réévaluée selon la
 situation réelle du client.
+
+
+## Amendement 2026-05-22 — recadrage réglementaire + positionnement (DEC-074)
+
+Précision suite à l'audit des arrêtés Légifrance (16 mai + 29 juillet 2025) :
+la géolocalisation certifiée Assurance maladie devient obligatoire au 1er janvier
+2027 pour conserver le conventionnement, et SEFi remplace la norme B2 comme
+facturation obligatoire au plus tard au 1er janvier 2027 (logiciel certifié CNDA
+requis). La décision n'est plus seulement un « report » : par conception (DEC-074),
+TAP reste un outil opérationnel non certifié et s'interface par export avec la
+solution certifiée du taxi. Le fardeau de la certification (CNDA, SEFi, géoloc
+certifiée) incombe au taxi et à sa solution certifiée, pas à TAP.

@@ -35,8 +35,8 @@ Sources de vérité de ce séquencement : ADR-003 (LOCKED) +
 - [x] **Phase 03.1: Efficience saisie modal course** — 3 patterns Doctolib/Uber Health/Onfleet (smart defaults, chips date, banner doublon) + re-seed patients fictifs (livré 2026-05-12 sur PR #39 — 5 plans GSD pipeline complet)
 - [x] **Phase 03.2: Série hotfixes finition (hors GSD)** — 8 hotfixes DateTimeFields react-datepicker + AddressPickerField BAN (PR #47..#55, 2026-05-12/13). Pattern incremental hors GSD documenté en CONCERNS.md.
 - [x] **Phase 04: Onboarding chauffeur + AuthShell** — Workflow invitation magic link Supabase + AuthShell réutilisable + DemoCredentials cliquables + premier RHF + zodResolver du repo (DEC-018). Livré 2026-05-13 sur PR #59 + 5 hotfixes post-merge (PR #60..#67, DEC-029..033).
-- [ ] **Phase 04.5: Robustesse régulateur + dette CONCERNS** — Filtrage type_permis↔vehicle.type modal assignation + audit logs nom acteur + découpe `ride-express-modal.client.tsx` (384L) + `ride-drawer.client.tsx` (337L) + types Supabase regen + livraison 10 captures showcase Phase 03 + audit permissions autres modules admin (vehicules, legal/*) + workflow patient absent. **Estimation : 6-9 h. Prérequis : UAT walkthrough dirigeant terminé.**
-- [ ] **Phase 04.7: Pricing mockup + Caisse + Migration géocoding** — `packages/pricing` stub DEMO + PricingBreakdown UI + OverrideTarifModal + page `/courses/caisse` style Stripe Balance + export CSV utf-8-sig + migration BDD lat/lng/citycode threadée BAN + anonymisation seed profiles. **Pricing réel reporté Phase 05.5 (DEC-021). Estimation : 6-9 h.**
+- [x] **Phase 04.5: Robustesse régulateur + dette CONCERNS** — Filtrage type_permis↔vehicle.type modal assignation + audit logs nom acteur + découpe `ride-express-modal.client.tsx` (384L) + `ride-drawer.client.tsx` (337L) + types Supabase regen + livraison 10 captures showcase Phase 03 + audit permissions autres modules admin (vehicules, legal/*) + workflow patient absent. **Livré 2026-05-15 (PR #71..#87, ~3h45 réel vs 14h estimé, vélocité -73%).**
+- [x] **Phase 04.7: Pricing mockup + Caisse + Migration géocoding** — `packages/pricing` stub DEMO + PricingBreakdown UI + OverrideTarifModal + page `/courses/caisse` style Stripe Balance + export CSV utf-8-sig + migration BDD lat/lng/citycode threadée BAN + anonymisation seed profiles. **Pricing réel reporté Phase 05.5 (DEC-021). Livré 2026-05-15 (PR #88..#99).**
 - [x] **Phase 04.9: PWA chauffeur enveloppe** — Serwist + Dexie 4.x (DEC-019) + manifest + icônes maskable + splash iOS DPR + ConnectionStatus 4 cas + sync engine + persistence storage warning > 7j (DEC-022) + transitions fade-in template.tsx (DEC-020) + iOS PWA quirks documentés CONCERNS.md. **Estimation : 8-10 h.** Livré 2026-05-18, 8 PR (#109-#116), ~1h40 wall-clock réel (-82% vélocité).
 - [x] **Phase 05: E2E Passe 3 — Récurrences + cockpit + SMS + patient absent** — `packages/recurrence` 100% (dialyse 3×/sem, exceptions jours fériés 974) + cockpit régulateur Realtime Supabase + SMS rappel J-1 et J-2h via Twilio + workflow patient absent au pickup + logique no-show vs annulation patient. **Estimation : 10-15 h. Livré 2026-05-19, 13 PR (#121-#133) + 2 auto-commits types** (pipeline GSD 5/5 complet, 11 migrations BDD, `@tap/recurrence` 100% branches + `@tap/sms` ≥80%, 4 Route Handlers, cockpit Realtime + modal récurrence cascade DEC-048 + UI admin SMS + workflow no-show PWA→cockpit, pipeline GitHub Actions 100% auto-trigger types validé 2 fois). Tableau de bord pilotage dirigeant reporté Phase 06.
 - [x] **Phase 05.5: Tarif CGSS réel** — Implémentation calcul réel `computeCgssShortTrip` (remplace stub Phase 04.7), grille tarif CGSS 2026 (forfait/km/majo nuit/dim/férié/supp TPMR), page grille active + historique + simulation, recalcul rétroactif courses historiques. 100% branch coverage Vitest (DEC-021). **Estimation : 8-12 h. Livré 2026-05-19, 6 PR (#136-#142)** (pipeline GSD 5/5 complet, migration `tariff_grids` versionnée + `computeCgssShortTrip`/`computeCgssFromDistance` fonction pure 15 cas 100% branches, page `/admin/tarifs` grille active + simulateur live + historique + édition INSERT-only, `PricingBreakdown` enrichi sans badge DEMO + disclaimer estimatif, recalcul rétroactif garde-fous DEC-060, DEC-056..061 LOCKED).
@@ -46,6 +46,7 @@ Sources de vérité de ce séquencement : ADR-003 (LOCKED) +
 - [ ] **Phase 06.7: OR-Tools optimisation de tournées** — Microservice Python OR-Tools (`services/optimizer`) + `packages/optimizer-client` (DEC-066). Distance V1 = Haversine × facteur (DEC-056) ; OSRM avec la géoloc certifiée 2027. **Depends on: Phase 06.**
 - [x] **Phase 06.8: Tableau de bord dirigeant (Espace dirigeant)** — Page d'accueil de pilotage : CA mensuel, courses à facturer, alertes, activité chauffeurs. Comble l'absence de vue d'ensemble dirigeant (pages-outils éparses aujourd'hui). Piste « indicateurs de statut de conformité par section » à intégrer (cf. Phase 06.6). **Depends on: Phase 06 (autonome — fonctionnel pur, n'attend pas HDS). Retour terrain dirigeant 2026-05-21.**
 - [ ] **Phase 07: Mobile native chauffeur (OPTIONNEL — décision business V2)** — App native iOS + Android (React Native ou Capacitor) + géoloc continue + mode hors-ligne complet + reconnaissance vocale + push natives + mode lecture seule chauffeur. Phase 04.9 PWA peut suffire si business case mobile natif non validé (coût 10× inférieur, même périmètre fonctionnel). **Estimation : 25-40 h.**
+- [ ] **Phase 08: Géolocalisation opérationnelle temps réel** — Suivi position véhicules pour la régulation : carte cockpit live, ETA temps réel (régulateur + patient SMS), km à vide / km en charge réels, comparaison itinéraire prévu vs réalisé, historique 90 j puis purge (CDC §5.17). **Distincte de la géoloc certifiée facturation (hors périmètre, DEC-074).** Depends on: Phase 06.5 (HDS — DEC-075, position de véhicules-patients = donnée de santé indirecte). Faisabilité technique liée à Phase 07 : la capture GPS en arrière-plan n'est pas fiable en PWA (iOS surtout) — le discuss devra trancher PWA premier-plan dégradé vs natif. **Estimation : à cadrer en discuss.**
 
 ## Phase Details
 
@@ -404,7 +405,7 @@ ou explicitement reportés au-delà de V1.
 | Module CDC v2 | Statut nouveau séquencement |
 |---|---|
 | Planning Gantt drag-and-drop | Reporté V2 (cockpit Passe 3 fournit la base, Gantt = enrichissement post-V1) |
-| Géolocalisation temps réel chauffeur | Reporté V3 (Passe 4 ne livre pas le streaming GPS — V1 ne le requiert pas) |
+| Géolocalisation temps réel chauffeur | Phase 08 — géoloc opérationnelle, post-HDS (DEC-075). Non requise en V1. |
 | Routing GPS OSRM advanced (geocoding, alternatives, isochrones) | Reporté V2 (Passe 4 livre OSRM tuiles + RPC distance/eta basiques) |
 | Mode dégradé complet | Partiellement Passe 4 (essentiel : enregistrement local pendant coupure ; complet V2) |
 | KPIs dirigeant complets (drill-down M-1/M-12) | Reporté V2 (Passe 4 livre le PDF facturation, KPIs cockpit dirigeant V2) |
@@ -437,5 +438,17 @@ par ADR-003.
 **Plans**: TBD — phase déclenchée seulement après décision business explicite post-Phase 06
 
 ---
+
+### Phase 08: Géolocalisation opérationnelle temps réel
+**Goal**: La régulatrice voit la position temps réel des véhicules sur une carte cockpit, avec ETA, km à vide/charge réels et comparaison prévu/réalisé. Le patient reçoit un ETA par SMS.
+**Depends on**: Phase 06.5 (HDS). DEC-075 : pas de positions réelles de véhicules-patients en prod avant HDS.
+**Cadre RGPD géoloc salarié (CDC §5.17)**: base légale = exécution du contrat de travail ; information préalable obligatoire ; limitation au temps de service (pause déjeuner possible avec consentement) ; conservation 90 j puis purge automatique ; consultation réservée aux rôles dirigeant + régulateur.
+**Contrainte technique structurante**: la capture GPS en arrière-plan PWA est non fiable (iOS Safari met l'app en pause hors premier plan ; Android Chrome s'interrompt si le chauffeur ouvre Waze/Maps ; le service worker n'a pas accès à `navigator.geolocation`). Deux options à trancher en discuss : (a) PWA premier-plan seulement (dégradé, écran allumé) ; (b) coupler à l'app native Phase 07 (seul suivi continu fiable).
+**Hors périmètre**: géoloc certifiée Assurance maladie / alimentation facturation SEFi (DEC-074 — incombe à la solution certifiée du taxi).
+**Estimation**: à cadrer en discuss
+**UI hint**: yes (carte cockpit live + ETA)
+**Plans**: TBD — `/gsd-discuss-phase 08`
+
+---
 *Roadmap initialisée : 2026-05-06*
-*Dernière mise à jour : 2026-05-14 — Phase 04 marquée livrée + 5 hotfixes post-merge (DEC-029..033) + Phase 03.2 inscrite + Phase 07 mobile natif ajoutée + estimations alignées avec vision macro VISION.md.*
+*Dernière mise à jour : 2026-05-22 — sync réel (04.5/04.7 cochées livrées), recadrage réglementaire 2027 (SEFi/géoloc certifiée, DEC-074), ajout Phase 08 géoloc opérationnelle post-HDS (DEC-075). Antérieur : 2026-05-14 — Phase 04 livrée + hotfixes DEC-029..033 + Phase 03.2 + Phase 07.*
