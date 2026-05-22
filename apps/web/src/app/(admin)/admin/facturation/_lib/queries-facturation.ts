@@ -47,8 +47,8 @@ interface RawRow {
   driver: { nom_affichage: string } | null;
 }
 
-/** Bornes UTC [début, fin[ du mois `YYYY-MM`. */
-function monthBounds(mois: string): { start: string; end: string } {
+/** Bornes UTC [début, fin[ du mois `YYYY-MM`. Réutilisé par le tableau de bord. */
+export function monthBounds(mois: string): { start: string; end: string } {
   const y = Number(mois.slice(0, 4));
   const m = Number(mois.slice(5, 7));
   return {
