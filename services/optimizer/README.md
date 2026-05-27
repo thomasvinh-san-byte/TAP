@@ -25,17 +25,21 @@ sur `http://localhost:8080/docs`.
 pytest
 ```
 
-## Déploiement (Railway)
+## Déploiement
 
-Le service se déploie via Dockerfile sur Railway.app (region EU West / Frankfurt).
-Le consommateur (Route Handler Next.js) doit configurer la variable d'environnement :
+Le service se déploie via le `Dockerfile` sur n'importe quel hébergeur de conteneurs.
+Le choix du fournisseur reste à trancher (cf. DEC-079 dans `.planning/PROJECT.md`).
+Le conteneur lit `PORT` au runtime — comportement standard de tout hébergeur de
+conteneurs.
+
+Une fois l'hébergeur choisi et le service déployé, exposer l'URL publique côté
+Vercel (preview et production) :
 
 ```
-OPTIMIZER_SERVICE_URL=https://<service>.railway.app
+OPTIMIZER_SERVICE_URL=https://<host>/
 ```
 
-Cette variable est à ajouter dans Vercel (preview et production) après création du projet
-Railway. Voir `railway.json` pour la configuration du déploiement.
+Cette variable est consommée par le Route Handler Next.js qui relaye `/solve`.
 
 ## Endpoints
 
