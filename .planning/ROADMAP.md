@@ -381,7 +381,7 @@ Plans:
 **Ordre**: prochaine phase (bêta) — autonome, ne dépend pas de HDS.
 **Périmètre — à cadrer en discuss dédié** : `services/optimizer` (Python OR-Tools), `packages/optimizer-client` (contrats TS). Distance V1 = Haversine × facteur de correction (DEC-056) ; OSRM auto-hébergé avec la géoloc certifiée Assurance maladie (1er janvier 2027).
 **Plans**: 3 plans (un par wave) — `/gsd-plan-phase 06.7` exécuté 2026-05-22.
-- [ ] 06.7-01-PLAN.md — Microservice Python `services/optimizer` (FastAPI + OR-Tools PDPTW, pytest, packaging Railway)
+- [x] 06.7-01-PLAN.md — Microservice Python `services/optimizer` (FastAPI + OR-Tools PDPTW, pytest, packaging Railway)
 - [ ] 06.7-02-PLAN.md — Package TS `packages/optimizer-client` (contrat zod, client HTTP `solve()`, transformations, Vitest)
 - [ ] 06.7-03-PLAN.md — Écran cockpit `/cockpit/optimisation` + Route Handler dé-identifié + Server Action véhicule + E2E + clôture
 
