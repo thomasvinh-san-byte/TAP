@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Phases 06 / 06.6 / 06.8 livrées — Espace dirigeant complet (facturation + conformité assistée + tableau de bord)
+status: executing
 stopped_at: Phase 06.7 UI-SPEC approved
-last_updated: "2026-05-22T11:29:53.142Z"
+last_updated: "2026-05-22T12:29:53.884Z"
 progress:
   total_phases: 21
   completed_phases: 4
-  total_plans: 23
+  total_plans: 26
   completed_plans: 38
   percent: 19
 ---
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 
 Phase: 06.8 (livrée)
 Phase next: 06.7 — OR-Tools optimisation de tournées (prochaine action, faisable en bêta)
-Status: Phases 06 / 06.6 / 06.8 livrées — Espace dirigeant complet (facturation + conformité assistée + tableau de bord)
+Status: Ready to execute
 Blockers: aucun bloquant
 
 Progress: [██████████] 100%
