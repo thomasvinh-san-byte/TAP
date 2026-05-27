@@ -9,7 +9,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copie du code source
 COPY . .
 
-# Railway injecte PORT ; défaut local 8080
+# L'hébergeur injecte PORT au runtime ; défaut local 8080
 ENV PORT=8080
 
 EXPOSE $PORT

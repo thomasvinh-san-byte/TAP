@@ -30,7 +30,7 @@ app.add_middleware(
 
 @app.get("/health")
 async def health() -> dict:
-    """Sonde de disponibilité Railway et Route Handler Next.js."""
+    """Sonde de disponibilité (healthcheck hébergeur + Route Handler Next.js)."""
     return {"status": "ok"}
 
 
