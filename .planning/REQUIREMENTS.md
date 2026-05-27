@@ -116,11 +116,11 @@ design partners). Chaque requirement mappe vers exactement une phase.
 
 ### Optimisation des tournées (OPTI)
 
-- [ ] **OPTI-01** : Microservice Python OR-Tools (`services/optimizer`) calculant les tournées optimales
+- [x] **OPTI-01** : Microservice Python OR-Tools (`services/optimizer`) calculant les tournées optimales
 - [ ] **OPTI-02** : Client TS `packages/optimizer-client` typé, isolé du calcul
-- [ ] **OPTI-03** : Suggestion de mutualisation de courses (plusieurs patients dans le même véhicule)
-- [ ] **OPTI-04** : Suggestion de mutualisation temporelle (courses intercalées dans temps d'attente)
-- [ ] **OPTI-05** : Couverture tests pytest sur le service Python (cf. DEC-013)
+- [x] **OPTI-03** : Suggestion de mutualisation de courses (plusieurs patients dans le même véhicule)
+- [x] **OPTI-04** : Suggestion de mutualisation temporelle (courses intercalées dans temps d'attente)
+- [x] **OPTI-05** : Couverture tests pytest sur le service Python (cf. DEC-013)
 
 ### Routing GPS (ROUT)
 
@@ -321,11 +321,11 @@ Mapping requirement → phase. Mis à jour lors de la création du roadmap.
 | CHAUF-10 | Phase 9 | Pending |
 | CHAUF-11 | Phase 9 | Pending |
 | CHAUF-12 | Phase 9 | Pending |
-| OPTI-01 | Phase 10 | Pending |
+| OPTI-01 | Phase 10 | Complete |
 | OPTI-02 | Phase 10 | Pending |
-| OPTI-03 | Phase 10 | Pending |
-| OPTI-04 | Phase 10 | Pending |
-| OPTI-05 | Phase 10 | Pending |
+| OPTI-03 | Phase 10 | Complete |
+| OPTI-04 | Phase 10 | Complete |
+| OPTI-05 | Phase 10 | Complete |
 | ROUT-01 | Phase 11 | Pending |
 | ROUT-02 | Phase 11 | Pending |
 | ROUT-03 | Phase 11 | Pending |

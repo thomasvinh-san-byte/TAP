@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 06.7 UI-SPEC approved
-last_updated: "2026-05-22T12:29:53.884Z"
+last_updated: "2026-05-27T07:59:48.055Z"
 progress:
   total_phases: 21
   completed_phases: 4
   total_plans: 26
-  completed_plans: 38
+  completed_plans: 39
   percent: 19
 ---
 
@@ -126,6 +126,9 @@ DEC-035..039 + DEC-041 LOCKED Phase 04.5 :
 
 DEC-040 candidate (Phase 06 HDS) — Server Actions admin obligatoirement gardées par requireDirigeant/requireAdminOrRegulateur côté serveur (pas seulement RLS) : reportée audit systémique Phase 06.
 
+DEC-082 (06.7-01) — Pre-filtrage fenêtres temporelles remplace AddDisjunction OR-Tools (bad_alloc combinaison Time+PDP+Disjunction) ; comportement observable identique.
+DEC-083 (06.7-01) — CONTRACT_VERSION='1' dans SolveRequest+SolveResponse Python (Literal['1']) ; à synchroniser manuellement avec zod Wave 2.
+
 ### NFR (Non-Functional Requirements transverses)
 
 6 NFR ajoutés en REQUIREMENTS.md (run ingest 2026-05-12) :
@@ -173,9 +176,9 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-05-22T11:29:53.120Z
+Last session: 2026-05-27T07:59:48.032Z
 Stopped at: Phase 06.7 UI-SPEC approved
-Resume file: .planning/phases/06.7-or-tools-optimisation-de-tourn-es/06.7-UI-SPEC.md
+Resume file: None
 Next command suggested: UAT autonome dirigeant (30-90 min) → `/gsd-discuss-phase 04.5` avec frictions UAT en input
 
 ## Ingest Runs
