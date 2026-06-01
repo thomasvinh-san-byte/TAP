@@ -3,14 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 06.7 Wave 2 livrée (PR #188) + DEC-079 LOCKED (Vercel Python serverless, ADR-008) + DEC-080 LOCKED (commits Wave-by-Wave)
-last_updated: "2026-06-01T07:00:00.000Z"
+stopped_at: "Phase 06.7 Wave 3 livrée (code side) — gate opérateur Task 0 (provision Vercel Python + cold start DEC-079 (c)) + gate Task 4 (vérification visuelle preview)"
+last_updated: "2026-06-01T06:19:00.000Z"
+last_activity: Wave 3 exécutée — Route Handler /api/optimizer (dé-identifié D-08) + assignVehicleAction + écran /cockpit/optimisation + E2E golden path + DEC-081 LOCKED + ROADMAP Phase 06.7 Complete.
 progress:
   total_phases: 21
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 26
-  completed_plans: 40
-  percent: 19
+  completed_plans: 41
+  percent: 24
 ---
 
 # Project State
@@ -24,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 
 ## Current Position
 
-Phase: 06.7 Wave 2 (livrée 2026-06-01, merge `29471c3` — PR #188)
-Phase next: 06.7 Wave 3 — cockpit régulateur + Route Handler + Playwright golden path (dernière wave)
-Status: Ready to execute Wave 3 — hébergement tranché (DEC-079 LOCKED Vercel Python serverless, ADR-008) ; Wave 3 dépend de la Task 0 (déploiement Vercel Python + mesure cold start, DEC-079) qui doit aboutir avant les Tasks 1-4. Le plan 06.7-03 patché en conséquence (PR de patch).
-Blockers: aucun bloquant
-Last activity: Choix option A acté (ADR-008 complément 2026-06-01 — Vercel Services, un projet Vercel) ; runbook bascule A → B prêt dans `docs/operations/runbook-bascule-vercel-services-vers-deux-projets.md` (6 critères objectifs, 8 étapes, ~4 h, réversible 24 h).
-Précédent: DEC-079 LOCKED (Vercel Python, ADR-008) + DEC-080 LOCKED (commits Wave-by-Wave) + sync STATE Wave 2.
+Phase: 06.7 Wave 3 (livrée code-side 2026-06-01, branche `plan/06.7-or-tools-wave3`)
+Phase next: 06.9 Modernisation Next.js 15 (ou Task 4 vérification visuelle preview 06.7 en attente provision service Python)
+Status: Pending gates opérateur — Task 0 (provision Vercel Python serverless + mesure cold start DEC-079 (c)) + Task 4 (vérification visuelle preview). Code complet et typé.
+Blockers: aucun bloquant code — gates opérateur uniquement
+Last activity: Wave 3 livrée — 4 commits (T0/T1/T2/T3), typecheck vert, DEC-081 LOCKED, Phase 06.7 Complete en ROADMAP.
+Précédent: DEC-079 LOCKED (Vercel Python, ADR-008) + DEC-080 LOCKED (commits Wave-by-Wave) + DEC-081 LOCKED (indicateurs estimation) + sync STATE Wave 3.
 
 Progress: [██████████] 100%
 

@@ -68,6 +68,59 @@ export async function assignRideAction(
   return { success: true, id: parsed.data.rideId };
 }
 
+const assignVehicleInputSchema = z.object({
+  rideId: z.string().uuid(),
+  vehicleId: z.string().uuid(),
+});
+
+/**
+ * Affecte uniquement le véhicule suggéré à une course (D-03 / D-16 / Phase 06.7).
+ *
+ * Contrairement à assignRideAction, cette action :
+ *   - N'écrit QUE vehicle_id (pas status, pas driver_id).
+ *   - Accepte les statuts validee et assignee (on ne change que le véhicule).
+ *   - Le trigger rides_audit_trigger capture automatiquement la modification.
+ */
+export async function assignVehicleAction(
+  args: z.infer<typeof assignVehicleInputSchema>,
+): Promise<ActionState> {
+  const parsed = assignVehicleInputSchema.safeParse(args);
+  if (!parsed.success) return { error: 'Saisie invalide.' };
+
+  const ctx = await getAuthContextWithRole();
+  if (!ctx) return { error: 'Session expirée. Reconnectez-vous.' };
+  if (!REGULATEUR_OR_DIRIGEANT.includes(ctx.role as 'regulateur' | 'dirigeant')) {
+    return { error: 'Seul un régulateur ou un dirigeant peut affecter un véhicule.' };
+  }
+
+  const { data: current } = await ctx.supabase
+    .from('rides')
+    .select('status')
+    .eq('id', parsed.data.rideId)
+    .single();
+  const currentRow = current as { status: string } | null;
+  if (!currentRow) return { error: 'Course introuvable.' };
+  if (!['validee', 'assignee'].includes(currentRow.status)) {
+    return {
+      error: 'Affectation de véhicule impossible : statut ' + currentRow.status + '.',
+    };
+  }
+
+  const update = {
+    vehicle_id: parsed.data.vehicleId,
+    updated_by: ctx.userId,
+  };
+  const { error } = await ctx.supabase
+    .from('rides')
+    .update(update as never)
+    .eq('id', parsed.data.rideId);
+  if (error) return { error: 'Affectation du véhicule impossible.' };
+
+  revalidatePath('/courses');
+  revalidatePath('/cockpit');
+  return { success: true, id: parsed.data.rideId };
+}
+
 const unassignRideInputSchema = z.string().uuid();
 
 export async function unassignRideAction(rideId: string): Promise<ActionState> {

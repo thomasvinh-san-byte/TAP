@@ -77,6 +77,9 @@ importers:
       '@tap/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@tap/optimizer-client':
+        specifier: workspace:*
+        version: link:../../packages/optimizer-client
       '@tap/pricing':
         specifier: workspace:*
         version: link:../../packages/pricing

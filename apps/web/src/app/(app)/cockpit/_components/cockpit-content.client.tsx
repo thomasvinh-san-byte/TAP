@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import { Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useCockpitAlerts } from '../_lib/use-cockpit-alerts';
 import { useCockpitRides } from '../_lib/use-cockpit-rides';
 import type { CockpitAlert, CockpitRide } from '../_lib/types';
@@ -83,7 +86,20 @@ export function CockpitContent({
               {rides.length > 1 ? 's' : ''} aujourd&apos;hui
             </p>
           </div>
-          <RealtimeStatusBadge status={status} />
+          <div className="flex items-center gap-8">
+            <Button
+              asChild
+              variant="default"
+              className="min-h-[44px]"
+              data-testid="optimize-day-btn"
+            >
+              <Link href={`/cockpit/optimisation?date=${new Date().toISOString().slice(0, 10)}`}>
+                <Sparkles className="mr-8 h-16 w-16" aria-hidden />
+                Optimiser la journée
+              </Link>
+            </Button>
+            <RealtimeStatusBadge status={status} />
+          </div>
         </header>
         <CoursesTable rides={rides} newRideIds={newRideIds} />
       </section>
