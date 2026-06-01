@@ -14,6 +14,8 @@ type Props = {
   groupement: Groupement;
   groupIndex: number;
   availableVehicles: VehicleOption[];
+  /** Labels lisibles par UUID de course (Wave 4) — utilisés sur les checkboxes. */
+  rideLabels?: Record<string, string>;
   onConfirm: (adjusted: AdjustedGroupement) => void;
 };
 
@@ -29,6 +31,7 @@ export function AdjustSheet({
   groupement,
   groupIndex,
   availableVehicles,
+  rideLabels = {},
   onConfirm,
 }: Props): JSX.Element {
   const [selectedRides, setSelectedRides] = useState<Set<string>>(new Set(groupement.ride_ids));
@@ -76,7 +79,7 @@ export function AdjustSheet({
                     className="border-border h-16 w-16 rounded"
                   />
                   <label htmlFor={`ride-${rideId}`} className="text-sm">
-                    Course {i + 1} ({rideId.slice(0, 8)})
+                    {rideLabels[rideId] ?? `Course ${i + 1} (${rideId.slice(0, 8)})`}
                   </label>
                 </li>
               ))}

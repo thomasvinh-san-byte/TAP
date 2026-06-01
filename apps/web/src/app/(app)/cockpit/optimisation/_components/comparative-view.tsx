@@ -18,6 +18,8 @@ type Props = {
   currentRides: CurrentRide[];
   decisions: Map<string, GroupDecision>;
   availableVehicles: VehicleOption[];
+  /** Labels lisibles par UUID de course (Wave 4) — fournis par le Route Handler. */
+  rideLabels?: Record<string, string>;
   onAccept: (id: string) => void;
   onReject: (id: string) => void;
   onAdjust: (id: string, adjusted: AdjustedGroupement) => void;
@@ -32,11 +34,15 @@ export function ComparativeView({
   currentRides,
   decisions,
   availableVehicles,
+  rideLabels = {},
   onAccept,
   onReject,
   onAdjust,
 }: Props): JSX.Element {
   const ridesNonGroupeesIds = new Set(proposal.ridesNonGroupeesIds);
+
+  // Index véhicules par id pour résoudre le label affiché par carte.
+  const vehiclesById = new Map(availableVehicles.map((v) => [v.id, v.label]));
 
   return (
     <div className="space-y-24">
@@ -86,6 +92,8 @@ export function ComparativeView({
                   onReject={() => onReject(group.vehicle_id)}
                   onAdjust={(adj) => onAdjust(group.vehicle_id, adj)}
                   availableVehicles={availableVehicles}
+                  rideLabels={rideLabels}
+                  vehicleLabel={vehiclesById.get(group.vehicle_id)}
                   rideCitycodes={rideCitycodes}
                 />
               );
@@ -93,14 +101,14 @@ export function ComparativeView({
 
             {Array.from(ridesNonGroupeesIds).map((rideId) => (
               <div key={rideId} className="text-muted-foreground text-sm">
-                Course {rideId.slice(0, 8)} — non groupée
+                {rideLabels[rideId] ?? `Course ${rideId.slice(0, 8)}`} — non groupée
               </div>
             ))}
           </div>
         </section>
       </div>
 
-      <ExcludedRidesSection excludedRides={proposal.excludedRides} />
+      <ExcludedRidesSection excludedRides={proposal.excludedRides} rideLabels={rideLabels} />
     </div>
   );
 }

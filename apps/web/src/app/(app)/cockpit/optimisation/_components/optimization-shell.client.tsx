@@ -32,8 +32,16 @@ export function OptimizationShell({ initialRides, date }: Props): JSX.Element {
 
   const hasAccepted = acceptedGroupements.length > 0;
 
-  // Placeholder vehicles for adjust sheet (no vehicles loaded at this level)
-  const availableVehicles: { id: string; label: string }[] = [];
+  // Wave 4 — véhicules et labels viennent enrichis par le Route Handler.
+  const availableVehicles: { id: string; label: string }[] =
+    state.status === 'result' ? (state.proposal.vehicles ?? []) : [];
+  const rideLabels = state.status === 'result' ? (state.proposal.rideLabels ?? {}) : {};
+
+  // Message empty spécifique quand toutes les courses sont exclues sans coordonnées.
+  const emptyDueToNoCoords =
+    state.status === 'empty' &&
+    state.excludedRides.length > 0 &&
+    state.excludedRides.every((r) => r.reason === 'no_coordinates');
 
   return (
     <div className="space-y-24">
@@ -85,10 +93,18 @@ export function OptimizationShell({ initialRides, date }: Props): JSX.Element {
       {state.status === 'empty' && (
         <div className="bg-background flex flex-col items-center gap-8 py-48 text-center">
           <h2 className="text-base font-semibold">Aucun groupement proposé</h2>
-          <p className="text-muted-foreground max-w-md text-sm">
-            Aucune course compatible n&apos;a été identifiée pour cette journée. Vérifiez les
-            horaires ou les adresses saisies.
-          </p>
+          {emptyDueToNoCoords ? (
+            <p className="text-muted-foreground max-w-md text-sm">
+              Aucune course exploitable : les {state.excludedRides.length} course
+              {state.excludedRides.length > 1 ? 's' : ''} de la journée n&apos;ont pas de
+              coordonnées géographiques. L&apos;optimisation nécessite des adresses géocodées.
+            </p>
+          ) : (
+            <p className="text-muted-foreground max-w-md text-sm">
+              Aucune course compatible n&apos;a été identifiée pour cette journée. Vérifiez les
+              horaires ou les adresses saisies.
+            </p>
+          )}
           <Button variant="outline" onClick={() => void launch()} className="mt-8">
             Réessayer
           </Button>
@@ -111,6 +127,7 @@ export function OptimizationShell({ initialRides, date }: Props): JSX.Element {
             currentRides={initialRides}
             decisions={decisions}
             availableVehicles={availableVehicles}
+            rideLabels={rideLabels}
             onAccept={accept}
             onReject={reject}
             onAdjust={adjust}

@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 
 ## Current Position
 
-Phase: 06.7 OR-Tools optimisation de tournées — CLOSE (validation fonctionnelle Wave 3 2026-06-01)
-Phase next: 06.9 Modernisation Next.js 15 (autonome, bêta — audit cache fetch(), DEC-076)
-Status: Phase 06.7 close. Trois dettes tracées (hébergement Python à trancher, geocoding au moment création, passe UX écran optimisation) à reprendre dans phases dédiées. Mock optimizer actif via `OPTIMIZER_USE_MOCK=true` sur Vercel `apps/web` (Preview + Production). Détail : `docs/dette-technique/2026-06-01-phase-06.7-cloture.md`.
+Phase: 06.7 Wave 4 (livrée code-side 2026-06-01) — enrichissement minimal UI écran d'optimisation
+Phase next: 06.9 Modernisation Next.js 15 (autonome, bêta — audit cache fetch(), DEC-076) après gate opérateur Wave 4
+Status: Pending gate opérateur Wave 4 — walkthrough preview pour valider que les cartes de groupement affichent désormais heure + ville → ville + initiales patient au lieu d'UUIDs opaques, que le dropdown véhicule du « Ajuster » est rempli avec les immatriculations, et que le message « aucune course exploitable, pas de coordonnées » s'affiche correctement quand le seed n'est pas géocodé. Code Wave 4 complet et typé. Lecture B (passe UX complète) reste reportée — la lecture A traitée ici donne un walkthrough utilisable.
 Blockers: aucun
-Last activity: Clôture Phase 06.7 — validation fonctionnelle Wave 3 OK (cockpit affiche correctement les courses du jour après fix `drivers(nom_affichage)` PR #201, écran d'optimisation produit 3 regroupements via mock, bandeau d'indicateurs DEC-081 LOCKED conforme avec taux mutualisation + km à vide + mention « estimé »). 3 dettes assumées tracées dans SUMMARY 06.7-03 + nouveau `docs/dette-technique/`. Mock optimizer reste actif jusqu'à décision sur l'hébergement Python réel.
-Précédent: Lot 2 audit D+A — destructuring `{ data, error }` propagé à 16 fichiers (19 sites) avec `console.error` contextualisé (PR #202).
+Last activity: Wave 4 (06.7-04) — enrichissement minimal écran d'optimisation. `OptimizationProposal` étendue avec `rideLabels` + `vehicles` (rétrocompatibles), Route Handler `/api/optimizer` enrichit la réponse après solveur (D-08 préservée — solveur voit toujours UUIDs uniquement), 5 composants UI branchés sur les nouvelles props, message d'erreur spécifique quand toutes courses exclues sans coordonnées. typecheck vert, Vitest 100 % stmts/funcs/lines (pas de régression).
+Précédent: Clôture Phase 06.7 — validation fonctionnelle Wave 3 OK (cockpit affiche correctement les courses du jour après fix `drivers(nom_affichage)` PR #201, écran d'optimisation produit 3 regroupements via mock).
 
 Progress: [██████████] 100%
 
