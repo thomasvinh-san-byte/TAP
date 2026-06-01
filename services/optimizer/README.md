@@ -27,43 +27,46 @@ pytest
 
 ## Déploiement
 
-### Hébergement : Vercel Python serverless — Option A (DEC-079 LOCKED, ADR-008)
+### Hébergement : projet Vercel séparé `tap-optimizer` (Option B — révision 2026-06-01, ADR-008)
 
-Le service est hébergé sur **Vercel Python serverless**, dans le même projet Vercel
-que `apps/web`, via l'architecture **Vercel Services** (Option A — un seul projet,
-routage par sous-chemin URL).
+Le service est déployé comme **projet Vercel séparé** (`tap-optimizer`) dont le
+Root Directory pointe vers `services/optimizer/`. Le framework Python est
+auto-détecté via `requirements.txt`. URL publique attendue :
+`https://tap-optimizer-<hash>.vercel.app`.
+
+Cette architecture isole le service Python dans son propre projet Vercel, sans
+toucher au projet `apps/web` qui héberge le frontend Next.js.
 
 Le fichier `services/optimizer/vercel.json` configure :
 - `maxDuration: 10` secondes par invocation (plan Hobby Vercel).
-- `OPTIMIZER_TIME_LIMIT_SECONDS=3` en production (contre 5 s en local) pour rester
-  dans les limites d'exécution serverless avec marge.
+- `OPTIMIZER_TIME_LIMIT_SECONDS=3` en production (contre 5 s en local) pour
+  rester dans les limites d'exécution serverless avec marge (cf. DEC-079 (a)).
 
-**Étapes de déploiement initial (opérateur) :**
+**Étapes de déploiement initial (opérateur)** — sous-ensemble du runbook
+`docs/operations/runbook-bascule-vercel-services-vers-deux-projets.md`
+(étapes 2, 3, 4, 5, 6 et 8) :
 
-1. Dans le dashboard Vercel du projet, activer la feature **Services** et pointer
-   le service Python vers `services/optimizer/`.
-2. Configurer `OPTIMIZER_SERVICE_URL` côté `apps/web` (preview et production) :
-   ```
-   OPTIMIZER_SERVICE_URL=https://<deployment>.vercel.app/optimizer
-   ```
-3. Déclencher un premier déploiement (`git push` ou redeploy dans le dashboard).
-4. **Mesure cold start obligatoire (DEC-079 (c))** : après au moins 5 minutes
-   d'inactivité, exécuter 10 appels consécutifs au endpoint `/health` et mesurer
-   p50/p95. Documenter dans le SUMMARY de la Wave 3.
+1. **Créer le projet Vercel `tap-optimizer`** depuis le dashboard, Root
+   Directory = `services/optimizer/`, framework Python auto-détecté,
+   région `cdg1` (Paris).
+2. **Configurer les variables d'environnement** :
+   `OPTIMIZER_TIME_LIMIT_SECONDS=3` en Production, `=5` en Preview.
+3. **Premier déploiement** et test `/health` :
    ```bash
-   for i in {1..10}; do
-     time curl -sf "$OPTIMIZER_SERVICE_URL/health"
-     sleep 1
-   done
+   curl -sf https://tap-optimizer-<hash>.vercel.app/health
+   # attendu : {"status":"ok"}
    ```
-5. Si p95 > 5 s : déclencher le repli vers Clever Cloud (DEC-079 (c)). Voir le
-   runbook `docs/operations/runbook-bascule-vercel-services-vers-deux-projets.md`.
-
-### Repli : Clever Cloud (si p95 cold start > 5 s)
-
-Le `Dockerfile` est conservé et maintenu en état fonctionnel pour permettre une
-bascule sans réécriture vers Clever Cloud (DEC-079 (c)). Instructions de bascule
-dans `docs/operations/runbook-bascule-vercel-services-vers-deux-projets.md`.
+4. **Mesure cold start obligatoire (DEC-079 (c))** : après au moins
+   5 minutes d'inactivité, exécuter 10 appels consécutifs au endpoint
+   `/health` et mesurer p50 / p95. Documenter dans le SUMMARY de la Wave 3
+   (`06.7-03-SUMMARY.md`). Script de mesure : annexe A du runbook.
+5. **Configurer `OPTIMIZER_SERVICE_URL` côté `apps/web`** dans Vercel
+   Settings → Environment Variables :
+   ```
+   OPTIMIZER_SERVICE_URL=https://tap-optimizer-<hash>.vercel.app
+   ```
+   (URL preview et URL production séparément). Redéployer `apps/web` pour
+   prise en compte de la nouvelle variable.
 
 ### Développement local
 
@@ -72,19 +75,16 @@ pip install -r requirements-dev.txt
 uvicorn main:app --reload --port 8080
 ```
 
-L'API est accessible sur `http://localhost:8080`. La documentation auto-générée est
-disponible sur `http://localhost:8080/docs`.
+L'API est accessible sur `http://localhost:8080`. La documentation auto-générée
+est disponible sur `http://localhost:8080/docs`.
 
-La variable d'environnement `OPTIMIZER_TIME_LIMIT_SECONDS` contrôle la limite de
-temps du solveur (défaut : 5 s en local, 3 s en production Vercel).
+La variable d'environnement `OPTIMIZER_TIME_LIMIT_SECONDS` contrôle la limite
+de temps du solveur (défaut : 5 s en local, 3 s en production Vercel).
 
-Une fois le service déployé, exposer l'URL publique côté Vercel (preview et production) :
-
-```
-OPTIMIZER_SERVICE_URL=https://<host>/optimizer
-```
-
-Cette variable est consommée par le Route Handler Next.js qui relaye `/solve`.
+Une fois le service déployé et `OPTIMIZER_SERVICE_URL` configurée côté
+`apps/web`, le Route Handler `apps/web/src/app/api/optimizer/route.ts`
+consomme `process.env.OPTIMIZER_SERVICE_URL` pour relayer les appels au
+service Python.
 
 ## Endpoints
 

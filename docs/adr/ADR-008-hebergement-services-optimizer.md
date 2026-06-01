@@ -130,6 +130,34 @@ Au moins UN critère rempli suffit à ouvrir la discussion :
 Si l'un de ces critères se déclenche, lancer la procédure du runbook
 (durée estimée à une demi-journée, cf. en-tête du runbook).
 
+## Révision 2026-06-01 — passage à Option B avant déploiement réel
+
+L'Option A n'a jamais été activée (le `vercel.json` racine est resté
+`framework: nextjs` après Wave 3 ; le `services/optimizer/vercel.json` était
+présent mais non référencé). Avant le premier déploiement réel, décision
+dirigeant : passer directement à l'**Option B (deux projets Vercel séparés)**,
+plus simple à isoler pour la phase de test de fonctionnalités Wave 3.
+
+**Raison** : on est en phase de vérification du code livré, pas en phase
+d'arbitrage d'architecture cible. Deux projets séparés permettent de déployer
+le service Python indépendamment et de mesurer son comportement (cold start,
+latence) sans toucher au projet `apps/web` qui fonctionne déjà. Les questions
+de production (cible HDS Phase 09, choix d'hébergeur final) restent à
+trancher séparément le moment venu — pas ici.
+
+**Critères de monitoring** : les 6 critères de bascule A → B précédemment
+posés restent valides comme **signaux à surveiller sur l'Option B**, sans
+présager d'une cible de bascule. Si l'un se déclenche (p95 cold start > 5 s,
+erreurs runtime persistantes, échecs de build, dépassement de quota,
+indisponibilité Vercel Python, récurrence d'incidents opérationnels), une
+nouvelle décision sera prise par le dirigeant — sans préempter l'alternative
+à choisir.
+
+**Conséquence pratique** : pas de démantèlement à faire puisque A n'avait
+pas été activée. Le runbook A → B existant reste pertinent comme référence
+opérationnelle (sous-ensemble des étapes 2, 3, 4, 5, 6 et 8 — les étapes 1
+« snapshot avant bascule » et 7 « retrait config Services » sont sans objet).
+
 ## Sources
 
 - Documentation Vercel — runtime Python : `vercel.com/docs/functions/runtimes/python`
