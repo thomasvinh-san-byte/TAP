@@ -39,7 +39,7 @@ interface CronRide {
     nom: string | null;
     telephone: string | null;
   } | null;
-  driver: { prenom: string | null; nom: string | null } | null;
+  driver: { nom_affichage: string | null } | null;
 }
 
 function formatDateFr(iso: string): string {
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     .select(
       'id, scheduled_at, organization_id, patient_id, ' +
         'patient:patients(id, prenom, nom, telephone), ' +
-        'driver:drivers(prenom, nom)',
+        'driver:drivers(nom_affichage)',
     )
     .gte('scheduled_at', windowStart)
     .lte('scheduled_at', windowEnd)
@@ -148,7 +148,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       patient_nom: ride.patient.nom ?? '',
       date: formatDateFr(ride.scheduled_at),
       heure: formatHeureFr(ride.scheduled_at),
-      chauffeur_prenom: ride.driver?.prenom ?? '',
+      chauffeur_prenom: ride.driver?.nom_affichage ?? '',
     });
 
     try {

@@ -30,7 +30,7 @@ export function CourseRow({ ride, isNew }: { ride: CockpitRide; isNew: boolean }
       <td className="text-muted-foreground max-w-[280px] truncate px-12 text-sm">
         {ride.pickup_address || '—'}
       </td>
-      <td className="px-12 text-sm">{ride.driver?.prenom ?? '—'}</td>
+      <td className="px-12 text-sm">{ride.driver?.nom_affichage ?? '—'}</td>
       <td className="px-12">
         <StatusBadge status={ride.status} />
       </td>

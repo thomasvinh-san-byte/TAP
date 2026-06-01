@@ -5,6 +5,15 @@ export interface CockpitPersonName {
   nom: string | null;
 }
 
+/**
+ * Table `drivers` : pas de `prenom`/`nom` séparés, uniquement `nom_affichage`
+ * (consolidé par migration). Type distinct de `CockpitPersonName` qui reste
+ * valide pour `patient` (table `patients` a bien `prenom` + `nom`).
+ */
+export interface CockpitDriverName {
+  nom_affichage: string | null;
+}
+
 export interface CockpitRide {
   id: string;
   scheduled_at: string;
@@ -12,7 +21,7 @@ export interface CockpitRide {
   pickup_address: string;
   dropoff_address: string | null;
   patient: CockpitPersonName | null;
-  driver: CockpitPersonName | null;
+  driver: CockpitDriverName | null;
 }
 
 export type CockpitAlertType = 'patient_no_show' | 'sms_failed' | 'ride_delayed';
