@@ -30,6 +30,35 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  /**
+   * Rewrite `/api/solver/*` vers la fonction Python FastAPI.
+   *
+   * Next.js intercepte par défaut toutes les requêtes `/api/*` parce que ce
+   * projet a 8 Route Handlers sous `app/api/*`. Sans ce rewrite, une requête
+   * à `/api/solver/health` ne trouve aucun `app/api/solver/route.ts` et
+   * tombe sur le 404 Next.js — Vercel n'a jamais l'occasion de router vers
+   * la fonction Python déclarée dans `apps/web/vercel.json`.
+   *
+   * Pattern documenté dans `digitros/nextjs-fastapi` et
+   * `vercel.com/kb/guide/how-to-use-python-and-javascript-in-the-same-application`.
+   *
+   * - En production : `destination` identique à `source` — la déclaration
+   *   suffit à dire à Next.js de laisser passer le chemin. Vercel route
+   *   ensuite la requête vers la fonction Python (`apps/web/api/solver/index.py`).
+   * - En développement : proxy vers FastAPI local sur le port 8000 si lancé
+   *   en parallèle (`uvicorn` côté `apps/web/api/solver/`).
+   */
+  async rewrites() {
+    return [
+      {
+        source: '/api/solver/:path*',
+        destination:
+          process.env.NODE_ENV === 'development'
+            ? 'http://127.0.0.1:8000/api/solver/:path*'
+            : '/api/solver/:path*',
+      },
+    ];
+  },
 };
 
 export default withSerwist(nextConfig);
