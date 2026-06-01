@@ -82,6 +82,54 @@ Discipline technique imposée par cette décision :
   Clever Cloud) et pour le développement local.
 - **DEC-079 promue CANDIDATE → LOCKED** avec ce wording (cf. PROJECT.md).
 
+## Complément 2026-06-01 — choix architecture déploiement : Option A (Vercel Services)
+
+Décision dirigeant : **Option A — Vercel Services**. Un seul projet Vercel
+contient à la fois `apps/web` (Next.js) et `services/optimizer` (Python
+FastAPI), routage par sous-chemin URL (`/optimizer/*` vers le service Python,
+le reste vers Next.js).
+
+**Raison du choix** : lisibilité opérationnelle — un projet, un domaine, un
+`git push`. L'option B (deux projets Vercel séparés), bien que plus éprouvée
+par la communauté 2026, ajoute deux pipelines, deux dashboards, deux quotas
+free-tier séparés à gérer. En bêta, la simplicité opérationnelle prime.
+
+**Risques assumés** : Vercel Services est une feature récente (sortie 2026),
+moins de retours communautaires que la voie « deux projets séparés ». Le
+repli vers Clever Cloud (DEC-079 (c)) demandera de retirer le service Python
+du projet Vercel puis redéployer le projet entier — plus lourd qu'avec deux
+projets séparés.
+
+**Mitigation** : ce choix est monitoré et réversible. Voir
+`docs/operations/runbook-bascule-vercel-services-vers-deux-projets.md` pour
+le runbook de bascule A → B prêt à l'emploi.
+
+### Critères objectifs déclenchant l'évaluation d'une bascule A → B
+
+Au moins UN critère rempli suffit à ouvrir la discussion :
+
+1. **Performance** : la mesure cold start exigée par DEC-079 (c) revient à
+   un p95 > 5 s sur 10 appels consécutifs après inactivité, OU le `/health`
+   du service Python retourne une erreur de routage (404, 502) attribuable
+   à la config Services.
+2. **Build** : un build Vercel échoue sans cause claire dans `apps/web`
+   mais en passant par `services/optimizer`, ou inversement — symptôme
+   typique d'un mélange de runtimes mal cloisonnés.
+3. **Repli** : le critère de DEC-079 (c) se déclenche (cold start > 5 s)
+   et impose Clever Cloud — l'option B simplifie franchement la transition.
+4. **Quotas** : le projet unique Vercel dépasse 80 % de son quota
+   free-tier mensuel (bandwidth, invocations) à cause du cumul des deux
+   services — deux projets séparés isoleraient les quotas.
+5. **Indisponibilité Vercel Services** : Vercel annonce une dépréciation,
+   un changement de pricing significatif, ou un incident répété sur la
+   feature Services.
+6. **Opérationnel** : la 3e fois qu'un déploiement « routine » casse en
+   raison d'une interaction Services qui n'aurait pas eu lieu avec deux
+   projets séparés.
+
+Si l'un de ces critères se déclenche, lancer la procédure du runbook
+(durée estimée à une demi-journée, cf. en-tête du runbook).
+
 ## Sources
 
 - Documentation Vercel — runtime Python : `vercel.com/docs/functions/runtimes/python`
