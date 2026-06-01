@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 06.7 UI-SPEC approved
-last_updated: "2026-05-27T07:59:48.055Z"
+stopped_at: Phase 06.7 Wave 1 livrée + rattrapage Nyquist
+last_updated: "2026-06-01T05:00:00.000Z"
 progress:
   total_phases: 21
   completed_phases: 4
@@ -24,9 +24,9 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 
 ## Current Position
 
-Phase: 06.8 (livrée)
-Phase next: 06.7 — OR-Tools optimisation de tournées (prochaine action, faisable en bêta)
-Status: Ready to execute
+Phase: 06.7 Wave 1 (livrée 2026-05-27, merge `c266448` — PR #185 + #186)
+Phase next: 06.7 Wave 2 — `packages/optimizer-client` (client TS)
+Status: Ready to execute Wave 2 — rattrapage Nyquist en cours (VALIDATION.md créé, REQUIREMENTS corrigé, RESEARCH.md Test Map annoté Wave 1)
 Blockers: aucun bloquant
 
 Progress: [██████████] 100%
@@ -44,10 +44,12 @@ Phases livrées :
 - Phase 04   — Onboarding chauffeur + AuthShell (2026-05-13, PR #59 + 5 hotfixes post-merge PR #60..#67)
 - Phase 04.5 — Robustesse régulateur (2026-05-15, PR #71..#87 — 13 mergées, ≈3h45 réel vs 14h estimé, vélocité -73%)
 - Phase 04.7 — Pricing mockup + Caisse + Migration géocoding + hotfix-bis + verify (2026-05-15, PR #88..#99 — 11 PR cumulées dont hotfix-bis 04.7-bis + verify-work, ≈1h40 réel total (execute 45min + hotfix-bis 25min + verify 30min) vs 4-5.5h estimé, vélocité -85% confirmée. Méthodologie « pipeline GSD étendu — UAT informel obligatoire » VISION.md PR #97 validée par premier cas concret.)
+- Phase 06.7 Wave 1 — Microservice Python OR-Tools `services/optimizer` (2026-05-27, PR #185 + #186 — 14 fichiers Python, 11/11 pytest verts, contrat `CONTRACT_VERSION='1'` figé, DEC-079 hébergement différé, DEC-082 workaround OR-Tools 9.15, DEC-083 contrat à synchroniser Wave 2)
 
 Phases à venir (réordonnées 2026-05-22 — état bêta, DEC-077) :
 
-- Phase 06.7 — OR-Tools optimisation de tournées (prochaine, bêta — Haversine, aucune donnée sensible)
+- Phase 06.7 Wave 2 — `packages/optimizer-client` (client TS typé zod, parité no-PII OPTI-02)
+- Phase 06.7 Wave 3 — Cockpit régulateur + Playwright golden path E2E
 - Phase 06.9 — Modernisation Next.js 15 (autonome, bêta — audit cache fetch(), DEC-076)
 - Phase 07   — Mobile native chauffeur (optionnel — décision business)
 - Phase 09   — Migration HDS (ex-06.5 ; fin de parcours, pré-prod commerciale, verrou 1er client payant, DEC-077)
@@ -176,10 +178,10 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-05-27T07:59:48.032Z
-Stopped at: Phase 06.7 UI-SPEC approved
+Last session: 2026-06-01T05:00:00.000Z
+Stopped at: Phase 06.7 Wave 1 livrée + rattrapage Nyquist (VALIDATION.md créé, REQUIREMENTS corrigé, RESEARCH.md Test Map annoté Wave 1)
 Resume file: None
-Next command suggested: UAT autonome dirigeant (30-90 min) → `/gsd-discuss-phase 04.5` avec frictions UAT en input
+Next command suggested: `/gsd-execute-phase 06.7 --wave 2` pour le package `optimizer-client`
 
 ## Ingest Runs
 
