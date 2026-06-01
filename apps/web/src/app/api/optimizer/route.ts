@@ -119,16 +119,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   // 7. Appel au solveur via @tap/optimizer-client.
-  const serviceUrl = process.env.OPTIMIZER_SERVICE_URL;
-  if (!serviceUrl) {
-    return NextResponse.json(
-      {
-        error:
-          "Le service d'optimisation n'est pas disponible pour le moment. Les tournées ne sont pas affectées. Réessayez dans quelques minutes.",
-      },
-      { status: 503 },
-    );
-  }
+  //
+  // Voie hybride single-projet Vercel (ADR-008 révision 2026-06-01) : le solveur
+  // Python est déployé dans le même projet Vercel, à /api/solver/*.
+  // L'URL est construite depuis VERCEL_URL (fournie automatiquement par Vercel
+  // en preview et production) ou un fallback localhost en dev.
+  const baseHost = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : (process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000');
+  const serviceUrl = `${baseHost}/api/solver`;
 
   try {
     const response = await solve(payload, {

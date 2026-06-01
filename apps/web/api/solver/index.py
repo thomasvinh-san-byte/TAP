@@ -1,11 +1,15 @@
 """
 Application FastAPI du service d'optimisation de tournées.
-Expose POST /solve (résolution PDPTW) et GET /health (sonde de disponibilité).
+Voie hybride single-projet Vercel : ce fichier est déployé comme une
+Vercel Python serverless function dans le même projet que apps/web.
+
+Les routes sont préfixées par /api/solver (convention Vercel : le dossier
+api/ à la racine du Root Directory expose ses fonctions sous /api/...).
 """
 
 import os
 
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from models import SolveRequest, SolveResponse
@@ -27,14 +31,16 @@ app.add_middleware(
     allow_headers=["Content-Type"],
 )
 
+router = APIRouter(prefix="/api/solver")
 
-@app.get("/health")
+
+@router.get("/health")
 async def health() -> dict:
     """Sonde de disponibilité (healthcheck hébergeur + Route Handler Next.js)."""
     return {"status": "ok"}
 
 
-@app.post("/solve", response_model=SolveResponse)
+@router.post("/solve", response_model=SolveResponse)
 async def solve_endpoint(request: SolveRequest) -> SolveResponse:
     """
     Résout le problème PDPTW pour la liste de courses reçue.
@@ -42,3 +48,6 @@ async def solve_endpoint(request: SolveRequest) -> SolveResponse:
     Aucun log du contenu métier du payload.
     """
     return solve(request)
+
+
+app.include_router(router)
