@@ -1,12 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
-    "api/optimizer/**": {
-      "runtime": "python3.11",
+    "main.py": {
       "maxDuration": 10
     }
-  },
-  "env": {
-    "OPTIMIZER_TIME_LIMIT_SECONDS": "3"
   }
 }
