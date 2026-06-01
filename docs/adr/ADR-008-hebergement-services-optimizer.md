@@ -206,6 +206,49 @@ donc `api/solver/index.py` (et non `apps/web/api/solver/index.py`). Le
 plus de raison d'être après la bascule hybride. Framework Preset, Root
 Directory et régions sont gérés via le dashboard Vercel.
 
+## Révision 2026-06-01 — mock du solveur pour débloquer la validation Wave 3
+
+Cinq tentatives de stabilisation de l'hébergement Python Vercel après le
+mouvement initial #195 (hybride) — PR #196 (middleware exclude `/api/solver/*`),
+#197 (FastAPI router sans double-prefix), #198 (`vercel.json` déplacé dans le
+Root Directory `apps/web/`), #199 (rewrite Next.js `/api/solver/:path*`) —
+**n'ont pas permis de débloquer le 404 persistant** sur `/api/solver/health`.
+Symptôme : Next.js sert son 404 par défaut avant que Vercel puisse router vers
+la fonction Python. Diagnostic à distance épuisé sans accès direct aux logs
+Functions du dashboard Vercel.
+
+**Décision dirigeant** : mocker le solveur via la variable d'environnement
+`OPTIMIZER_USE_MOCK=true`. Le mock (`apps/web/src/app/api/optimizer/_mock-solver.ts`)
+produit une réponse conforme au contrat zod (`SolveResponseSchema`) à partir
+d'une logique simple de regroupement 2 par 2 avec appariement véhicule-mobilité
+et indicateurs déterministes.
+
+**Conséquences** :
+
+- **Wave 3 est fonctionnellement débloquée** : cockpit, walkthrough, E2E
+  peuvent être validés sans dépendre de l'hébergement Python.
+- Le code Python reste dans le repo (`apps/web/api/solver/`) — aucune
+  suppression, aucune perte d'information.
+- Le contrat zod (`packages/optimizer-client/src/contract.ts`) reste la
+  source de vérité partagée mock / réel — aucun changement de schéma.
+- L'hébergement réel du solveur Python sera tranché ultérieurement, quand
+  la validation métier de l'optimisation OR-Tools deviendra prioritaire —
+  pas avant.
+- DEC-079 reste LOCKED en intention mais sans déploiement actif. Les six
+  critères de monitoring documentés deviennent **caducs** tant que le
+  service Python n'est pas en ligne ; ils seront réactivés au moment où
+  l'hébergement réel sera relancé.
+
+**Ce que cette décision ne fait PAS** :
+
+- Elle ne juge pas Vercel Python inadapté en soi — elle constate qu'on n'a
+  pas pu le faire tourner sans accès direct aux logs.
+- Elle ne préempte aucune cible d'hébergement future.
+- Elle ne modifie pas la priorité produit : la qualité d'optimisation
+  OR-Tools n'est pas le sujet de Wave 3 (test fonctionnel de la chaîne
+  UI → Route Handler → écriture) ; elle le sera lors d'une phase
+  ultérieure dédiée.
+
 ## Sources
 
 - Documentation Vercel — runtime Python : `vercel.com/docs/functions/runtimes/python`
