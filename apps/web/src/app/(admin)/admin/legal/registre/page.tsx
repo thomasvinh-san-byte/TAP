@@ -18,10 +18,13 @@ export const metadata = { title: 'Registre des traitements' };
 export default async function RegistrePage() {
   await requireDirigeantPage();
   const supabase = createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('data_processing_register')
     .select('id, purpose, legal_basis, retention_period_days, international_transfer, created_at')
     .order('created_at', { ascending: false });
+  if (error) {
+    console.error('[admin/legal/registre] Erreur Supabase:', error);
+  }
 
   const entries = (data ?? []) as Array<{
     id: string;

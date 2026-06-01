@@ -36,10 +36,13 @@ export async function GET() {
     .single();
   const org = orgRes.data as { nom: string } | null;
 
-  const { data: rawEntries } = await supabase
+  const { data: rawEntries, error: rawEntriesError } = await supabase
     .from('data_processing_register')
     .select('*')
     .order('created_at', { ascending: false });
+  if (rawEntriesError) {
+    console.error('[admin/legal/registre-pdf] Erreur Supabase:', rawEntriesError);
+  }
   const entries = (rawEntries ?? []) as Entry[];
 
   // Audit log explicite AVANT renderToStream (T-1.5-26).

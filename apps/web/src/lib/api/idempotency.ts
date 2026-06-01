@@ -40,7 +40,7 @@ export async function withIdempotency<T extends Record<string, unknown>>(
 ): Promise<IdempotencyResult<T>> {
   const { key, userId, mutationType, resourceId, supabase, fn } = params;
 
-  const { data: cached } = await supabase
+  const { data: cached, error: cachedError } = await supabase
     .from('idempotency_keys' as never)
     .select('response_json')
     .eq('key', key)
@@ -49,6 +49,9 @@ export async function withIdempotency<T extends Record<string, unknown>>(
     .eq('resource_id', resourceId)
     .gte('expires_at', new Date().toISOString())
     .maybeSingle();
+  if (cachedError) {
+    console.error('[idempotency/cache] Erreur Supabase:', cachedError);
+  }
 
   const cachedRow = (cached as CachedRow | null) ?? null;
   if (cachedRow) {

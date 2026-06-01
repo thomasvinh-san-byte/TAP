@@ -143,12 +143,15 @@ export {
  */
 export async function listRecentPickupAddresses(patientId: string): Promise<string[]> {
   const supabase = createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('rides')
     .select('pickup_address, created_at')
     .eq('patient_id', patientId)
     .order('created_at', { ascending: false })
     .limit(20);
+  if (error) {
+    console.error('[courses/pickup] Erreur Supabase:', error);
+  }
   if (!data) return [];
   const seen = new Set<string>();
   const result: string[] = [];

@@ -11,10 +11,13 @@ export const metadata = { title: 'Demandes RGPD patients' };
 export default async function RequestsPage() {
   await requireDirigeantPage();
   const supabase = createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('patient_data_request')
     .select('id, request_type, status, requested_at, deadline_at, requester_email, response_at')
     .order('requested_at', { ascending: false });
+  if (error) {
+    console.error('[admin/legal/requests] Erreur Supabase:', error);
+  }
 
   const entries = (data ?? []) as Array<{
     id: string;

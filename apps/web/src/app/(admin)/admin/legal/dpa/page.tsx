@@ -12,10 +12,13 @@ export const metadata = { title: 'DPA sous-traitants' };
 export default async function DpaPage() {
   await requireDirigeantPage();
   const supabase = createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('dpa_record')
     .select('id, subprocessor_name, subprocessor_role, dpa_version, signed_at, expires_at')
     .order('signed_at', { ascending: false });
+  if (error) {
+    console.error('[admin/legal/dpa] Erreur Supabase:', error);
+  }
 
   const entries = (data ?? []) as Array<{
     id: string;

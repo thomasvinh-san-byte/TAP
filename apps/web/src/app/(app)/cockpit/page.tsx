@@ -34,18 +34,24 @@ export default async function CockpitPage() {
   // absente dans l'environnement courant.
   let alerts: CockpitAlert[] = [];
   try {
-    const { data: alertsData } = await supabase
+    const { data: alertsData, error: alertsError } = await supabase
       .from('ride_events' as never)
       .select('id, ride_id, event_type, payload, created_at')
       .in('event_type', ['patient_no_show', 'sms_failed', 'ride_delayed'])
       .gte('created_at', `${today}T00:00:00`)
       .order('created_at', { ascending: false })
       .limit(20);
+    if (alertsError) {
+      console.error('[cockpit] Erreur Supabase (alerts):', alertsError);
+    }
     alerts = (alertsData as CockpitAlert[] | null) ?? [];
   } catch {
     alerts = [];
   }
 
+  // TODO(audit D+A lot 3) : ce cast écrase le typage inféré. Il a permis au
+  // bug drivers(prenom, nom) de passer typecheck (lot 1). À remplacer par un
+  // type dérivé de Database['public']['Tables']['rides']['Row'] + joins.
   const rides = (ridesData as CockpitRide[] | null) ?? [];
 
   return <CockpitContent initialRides={rides} initialAlerts={alerts} />;

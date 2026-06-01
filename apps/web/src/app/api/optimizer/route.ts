@@ -39,7 +39,7 @@ async function readRidesForDate(
   date: string,
 ): Promise<RideRow[]> {
   // D-08 : colonnes de géométrie et contraintes uniquement, aucune donnée identifiante.
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('rides')
     .select(
       'id, scheduled_at, urgency, transport_mode, ' +
@@ -50,16 +50,22 @@ async function readRidesForDate(
     .lt('scheduled_at', `${date}T23:59:59.999Z`)
     .eq('status', 'validee')
     .order('scheduled_at');
+  if (error) {
+    console.error('[optimizer/rides] Erreur Supabase:', error);
+  }
   return (data as RideRow[] | null) ?? [];
 }
 
 async function readActiveVehicles(
   supabase: ReturnType<typeof createClient>,
 ): Promise<VehicleRow[]> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('vehicles')
     .select('id, type, places_assises, places_tpmr')
     .eq('actif', true);
+  if (error) {
+    console.error('[optimizer/vehicles] Erreur Supabase:', error);
+  }
   return (data as VehicleRow[] | null) ?? [];
 }
 

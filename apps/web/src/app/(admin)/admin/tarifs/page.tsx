@@ -16,7 +16,7 @@ export interface TariffGridRow extends TariffGrid {
 export default async function TarifsPage(): Promise<JSX.Element> {
   await requireDirigeantPage();
   const supabase = createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('tariff_grids')
     .select(
       'id, date_effet, forfait_eur, km_inclus, prix_km_eur, ' +
@@ -24,6 +24,9 @@ export default async function TarifsPage(): Promise<JSX.Element> {
         'facteur_correction_routier, arrondi_eur',
     )
     .order('date_effet', { ascending: false });
+  if (error) {
+    console.error('[admin/tarifs] Erreur Supabase:', error);
+  }
   const grids = (data as TariffGridRow[] | null) ?? [];
   const today = new Date().toISOString().slice(0, 10);
   const activeGrid = grids.find((g) => g.date_effet <= today) ?? null;
