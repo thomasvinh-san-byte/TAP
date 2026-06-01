@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 06.7 Wave 1 livrée + rattrapage Nyquist (VALIDATION.md créé, REQUIREMENTS corrigé, RESEARCH.md Test Map annoté Wave 1)
-last_updated: "2026-06-01T05:15:20.092Z"
+stopped_at: Phase 06.7 Wave 2 livrée (PR #188) + DEC-079 LOCKED (Vercel Python serverless, ADR-008) + DEC-080 LOCKED (commits Wave-by-Wave)
+last_updated: "2026-06-01T07:00:00.000Z"
 progress:
   total_phases: 21
   completed_phases: 4
@@ -24,10 +24,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 
 ## Current Position
 
-Phase: 06.7 Wave 1 (livrée 2026-05-27, merge `c266448` — PR #185 + #186)
-Phase next: 06.7 Wave 2 — `packages/optimizer-client` (client TS)
-Status: Ready to execute Wave 2 — rattrapage Nyquist en cours (VALIDATION.md créé, REQUIREMENTS corrigé, RESEARCH.md Test Map annoté Wave 1)
+Phase: 06.7 Wave 2 (livrée 2026-06-01, merge `29471c3` — PR #188)
+Phase next: 06.7 Wave 3 — cockpit régulateur + Route Handler + Playwright golden path (dernière wave)
+Status: Ready to execute Wave 3 — hébergement tranché (DEC-079 LOCKED Vercel Python serverless, ADR-008) ; aucune action opérateur préalable, le déploiement Wave 3 se fera dans le même projet Vercel que `apps/web`
 Blockers: aucun bloquant
+Last activity: DEC-079 LOCKED (Vercel Python, ADR-008) + DEC-080 LOCKED (commits Wave-by-Wave, contrainte hook guard-commit typecheck monorepo) + sync STATE Wave 2.
+Précédent: Wave 2 livrée (PR #188, `packages/optimizer-client` — 24/24 Vitest verts, parité contrat TS↔Python).
 
 Progress: [██████████] 100%
 
@@ -45,11 +47,11 @@ Phases livrées :
 - Phase 04.5 — Robustesse régulateur (2026-05-15, PR #71..#87 — 13 mergées, ≈3h45 réel vs 14h estimé, vélocité -73%)
 - Phase 04.7 — Pricing mockup + Caisse + Migration géocoding + hotfix-bis + verify (2026-05-15, PR #88..#99 — 11 PR cumulées dont hotfix-bis 04.7-bis + verify-work, ≈1h40 réel total (execute 45min + hotfix-bis 25min + verify 30min) vs 4-5.5h estimé, vélocité -85% confirmée. Méthodologie « pipeline GSD étendu — UAT informel obligatoire » VISION.md PR #97 validée par premier cas concret.)
 - Phase 06.7 Wave 1 — Microservice Python OR-Tools `services/optimizer` (2026-05-27, PR #185 + #186 — 14 fichiers Python, 11/11 pytest verts, contrat `CONTRACT_VERSION='1'` figé, DEC-079 hébergement différé, DEC-082 workaround OR-Tools 9.15, DEC-083 contrat à synchroniser Wave 2)
+- Phase 06.7 Wave 2 — Client TS `@tap/optimizer-client` (2026-06-01, PR #188 — 10 fichiers TS, 24/24 Vitest verts, 100% stmts/funcs/lines + 96% branches, parité contrat TS↔Python confirmée, DEC-083 fermée, DEC-080 inscrite sur la contrainte hook guard-commit)
 
 Phases à venir (réordonnées 2026-05-22 — état bêta, DEC-077) :
 
-- Phase 06.7 Wave 2 — `packages/optimizer-client` (client TS typé zod, parité no-PII OPTI-02)
-- Phase 06.7 Wave 3 — Cockpit régulateur + Playwright golden path E2E
+- Phase 06.7 Wave 3 — Cockpit régulateur + Route Handler Next consommant `solve()` + Playwright golden path E2E (hébergement = Vercel Python serverless, DEC-079 LOCKED, ADR-008)
 - Phase 06.9 — Modernisation Next.js 15 (autonome, bêta — audit cache fetch(), DEC-076)
 - Phase 07   — Mobile native chauffeur (optionnel — décision business)
 - Phase 09   — Migration HDS (ex-06.5 ; fin de parcours, pré-prod commerciale, verrou 1er client payant, DEC-077)
@@ -178,10 +180,10 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-06-01T05:15:20.068Z
-Stopped at: Phase 06.7 Wave 1 livrée + rattrapage Nyquist (VALIDATION.md créé, REQUIREMENTS corrigé, RESEARCH.md Test Map annoté Wave 1)
+Last session: 2026-06-01T07:00:00.000Z
+Stopped at: Phase 06.7 Wave 2 livrée (PR #188) + DEC-079 LOCKED Vercel Python serverless (ADR-008) + DEC-080 LOCKED
 Resume file: None
-Next command suggested: `/gsd-execute-phase 06.7 --wave 2` pour le package `optimizer-client`
+Next command suggested: `/gsd-plan-phase 06.7 --wave 3` ou `/gsd-execute-phase 06.7 --wave 3` selon l'état du plan 06.7-03
 
 ## Ingest Runs
 
