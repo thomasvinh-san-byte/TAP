@@ -25,13 +25,19 @@ export default async function OptimisationPage({
 
   const date = searchParams.date ?? new Date().toISOString().slice(0, 10);
 
-  const { data: ridesData } = await supabase
+  const { data: ridesData, error: ridesError } = await supabase
     .from('rides')
     .select('id, scheduled_at, pickup_address, dropoff_address')
     .gte('scheduled_at', `${date}T00:00:00`)
     .lte('scheduled_at', `${date}T23:59:59`)
     .order('scheduled_at');
 
+  if (ridesError) {
+    console.error('[cockpit/optimisation] Erreur Supabase:', ridesError);
+  }
+
+  // TODO(audit D+A lot 3) : cast aveugle sur retour Supabase, à remplacer par
+  // un type dérivé de Database['public']['Tables']['rides']['Row'].
   const rides = (ridesData as Ride[] | null) ?? [];
 
   return (

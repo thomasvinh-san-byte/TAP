@@ -13,13 +13,16 @@ export const dynamic = 'force-dynamic';
 export default async function VehiculesPage() {
   await requireDirigeantPage();
   const supabase = createClient();
-  const { data: vehicles } = await supabase
+  const { data: vehicles, error: vehiclesError } = await supabase
     .from('vehicles' as never)
     .select(
       'id, immatriculation, marque, modele, type, places_assises, places_tpmr, actif, created_at',
     )
     .eq('archive', false)
     .order('immatriculation', { ascending: true });
+  if (vehiclesError) {
+    console.error('[admin/vehicules] Erreur Supabase:', vehiclesError);
+  }
 
   return (
     <div className="space-y-24">

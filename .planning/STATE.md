@@ -29,8 +29,8 @@ Phase: 06.7 Wave 3 (livrée code-side 2026-06-01, branche `plan/06.7-or-tools-wa
 Phase next: 06.9 Modernisation Next.js 15 (ou Task 4 vérification visuelle preview 06.7 en attente provision service Python)
 Status: Pending gates opérateur (Wave 3 mock) — configurer `OPTIMIZER_USE_MOCK=true` sur le projet Vercel `apps/web` (Preview + Production), redéployer, walkthrough preview, E2E Playwright. Code Wave 3 complet, mock en place débloquant la chaîne fonctionnelle. Hébergement réel du solveur Python reporté à une phase ultérieure dédiée.
 Blockers: aucun bloquant code — gates opérateur uniquement
-Last activity: Mock du solveur ajouté (`apps/web/src/app/api/optimizer/_mock-solver.ts`) activable par `OPTIMIZER_USE_MOCK=true`. Débloque la validation fonctionnelle Wave 3 après 5 tentatives infructueuses de stabilisation de l'hébergement Vercel Python (PR #196..#199). ADR-008 amendée d'une révision 2026-06-01 — décision pragmatique de test fonctionnel, hébergement réel à trancher plus tard.
-Précédent: Fix routing Vercel monorepo — déplacement du `vercel.json` à `apps/web/vercel.json` (Root Directory du projet Vercel), ADR-008 amendée d'une note technique post-déploiement.
+Last activity: Lot 2 audit D+A — destructuring `{ data, error }` propagé à 16 fichiers (19 sites) avec `console.error` contextualisé, TODO casts ajoutés sur les 2 sites emblématiques cockpit. Axe 1 régénération `types.gen.ts` skippé (supabase CLI absente du sandbox — le workflow `sync-types.yml` couvre déjà l'axe). Axe 3 élimination casts reporté en lot 3 dédié (chaque cast demande un jugement par site — préfère un cast inutile à un type cassé per la brief). La classe de bug `drivers(prenom, nom)` du lot 1 ne devrait plus pouvoir s'installer silencieusement.
+Précédent: Mock du solveur ajouté (`OPTIMIZER_USE_MOCK=true`) — débloque Wave 3 après 5 tentatives infructueuses d'hébergement Vercel Python.
 
 Progress: [██████████] 100%
 

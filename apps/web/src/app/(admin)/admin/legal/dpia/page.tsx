@@ -11,10 +11,13 @@ export const metadata = { title: "Analyse d'impact DPIA — TAP Admin" };
 export default async function DpiaPage() {
   await requireDirigeantPage();
   const supabase = createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('dpia_record')
     .select('id, title, status, residual_risk_level, reviewed_at, next_review_at')
     .order('reviewed_at', { ascending: false });
+  if (error) {
+    console.error('[admin/legal/dpia] Erreur Supabase:', error);
+  }
 
   const entries = (data ?? []) as Array<{
     id: string;

@@ -20,10 +20,13 @@ const TEMPLATE_LABELS: Record<string, string> = {
 export default async function SmsTemplatesPage(): Promise<JSX.Element> {
   await requireDirigeantPage();
   const supabase = createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('sms_templates')
     .select('key, body, updated_at')
     .order('key');
+  if (error) {
+    console.error('[admin/sms-templates] Erreur Supabase:', error);
+  }
   const templates = (data as SmsTemplate[] | null) ?? [];
 
   return (

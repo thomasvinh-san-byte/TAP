@@ -152,37 +152,46 @@ export type RideAuditEntry = {
 
 export async function getRideAuditLog(rideId: string): Promise<RideAuditEntry[]> {
   const supabase = createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('audit_logs')
     .select('id, created_at, action, actor_id, actor_role, metadata')
     .eq('entity_type', 'ride')
     .eq('entity_id', rideId)
     .order('created_at', { ascending: false })
     .limit(20);
+  if (error) {
+    console.error('[courses/audit] Erreur Supabase:', error);
+  }
   return (data ?? []) as RideAuditEntry[];
 }
 
 export async function listActiveDrivers(): Promise<DriverMin[]> {
   const supabase = createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('drivers' as never)
     .select('id, nom_affichage, type_permis')
     .eq('actif', true)
     .eq('archive', false)
     .order('nom_affichage', { ascending: true })
     .limit(50);
+  if (error) {
+    console.error('[courses/drivers] Erreur Supabase:', error);
+  }
   return (data ?? []) as DriverMin[];
 }
 
 export async function listActiveVehicles(): Promise<VehicleMin[]> {
   const supabase = createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('vehicles' as never)
     .select('id, immatriculation, marque, modele, type')
     .eq('actif', true)
     .eq('archive', false)
     .order('immatriculation', { ascending: true })
     .limit(50);
+  if (error) {
+    console.error('[courses/vehicles] Erreur Supabase:', error);
+  }
   return (data ?? []) as VehicleMin[];
 }
 

@@ -43,11 +43,14 @@ export async function getAuthContext(): Promise<AuthContext | null> {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('profiles')
     .select('id, organization_id, role, prenom, nom, email')
     .eq('id', user.id)
     .single();
+  if (error) {
+    console.error('[auth/get-context] Erreur Supabase:', error);
+  }
   const profile = data as AuthContext['profile'] | null;
   if (!profile) return null;
 

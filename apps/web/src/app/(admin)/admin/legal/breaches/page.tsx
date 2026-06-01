@@ -12,12 +12,15 @@ export const metadata = { title: 'Violations de données' };
 export default async function BreachesPage() {
   await requireDirigeantPage();
   const supabase = createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('data_breach_incident')
     .select(
       'id, detected_at, severity, nature, description, cnil_notification_required, cnil_notification_at, closed_at',
     )
     .order('detected_at', { ascending: false });
+  if (error) {
+    console.error('[admin/legal/breaches] Erreur Supabase:', error);
+  }
 
   const entries = (data ?? []) as Array<{
     id: string;
