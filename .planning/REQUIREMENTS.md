@@ -117,7 +117,7 @@ design partners). Chaque requirement mappe vers exactement une phase.
 ### Optimisation des tournées (OPTI)
 
 - [x] **OPTI-01** : Microservice Python OR-Tools (`services/optimizer`) calculant les tournées optimales
-- [ ] **OPTI-02** : Client TS `packages/optimizer-client` typé, isolé du calcul
+- [x] **OPTI-02** : Client TS `packages/optimizer-client` typé, isolé du calcul
 - [x] **OPTI-03** : Suggestion de mutualisation de courses (plusieurs patients dans le même véhicule)
 - [x] **OPTI-04** : Suggestion de mutualisation temporelle (courses intercalées dans temps d'attente)
 - [x] **OPTI-05** : Couverture tests pytest sur le service Python (cf. DEC-013)
@@ -322,7 +322,7 @@ Mapping requirement → phase. Mis à jour lors de la création du roadmap.
 | CHAUF-11 | Phase 9 | Pending |
 | CHAUF-12 | Phase 9 | Pending |
 | OPTI-01 | Phase 06.7 | Complete |
-| OPTI-02 | Phase 06.7 | Pending |
+| OPTI-02 | Phase 06.7 | Complete |
 | OPTI-03 | Phase 06.7 | Complete |
 | OPTI-04 | Phase 06.7 | Complete |
 | OPTI-05 | Phase 06.7 | Complete |
