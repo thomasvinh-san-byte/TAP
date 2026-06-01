@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 
 Phase: 06.7 Wave 2 (livrée 2026-06-01, merge `29471c3` — PR #188)
 Phase next: 06.7 Wave 3 — cockpit régulateur + Route Handler + Playwright golden path (dernière wave)
-Status: Ready to execute Wave 3 — hébergement tranché (DEC-079 LOCKED Vercel Python serverless, ADR-008) ; aucune action opérateur préalable, le déploiement Wave 3 se fera dans le même projet Vercel que `apps/web`
+Status: Ready to execute Wave 3 — hébergement tranché (DEC-079 LOCKED Vercel Python serverless, ADR-008) ; Wave 3 dépend de la Task 0 (déploiement Vercel Python + mesure cold start, DEC-079) qui doit aboutir avant les Tasks 1-4. Le plan 06.7-03 patché en conséquence (PR de patch).
 Blockers: aucun bloquant
 Last activity: DEC-079 LOCKED (Vercel Python, ADR-008) + DEC-080 LOCKED (commits Wave-by-Wave, contrainte hook guard-commit typecheck monorepo) + sync STATE Wave 2.
 Précédent: Wave 2 livrée (PR #188, `packages/optimizer-client` — 24/24 Vitest verts, parité contrat TS↔Python).
