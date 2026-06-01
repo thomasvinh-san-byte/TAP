@@ -197,6 +197,22 @@ importers:
         specifier: ^5.5.4
         version: 5.9.3
 
+  packages/optimizer-client:
+    dependencies:
+      zod:
+        specifier: '*'
+        version: 3.25.76
+    devDependencies:
+      '@vitest/coverage-v8':
+        specifier: ^2.1.9
+        version: 2.1.9(vitest@2.1.9(@types/node@20.19.39))
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@20.19.39)
+
   packages/pricing:
     devDependencies:
       '@vitest/coverage-v8':
