@@ -118,22 +118,33 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json(emptyProposal, { status: 200 });
   }
 
-  // 7. Appel au solveur via @tap/optimizer-client.
+  // 7. Appel au solveur — mock ou service Python selon OPTIMIZER_USE_MOCK.
   //
   // Voie hybride single-projet Vercel (ADR-008 révision 2026-06-01) : le solveur
   // Python est déployé dans le même projet Vercel, à /api/solver/*.
   // L'URL est construite depuis VERCEL_URL (fournie automatiquement par Vercel
   // en preview et production) ou un fallback localhost en dev.
-  const baseHost = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : (process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000');
-  const serviceUrl = `${baseHost}/api/solver`;
+  //
+  // Si OPTIMIZER_USE_MOCK=true, court-circuite l'appel HTTP et utilise un mock
+  // local qui produit une réponse conforme au contrat zod. Débloque la
+  // validation fonctionnelle Wave 3 sans dépendre de l'hébergement Python.
+  const useMock = process.env.OPTIMIZER_USE_MOCK === 'true';
 
   try {
-    const response = await solve(payload, {
-      baseUrl: serviceUrl,
-      timeoutMs: 5000,
-    });
+    let response;
+    if (useMock) {
+      const { mockSolve } = await import('./_mock-solver');
+      response = mockSolve(payload);
+    } else {
+      const baseHost = process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : (process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000');
+      const serviceUrl = `${baseHost}/api/solver`;
+      response = await solve(payload, {
+        baseUrl: serviceUrl,
+        timeoutMs: 5000,
+      });
+    }
     const proposal = solveResponseToProposal(response, rides.length, excluded);
     return NextResponse.json(proposal, { status: 200 });
   } catch (err) {
