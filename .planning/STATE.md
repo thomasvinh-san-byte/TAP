@@ -29,8 +29,8 @@ Phase: 06.7 Wave 3 (livrée code-side 2026-06-01, branche `plan/06.7-or-tools-wa
 Phase next: 06.9 Modernisation Next.js 15 (ou Task 4 vérification visuelle preview 06.7 en attente provision service Python)
 Status: Pending gates opérateur (voie hybride single-projet) — suppression projet Vercel `tap-optimizer` s'il a été créé, retrait variable `OPTIMIZER_SERVICE_URL` du projet `apps/web` côté Vercel UI si présente, mesure cold start sur `/api/solver/health` après merge, walkthrough preview Task 4. Code refondu, 11/11 pytest verts dans `apps/web/api/solver/`, typecheck vert.
 Blockers: aucun bloquant code — gates opérateur uniquement
-Last activity: Bascule architecture hybride single-projet Vercel — `services/optimizer/` supprimé, Python déplacé vers `apps/web/api/solver/` (`main.py` renommé `index.py`), `vercel.json` racine étendu avec `excludeFiles` (sous 250 MB), Route Handler `/api/optimizer` adapté pour `VERCEL_URL`, FastAPI `APIRouter(prefix="/api/solver")`. ADR-008 amendée (révision 2026-06-01). 11/11 pytest verts dans la nouvelle localisation.
-Précédent: Décision Option B (deux projets Vercel séparés) actée — phase de test de fonctionnalités Wave 3 ; ADR-008 amendée ; snapshot provision créé.
+Last activity: Fix routing Vercel monorepo — déplacement du `vercel.json` à `apps/web/vercel.json` (Root Directory du projet Vercel) pour résoudre le 404 persistant sur `/api/solver/*`. Chemin de la fonction Python rendu relatif au Root (`api/solver/index.py`), `excludeFiles` simplifié. `vercel.json` racine supprimé (inutile, repo mono-app Vercel). ADR-008 amendée d'une note technique post-déploiement.
+Précédent: Bascule architecture hybride single-projet Vercel — `services/optimizer/` supprimé, Python déplacé vers `apps/web/api/solver/`, ADR-008 amendée (révision 2026-06-01).
 
 Progress: [██████████] 100%
 
