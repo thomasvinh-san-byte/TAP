@@ -158,6 +158,44 @@ pas été activée. Le runbook A → B existant reste pertinent comme référenc
 opérationnelle (sous-ensemble des étapes 2, 3, 4, 5, 6 et 8 — les étapes 1
 « snapshot avant bascule » et 7 « retrait config Services » sont sans objet).
 
+## Révision 2026-06-01 — bascule architecture hybride single-projet
+
+Les Options A (Vercel Services) et B (deux projets Vercel séparés)
+précédemment documentées sont **dépassées**. Décision dirigeant suite à la
+friction opérationnelle de la voie B (provisioning manuel d'un 2e projet,
+variable `OPTIMIZER_SERVICE_URL` à configurer, domaine séparé) : passer à
+la **voie hybride single-projet** (pattern officiel Vercel pour Next.js +
+FastAPI).
+
+Les fichiers Python sont placés dans `apps/web/api/solver/` ; Vercel
+auto-détecte le runtime Python via `requirements.txt` et expose la fonction
+à `/api/solver/*` à côté des Route Handlers Next.js. **Un seul projet, un
+seul domaine, un seul `git push`.** Le Route Handler Next.js
+`/api/optimizer` (auth + dé-identification) appelle le solveur via `fetch`
+interne (URL construite depuis `process.env.VERCEL_URL`).
+
+**Conséquences** :
+
+- Le projet Vercel `tap-optimizer` n'a pas été activé et n'est pas créé.
+  Si un projet test avait été créé dans le dashboard, il est à supprimer
+  (action humaine).
+- La variable `OPTIMIZER_SERVICE_URL` n'est plus utilisée — à retirer du
+  projet `apps/web` côté Vercel UI si elle y avait été ajoutée.
+- Le runbook `docs/operations/runbook-bascule-vercel-services-vers-deux-projets.md`
+  devient un historique des voies A et B abandonnées — conservé tel quel
+  comme référence opérationnelle.
+- Le critère de monitoring DEC-079 (c) (cold start p95 < 5 s) reste valide.
+  En cas de dépassement persistant, nouvelle décision dirigeant sera prise
+  au cas par cas — sans préempter d'alternative.
+- Le `Dockerfile` est supprimé (la portabilité reste tracée dans
+  l'historique Git ; si repli ultérieur, recréé à ce moment).
+
+**Sources documentaires** :
+`vercel.com/kb/guide/how-to-use-python-and-javascript-in-the-same-application`,
+template officiel `vercel/examples/nextjs-flask`, template communautaire
+`digitros/nextjs-fastapi`, doc `vercel.com/docs/functions/runtimes/python`
+(mise à jour 2026-05-04).
+
 ## Sources
 
 - Documentation Vercel — runtime Python : `vercel.com/docs/functions/runtimes/python`

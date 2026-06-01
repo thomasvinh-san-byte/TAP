@@ -121,5 +121,5 @@ def fixture_build_test_request():
 @pytest.fixture
 def test_client():
     """Client de test httpx synchrone sur l'application FastAPI."""
-    from main import app
+    from index import app
     return TestClient(app)
