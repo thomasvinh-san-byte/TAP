@@ -21,6 +21,10 @@ type Props = {
   onReject: () => void;
   onAdjust: (adjusted: AdjustedGroupement) => void;
   availableVehicles: VehicleOption[];
+  /** Labels lisibles par UUID de course (Wave 4) — heure + ville → ville + initiales. */
+  rideLabels?: Record<string, string>;
+  /** Label du véhicule de ce groupement (Wave 4) — immatriculation + type. */
+  vehicleLabel?: string;
   /** Citycodes de toutes les courses du groupement pour détection Hauts. */
   rideCitycodes: (string | null)[];
 };
@@ -38,6 +42,8 @@ export function ProposedGroupCard({
   onReject,
   onAdjust,
   availableVehicles,
+  rideLabels = {},
+  vehicleLabel,
   rideCitycodes,
 }: Props): JSX.Element {
   const [adjustOpen, setAdjustOpen] = useState(false);
@@ -72,7 +78,7 @@ export function ProposedGroupCard({
       <ol className="mt-8 space-y-4">
         {groupement.order.map((rideId, i) => (
           <li key={rideId} className="text-sm">
-            {i + 1}. Course {rideId.slice(0, 8)}
+            {i + 1}. {rideLabels[rideId] ?? `Course ${rideId.slice(0, 8)}`}
           </li>
         ))}
       </ol>
@@ -80,7 +86,7 @@ export function ProposedGroupCard({
       <div className="mt-8 flex items-center gap-8 text-sm">
         <Car className="text-muted-foreground h-16 w-16 shrink-0" aria-hidden />
         <span className="text-muted-foreground">
-          Véhicule suggéré : {groupement.vehicle_id.slice(0, 8)}
+          Véhicule suggéré : {vehicleLabel ?? groupement.vehicle_id.slice(0, 8)}
         </span>
       </div>
 
@@ -133,6 +139,7 @@ export function ProposedGroupCard({
         groupement={groupement}
         groupIndex={groupIndex}
         availableVehicles={availableVehicles}
+        rideLabels={rideLabels}
         onConfirm={onAdjust}
       />
     </article>

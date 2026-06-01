@@ -9,6 +9,7 @@ import {
   OptimizerError,
   type RideRow,
   type VehicleRow,
+  type OptimizationProposal,
 } from '@tap/optimizer-client';
 
 /**
@@ -34,17 +35,40 @@ const CORRECTION_FACTOR_DEFAULT = 1.3;
 const AVG_SPEED_KMH = 50;
 const TIME_LIMIT_SECONDS = 3;
 
+/**
+ * Type local : RideRow enrichi avec champs nécessaires à la construction
+ * des labels UI (Wave 4). Les colonnes supplémentaires (pickup_city,
+ * dropoff_city, addresses, patient join) ne sont JAMAIS transmises au
+ * solveur — la dé-identification D-08 est enforcée par le mapping
+ * explicite dans `ridesToSolveRequest()` côté @tap/optimizer-client
+ * (cf. commentaire ligne 93 de transform.ts).
+ */
+type RideRowForOptim = RideRow & {
+  pickup_city: string | null;
+  dropoff_city: string | null;
+  pickup_address: string | null;
+  dropoff_address: string | null;
+  patient: { prenom: string | null; nom: string | null } | null;
+};
+
+type VehicleRowForOptim = VehicleRow & {
+  immatriculation: string | null;
+};
+
 async function readRidesForDate(
   supabase: ReturnType<typeof createClient>,
   date: string,
-): Promise<RideRow[]> {
-  // D-08 : colonnes de géométrie et contraintes uniquement, aucune donnée identifiante.
+): Promise<RideRowForOptim[]> {
+  // Colonnes de géométrie + contraintes (pour le solveur, D-08) + champs
+  // d'enrichissement UI (pour les labels Wave 4, jamais transmis au solveur).
   const { data, error } = await supabase
     .from('rides')
     .select(
       'id, scheduled_at, urgency, transport_mode, ' +
         'pickup_lat, pickup_lng, dropoff_lat, dropoff_lng, ' +
-        'pickup_citycode, dropoff_citycode',
+        'pickup_citycode, dropoff_citycode, ' +
+        'pickup_city, dropoff_city, pickup_address, dropoff_address, ' +
+        'patient:patients(prenom, nom)',
     )
     .gte('scheduled_at', `${date}T00:00:00`)
     .lt('scheduled_at', `${date}T23:59:59.999Z`)
@@ -53,20 +77,63 @@ async function readRidesForDate(
   if (error) {
     console.error('[optimizer/rides] Erreur Supabase:', error);
   }
-  return (data as RideRow[] | null) ?? [];
+  return (data as RideRowForOptim[] | null) ?? [];
 }
 
 async function readActiveVehicles(
   supabase: ReturnType<typeof createClient>,
-): Promise<VehicleRow[]> {
+): Promise<VehicleRowForOptim[]> {
   const { data, error } = await supabase
     .from('vehicles')
-    .select('id, type, places_assises, places_tpmr')
+    .select('id, type, places_assises, places_tpmr, immatriculation')
     .eq('actif', true);
   if (error) {
     console.error('[optimizer/vehicles] Erreur Supabase:', error);
   }
-  return (data as VehicleRow[] | null) ?? [];
+  return (data as VehicleRowForOptim[] | null) ?? [];
+}
+
+/**
+ * Enrichit la proposition retournée par `solveResponseToProposal()` avec :
+ *   - `rideLabels` : map UUID → label lisible (heure + ville pickup → ville dropoff + initiales patient).
+ *   - `vehicles` : liste véhicules avec immatriculation pour les dropdowns UI.
+ *
+ * Wave 4 — D-08 respectée : enrichissement côté Route Handler authentifié,
+ * le solveur (Python ou mock) ne voit toujours que des UUIDs opaques. Le
+ * front voit déjà ces données via le cockpit (DEC-054) donc aucune
+ * nouvelle surface d'exposition.
+ */
+function enrichProposal(
+  proposal: OptimizationProposal,
+  rides: RideRowForOptim[],
+  vehicles: VehicleRowForOptim[],
+): OptimizationProposal {
+  const rideLabels: Record<string, string> = {};
+  for (const ride of rides) {
+    const heure = new Date(ride.scheduled_at).toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Indian/Reunion',
+    });
+    const pickupVille = ride.pickup_city ?? ride.pickup_address?.split(',').pop()?.trim() ?? '?';
+    const dropoffVille = ride.dropoff_city ?? ride.dropoff_address?.split(',').pop()?.trim() ?? '?';
+    const initiales = ride.patient
+      ? `${(ride.patient.prenom ?? '?').slice(0, 1)}. ${(ride.patient.nom ?? '?').slice(0, 1)}.`
+      : '';
+    const suffixePatient = initiales ? ` (${initiales})` : '';
+    rideLabels[ride.id] = `${heure} — ${pickupVille} → ${dropoffVille}${suffixePatient}`;
+  }
+
+  const vehiclesLabels = vehicles.map((v) => ({
+    id: v.id,
+    label: `${v.immatriculation ?? v.id.slice(0, 8)} — ${v.type}`,
+  }));
+
+  return {
+    ...proposal,
+    rideLabels,
+    vehicles: vehiclesLabels,
+  };
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
@@ -121,7 +188,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       rides.length,
       excluded,
     );
-    return NextResponse.json(emptyProposal, { status: 200 });
+    return NextResponse.json(enrichProposal(emptyProposal, rides, vehicles), { status: 200 });
   }
 
   // 7. Appel au solveur — mock ou service Python selon OPTIMIZER_USE_MOCK.
@@ -152,7 +219,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       });
     }
     const proposal = solveResponseToProposal(response, rides.length, excluded);
-    return NextResponse.json(proposal, { status: 200 });
+    return NextResponse.json(enrichProposal(proposal, rides, vehicles), { status: 200 });
   } catch (err) {
     if (err instanceof OptimizerError) {
       return NextResponse.json(

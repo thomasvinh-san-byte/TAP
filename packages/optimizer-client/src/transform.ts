@@ -47,6 +47,19 @@ export type OptimizationProposal = {
   tauxMutualisation: number;
   /** Km à vide estimés pour le plan proposé (D-19). */
   kmAVideEstimes: number;
+  /**
+   * Labels lisibles par UUID de course pour l'affichage UI (Wave 4).
+   * Format suggéré : « 14h00 — Saint-Denis → Saint-Pierre (B. L.) ».
+   * Construit côté Route Handler après l'appel solveur (D-08 : solveur ne voit pas ces données).
+   * Optionnel — fallback gracieux sur `id.slice(0, 8)` côté UI si absent.
+   */
+  rideLabels?: Record<string, string>;
+  /**
+   * Liste des véhicules actifs du tenant pour alimenter les dropdowns d'ajustement (Wave 4).
+   * Construit côté Route Handler avec immatriculation lisible.
+   * Optionnel — fallback gracieux sur `[]` côté UI si absent.
+   */
+  vehicles?: Array<{ id: string; label: string }>;
 };
 
 /**

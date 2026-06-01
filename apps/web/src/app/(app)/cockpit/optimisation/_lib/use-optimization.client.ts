@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useReducer } from 'react';
-import type { OptimizationProposal, Groupement } from '@tap/optimizer-client';
+import type { OptimizationProposal, Groupement, ExcludedRide } from '@tap/optimizer-client';
 
 export type GroupDecision = 'idle' | 'accepted' | 'rejected';
 
@@ -15,13 +15,13 @@ export type OptimizationState =
   | { status: 'idle' }
   | { status: 'loading' }
   | { status: 'result'; proposal: OptimizationProposal }
-  | { status: 'empty' }
+  | { status: 'empty'; excludedRides: ExcludedRide[] }
   | { status: 'error'; message: string };
 
 type Action =
   | { type: 'LAUNCH' }
   | { type: 'SUCCESS'; proposal: OptimizationProposal }
-  | { type: 'EMPTY' }
+  | { type: 'EMPTY'; excludedRides: ExcludedRide[] }
   | { type: 'ERROR'; message: string }
   | { type: 'ACCEPT'; id: string }
   | { type: 'REJECT'; id: string }
@@ -45,7 +45,10 @@ function reducer(state: State, action: Action): State {
     case 'SUCCESS':
       return { ...state, optimization: { status: 'result', proposal: action.proposal } };
     case 'EMPTY':
-      return { ...state, optimization: { status: 'empty' } };
+      return {
+        ...state,
+        optimization: { status: 'empty', excludedRides: action.excludedRides },
+      };
     case 'ERROR':
       return { ...state, optimization: { status: 'error', message: action.message } };
     case 'ACCEPT': {
@@ -96,7 +99,7 @@ export function useOptimization(date: string) {
       }
       const proposal = (await res.json()) as OptimizationProposal;
       if (proposal.groupements.length === 0 && proposal.ridesNonGroupeesIds.length === 0) {
-        dispatch({ type: 'EMPTY' });
+        dispatch({ type: 'EMPTY', excludedRides: proposal.excludedRides });
       } else {
         dispatch({ type: 'SUCCESS', proposal });
       }
