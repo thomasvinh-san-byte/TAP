@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 
 ## Current Position
 
-Phase: 06.7 Wave 3 (livrée code-side 2026-06-01, branche `plan/06.7-or-tools-wave3`)
-Phase next: 06.9 Modernisation Next.js 15 (ou Task 4 vérification visuelle preview 06.7 en attente provision service Python)
-Status: Pending gates opérateur (Wave 3 mock) — configurer `OPTIMIZER_USE_MOCK=true` sur le projet Vercel `apps/web` (Preview + Production), redéployer, walkthrough preview, E2E Playwright. Code Wave 3 complet, mock en place débloquant la chaîne fonctionnelle. Hébergement réel du solveur Python reporté à une phase ultérieure dédiée.
-Blockers: aucun bloquant code — gates opérateur uniquement
-Last activity: Lot 2 audit D+A — destructuring `{ data, error }` propagé à 16 fichiers (19 sites) avec `console.error` contextualisé, TODO casts ajoutés sur les 2 sites emblématiques cockpit. Axe 1 régénération `types.gen.ts` skippé (supabase CLI absente du sandbox — le workflow `sync-types.yml` couvre déjà l'axe). Axe 3 élimination casts reporté en lot 3 dédié (chaque cast demande un jugement par site — préfère un cast inutile à un type cassé per la brief). La classe de bug `drivers(prenom, nom)` du lot 1 ne devrait plus pouvoir s'installer silencieusement.
-Précédent: Mock du solveur ajouté (`OPTIMIZER_USE_MOCK=true`) — débloque Wave 3 après 5 tentatives infructueuses d'hébergement Vercel Python.
+Phase: 06.7 OR-Tools optimisation de tournées — CLOSE (validation fonctionnelle Wave 3 2026-06-01)
+Phase next: 06.9 Modernisation Next.js 15 (autonome, bêta — audit cache fetch(), DEC-076)
+Status: Phase 06.7 close. Trois dettes tracées (hébergement Python à trancher, geocoding au moment création, passe UX écran optimisation) à reprendre dans phases dédiées. Mock optimizer actif via `OPTIMIZER_USE_MOCK=true` sur Vercel `apps/web` (Preview + Production). Détail : `docs/dette-technique/2026-06-01-phase-06.7-cloture.md`.
+Blockers: aucun
+Last activity: Clôture Phase 06.7 — validation fonctionnelle Wave 3 OK (cockpit affiche correctement les courses du jour après fix `drivers(nom_affichage)` PR #201, écran d'optimisation produit 3 regroupements via mock, bandeau d'indicateurs DEC-081 LOCKED conforme avec taux mutualisation + km à vide + mention « estimé »). 3 dettes assumées tracées dans SUMMARY 06.7-03 + nouveau `docs/dette-technique/`. Mock optimizer reste actif jusqu'à décision sur l'hébergement Python réel.
+Précédent: Lot 2 audit D+A — destructuring `{ data, error }` propagé à 16 fichiers (19 sites) avec `console.error` contextualisé (PR #202).
 
 Progress: [██████████] 100%
 
