@@ -13,6 +13,15 @@ import { createSupabaseMiddlewareClient } from '@tap/database';
  * au lieu de jeter un 500 MIDDLEWARE_INVOCATION_FAILED. Ça permet au moins
  * d'afficher quelque chose à un visiteur qui tombe sur la preview pendant
  * la phase de config initiale.
+ *
+ * Exclusions matcher (cf. config en bas de fichier) :
+ *   - `_next/static`, `_next/image`, `favicon.ico` : assets statiques Next.
+ *   - `api/health` : sonde de disponibilité publique.
+ *   - `api/solver` : Vercel Python serverless function (architecture
+ *     hybride single-projet, ADR-008 révision 2026-06-01). L'auth est
+ *     enforcée en amont par le Route Handler `/api/optimizer` qui appelle
+ *     `/api/solver/*` via fetch interne après vérification Supabase ; le
+ *     middleware ne doit donc pas intercepter ces chemins.
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -91,5 +100,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/health).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/health|api/solver).*)'],
 };
