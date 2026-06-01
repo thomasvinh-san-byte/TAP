@@ -321,11 +321,11 @@ Mapping requirement → phase. Mis à jour lors de la création du roadmap.
 | CHAUF-10 | Phase 9 | Pending |
 | CHAUF-11 | Phase 9 | Pending |
 | CHAUF-12 | Phase 9 | Pending |
-| OPTI-01 | Phase 10 | Complete |
-| OPTI-02 | Phase 10 | Pending |
-| OPTI-03 | Phase 10 | Complete |
-| OPTI-04 | Phase 10 | Complete |
-| OPTI-05 | Phase 10 | Complete |
+| OPTI-01 | Phase 06.7 | Complete |
+| OPTI-02 | Phase 06.7 | Pending |
+| OPTI-03 | Phase 06.7 | Complete |
+| OPTI-04 | Phase 06.7 | Complete |
+| OPTI-05 | Phase 06.7 | Complete |
 | ROUT-01 | Phase 11 | Pending |
 | ROUT-02 | Phase 11 | Pending |
 | ROUT-03 | Phase 11 | Pending |
