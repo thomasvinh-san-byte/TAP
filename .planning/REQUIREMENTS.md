@@ -116,7 +116,7 @@ design partners). Chaque requirement mappe vers exactement une phase.
 
 ### Optimisation des tournées (OPTI)
 
-- [x] **OPTI-01** : Microservice Python OR-Tools (`services/optimizer`) calculant les tournées optimales
+- [x] **OPTI-01** : Microservice Python OR-Tools (`services/optimizer`) calculant les tournées optimales. Hébergement : Vercel Python serverless (DEC-079 LOCKED, ADR-008) ; `time_limit` solveur plafonné à 3 s en production. Repli documenté : Clever Cloud.
 - [x] **OPTI-02** : Client TS `packages/optimizer-client` typé, isolé du calcul
 - [x] **OPTI-03** : Suggestion de mutualisation de courses (plusieurs patients dans le même véhicule)
 - [x] **OPTI-04** : Suggestion de mutualisation temporelle (courses intercalées dans temps d'attente)
