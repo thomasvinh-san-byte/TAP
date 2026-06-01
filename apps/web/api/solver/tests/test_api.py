@@ -15,7 +15,7 @@ import pytest
 
 def test_health(test_client):
     """GET /health retourne 200 avec {"status": "ok"}."""
-    response = test_client.get("/api/solver/health")
+    response = test_client.get("/health")
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
 
@@ -47,7 +47,7 @@ def test_solve_valid_instance(test_client, build_test_request, build_test_ride, 
     vehicle = build_test_vehicle(id=VEH1, places_assises=4)
     req = build_test_request(rides=[ride1, ride2], vehicles=[vehicle])
 
-    response = test_client.post("/api/solver/solve", json=req.model_dump())
+    response = test_client.post("/solve", json=req.model_dump())
 
     assert response.status_code == 200
     data = response.json()
@@ -73,7 +73,7 @@ def test_solve_empty_rides(test_client, build_test_request, build_test_ride, bui
     vehicle = build_test_vehicle(id=VEH1, places_assises=4)
     req = build_test_request(rides=[ride], vehicles=[vehicle])
 
-    response = test_client.post("/api/solver/solve", json=req.model_dump())
+    response = test_client.post("/solve", json=req.model_dump())
 
     assert response.status_code == 200
     data = response.json()
@@ -96,7 +96,7 @@ def test_solve_invalid_payload(test_client):
         "avg_speed_kmh": 50.0,
         "time_limit_seconds": 3,
     }
-    response = test_client.post("/api/solver/solve", json=payload)
+    response = test_client.post("/solve", json=payload)
     assert response.status_code == 422
 
 

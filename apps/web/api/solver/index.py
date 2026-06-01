@@ -3,8 +3,11 @@ Application FastAPI du service d'optimisation de tournées.
 Voie hybride single-projet Vercel : ce fichier est déployé comme une
 Vercel Python serverless function dans le même projet que apps/web.
 
-Les routes sont préfixées par /api/solver (convention Vercel : le dossier
-api/ à la racine du Root Directory expose ses fonctions sous /api/...).
+Convention Vercel : ce fichier `apps/web/api/solver/index.py` est routé
+par Vercel sous `/api/solver/*`. Les routes définies ici (`/health`,
+`/solve`) sont relatives à cette base, donc accessibles à
+`/api/solver/health` et `/api/solver/solve` côté HTTP public.
+Le préfixe `/api/solver` est géré par Vercel, PAS par FastAPI.
 """
 
 import os
@@ -31,7 +34,7 @@ app.add_middleware(
     allow_headers=["Content-Type"],
 )
 
-router = APIRouter(prefix="/api/solver")
+router = APIRouter()
 
 
 @router.get("/health")
