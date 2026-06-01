@@ -196,6 +196,16 @@ template officiel `vercel/examples/nextjs-flask`, template communautaire
 `digitros/nextjs-fastapi`, doc `vercel.com/docs/functions/runtimes/python`
 (mise à jour 2026-05-04).
 
+**Note technique post-déploiement** (2026-06-01) : le `vercel.json` se trouve
+dans `apps/web/` (le Root Directory du projet Vercel), pas à la racine du
+repo. Convention Vercel : les chemins déclarés dans `vercel.json` sont
+relatifs au Root Directory du projet. Le déclencheur de fonction Python est
+donc `api/solver/index.py` (et non `apps/web/api/solver/index.py`). Le
+`vercel.json` racine a été supprimé — le repo est un monorepo où seul
+`apps/web` se déploie sur Vercel, un fichier de config à la racine n'avait
+plus de raison d'être après la bascule hybride. Framework Preset, Root
+Directory et régions sont gérés via le dashboard Vercel.
+
 ## Sources
 
 - Documentation Vercel — runtime Python : `vercel.com/docs/functions/runtimes/python`
