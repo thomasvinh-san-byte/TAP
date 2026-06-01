@@ -15,15 +15,19 @@ export default async function CockpitPage() {
 
   const today = new Date().toISOString().slice(0, 10);
 
-  const { data: ridesData } = await supabase
+  const { data: ridesData, error: ridesError } = await supabase
     .from('rides')
     .select(
       'id, scheduled_at, status, pickup_address, dropoff_address, ' +
-        'patient:patients(prenom, nom), driver:drivers(prenom, nom)',
+        'patient:patients(prenom, nom), driver:drivers(nom_affichage)',
     )
     .gte('scheduled_at', `${today}T00:00:00`)
     .lte('scheduled_at', `${today}T23:59:59`)
     .order('scheduled_at');
+
+  if (ridesError) {
+    console.error('[cockpit] Erreur chargement rides:', ridesError);
+  }
 
   // ride_events table sera créée Wave 6. Fallback gracieux jusque-là :
   // try/catch silencieux pour éviter de casser le cockpit si la table est
