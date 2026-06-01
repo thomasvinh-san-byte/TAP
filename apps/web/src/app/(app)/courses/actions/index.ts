@@ -21,7 +21,7 @@ export { createRideAction, upsertRideDraft, deleteRideDraft, listDraftsAction } 
 export { updateRideAction } from './edit';
 export { checkDuplicateRideAction } from './check-duplicate';
 export { cancelRideAction } from './cancel';
-export { assignRideAction, unassignRideAction } from './assignment';
+export { assignRideAction, unassignRideAction, assignVehicleAction } from './assignment';
 export { updateRidePaymentAction } from './payment';
 export { exportCaisseCsvAction } from './caisse';
 export type { ExportCaisseResult } from './caisse';
