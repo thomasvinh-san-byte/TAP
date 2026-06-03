@@ -23,6 +23,31 @@ const ACTION_CLASS =
   'text-primary focus-visible:ring-ring mt-auto inline-flex min-h-[44px] items-center ' +
   'text-sm font-medium hover:underline focus-visible:outline-none focus-visible:ring-2';
 
+/**
+ * Couleur du delta selon le sens de la métrique.
+ * - `positive` : ↗ = vert (favorable), ↘ = rouge si fort, ambre sinon.
+ * - `inverse`  : ↗ = rouge si fort, ambre sinon ; ↘ = vert.
+ * Seuil « fort » : |delta| ≥ 10.
+ */
+function deltaClass(delta: number, sign: 'positive' | 'inverse' = 'positive'): string {
+  const favorable = sign === 'positive' ? delta > 0 : delta < 0;
+  const defavorable = sign === 'positive' ? delta < 0 : delta > 0;
+  if (favorable) return 'text-green-700';
+  if (defavorable) return Math.abs(delta) >= 10 ? 'text-destructive' : 'text-amber-700';
+  return 'text-muted-foreground';
+}
+
+function deltaArrow(delta: number): string {
+  if (delta > 0) return '↗';
+  if (delta < 0) return '↘';
+  return '→';
+}
+
+function deltaFormat(delta: number, unit: '%' | 'pts'): string {
+  const sign = delta > 0 ? '+' : '';
+  return `${sign}${delta}${unit === '%' ? ' %' : ' pts'}`;
+}
+
 interface KpiAction {
   href: string;
   label: string;
@@ -39,6 +64,27 @@ interface KpiSimple extends KpiCardBase {
   context?: string;
   state?: KpiState;
   stateLabel?: string;
+  // Wave 1 Phase 06.11 — A4 comparatif N vs N-1 (pattern Stripe Balance).
+  // Tous optionnels : si absents, le comportement est strictement inchangé.
+  /** Valeur du mois précédent déjà formatée (ex : "1 234 €", "8 %"). */
+  previousValue?: string;
+  /**
+   * Delta numérique : en % pour les valeurs absolues, en points pour les
+   * valeurs qui sont déjà des pourcentages (incidents, mutualisation).
+   */
+  delta?: number;
+  /**
+   * Unité du delta affichée à l'utilisateur : `%` (défaut) ou `pts` pour
+   * les KPI déjà en %.
+   */
+  deltaUnit?: '%' | 'pts';
+  /**
+   * Sens de la métrique : `positive` (↗ favorable, ↘ défavorable) ou
+   * `inverse` (↗ défavorable comme taux d'incidents — ↘ est favorable).
+   */
+  deltaSign?: 'positive' | 'inverse';
+  /** Libellé du mois précédent en clair (ex : "mai 2026"). */
+  previousLabel?: string;
 }
 
 interface KpiVentilation extends KpiCardBase {
@@ -75,6 +121,13 @@ function KpiBody(props: KpiCardProps): JSX.Element {
           {props.stateLabel ? (
             <p className={cn('text-sm', props.state && STATE_CLASS[props.state])}>
               {props.stateLabel}
+            </p>
+          ) : null}
+          {props.delta !== undefined && props.previousLabel ? (
+            <p className={cn('text-xs tabular-nums', deltaClass(props.delta, props.deltaSign))}>
+              {deltaArrow(props.delta)} {deltaFormat(props.delta, props.deltaUnit ?? '%')} vs{' '}
+              {props.previousLabel}
+              {props.previousValue ? ` (${props.previousValue})` : ''}
             </p>
           ) : null}
           {props.context ? <p className="text-muted-foreground text-xs">{props.context}</p> : null}
