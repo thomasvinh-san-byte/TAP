@@ -1,5 +1,7 @@
+import { MessageSquare } from 'lucide-react';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 import { createClient } from '@/lib/supabase/server';
+import { EmptyState } from '@/components/ui/empty-state';
 import { TEMPLATE_VARIABLES } from '@tap/sms';
 import { TemplateEditor } from './_components/template-editor.client';
 
@@ -57,9 +59,11 @@ export default async function SmsTemplatesPage(): Promise<JSX.Element> {
       </section>
 
       {templates.length === 0 ? (
-        <p className="text-muted-foreground text-sm">
-          Aucun modèle seedé. Vérifiez la migration <code>20260519000005_sms_templates.sql</code>.
-        </p>
+        <EmptyState
+          icon={MessageSquare}
+          title="Aucun modèle de SMS"
+          description="Les modèles sont seedés par migration. Vérifiez 20260519000005_sms_templates.sql si aucun n'apparaît."
+        />
       ) : (
         <div className="grid gap-16 lg:grid-cols-2">
           {templates.map((tpl) => (

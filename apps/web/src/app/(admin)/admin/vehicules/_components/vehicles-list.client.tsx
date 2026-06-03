@@ -6,6 +6,7 @@ import { Accessibility, Car, HeartPulse, Plus, PlusCircle, type LucideIcon } fro
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { EmptyState as SharedEmptyState } from '@/components/ui/empty-state';
 import {
   Sheet,
   SheetContent,
@@ -188,18 +189,11 @@ export function VehiclesList({ initialVehicles }: Props): JSX.Element {
 
 function EmptyState({ onCreate }: { onCreate: () => void }) {
   return (
-    <div className="border-border flex flex-col items-center gap-12 rounded-md border border-dashed py-48 text-center">
-      <Car className="text-muted-foreground h-48 w-48" strokeWidth={1.5} aria-hidden />
-      <div>
-        <h2 className="text-base font-semibold">Aucun véhicule</h2>
-        <p className="text-muted-foreground text-sm">
-          Ajoutez un premier véhicule pour pouvoir affecter des courses.
-        </p>
-      </div>
-      <Button type="button" onClick={onCreate} className="gap-8">
-        <Plus className="h-16 w-16" aria-hidden />
-        Nouveau véhicule
-      </Button>
-    </div>
+    <SharedEmptyState
+      icon={Car}
+      title="Aucun véhicule enregistré"
+      description="Ajoutez votre flotte pour pouvoir assigner les courses."
+      action={{ onClick: onCreate, label: 'Ajouter un véhicule', icon: Plus }}
+    />
   );
 }

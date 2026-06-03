@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import {
   Plus,
   UserCircle2,
+  UserPlus,
   Mail,
   RefreshCw,
   PauseCircle,
@@ -16,6 +17,7 @@ import {
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { EmptyState as SharedEmptyState } from '@/components/ui/empty-state';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
 import {
   Sheet,
@@ -594,30 +596,19 @@ function DriverRowActions({
 function EmptyState({ vue, onCreate }: { vue: Vue; onCreate: () => void }) {
   if (vue === 'archives') {
     return (
-      <div className="border-border flex flex-col items-center gap-12 rounded-md border border-dashed py-48 text-center">
-        <UserCircle2 className="text-muted-foreground h-48 w-48" strokeWidth={1.5} aria-hidden />
-        <div>
-          <h2 className="text-base font-semibold">Aucun chauffeur archivé</h2>
-          <p className="text-muted-foreground text-sm">
-            Les chauffeurs sortis du système apparaîtront ici.
-          </p>
-        </div>
-      </div>
+      <SharedEmptyState
+        icon={UserCircle2}
+        title="Aucun chauffeur archivé"
+        description="Les chauffeurs sortis du système apparaîtront ici."
+      />
     );
   }
   return (
-    <div className="border-border flex flex-col items-center gap-12 rounded-md border border-dashed py-48 text-center">
-      <UserCircle2 className="text-muted-foreground h-48 w-48" strokeWidth={1.5} aria-hidden />
-      <div>
-        <h2 className="text-base font-semibold">Aucun chauffeur</h2>
-        <p className="text-muted-foreground text-sm">
-          Ajoutez un premier chauffeur pour pouvoir lui affecter des courses.
-        </p>
-      </div>
-      <Button type="button" onClick={onCreate} className="gap-8">
-        <Plus className="h-16 w-16" aria-hidden />
-        Nouveau chauffeur
-      </Button>
-    </div>
+    <SharedEmptyState
+      icon={UserPlus}
+      title="Aucun chauffeur enregistré"
+      description="Invitez votre premier chauffeur pour commencer à assigner des courses."
+      action={{ onClick: onCreate, label: 'Inviter un chauffeur', icon: Plus }}
+    />
   );
 }

@@ -1,10 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { FileText } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { BookOpen, Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { EmptyState } from '@/components/ui/empty-state';
 import { RegistreDrawer } from './registre-drawer.client';
 
 type Entry = {
@@ -25,25 +24,23 @@ export function RegistreList({ entries }: { entries: Entry[] }) {
 
   if (entries.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed p-48 text-center">
-        <FileText className="text-muted-foreground mx-auto h-32 w-32" aria-hidden />
-        <p className="text-foreground mt-16 font-medium">Votre registre est vide.</p>
-        <p className="text-muted-foreground mx-auto mt-8 max-w-md text-sm">
-          Un transport sanitaire a des traitements de données très prévisibles. TAP peut vous
-          proposer un brouillon des entrées types — à relire et adapter.
-        </p>
-        <div className="mt-24 flex flex-wrap items-center justify-center gap-12">
-          <Button asChild>
-            <Link href="/admin/legal/registre/pre-remplir">
-              Pré-remplir avec les traitements types
-            </Link>
-          </Button>
-          <Button variant="outline" onClick={() => setDrawerOpen(true)}>
-            Créer une entrée manuellement
-          </Button>
-        </div>
+      <>
+        <EmptyState
+          icon={BookOpen}
+          title="Registre vide"
+          description="Pré-remplissez votre registre RGPD avec les traitements détectés automatiquement — à relire et adapter."
+          action={{
+            href: '/admin/legal/registre/pre-remplir',
+            label: 'Pré-remplir',
+          }}
+          secondaryAction={{
+            onClick: () => setDrawerOpen(true),
+            label: 'Créer une entrée manuellement',
+            icon: Plus,
+          }}
+        />
         <RegistreDrawer open={drawerOpen} onOpenChange={setDrawerOpen} />
-      </div>
+      </>
     );
   }
 
