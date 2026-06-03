@@ -25,12 +25,17 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 
 ## Current Position
 
-Phase: 06.7 close (Wave 4 + walkthrough fonctionnel validé 2026-06-01)
-Phase next: 06.10 Dettes techniques Phase 06.7 — Wave 1 tentative Vercel Python `/py/` (pattern non essayé) avec critère d'abandon ferme à 4 h, puis Wave 2 pipeline geocoding (cf. enquête open-source 2026-06-01 + ADR-009 LOCKED). D3+D4 différées explicitement.
-Status: Décision dirigeant 2026-06-01 prise : Phase 06.10 cadrée (CONTEXT, DISCUSSION-LOG, 2 PLAN livrés). ADR-009 LOCKED « pattern container long-running pour algorithmes coûteux ». Mock optimizer (`OPTIMIZER_USE_MOCK=true`) reste actif en production tant que la qualité OR-Tools n'est pas validée par walkthrough complet. Dettes D3+D4 restent tracées dans `docs/dette-technique/2026-06-01-phase-06.7-cloture.md`.
+**Dernière mise à jour** : 2026-06-03 (post-Phase 06.10)
+**Phase courante** : Phase 06.10 « Dettes techniques Phase 06.7 » — **terminée**.
+**Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.11 candidate (cf. SUMMARY 06.10 pour les 3 options).
+**Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
+
+Phase: 06.10 terminée (2026-06-03) — 5 PR Wave 1 + 1 PR Wave 2
+Phase next: à choisir parmi 06.11 candidate (réactivation vrai solveur) / 06.9 Next.js 15 / 07 / 09 / 10 — décision dirigeant en attente
+Status: Phase 06.10 close. Chaîne Vercel Python OR-Tools techniquement fonctionnelle (`/api/solver/health` 200) mais walkthrough complet bloqué sur Hobby (maxDuration 10s). Mock activé partout. Pipeline geocoding déjà câblé Phase 04.7, scellé par tests Vitest. Dettes ouvertes : D1 reportée (Phase 06.11 candidate), D2 résolue, D3+D4 différées.
 Blockers: aucun
-Last activity: STATE synchronisé avec l'état réel — 4 phases livrées inscrites (06.6, 06.7 Wave 3, 06.7 Wave 4, 06.8), entêtes fossiles purgés, ligne fossile « Wave 3 à venir » retirée de Phases à venir, ROADMAP 06.7 passe à 4 waves.
-Précédent: Wave 4 (06.7-04) — enrichissement minimal écran d'optimisation. `OptimizationProposal` étendue avec `rideLabels` + `vehicles` (rétrocompatibles), Route Handler `/api/optimizer` enrichit la réponse après solveur (D-08 préservée), 5 composants UI branchés, typecheck vert, Vitest 100 %.
+Last activity: Clôture Phase 06.10 — SUMMARY produit, enquête `2026-06-03-enquete-patterns-solveur-cout.md` capitalisée, ROADMAP marquée livrée + Phase 06.11 candidate inscrite, STATE et journal mis à jour. Aucune modification de code applicatif.
+Précédent: Wave 1 Phase 06.10 — fix timeout client + maxDuration Vercel Python (PR #212).
 
 Progress: [██████████] 100%
 
