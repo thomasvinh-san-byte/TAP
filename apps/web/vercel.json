@@ -1,9 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "functions": {
-    "py/solver/index.py": {
-      "maxDuration": 10,
-      "excludeFiles": "{.next/**,node_modules/**,src/**,public/**,**/*.md,**/*.test.ts,**/*.test.tsx,tests/**}"
-    }
-  }
+  "builds": [
+    { "src": "py/solver/index.py", "use": "@vercel/python" },
+    { "src": "package.json", "use": "@vercel/next" }
+  ],
+  "routes": [
+    { "src": "/api/solver/(.*)", "dest": "/py/solver/index.py" },
+    { "src": "/(.*)", "dest": "/$1" }
+  ]
 }
