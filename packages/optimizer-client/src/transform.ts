@@ -60,6 +60,18 @@ export type OptimizationProposal = {
    * Optionnel — fallback gracieux sur `[]` côté UI si absent.
    */
   vehicles?: Array<{ id: string; label: string }>;
+  /**
+   * Attributs métier par UUID de course pour les badges UI (Wave 2 Phase 06.11).
+   * Construit côté Route Handler à partir des `RideRow` déjà fetchées.
+   * Optionnel — UI omet silencieusement les badges si absent.
+   */
+  rideAttributes?: Record<string, RideAttributes>;
+};
+
+/** Attributs métier d'une course exposés à l'UI pour les badges (Wave 2 Phase 06.11). */
+export type RideAttributes = {
+  urgency: 'programmee' | 'urgente' | 'immediate';
+  transport_mode: 'taxi_conventionne' | 'tpmr' | 'vsl' | 'ambulance';
 };
 
 /**

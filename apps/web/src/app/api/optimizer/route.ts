@@ -10,6 +10,7 @@ import {
   type RideRow,
   type VehicleRow,
   type OptimizationProposal,
+  type RideAttributes,
 } from '@tap/optimizer-client';
 
 /**
@@ -129,10 +130,22 @@ function enrichProposal(
     label: `${v.immatriculation ?? v.id.slice(0, 8)} — ${v.type}`,
   }));
 
+  // Wave 2 Phase 06.11 — B3 : attributs métier pour badges UI (urgence,
+  // transport_mode). Source identique aux `rideLabels` : `rides` déjà
+  // fetchées en début de route. Pas de query supplémentaire.
+  const rideAttributes: Record<string, RideAttributes> = {};
+  for (const ride of rides) {
+    rideAttributes[ride.id] = {
+      urgency: ride.urgency,
+      transport_mode: ride.transport_mode,
+    };
+  }
+
   return {
     ...proposal,
     rideLabels,
     vehicles: vehiclesLabels,
+    rideAttributes,
   };
 }
 

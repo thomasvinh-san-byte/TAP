@@ -54,9 +54,21 @@ export function OptimizationShell({ initialRides, date }: Props): JSX.Element {
             year: 'numeric',
           })}
         </h1>
-        <Button asChild variant="ghost">
-          <Link href="/cockpit">Fermer</Link>
-        </Button>
+        <div className="flex items-center gap-8">
+          {state.status === 'result' && (
+            <Button
+              variant="outline"
+              onClick={() => void launch()}
+              title="Recalculer en partant des courses actuelles. Les ajustements en cours seront perdus."
+              data-testid="recalculate-btn"
+            >
+              ↻ Re-calculer
+            </Button>
+          )}
+          <Button asChild variant="ghost">
+            <Link href="/cockpit">Fermer</Link>
+          </Button>
+        </div>
       </header>
 
       {state.status === 'idle' && (

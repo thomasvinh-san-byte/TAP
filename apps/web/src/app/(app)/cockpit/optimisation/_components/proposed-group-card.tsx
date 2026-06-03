@@ -4,9 +4,11 @@ import { useState } from 'react';
 import { Check, X, SlidersHorizontal, CheckCircle, Car } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { HautsBadge } from './hauts-badge';
+import { RideBadge } from './ride-badge';
 import { AdjustSheet } from './adjust-sheet.client';
 import { groupTraverseHauts } from '../_lib/hauts-citycodes';
-import type { Groupement } from '@tap/optimizer-client';
+import { getGroupColor } from '../_lib/group-colors';
+import type { Groupement, RideAttributes } from '@tap/optimizer-client';
 import type { AdjustedGroupement } from '../_lib/use-optimization.client';
 
 type GroupDecision = 'idle' | 'accepted' | 'rejected';
@@ -27,6 +29,8 @@ type Props = {
   vehicleLabel?: string;
   /** Citycodes de toutes les courses du groupement pour détection Hauts. */
   rideCitycodes: (string | null)[];
+  /** Attributs métier par UUID de course pour badges (Wave 2 Phase 06.11 — B3). */
+  rideAttributes?: Record<string, RideAttributes>;
 };
 
 /**
@@ -45,16 +49,20 @@ export function ProposedGroupCard({
   rideLabels = {},
   vehicleLabel,
   rideCitycodes,
+  rideAttributes,
 }: Props): JSX.Element {
   const [adjustOpen, setAdjustOpen] = useState(false);
   const isHauts = groupTraverseHauts(rideCitycodes);
 
+  // Wave 2 Phase 06.11 — B9 : couleur d'identification du groupement.
+  // Override par accepted/rejected qui restent prioritaires visuellement.
+  const groupColor = getGroupColor(groupIndex);
   const borderClass =
     decision === 'accepted'
       ? 'border-l-4 border-l-green-500'
       : decision === 'rejected'
         ? 'border-l-4 border-l-destructive'
-        : '';
+        : `border-l-4 ${groupColor.border}`;
 
   return (
     <article
@@ -63,7 +71,11 @@ export function ProposedGroupCard({
       data-state={decision}
     >
       <div className="flex items-start justify-between gap-8">
-        <h3 className="text-sm font-semibold">
+        <h3 className="flex items-center gap-8 text-sm font-semibold">
+          <span
+            className={`inline-block h-12 w-12 shrink-0 rounded-full ${groupColor.dot}`}
+            aria-label={`Identifiant visuel du groupement : ${groupColor.label}`}
+          />
           Groupement {groupIndex + 1}
           {groupement.ride_ids.length > 2 && ` (${groupement.ride_ids.length} courses)`}
         </h3>
@@ -76,11 +88,24 @@ export function ProposedGroupCard({
       </div>
 
       <ol className="mt-8 space-y-4">
-        {groupement.order.map((rideId, i) => (
-          <li key={rideId} className="text-sm">
-            {i + 1}. {rideLabels[rideId] ?? `Course ${rideId.slice(0, 8)}`}
-          </li>
-        ))}
+        {groupement.order.map((rideId, i) => {
+          const attrs = rideAttributes?.[rideId];
+          return (
+            <li key={rideId} className="flex flex-wrap items-center gap-4 text-sm">
+              <span>
+                {i + 1}. {rideLabels[rideId] ?? `Course ${rideId.slice(0, 8)}`}
+              </span>
+              {attrs && (
+                <span className="ml-4 inline-flex flex-wrap gap-4">
+                  <RideBadge type="transport" value={attrs.transport_mode} />
+                  {attrs.urgency !== 'programmee' && (
+                    <RideBadge type="urgency" value={attrs.urgency} />
+                  )}
+                </span>
+              )}
+            </li>
+          );
+        })}
       </ol>
 
       <div className="mt-8 flex items-center gap-8 text-sm">
