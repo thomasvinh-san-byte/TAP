@@ -118,3 +118,53 @@ describe('rideDraftSchema (D-02)', () => {
     expect(() => rideDraftSchema.parse({})).not.toThrow();
   });
 });
+
+describe('rideExpressInputSchema — geocoding DEC-044 (Wave 2 Phase 06.10)', () => {
+  it('11. accepte les 6 colonnes coords lat/lng/citycode et les préserve après parse', () => {
+    // Scelle le pipeline UI→DB du geocoding :
+    // BanSuggestion.{lat,lng,citycode} → AddressPickerField.onSelect → updateField
+    // → ride-express-modal payload → rideExpressInputSchema.parse → createRideAction
+    // → INSERT public.rides via spread (cf. apps/web/src/app/(app)/courses/actions/create.ts)
+    // Si ce test casse, le pipeline est rompu — soit le schema a perdu les coords,
+    // soit le spread du Server Action ne les transmet plus.
+    const coords = {
+      pickup_lat: -20.8825,
+      pickup_lng: 55.4513,
+      pickup_citycode: '97411',
+      dropoff_lat: -21.3393,
+      dropoff_lng: 55.4781,
+      dropoff_citycode: '97416',
+    };
+    const parsed = rideExpressInputSchema.parse({ ...baseValide, ...coords });
+    expect(parsed.pickup_lat).toBe(coords.pickup_lat);
+    expect(parsed.pickup_lng).toBe(coords.pickup_lng);
+    expect(parsed.pickup_citycode).toBe(coords.pickup_citycode);
+    expect(parsed.dropoff_lat).toBe(coords.dropoff_lat);
+    expect(parsed.dropoff_lng).toBe(coords.dropoff_lng);
+    expect(parsed.dropoff_citycode).toBe(coords.dropoff_citycode);
+  });
+
+  it('12. accepte null sur les 6 colonnes coords (fallback saisie libre sans autocomplete BAN)', () => {
+    // D-ADDR-04 : si l'utilisateur tape une adresse hors BAN, AddressPickerField
+    // n'appelle pas onSelect — les coords restent null. Le schema doit accepter
+    // pour ne pas bloquer la saisie libre.
+    const parsed = rideExpressInputSchema.parse({
+      ...baseValide,
+      pickup_lat: null,
+      pickup_lng: null,
+      pickup_citycode: null,
+      dropoff_lat: null,
+      dropoff_lng: null,
+      dropoff_citycode: null,
+    });
+    expect(parsed.pickup_lat).toBeNull();
+    expect(parsed.dropoff_citycode).toBeNull();
+  });
+
+  it('13. rejette lat hors bornes [-90, 90] ou lng hors bornes [-180, 180]', () => {
+    expect(rideExpressInputSchema.safeParse({ ...baseValide, pickup_lat: 91 }).success).toBe(false);
+    expect(rideExpressInputSchema.safeParse({ ...baseValide, pickup_lng: -181 }).success).toBe(
+      false,
+    );
+  });
+});
