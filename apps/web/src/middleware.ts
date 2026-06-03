@@ -17,11 +17,12 @@ import { createSupabaseMiddlewareClient } from '@tap/database';
  * Exclusions matcher (cf. config en bas de fichier) :
  *   - `_next/static`, `_next/image`, `favicon.ico` : assets statiques Next.
  *   - `api/health` : sonde de disponibilité publique.
- *   - `api/solver` : Vercel Python serverless function (architecture
- *     hybride single-projet, ADR-008 révision 2026-06-01). L'auth est
- *     enforcée en amont par le Route Handler `/api/optimizer` qui appelle
- *     `/api/solver/*` via fetch interne après vérification Supabase ; le
- *     middleware ne doit donc pas intercepter ces chemins.
+ *
+ * Note Wave 1 Phase 06.10 (ADR-009) : la fonction Python solveur est
+ * désormais physiquement à `apps/web/py/solver/` (hors `/api/`). Le
+ * rewrite Next.js redirige `/api/solver/*` vers `/py/solver/*` avant que
+ * le middleware s'exécute en production — pas besoin d'exclusion
+ * explicite dans le matcher.
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -100,5 +101,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/health|api/solver).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/health).*)'],
 };

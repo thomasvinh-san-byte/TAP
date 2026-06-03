@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
-    "api/solver/index.py": {
+    "py/solver/index.py": {
       "maxDuration": 10,
       "excludeFiles": "{.next/**,node_modules/**,src/**,public/**,**/*.md,**/*.test.ts,**/*.test.tsx,tests/**}"
     }

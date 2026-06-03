@@ -42,11 +42,13 @@ const nextConfig = {
    * Pattern documenté dans `digitros/nextjs-fastapi` et
    * `vercel.com/kb/guide/how-to-use-python-and-javascript-in-the-same-application`.
    *
-   * - En production : `destination` identique à `source` — la déclaration
-   *   suffit à dire à Next.js de laisser passer le chemin. Vercel route
-   *   ensuite la requête vers la fonction Python (`apps/web/api/solver/index.py`).
+   * - En production : `destination` pointe vers `/py/solver/:path*` — le code
+   *   Python est physiquement situé hors de `/api/` (apps/web/py/solver/, cf.
+   *   Wave 1 Phase 06.10, ADR-009) pour éviter le conflit avec le routing
+   *   Next.js. Vercel route les requêtes `/py/solver/*` vers la fonction
+   *   Python déclarée dans `apps/web/vercel.json`.
    * - En développement : proxy vers FastAPI local sur le port 8000 si lancé
-   *   en parallèle (`uvicorn` côté `apps/web/api/solver/`).
+   *   en parallèle (`uvicorn` côté `apps/web/py/solver/`).
    */
   async rewrites() {
     return [
@@ -55,7 +57,7 @@ const nextConfig = {
         destination:
           process.env.NODE_ENV === 'development'
             ? 'http://127.0.0.1:8000/api/solver/:path*'
-            : '/api/solver/:path*',
+            : '/py/solver/:path*',
       },
     ];
   },
