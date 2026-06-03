@@ -2,6 +2,8 @@ import type { OptimizationProposal } from '@tap/optimizer-client';
 import { IndicatorsBand } from './indicators-band';
 import { ProposedGroupCard } from './proposed-group-card';
 import { ExcludedRidesSection } from './excluded-rides-section';
+import { RideBadge } from './ride-badge';
+import { getGroupColor } from '../_lib/group-colors';
 import type { GroupDecision, AdjustedGroupement } from '../_lib/use-optimization.client';
 
 type CurrentRide = {
@@ -44,6 +46,14 @@ export function ComparativeView({
   // Index véhicules par id pour résoudre le label affiché par carte.
   const vehiclesById = new Map(availableVehicles.map((v) => [v.id, v.label]));
 
+  // Wave 2 Phase 06.11 — B9 : index ride → groupIndex pour pastilles cluster
+  // dans la liste « Plan actuel » (colonne gauche).
+  const rideToGroupIndex = new Map<string, number>();
+  proposal.groupements.forEach((g, idx) => {
+    g.ride_ids.forEach((rideId) => rideToGroupIndex.set(rideId, idx));
+  });
+  const rideAttributes = proposal.rideAttributes;
+
   return (
     <div className="space-y-24">
       <IndicatorsBand
@@ -58,16 +68,38 @@ export function ComparativeView({
             Plan actuel
           </h2>
           <ol className="mt-8 space-y-4">
-            {currentRides.map((ride, i) => (
-              <li key={ride.id} className="text-sm">
-                {i + 1}.{' '}
-                {new Date(ride.scheduled_at).toLocaleTimeString('fr-FR', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}{' '}
-                {ride.pickup_address ? `— ${ride.pickup_address}` : ''}
-              </li>
-            ))}
+            {currentRides.map((ride, i) => {
+              const groupIdx = rideToGroupIndex.get(ride.id);
+              const color = groupIdx !== undefined ? getGroupColor(groupIdx) : null;
+              const attrs = rideAttributes?.[ride.id];
+              return (
+                <li key={ride.id} className="flex flex-wrap items-center gap-4 text-sm">
+                  <span>
+                    {i + 1}.{' '}
+                    {new Date(ride.scheduled_at).toLocaleTimeString('fr-FR', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </span>
+                  {color && groupIdx !== undefined && (
+                    <span
+                      className={`inline-block h-8 w-8 shrink-0 rounded-full ${color.dot}`}
+                      aria-label={`Appartient au groupement ${groupIdx + 1} (${color.label})`}
+                      title={`Groupement ${groupIdx + 1}`}
+                    />
+                  )}
+                  {ride.pickup_address && <span>— {ride.pickup_address}</span>}
+                  {attrs && (
+                    <span className="ml-4 inline-flex flex-wrap gap-4">
+                      <RideBadge type="transport" value={attrs.transport_mode} />
+                      {attrs.urgency !== 'programmee' && (
+                        <RideBadge type="urgency" value={attrs.urgency} />
+                      )}
+                    </span>
+                  )}
+                </li>
+              );
+            })}
           </ol>
         </section>
 
@@ -95,6 +127,7 @@ export function ComparativeView({
                   rideLabels={rideLabels}
                   vehicleLabel={vehiclesById.get(group.vehicle_id)}
                   rideCitycodes={rideCitycodes}
+                  rideAttributes={rideAttributes}
                 />
               );
             })}
