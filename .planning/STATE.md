@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.7 Wave 3 livrée (code side) — gate opérateur Task 0 (provision Vercel Python + cold start DEC-079 (c)) + gate Task 4 (vérification visuelle preview)"
-last_updated: "2026-06-01T06:19:00.000Z"
-last_activity: Wave 3 exécutée — Route Handler /api/optimizer (dé-identifié D-08) + assignVehicleAction + écran /cockpit/optimisation + E2E golden path + DEC-081 LOCKED + ROADMAP Phase 06.7 Complete.
+stopped_at: "Phase 06.7 close (Wave 4 livrée + walkthrough validé 2026-06-01) — STATE synchronisé"
+last_updated: "2026-06-01T08:00:00.000Z"
+last_activity: STATE synchronisé avec l'état réel du repo — 4 phases livrées inscrites (06.6, 06.7 Wave 3+4, 06.8), entêtes fossiles purgés, section Phases à venir nettoyée. Phase 06.7 officiellement close (validation fonctionnelle Wave 4 confirmée par walkthrough opérateur).
 progress:
   total_phases: 21
   completed_phases: 5
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 
 ## Current Position
 
-Phase: 06.7 Wave 4 (livrée code-side 2026-06-01) — enrichissement minimal UI écran d'optimisation
-Phase next: 06.9 Modernisation Next.js 15 (autonome, bêta — audit cache fetch(), DEC-076) après gate opérateur Wave 4
-Status: Pending gate opérateur Wave 4 — walkthrough preview pour valider que les cartes de groupement affichent désormais heure + ville → ville + initiales patient au lieu d'UUIDs opaques, que le dropdown véhicule du « Ajuster » est rempli avec les immatriculations, et que le message « aucune course exploitable, pas de coordonnées » s'affiche correctement quand le seed n'est pas géocodé. Code Wave 4 complet et typé. Lecture B (passe UX complète) reste reportée — la lecture A traitée ici donne un walkthrough utilisable.
+Phase: 06.7 close (Wave 4 + walkthrough fonctionnel validé 2026-06-01)
+Phase next: à choisir parmi 06.9 / 07 / 09 / 10 — décision dirigeant en attente (cf. audit-etat-repo-2026-06-01.md)
+Status: Wave 4 confirmée par walkthrough opérateur (cartes affichent heure + ville + initiales, dropdown véhicule rempli). STATE synchronisé. Dettes ouvertes tracées dans docs/dette-technique/2026-06-01-phase-06.7-cloture.md (D1 hébergement Python, D2 geocoding, D3 passe UX complète partiellement réduite, D4 audit casts).
 Blockers: aucun
-Last activity: Wave 4 (06.7-04) — enrichissement minimal écran d'optimisation. `OptimizationProposal` étendue avec `rideLabels` + `vehicles` (rétrocompatibles), Route Handler `/api/optimizer` enrichit la réponse après solveur (D-08 préservée — solveur voit toujours UUIDs uniquement), 5 composants UI branchés sur les nouvelles props, message d'erreur spécifique quand toutes courses exclues sans coordonnées. typecheck vert, Vitest 100 % stmts/funcs/lines (pas de régression).
-Précédent: Clôture Phase 06.7 — validation fonctionnelle Wave 3 OK (cockpit affiche correctement les courses du jour après fix `drivers(nom_affichage)` PR #201, écran d'optimisation produit 3 regroupements via mock).
+Last activity: STATE synchronisé avec l'état réel — 4 phases livrées inscrites (06.6, 06.7 Wave 3, 06.7 Wave 4, 06.8), entêtes fossiles purgés, ligne fossile « Wave 3 à venir » retirée de Phases à venir, ROADMAP 06.7 passe à 4 waves.
+Précédent: Wave 4 (06.7-04) — enrichissement minimal écran d'optimisation. `OptimizationProposal` étendue avec `rideLabels` + `vehicles` (rétrocompatibles), Route Handler `/api/optimizer` enrichit la réponse après solveur (D-08 préservée), 5 composants UI branchés, typecheck vert, Vitest 100 %.
 
 Progress: [██████████] 100%
 
@@ -49,10 +49,13 @@ Phases livrées :
 - Phase 04.7 — Pricing mockup + Caisse + Migration géocoding + hotfix-bis + verify (2026-05-15, PR #88..#99 — 11 PR cumulées dont hotfix-bis 04.7-bis + verify-work, ≈1h40 réel total (execute 45min + hotfix-bis 25min + verify 30min) vs 4-5.5h estimé, vélocité -85% confirmée. Méthodologie « pipeline GSD étendu — UAT informel obligatoire » VISION.md PR #97 validée par premier cas concret.)
 - Phase 06.7 Wave 1 — Microservice Python OR-Tools `services/optimizer` (2026-05-27, PR #185 + #186 — 14 fichiers Python, 11/11 pytest verts, contrat `CONTRACT_VERSION='1'` figé, DEC-079 hébergement différé, DEC-082 workaround OR-Tools 9.15, DEC-083 contrat à synchroniser Wave 2)
 - Phase 06.7 Wave 2 — Client TS `@tap/optimizer-client` (2026-06-01, PR #188 — 10 fichiers TS, 24/24 Vitest verts, 100% stmts/funcs/lines + 96% branches, parité contrat TS↔Python confirmée, DEC-083 fermée, DEC-080 inscrite sur la contrainte hook guard-commit)
+- Phase 06.6  — Conformité assistée (Espace dirigeant) (2026-05-21, pipeline GSD 5/5 — pré-remplissage RGPD bouton DÉCLENCHÉ, entrées éditables, disclaimers ; registre + DPA réels, DPIA trame, breaches/requests/dpo aide contextuelle)
+- Phase 06.8  — Tableau de bord dirigeant (Espace dirigeant) (2026-05-21, pipeline GSD 5/5 — page /tableau-de-bord, 6 KPIs réutilisant helpers Caisse/Facturation, ComplianceCard factuelle, redirection par rôle DEC-071, DEC-072, DEC-073, WCAG 2.2 AA, E2E golden path)
+- Phase 06.7 Wave 3 — Cockpit régulateur + Route Handler /api/optimizer (dé-identifié D-08) + assignVehicleAction + écran /cockpit/optimisation + E2E golden path (2026-06-01, PR #192 + fix subséquents #195..#202 ; mock optimizer activé via OPTIMIZER_USE_MOCK=true sur 5 PR infructueuses de fix hébergement Python Vercel — ADR-008 amendée 2026-06-01, DEC-079 reste LOCKED en intention)
+- Phase 06.7 Wave 4 — Enrichissement minimal UI écran d'optimisation (2026-06-01, PR #204) — OptimizationProposal étendue rideLabels + vehicles (rétrocompatibles), Route Handler enrichit après solveur (D-08 préservée), 5 composants UI branchés, message d'erreur 'aucune course exploitable' quand exclusions no_coordinates. Lecture A traitée, lecture B reste reportée (dette D3)
 
 Phases à venir (réordonnées 2026-05-22 — état bêta, DEC-077) :
 
-- Phase 06.7 Wave 3 — Cockpit régulateur + Route Handler Next consommant `solve()` + Playwright golden path E2E (hébergement = Vercel Python serverless, DEC-079 LOCKED, ADR-008)
 - Phase 06.9 — Modernisation Next.js 15 (autonome, bêta — audit cache fetch(), DEC-076)
 - Phase 07   — Mobile native chauffeur (optionnel — décision business)
 - Phase 09   — Migration HDS (ex-06.5 ; fin de parcours, pré-prod commerciale, verrou 1er client payant, DEC-077)
@@ -182,9 +185,9 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 ## Session Continuity
 
 Last session: 2026-06-01T07:00:00.000Z
-Stopped at: Phase 06.7 Wave 2 livrée (PR #188) + DEC-079 LOCKED Vercel Python serverless (ADR-008) + DEC-080 LOCKED
+Stopped at: Phase 06.7 close (Wave 4 + walkthrough OK 2026-06-01). Prochaine phase à choisir parmi Phases à venir (06.9 / 07 / 09 / 10) — décision dirigeant en attente.
 Resume file: None
-Next command suggested: `/gsd-plan-phase 06.7 --wave 3` ou `/gsd-execute-phase 06.7 --wave 3` selon l'état du plan 06.7-03
+Next command suggested: `/gsd-discuss-phase <phase next choisie>`
 
 ## Ingest Runs
 
