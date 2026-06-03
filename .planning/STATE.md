@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 ## Current Position
 
 Phase: 06.7 close (Wave 4 + walkthrough fonctionnel validé 2026-06-01)
-Phase next: à choisir parmi 06.9 / 07 / 09 / 10 — décision dirigeant en attente (cf. audit-etat-repo-2026-06-01.md)
-Status: Wave 4 confirmée par walkthrough opérateur (cartes affichent heure + ville + initiales, dropdown véhicule rempli). STATE synchronisé. Dettes ouvertes tracées dans docs/dette-technique/2026-06-01-phase-06.7-cloture.md (D1 hébergement Python, D2 geocoding, D3 passe UX complète partiellement réduite, D4 audit casts).
+Phase next: 06.10 Dettes techniques Phase 06.7 — Wave 1 tentative Vercel Python `/py/` (pattern non essayé) avec critère d'abandon ferme à 4 h, puis Wave 2 pipeline geocoding (cf. enquête open-source 2026-06-01 + ADR-009 LOCKED). D3+D4 différées explicitement.
+Status: Décision dirigeant 2026-06-01 prise : Phase 06.10 cadrée (CONTEXT, DISCUSSION-LOG, 2 PLAN livrés). ADR-009 LOCKED « pattern container long-running pour algorithmes coûteux ». Mock optimizer (`OPTIMIZER_USE_MOCK=true`) reste actif en production tant que la qualité OR-Tools n'est pas validée par walkthrough complet. Dettes D3+D4 restent tracées dans `docs/dette-technique/2026-06-01-phase-06.7-cloture.md`.
 Blockers: aucun
 Last activity: STATE synchronisé avec l'état réel — 4 phases livrées inscrites (06.6, 06.7 Wave 3, 06.7 Wave 4, 06.8), entêtes fossiles purgés, ligne fossile « Wave 3 à venir » retirée de Phases à venir, ROADMAP 06.7 passe à 4 waves.
 Précédent: Wave 4 (06.7-04) — enrichissement minimal écran d'optimisation. `OptimizationProposal` étendue avec `rideLabels` + `vehicles` (rétrocompatibles), Route Handler `/api/optimizer` enrichit la réponse après solveur (D-08 préservée), 5 composants UI branchés, typecheck vert, Vitest 100 %.
@@ -54,8 +54,9 @@ Phases livrées :
 - Phase 06.7 Wave 3 — Cockpit régulateur + Route Handler /api/optimizer (dé-identifié D-08) + assignVehicleAction + écran /cockpit/optimisation + E2E golden path (2026-06-01, PR #192 + fix subséquents #195..#202 ; mock optimizer activé via OPTIMIZER_USE_MOCK=true sur 5 PR infructueuses de fix hébergement Python Vercel — ADR-008 amendée 2026-06-01, DEC-079 reste LOCKED en intention)
 - Phase 06.7 Wave 4 — Enrichissement minimal UI écran d'optimisation (2026-06-01, PR #204) — OptimizationProposal étendue rideLabels + vehicles (rétrocompatibles), Route Handler enrichit après solveur (D-08 préservée), 5 composants UI branchés, message d'erreur 'aucune course exploitable' quand exclusions no_coordinates. Lecture A traitée, lecture B reste reportée (dette D3)
 
-Phases à venir (réordonnées 2026-05-22 — état bêta, DEC-077) :
+Phases à venir (réordonnées 2026-05-22 — état bêta, DEC-077 ; Phase 06.10 cadrée 2026-06-01 comme phase next) :
 
+- Phase 06.10 — Dettes techniques Phase 06.7 (D1 hébergement Python Wave 1 + D2 geocoding Wave 2 ; D3+D4 différées ; ADR-009 LOCKED)
 - Phase 06.9 — Modernisation Next.js 15 (autonome, bêta — audit cache fetch(), DEC-076)
 - Phase 07   — Mobile native chauffeur (optionnel — décision business)
 - Phase 09   — Migration HDS (ex-06.5 ; fin de parcours, pré-prod commerciale, verrou 1er client payant, DEC-077)
