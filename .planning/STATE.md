@@ -25,8 +25,8 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 
 ## Current Position
 
-**Dernière mise à jour** : 2026-06-03 (cadrage Phase 06.11)
-**Phase courante** : Phase 06.11 « Polish produit » — **en cadrage** (CONTEXT + DISCUSSION-LOG + 3 PLAN livrés via cette PR, 3 PR d'exécution à venir).
+**Dernière mise à jour** : 2026-06-03 (Phase 06.13 lancée)
+**Phase courante** : Phase 06.13 « Foundations design system » — en livraison (1 PR documentaire avec 4 livrables, 7-11 h).
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
