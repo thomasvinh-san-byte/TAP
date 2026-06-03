@@ -33,31 +33,22 @@ const nextConfig = {
   /**
    * Rewrite `/api/solver/*` vers la fonction Python FastAPI.
    *
-   * Next.js intercepte par défaut toutes les requêtes `/api/*` parce que ce
-   * projet a 8 Route Handlers sous `app/api/*`. Sans ce rewrite, une requête
-   * à `/api/solver/health` ne trouve aucun `app/api/solver/route.ts` et
-   * tombe sur le 404 Next.js — Vercel n'a jamais l'occasion de router vers
-   * la fonction Python déclarée dans `apps/web/vercel.json`.
+   * En production / preview : pas de rewrite Next.js — c'est le routing
+   * Vercel legacy `routes` (cf. `apps/web/vercel.json` Wave 1 dernière
+   * chance 2026-06-01, ADR-009) qui aiguille `/api/solver/(.*)` vers la
+   * fonction Python `py/solver/index.py` AVANT que Next.js voie la
+   * requête.
    *
-   * Pattern documenté dans `digitros/nextjs-fastapi` et
-   * `vercel.com/kb/guide/how-to-use-python-and-javascript-in-the-same-application`.
-   *
-   * - En production : `destination` pointe vers `/py/solver/:path*` — le code
-   *   Python est physiquement situé hors de `/api/` (apps/web/py/solver/, cf.
-   *   Wave 1 Phase 06.10, ADR-009) pour éviter le conflit avec le routing
-   *   Next.js. Vercel route les requêtes `/py/solver/*` vers la fonction
-   *   Python déclarée dans `apps/web/vercel.json`.
-   * - En développement : proxy vers FastAPI local sur le port 8000 si lancé
-   *   en parallèle (`uvicorn` côté `apps/web/py/solver/`).
+   * En développement : proxy vers FastAPI local sur le port 8000 si lancé
+   * en parallèle (`uvicorn` côté `apps/web/py/solver/`). Conservé car
+   * Vercel routes ne s'applique pas en dev.
    */
   async rewrites() {
+    if (process.env.NODE_ENV !== 'development') return [];
     return [
       {
         source: '/api/solver/:path*',
-        destination:
-          process.env.NODE_ENV === 'development'
-            ? 'http://127.0.0.1:8000/api/solver/:path*'
-            : '/py/solver/:path*',
+        destination: 'http://127.0.0.1:8000/api/solver/:path*',
       },
     ];
   },
