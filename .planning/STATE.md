@@ -25,17 +25,17 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 
 ## Current Position
 
-**Dernière mise à jour** : 2026-06-03 (post-Phase 06.10)
-**Phase courante** : Phase 06.10 « Dettes techniques Phase 06.7 » — **terminée**.
-**Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.11 candidate (cf. SUMMARY 06.10 pour les 3 options).
+**Dernière mise à jour** : 2026-06-03 (cadrage Phase 06.11)
+**Phase courante** : Phase 06.11 « Polish produit » — **en cadrage** (CONTEXT + DISCUSSION-LOG + 3 PLAN livrés via cette PR, 3 PR d'exécution à venir).
+**Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.10 terminée (2026-06-03) — 5 PR Wave 1 + 1 PR Wave 2
-Phase next: à choisir parmi 06.11 candidate (réactivation vrai solveur) / 06.9 Next.js 15 / 07 / 09 / 10 — décision dirigeant en attente
-Status: Phase 06.10 close. Chaîne Vercel Python OR-Tools techniquement fonctionnelle (`/api/solver/health` 200) mais walkthrough complet bloqué sur Hobby (maxDuration 10s). Mock activé partout. Pipeline geocoding déjà câblé Phase 04.7, scellé par tests Vitest. Dettes ouvertes : D1 reportée (Phase 06.11 candidate), D2 résolue, D3+D4 différées.
+Phase: 06.11 en cadrage (2026-06-03) — CONTEXT + DISCUSSION-LOG + 3 PLAN livrés
+Phase next: 06.11 Wave 1 (tableau dirigeant) à exécuter via prompt CC séparé, puis Wave 2 et Wave 3.
+Status: Phase 06.11 cadrée (3 waves, 10 items A3/A5/A4/B2/B3/B9/B7/B6/C1/C7, 23-33 h estimé). Items A2/B8/C3/C5 explicitement reportés. DEC-084..087 LOCKED. D4-a side-quest opportuniste inscrit dans CONCERNS.md. Aucune dépendance externe nouvelle.
 Blockers: aucun
-Last activity: Clôture Phase 06.10 — SUMMARY produit, enquête `2026-06-03-enquete-patterns-solveur-cout.md` capitalisée, ROADMAP marquée livrée + Phase 06.11 candidate inscrite, STATE et journal mis à jour. Aucune modification de code applicatif.
-Précédent: Wave 1 Phase 06.10 — fix timeout client + maxDuration Vercel Python (PR #212).
+Last activity: Cadrage Phase 06.11 « Polish produit » — 5 fichiers GSD créés (CONTEXT + DISCUSSION-LOG + 3 PLAN), CONCERNS.md créé avec D4-a side-quest, ROADMAP mise à jour (06.11 polish inscrite, ancienne 06.11 candidate solveur renumérotée 06.12), STATE et journal mis à jour. Aucune modification de code applicatif.
+Précédent: Clôture Phase 06.10 (PR #213) — SUMMARY, enquête patterns solveur capitalisée.
 
 Progress: [██████████] 100%
 
