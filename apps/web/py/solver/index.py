@@ -3,14 +3,24 @@ Application FastAPI du service d'optimisation de tournées.
 Voie hybride single-projet Vercel : ce fichier est déployé comme une
 Vercel Python serverless function dans le même projet que apps/web.
 
-Convention Vercel : ce fichier `apps/web/api/solver/index.py` est routé
-par Vercel sous `/api/solver/*`. Les routes définies ici (`/health`,
-`/solve`) sont relatives à cette base, donc accessibles à
-`/api/solver/health` et `/api/solver/solve` côté HTTP public.
+Convention Vercel : ce fichier `apps/web/py/solver/index.py` (déplacé hors
+de /api/ après PR #207, voir ADR-009 et 06.10-01-PLAN.md) est routé par
+Vercel sous `/api/solver/*` via la config legacy `builds`/`routes` (PR
+#208). Les routes définies ici (`/health`, `/solve`) sont relatives à
+cette base, donc accessibles à `/api/solver/health` et `/api/solver/solve`
+côté HTTP public.
 Le préfixe `/api/solver` est géré par Vercel, PAS par FastAPI.
 """
 
 import os
+import sys
+
+# Fix Vercel : le runtime charge ce module via importlib depuis /var/task/
+# (CWD), donc sys.path ne contient pas le dossier du fichier. Les imports
+# plats (`from models import ...`, `from solver import ...`) ne trouvent
+# pas les modules adjacents sans ce patch. Local pytest n'a pas ce souci
+# (pytest.ini configure pythonpath = .).
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
