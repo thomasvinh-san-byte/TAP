@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.7 close (Wave 4 livrée + walkthrough validé 2026-06-01) — STATE synchronisé"
-last_updated: "2026-06-01T08:00:00.000Z"
-last_activity: STATE synchronisé avec l'état réel du repo — 4 phases livrées inscrites (06.6, 06.7 Wave 3+4, 06.8), entêtes fossiles purgés, section Phases à venir nettoyée. Phase 06.7 officiellement close (validation fonctionnelle Wave 4 confirmée par walkthrough opérateur).
+stopped_at: "Phase 06.13 close (Foundations design system livrée + mergée PR #218) — STATE synchronisé 2026-06-03"
+last_updated: "2026-06-03T12:00:00.000Z"
+last_activity: STATE synchronisé avec l'état réel du repo après merge PR #218. Phase 06.13 « Foundations design system » officiellement close (4 livrables documentaires présents et vérifiés, 0 ligne code applicatif). Compteurs progress corrigés (incohérence total_plans<completed_plans purgée). Prochaine phase candidate 06.14 (migration tokens.json → tailwind.config.ts).
 progress:
-  total_phases: 21
-  completed_phases: 5
-  total_plans: 26
-  completed_plans: 41
-  percent: 24
+  total_phases: 26
+  completed_phases: 20
+  total_plans: 79
+  completed_plans: 79
+  percent: 77
 ---
 
 # Project State
@@ -21,21 +21,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 04.5 clôturée — démo design partner démontrable. Prêt Phase 04.7 (pricing + caisse + géocoding).
+**Current focus:** Phase 06.13 « Foundations design system » close. Design system documenté (doctrine + tokens + patterns + benchmark). Prochaine étape candidate : 06.14 migration tokens → Tailwind config.
 
 ## Current Position
 
-**Dernière mise à jour** : 2026-06-03 (Phase 06.13 lancée)
-**Phase courante** : Phase 06.13 « Foundations design system » — en livraison (1 PR documentaire avec 4 livrables, 7-11 h).
+**Dernière mise à jour** : 2026-06-03 (Phase 06.13 close, mergée PR #218)
+**Phase courante** : aucune en exécution. Phase 06.13 « Foundations design system » LIVRÉE (PR #218). Prochaine phase candidate : 06.14 (migration tokens.json → tailwind.config.ts).
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.11 en cadrage (2026-06-03) — CONTEXT + DISCUSSION-LOG + 3 PLAN livrés
-Phase next: 06.11 Wave 1 (tableau dirigeant) à exécuter via prompt CC séparé, puis Wave 2 et Wave 3.
-Status: Phase 06.11 cadrée (3 waves, 10 items A3/A5/A4/B2/B3/B9/B7/B6/C1/C7, 23-33 h estimé). Items A2/B8/C3/C5 explicitement reportés. DEC-084..087 LOCKED. D4-a side-quest opportuniste inscrit dans CONCERNS.md. Aucune dépendance externe nouvelle.
+Phase: 06.13 close (2026-06-03) — Foundations design system livrée, PR #218 mergée
+Phase next: 06.14 candidate (migration tokens.json → tailwind.config.ts, 5-8 h estimé) — à cadrer en discuss. Alternatives ouvertes : 06.9 (Next.js 15), 06.12 (réactivation solveur), 07 (mobile natif), 09 (HDS), 10 (géoloc temps réel).
+Status: Phase 06.13 livrée et close. 4 livrables documentaires présents et vérifiés (01-foundations, 02-patterns-emergents, 03-benchmark-foss, tokens.json), 0 ligne de code applicatif. DEC-088..091 LOCKED. Aucune dépendance externe.
 Blockers: aucun
-Last activity: Cadrage Phase 06.11 « Polish produit » — 5 fichiers GSD créés (CONTEXT + DISCUSSION-LOG + 3 PLAN), CONCERNS.md créé avec D4-a side-quest, ROADMAP mise à jour (06.11 polish inscrite, ancienne 06.11 candidate solveur renumérotée 06.12), STATE et journal mis à jour. Aucune modification de code applicatif.
-Précédent: Clôture Phase 06.10 (PR #213) — SUMMARY, enquête patterns solveur capitalisée.
+Last activity: Synchronisation STATE avec l'état réel du repo (post-merge PR #218). Phase 06.13 cochée livrée dans ROADMAP, compteurs progress corrigés (20/26 phases, 79 plans), bloc de position 06.11 fossile remplacé.
+Précédent: Phase 06.11 « Polish produit » livrée (PR #214..#217, 3 waves) ; clôture Phase 06.10 dettes techniques (PR #213).
 
 Progress: [██████████] 100%
 
@@ -190,10 +190,10 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-06-01T07:00:00.000Z
-Stopped at: Phase 06.7 close (Wave 4 + walkthrough OK 2026-06-01). Prochaine phase à choisir parmi Phases à venir (06.9 / 07 / 09 / 10) — décision dirigeant en attente.
+Last session: 2026-06-03T12:00:00.000Z
+Stopped at: Phase 06.13 close (Foundations design system, PR #218 mergée). STATE synchronisé. Prochaine phase candidate 06.14 (migration tokens → Tailwind config) ou alternative ouverte (06.9 / 06.12 / 07 / 09 / 10) — décision dirigeant en attente.
 Resume file: None
-Next command suggested: `/gsd-discuss-phase <phase next choisie>`
+Next command suggested: `/gsd-discuss-phase 06.14` (ou phase next choisie)
 
 ## Ingest Runs
 
