@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { EmptyState } from '@/components/ui/empty-state';
 import { BreachTimer } from './breach-timer.client';
 import { BreachDrawer } from './breach-drawer.client';
 
@@ -31,16 +32,11 @@ export function BreachList({ entries }: { entries: Entry[] }) {
       </div>
 
       {entries.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-48 text-center">
-          <p className="text-foreground font-medium">
-            Aucun incident — c&apos;est une bonne nouvelle.
-          </p>
-          <p className="text-muted-foreground mx-auto mt-8 max-w-md text-sm">
-            Cette page restera vide tant qu&apos;aucune donnée patient n&apos;aura fuité, été perdue
-            ou volée. En cas d&apos;incident, déclarez-le ici : vous avez 72 h pour notifier la
-            CNIL, et un compte à rebours vous accompagne.
-          </p>
-        </div>
+        <EmptyState
+          icon={ShieldCheck}
+          title="Aucun incident enregistré"
+          description="Aucune violation de données déclarée. En cas d'incident, déclarez-le ici — vous avez 72 h pour notifier la CNIL, un compte à rebours vous accompagne."
+        />
       ) : (
         <div className="rounded-lg border">
           <table className="w-full text-sm">

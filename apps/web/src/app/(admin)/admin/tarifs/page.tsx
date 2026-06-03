@@ -1,5 +1,7 @@
+import { Receipt } from 'lucide-react';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 import { createClient } from '@/lib/supabase/server';
+import { EmptyState } from '@/components/ui/empty-state';
 import type { TariffGrid } from '@tap/pricing';
 import { TariffGridCard } from './_components/tariff-grid-card.client';
 import { TariffSimulator } from './_components/tariff-simulator.client';
@@ -42,9 +44,11 @@ export default async function TarifsPage(): Promise<JSX.Element> {
       </header>
 
       {activeGrid === null ? (
-        <p className="border-border bg-muted/20 text-muted-foreground rounded-md border border-dashed p-16 text-sm">
-          Aucune grille tarifaire configurée.
-        </p>
+        <EmptyState
+          icon={Receipt}
+          title="Aucune grille tarifaire active"
+          description="Définissez votre grille tarifaire CGSS pour commencer à facturer."
+        />
       ) : (
         <>
           <div className="grid gap-16 lg:grid-cols-2">

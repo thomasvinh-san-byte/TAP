@@ -2,7 +2,7 @@
 
 import { useState, useDeferredValue } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Archive, ArchiveRestore, MessageSquare, Phone, X } from 'lucide-react';
+import { Archive, ArchiveRestore, MessageSquare, Phone, Plus, Users, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { archivePatientAction, searchPatientsAction, unarchivePatientAction } from '../actions';
 import { PatientSearch } from './patient-search.client';
@@ -10,6 +10,7 @@ import { PatientDrawer } from './patient-drawer.client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
 import { cn } from '@/lib/utils';
 import { daysFromNow, formatShortDateFr, formatTimeFr } from '@/lib/dates-fr';
@@ -186,6 +187,15 @@ export function PatientsList() {
 
       {data && data.length === 0 && q.length >= 2 && !isFetching && (
         <p className="text-muted-foreground text-sm">Aucun patient ne correspond à « {q} ».</p>
+      )}
+
+      {data && data.length === 0 && q.length === 0 && scope === 'active' && !isFetching && (
+        <EmptyState
+          icon={Users}
+          title="Aucun patient enregistré"
+          description="Créez votre première fiche patient pour commencer."
+          action={{ href: '/patients/new', label: 'Nouveau patient', icon: Plus }}
+        />
       )}
 
       {data && data.length > 0 && (

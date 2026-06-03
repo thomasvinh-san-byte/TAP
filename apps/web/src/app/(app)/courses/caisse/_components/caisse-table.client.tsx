@@ -4,6 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { ArrowDown, ArrowUp, ArrowUpDown, Wallet } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { EmptyState } from '@/components/ui/empty-state';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
 import { cn } from '@/lib/utils';
 import type { CaisseRow, CaisseSortColumn, CaisseSortDir } from '../_lib/queries-caisse';
@@ -118,13 +119,11 @@ function SortHeader({
 export function CaisseTable({ rows, sort, dir, date }: Props): JSX.Element {
   if (rows.length === 0) {
     return (
-      <div className="border-border flex flex-col items-center justify-center rounded-md border py-48 text-center">
-        <Wallet className="text-muted-foreground mb-12 h-32 w-32" aria-hidden />
-        <p className="text-sm font-medium">Aucun encaissement ce jour.</p>
-        <p className="text-muted-foreground mt-8 max-w-[320px] text-xs">
-          Les courses apparaissent ici dès qu'elles sont clôturées et encaissées par un chauffeur.
-        </p>
-      </div>
+      <EmptyState
+        icon={Wallet}
+        title="Aucune course à encaisser"
+        description="Toutes les courses encaissables ont été traitées."
+      />
     );
   }
 

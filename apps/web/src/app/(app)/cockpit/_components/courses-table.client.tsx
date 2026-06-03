@@ -1,8 +1,8 @@
 'use client';
 
-import Link from 'next/link';
-import { CalendarPlus } from 'lucide-react';
+import { LayoutDashboard } from 'lucide-react';
 import { CourseRow } from './course-row.client';
+import { EmptyState } from '@/components/ui/empty-state';
 import type { CockpitRide } from '../_lib/types';
 
 export function CoursesTable({
@@ -14,21 +14,11 @@ export function CoursesTable({
 }): JSX.Element {
   if (rides.length === 0) {
     return (
-      <div className="border-border bg-muted/20 flex flex-col items-center justify-center rounded-lg border border-dashed px-24 py-48 text-center">
-        <CalendarPlus aria-hidden className="text-muted-foreground/60 h-32 w-32" />
-        <p className="text-foreground mt-12 text-base font-medium">
-          Aucune course aujourd&apos;hui
-        </p>
-        <p className="text-muted-foreground mt-4 text-sm">
-          Les nouvelles courses apparaîtront ici en temps réel.
-        </p>
-        <Link
-          href="/courses"
-          className="bg-primary text-primary-foreground hover:bg-primary/90 mt-16 inline-flex h-10 items-center rounded-md px-16 text-sm font-medium"
-        >
-          Créer une course
-        </Link>
-      </div>
+      <EmptyState
+        icon={LayoutDashboard}
+        title="Aucune course en cours"
+        description="Aucune activité opérationnelle pour le moment. Les nouvelles courses apparaîtront ici en temps réel."
+      />
     );
   }
 

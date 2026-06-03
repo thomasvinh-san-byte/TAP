@@ -2,19 +2,21 @@
 
 import { useDeferredValue, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Calendar, Plus } from 'lucide-react';
 import { listRidesEnrichedAction } from '../actions';
 import type { RideRowEnriched, RideStatus, RideTransportMode } from '../_lib/queries';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
+import { EmptyState } from '@/components/ui/empty-state';
 import { DateFieldFr } from '@/components/date-field-fr.client';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
 import { formatShortDateFr, formatTimeFr, isToday } from '@/lib/dates-fr';
 import { ModeBadge, PaymentBadge, StatusBadge, UrgencyBadge } from './ride-badges';
 import { RideDrawer } from './ride-drawer.client';
 import { AssignModal } from './assign-modal.client';
+import { useRideOrchestrator } from './ride-orchestrator-context.client';
 
 const STATUS_FILTERS = [
   { value: 'all', label: 'Tous statuts' },
@@ -80,6 +82,7 @@ export function RidesList(): JSX.Element {
   const [openRideId, setOpenRideId] = useState<string | null>(null);
   const [assignRideId, setAssignRideId] = useState<string | null>(null);
   const dq = useDeferredValue(q);
+  const orchestrator = useRideOrchestrator();
 
   // Reset offset quand un filtre change (sinon on perd la cohérence pagination)
   const resetOffset = () => setPageOffset(0);
@@ -180,9 +183,16 @@ export function RidesList(): JSX.Element {
       )}
 
       {!isPending && filtered.length === 0 && (
-        <div className="border-border text-muted-foreground rounded-md border p-32 text-center text-sm">
-          Aucune course ne correspond aux critères.
-        </div>
+        <EmptyState
+          icon={Calendar}
+          title="Aucune course aujourd'hui"
+          description="Aucune course planifiée pour cette date."
+          action={{
+            onClick: () => orchestrator.dispatch({ type: 'OPEN_NEW' }),
+            label: 'Nouvelle course',
+            icon: Plus,
+          }}
+        />
       )}
 
       {!isPending && filtered.length > 0 && (

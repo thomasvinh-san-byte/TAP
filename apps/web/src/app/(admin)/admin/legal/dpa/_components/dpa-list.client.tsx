@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { Plus, FileSignature } from 'lucide-react';
+import { Plus, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
 import { DpaDrawer } from './dpa-drawer.client';
 
 type Entry = {
@@ -28,17 +28,15 @@ export function DpaList({ entries }: { entries: Entry[] }) {
       </div>
 
       {entries.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-48 text-center">
-          <FileSignature className="text-muted-foreground mx-auto h-32 w-32" aria-hidden />
-          <p className="text-foreground mt-16 font-medium">Aucune fiche DPA enregistrée.</p>
-          <p className="text-muted-foreground mx-auto mt-8 max-w-md text-sm">
-            TAP peut pré-remplir les fiches de vos sous-traitants techniques (hébergeurs) — à relire
-            et compléter.
-          </p>
-          <Button asChild className="mt-24">
-            <Link href="/admin/legal/dpa/pre-remplir">Pré-remplir les fiches sous-traitants</Link>
-          </Button>
-        </div>
+        <EmptyState
+          icon={FileText}
+          title="Aucun DPA enregistré"
+          description="Pré-remplissez vos accords sous-traitant pour les services tiers détectés."
+          action={{
+            href: '/admin/legal/dpa/pre-remplir',
+            label: 'Pré-remplir',
+          }}
+        />
       ) : (
         <div className="rounded-lg border">
           <table className="w-full text-sm">
