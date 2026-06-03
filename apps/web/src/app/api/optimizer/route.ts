@@ -215,7 +215,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       const serviceUrl = `${baseHost}/api/solver`;
       response = await solve(payload, {
         baseUrl: serviceUrl,
-        timeoutMs: 5000,
+        // 30s pour absorber cold start Vercel Python (~1-3s pour charger
+        // ortools ~50MB) + solving OR-Tools (jusqu'à 5s, capé par
+        // time_limit_seconds.max(5) du contrat zod). Pattern documenté
+        // pour algorithmes à binaires natifs lourds (ADR-009).
+        timeoutMs: 30000,
       });
     }
     const proposal = solveResponseToProposal(response, rides.length, excluded);
