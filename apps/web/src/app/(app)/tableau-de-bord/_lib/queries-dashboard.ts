@@ -6,6 +6,7 @@ import {
   monthBounds,
 } from '@/app/(admin)/admin/facturation/_lib/queries-facturation';
 import type { CaisseTotals } from '@/app/(app)/courses/caisse/_lib/queries-caisse';
+import { getSlaRules, type SlaRule } from './sla-status';
 
 /**
  * Agrégations du tableau de bord dirigeant (Phase 06.8).
@@ -60,6 +61,16 @@ export interface DashboardData {
   incidents: DashboardIncidents;
   chauffeurs: DashboardChauffeurs;
   conformite: DashboardConformite;
+  // Wave 1 Phase 06.11 — A4 comparatif N vs N-1
+  caMoisPrec: CaisseTotals;
+  volMoisPrec: number;
+  incidentsPrec: DashboardIncidents;
+  // Wave 1 Phase 06.11 — A3 SLA factuels datés
+  slaRules: SlaRule[];
+  // Wave 1 Phase 06.11 — A5 nouvelles règles d'alertes
+  coursesTermineesSansTarif48h: number;
+  chauffeursInactifs7j: number;
+  smsFailed24h: number;
 }
 
 type Supabase = ReturnType<typeof createClient>;
@@ -67,6 +78,18 @@ type Supabase = ReturnType<typeof createClient>;
 function currentMonth(): string {
   const now = new Date();
   return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}`;
+}
+
+/**
+ * Mois précédent au format `YYYY-MM`. Gère le wrap année (`2026-01` → `2025-12`).
+ * Wave 1 Phase 06.11 — A4 comparatif N vs N-1.
+ */
+function previousMonth(ym: string): string {
+  const [yearStr, monthStr] = ym.split('-');
+  const year = Number(yearStr);
+  const month = Number(monthStr);
+  if (month === 1) return `${year - 1}-12`;
+  return `${year}-${String(month - 1).padStart(2, '0')}`;
 }
 
 function isoDaysAgo(days: number): string {
@@ -217,7 +240,11 @@ export async function getDashboardData(): Promise<DashboardData> {
   const supabase = createClient();
   const mois = currentMonth();
   const { start: moisStart, end: moisEnd } = monthBounds(mois);
+  const moisPrec = previousMonth(mois);
+  const { start: precStart, end: precEnd } = monthBounds(moisPrec);
   const jour = utcDayBounds();
+  const sansTarif48hThreshold = new Date(Date.now() - 48 * 3_600_000).toISOString();
+  const sms24hThreshold = isoDaysAgo(1);
 
   const [
     coursesFacturables,
@@ -230,6 +257,15 @@ export async function getDashboardData(): Promise<DashboardData> {
     incidents,
     chauffeurs,
     conformite,
+    // A4 comparatif N vs N-1
+    caMoisPrec,
+    volMoisPrec,
+    incidentsPrec,
+    // A3 SLA factuels datés
+    slaRules,
+    // A5 nouvelles règles d'alertes
+    coursesTermineesSansTarif48hRes,
+    smsFailed24hRes,
   ] = await Promise.all([
     getCoursesFacturables(mois),
     getCountCoursesSansTarif(mois),
@@ -244,7 +280,24 @@ export async function getDashboardData(): Promise<DashboardData> {
     getIncidents(supabase, moisStart, moisEnd),
     getChauffeurs(supabase),
     getConformite(supabase),
+    getCaMois(supabase, precStart, precEnd),
+    countRides(supabase, precStart, precEnd),
+    getIncidents(supabase, precStart, precEnd),
+    getSlaRules(supabase),
+    supabase
+      .from('rides')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'terminee')
+      .is('tarif_amount_eur', null)
+      .lt('ended_at', sansTarif48hThreshold),
+    supabase
+      .from('sms_messages')
+      .select('id', { count: 'exact', head: true })
+      .in('delivery_status', ['failed', 'undelivered'])
+      .gte('created_at', sms24hThreshold),
   ]);
+
+  const chauffeursInactifs7j = await getChauffeursInactifs7j(supabase);
 
   return {
     coursesAFacturer: coursesFacturables.length,
@@ -256,5 +309,36 @@ export async function getDashboardData(): Promise<DashboardData> {
     incidents,
     chauffeurs,
     conformite,
+    caMoisPrec,
+    volMoisPrec,
+    incidentsPrec,
+    slaRules,
+    coursesTermineesSansTarif48h: coursesTermineesSansTarif48hRes.count ?? 0,
+    chauffeursInactifs7j,
+    smsFailed24h: smsFailed24hRes.count ?? 0,
   };
+}
+
+/**
+ * Compte les chauffeurs actifs (`actif=true, archive=false`) qui n'ont aucune
+ * course planifiée dans les 7 derniers jours. Wave 1 Phase 06.11 — A5.
+ *
+ * Implémentation en 2 requêtes (driver IDs actifs + IDs avec course récente)
+ * + diff JS, plutôt qu'un NOT EXISTS SQL non disponible via PostgREST.
+ */
+async function getChauffeursInactifs7j(supabase: Supabase): Promise<number> {
+  const since = isoDaysAgo(7);
+  const [actifsRes, ridesRes] = await Promise.all([
+    supabase.from('drivers').select('id').eq('actif', true).eq('archive', false),
+    supabase
+      .from('rides')
+      .select('driver_id')
+      .gte('scheduled_at', since)
+      .not('driver_id', 'is', null),
+  ]);
+  const actifs = (actifsRes.data as { id: string }[] | null) ?? [];
+  const ridesDrivers = new Set(
+    ((ridesRes.data as { driver_id: string }[] | null) ?? []).map((r) => r.driver_id),
+  );
+  return actifs.filter((d) => !ridesDrivers.has(d.id)).length;
 }
