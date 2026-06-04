@@ -10,8 +10,8 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { NumberField } from '@/components/form/number-field';
 import { DateFieldFr } from '@/components/date-field-fr.client';
 import type { TariffGridRow } from '../page';
 import { saveTariffGridAction } from '../actions';
@@ -31,8 +31,9 @@ function tomorrowIso(): string {
 interface NumField {
   name: string;
   label: string;
-  step: string;
+  step: number;
   defaultValue: number;
+  hint?: string;
 }
 
 export function TariffEditSheet({
@@ -48,39 +49,39 @@ export function TariffEditSheet({
   const [pending, startTransition] = useTransition();
 
   const fields: NumField[] = [
-    { name: 'forfait_eur', label: 'Forfait (€)', step: '0.01', defaultValue: current.forfait_eur },
-    { name: 'km_inclus', label: 'Km inclus', step: '1', defaultValue: current.km_inclus },
+    { name: 'forfait_eur', label: 'Forfait (€)', step: 0.01, defaultValue: current.forfait_eur },
+    { name: 'km_inclus', label: 'Km inclus', step: 1, defaultValue: current.km_inclus },
     {
       name: 'prix_km_eur',
       label: 'Prix au km (€)',
-      step: '0.01',
+      step: 0.01,
       defaultValue: current.prix_km_eur,
     },
     {
       name: 'supplement_drom_eur',
       label: 'Supplément DROM (€)',
-      step: '0.01',
+      step: 0.01,
       defaultValue: current.supplement_drom_eur,
     },
     {
       name: 'supplement_tpmr_eur',
       label: 'Supplément TPMR (€)',
-      step: '0.01',
+      step: 0.01,
       defaultValue: current.supplement_tpmr_eur,
     },
     {
       name: 'majoration_pct',
       label: 'Majoration (%)',
-      step: '1',
+      step: 1,
       defaultValue: current.majoration_pct,
     },
     {
       name: 'facteur_correction_routier',
       label: 'Facteur correction',
-      step: '0.01',
+      step: 0.01,
       defaultValue: current.facteur_correction_routier,
     },
-    { name: 'arrondi_eur', label: 'Arrondi (€)', step: '0.01', defaultValue: current.arrondi_eur },
+    { name: 'arrondi_eur', label: 'Arrondi (€)', step: 0.01, defaultValue: current.arrondi_eur },
   ];
 
   function handleSubmit(formData: FormData): void {
@@ -113,18 +114,16 @@ export function TariffEditSheet({
           </div>
 
           {fields.map((f) => (
-            <div key={f.name} className="space-y-4">
-              <Label htmlFor={`tg-${f.name}`}>{f.label}</Label>
-              <Input
-                id={`tg-${f.name}`}
-                name={f.name}
-                type="number"
-                step={f.step}
-                min={0}
-                defaultValue={f.defaultValue}
-                required
-              />
-            </div>
+            <NumberField
+              key={f.name}
+              id={`tg-${f.name}`}
+              name={f.name}
+              label={f.label}
+              min={0}
+              step={f.step}
+              defaultValue={f.defaultValue}
+              required
+            />
           ))}
 
           {error && (

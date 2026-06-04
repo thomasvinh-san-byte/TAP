@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { Field } from '@/components/form/field';
+import { NumberField } from '@/components/form/number-field';
 import { Combobox } from '@/components/form/combobox.client';
 import { VEHICLE_BRANDS, modelsForBrand } from '@/lib/vehicles/catalog';
 import { type ActionState, createVehicleAction, updateVehicleAction } from '../actions';
@@ -108,26 +109,25 @@ export function VehicleForm({ initial, onSuccess }: Props): JSX.Element {
       </div>
 
       <div className="grid grid-cols-2 gap-12">
-        <Field
+        {/* PR2 rattrapage : kind=counter → défaut = min (1 ou 0), évite
+            qu'un champ min=1 démarre vide et soit rejeté au submit. */}
+        <NumberField
           id="places_assises"
           label="Places assises"
-          // D-03 : numérique borné SANS spinner ni molette accidentelle.
-          // type="text" + inputMode=numeric → clavier numérique mobile,
-          // pas de boutons up/down. Validation côté Server Action.
-          type="text"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          defaultValue={initial?.places_assises ?? ''}
+          min={1}
+          max={9}
+          kind="counter"
+          defaultValue={initial?.places_assises ?? null}
           hint="1 à 9"
           error={fe.places_assises}
         />
-        <Field
+        <NumberField
           id="places_tpmr"
           label="Places TPMR"
-          type="text"
-          inputMode="numeric"
-          pattern="[0-9]*"
-          defaultValue={initial?.places_tpmr ?? ''}
+          min={0}
+          max={3}
+          kind="counter"
+          defaultValue={initial?.places_tpmr ?? null}
           hint="0 à 3"
           error={fe.places_tpmr}
         />

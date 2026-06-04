@@ -43,7 +43,45 @@ attribut HTML standard d'input. Le hint est lié à l'input via
 `aria-describedby` ; l'erreur (si présente) remplace le hint
 visuellement mais reste liée.
 
-## 3. Numériques bornés sans spinner (D-03)
+## 3. Numériques bornés sans spinner (D-02 + D-03)
+
+### Composant `<NumberField>` (PR2 06.17)
+
+```tsx
+import { NumberField } from '@/components/form/number-field';
+
+<NumberField
+  id="places_assises"
+  label="Places assises"
+  min={1}
+  max={9}
+  kind="counter" // défaut (compteur — démarre à min)
+  hint="1 à 9"
+/>;
+
+<NumberField
+  id="prix_km_eur"
+  label="Prix au km (€)"
+  min={0}
+  step={0.01} // active inputMode=decimal automatiquement
+  defaultValue={1.2}
+/>;
+```
+
+### Règles de défaut
+
+- **`kind="counter"`** (défaut) — compteur (places, personnes, durée en
+  années). Si pas de `defaultValue`, le composant utilise `min` comme
+  défaut (ou `0` si `min` absent). **Le champ n'est jamais vide.**
+  Évite le bug récurrent « champ `min=1` qui démarre vide et est rejeté
+  au submit ».
+- **`kind="optional"`** — mesure optionnelle (cf. durée légale parfois
+  vide). Démarre vide volontairement. L'unité doit alors être dans le
+  `hint` pour rendre l'omission explicite.
+
+### Pourquoi pas `type="number"`
+
+
 
 `type="number"` produit des spinners up/down et réagit à la molette
 souris (bug récurrent NN/G — l'utilisateur change involontairement la
