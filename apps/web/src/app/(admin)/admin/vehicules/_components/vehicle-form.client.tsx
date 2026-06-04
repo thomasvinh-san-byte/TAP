@@ -3,11 +3,12 @@
 import * as React from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { VEHICLE_TYPE_VALUES, type VehicleType } from '@tap/shared';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
-import { cn } from '@/lib/utils';
+import { Field } from '@/components/form/field';
+import { Combobox } from '@/components/form/combobox.client';
+import { VEHICLE_BRANDS, modelsForBrand } from '@/lib/vehicles/catalog';
 import { type ActionState, createVehicleAction, updateVehicleAction } from '../actions';
 import type { VehicleRow } from '../page';
 
@@ -17,28 +18,6 @@ const TYPE_LABELS: Record<VehicleType, string> = {
   vsl: 'VSL',
   ambulance: 'Ambulance',
 };
-
-// Marques courantes des flottes 974 — liste indicative pour la datalist.
-// La saisie reste LIBRE (aide, pas contrainte) : validation Server Action
-// inchangée (marque = string non vide, pas d'enum).
-const MARQUES_VEHICULE = [
-  'Renault',
-  'Peugeot',
-  'Citroën',
-  'Dacia',
-  'Toyota',
-  'Mercedes-Benz',
-  'Volkswagen',
-  'Ford',
-  'Opel',
-  'Hyundai',
-  'Kia',
-  'Fiat',
-  'Nissan',
-  'Škoda',
-  'BMW',
-  'Suzuki',
-];
 
 interface Props {
   initial?: VehicleRow;
@@ -50,6 +29,12 @@ export function VehicleForm({ initial, onSuccess }: Props): JSX.Element {
   const [state, formAction] = useFormState<ActionState, FormData>(action, {});
 
   const [type, setType] = React.useState<VehicleType>(initial?.type ?? 'taxi_conventionne');
+  const [marque, setMarque] = React.useState<string>(initial?.marque ?? '');
+  const [modele, setModele] = React.useState<string>(initial?.modele ?? '');
+
+  // Phase 06.17 D-06 : modèles dépendants de la marque. Si marque inconnue
+  // (saisie libre, modelsForBrand → []), la combobox reste en saisie libre.
+  const modelOptions = React.useMemo(() => modelsForBrand(marque), [marque]);
 
   const previouslyOk = React.useRef(false);
   React.useEffect(() => {
@@ -67,6 +52,8 @@ export function VehicleForm({ initial, onSuccess }: Props): JSX.Element {
         id="immatriculation"
         label="Immatriculation"
         defaultValue={initial?.immatriculation ?? ''}
+        hint="Format : AB-123-CD"
+        placeholder="AB-123-CD"
         error={fe.immatriculation}
         autoFocus
         required
@@ -74,20 +61,31 @@ export function VehicleForm({ initial, onSuccess }: Props): JSX.Element {
       />
 
       <div className="grid grid-cols-2 gap-12">
-        <Field
+        <Combobox
           id="marque"
           label="Marque"
-          defaultValue={initial?.marque ?? ''}
+          options={VEHICLE_BRANDS}
+          value={marque}
+          onChange={(v) => {
+            setMarque(v);
+            // Si on quitte une marque connue → la combobox modèle reste
+            // libre. Si on revient sur une marque connue, l'utilisateur
+            // re-pioche dans la liste. On ne réinitialise PAS le modèle
+            // automatiquement pour ne pas effacer une saisie en cours.
+          }}
+          hint="Liste indicative — saisie libre permise."
           error={fe.marque}
-          list="vehicle-marques"
         />
-        <Field id="modele" label="Modèle" defaultValue={initial?.modele ?? ''} error={fe.modele} />
+        <Combobox
+          id="modele"
+          label="Modèle"
+          options={modelOptions}
+          value={modele}
+          onChange={setModele}
+          hint={modelOptions.length > 0 ? `Modèles connus pour ${marque}.` : 'Saisie libre.'}
+          error={fe.modele}
+        />
       </div>
-      <datalist id="vehicle-marques">
-        {MARQUES_VEHICULE.map((m) => (
-          <option key={m} value={m} />
-        ))}
-      </datalist>
 
       <div className="space-y-8">
         <Label htmlFor="type">Type</Label>
@@ -113,19 +111,24 @@ export function VehicleForm({ initial, onSuccess }: Props): JSX.Element {
         <Field
           id="places_assises"
           label="Places assises"
-          type="number"
-          min={1}
-          max={9}
+          // D-03 : numérique borné SANS spinner ni molette accidentelle.
+          // type="text" + inputMode=numeric → clavier numérique mobile,
+          // pas de boutons up/down. Validation côté Server Action.
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
           defaultValue={initial?.places_assises ?? ''}
+          hint="1 à 9"
           error={fe.places_assises}
         />
         <Field
           id="places_tpmr"
           label="Places TPMR"
-          type="number"
-          min={0}
-          max={3}
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
           defaultValue={initial?.places_tpmr ?? ''}
+          hint="0 à 3"
           error={fe.places_tpmr}
         />
       </div>
@@ -148,37 +151,6 @@ export function VehicleForm({ initial, onSuccess }: Props): JSX.Element {
 
       <SubmitButton edit={Boolean(initial)} />
     </form>
-  );
-}
-
-function Field({
-  id,
-  label,
-  error,
-  className,
-  ...rest
-}: {
-  id: string;
-  label: string;
-  error?: string;
-} & React.InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <div className="space-y-8">
-      <Label htmlFor={id}>{label}</Label>
-      <Input
-        id={id}
-        name={id}
-        aria-invalid={error ? true : undefined}
-        className={cn(error && 'border-destructive focus-visible:ring-destructive', className)}
-        autoComplete="off"
-        {...rest}
-      />
-      {error && (
-        <p className="text-destructive text-xs" role="alert">
-          {error}
-        </p>
-      )}
-    </div>
   );
 }
 

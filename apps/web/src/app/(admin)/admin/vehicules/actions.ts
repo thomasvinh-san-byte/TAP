@@ -12,6 +12,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { vehicleInputSchema } from '@tap/shared';
 import { requireDirigeant } from '@/lib/auth/require-dirigeant';
+import { normalizeBrandOrModel } from '@/lib/vehicles/catalog';
 
 export type ActionState = {
   success?: boolean;
@@ -23,10 +24,15 @@ export type ActionState = {
 function parseFormData(formData: FormData) {
   const placesAssises = formData.get('places_assises');
   const placesTpmr = formData.get('places_tpmr');
+  const rawMarque = formData.get('marque');
+  const rawModele = formData.get('modele');
   return vehicleInputSchema.safeParse({
     immatriculation: formData.get('immatriculation'),
-    marque: formData.get('marque'),
-    modele: formData.get('modele'),
+    // D-07 : normalisation Title Case sur saisies libres (limite les
+    // doublons d'orthographe sans bloquer la saisie). Les valeurs déjà
+    // choisies dans la combobox passent inchangées.
+    marque: typeof rawMarque === 'string' ? normalizeBrandOrModel(rawMarque) : rawMarque,
+    modele: typeof rawModele === 'string' ? normalizeBrandOrModel(rawModele) : rawModele,
     type: formData.get('type'),
     places_assises:
       placesAssises === null || placesAssises === '' ? undefined : Number(placesAssises),

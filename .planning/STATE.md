@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.16 close (PageHeader admin commun, PR #228 mergée) — STATE synchronisé 2026-06-04"
-last_updated: "2026-06-04T18:00:00.000Z"
-last_activity: Phase 06.16 « PageHeader admin commun » exécutée et mergée (PR #228). Composant <PageHeader> créé, 16 pages admin uniformisées, actions registre préservées, chrome inchangée. STATE synchronisé.
+stopped_at: "Phase 06.17 livrée localement (qualité de complétion formulaires) — PR ouverte, sync STATE après merge"
+last_updated: "2026-06-04T20:00:00.000Z"
+last_activity: Phase 06.17 « Qualité de complétion des formulaires » cadrée + exécutée dans une seule PR. Application des normes UX/a11y (NN/G, Deque, Shopify, USWDS, W3C APG). Composants <Field> et <Combobox> communs (combobox 100% maison, DEC-003 préservée). Catalogue marque/modèle, normalisation Title Case au submit. Formulaire véhicule pilote. driver-form migré sur <Field>. 60 tests verts (15 nouveaux : Field 5 + Combobox 8 + catalog 7).
 progress:
   total_phases: 29
   completed_phases: 23
@@ -21,18 +21,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.16 close. Design system bouclé sur 4 phases (06.13 doctrine+tokens → 06.14 tokens source unique → 06.15 DataTable → 06.16 PageHeader). Prochaine phase candidate : 06.9, 06.12, 07, 09 ou 10.
+**Current focus:** Phase 06.17 « Qualité de complétion des formulaires » en cours de merge. Application normes UX/a11y, <Field> + <Combobox> communs, marque/modèle dépendantes. Bloc design system étendu à 5 phases (06.13→06.17).
 
 ## Current Position
 
 **Dernière mise à jour** : 2026-06-04 (cadrage Phase 06.14 lancé)
-**Phase courante** : aucune en exécution. Phase 06.16 « PageHeader admin commun » LIVRÉE (PR #228 mergée). Bloc design system 06.13→06.16 complet. Prochaine phase à trancher par le dirigeant.
+**Phase courante** : Phase 06.17 « Qualité de complétion des formulaires » livrée localement (cadrage + exécution dans une seule PR). Entrée ROADMAP posée [ ]. Sync STATE après merge.
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.16 close (2026-06-04) — PageHeader admin commun livré, PR #228 mergée
-Phase next: à trancher par le dirigeant. Le bloc design system (06.13→06.16) est complet. Candidates ouvertes : 06.9 (modernisation Next.js 15, autonome), 06.12 (réactivation solveur — décision plan Vercel en attente), 07 (mobile natif, décision business), 09 (HDS, verrou 1er client payant), 10 (géoloc temps réel, post-HDS).
-Status: Phase 06.16 livrée et close. <PageHeader> commun, 16 pages admin uniformisées. 0 logique métier, 0 migration BDD, 0 dépendance.
+Phase: 06.17 livrée localement (2026-06-04) — qualité de complétion formulaires (Field commun + Combobox dépendantes), cadrage + exécution dans une seule PR ouverte
+Phase next: sync STATE + ROADMAP après merge 06.17. Puis trancher : 06.9 (Next.js 15), 06.12 (réactivation solveur), 07 (mobile natif), 09 (HDS), 10 (géoloc temps réel).
+Status: Phase 06.17 livrée localement. <Field> + <Combobox> communs (DEC-003 préservée, combobox maison sans nouvelle dep), catalogue marque/modèle, normalisation submit. driver-form migré sur <Field>. 60 tests verts.
 Blockers: aucun
 Last activity: Synchronisation STATE après merge PR #228. Phase 06.16 cochée livrée dans ROADMAP, compteurs progress mis à jour (23/29 phases, 80 plans).
 Précédent: Bloc design system complet — 06.13 foundations (#218), 06.14 tokens→Tailwind (#223), 06.15 data tables (#226), 06.16 PageHeader (#228).
