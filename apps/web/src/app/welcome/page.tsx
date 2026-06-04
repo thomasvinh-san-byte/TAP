@@ -10,7 +10,7 @@
  * Page statique pure — pas d'import Supabase, pas d'auth, pas de DB.
  */
 
-import { AuthShell } from '../(auth)/_components/auth-shell.client';
+import { AuthShell } from '../(auth)/_components/auth-shell';
 
 const REPO = 'thomasvinh-san-byte/tap';
 const VERCEL_MARKETPLACE = 'https://vercel.com/marketplace/supabase';

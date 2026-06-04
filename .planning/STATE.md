@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.17 close (Conformité des champs de saisie, PR #230 + #231 + #232) — STATE synchronisé 2026-06-04"
-last_updated: "2026-06-04T22:00:00.000Z"
-last_activity: Phase 06.17 « Conformité des champs de saisie » livrée et close en 3 PR (PR1 #230 composants communs + véhicule/chauffeur, PR2 #231 légal + tarifs + rattrapage défauts places, PR3 #232 reste + clôture). 132 champs aux normes UX/a11y (W3C APG, NN/G, USWDS). 0 type=number restant dans apps/web/src. maxLength posée sur tous les champs à format. Hints d'exemple. Normalisation submit. STATE synchronisé.
+stopped_at: "Phase 06.18 livrée localement (login + AuthShell aux normes) — PR ouverte, sync STATE après merge"
+last_updated: "2026-06-04T23:00:00.000Z"
+last_activity: Phase 06.18 « Page de connexion — champs + UI aux normes » cadrée + exécutée dans une seule PR. Composants <PasswordInput> (toggle visibilité accessible W3C, aria-pressed) et <ThemeToggle> (extrait de UserMenu via hook partagé useTheme — DRY). login + accept-invite consomment PasswordInput. AuthShell repassé en Server Component avec ThemeToggle dans le header form (bascule jour/nuit avant connexion). Email login en inputMode=email. Reset MDP exclu. 77 tests verts (9 nouveaux : PasswordInput 5 + ThemeToggle 4).
 progress:
   total_phases: 29
   completed_phases: 24
@@ -21,21 +21,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.17 close. 132 champs aux normes UX/a11y via 3 PR (composants communs, légal+tarifs, reste). Bloc design system étendu à 5 phases (06.13 → 06.17). Prochaine phase candidate : 06.9, 06.12, 07, 09 ou 10.
+**Current focus:** Phase 06.18 « Login + AuthShell aux normes » en cours de merge. PasswordInput + ThemeToggle communs, hook useTheme partagé. AuthShell repassé en RSC. Bloc UI/forms étendu à 6 phases (06.13 → 06.18).
 
 ## Current Position
 
 **Dernière mise à jour** : 2026-06-04 (cadrage Phase 06.14 lancé)
-**Phase courante** : aucune en exécution. Phase 06.17 « Conformité des champs de saisie » LIVRÉE et CLOSE (PR #230 + #231 + #232 mergées). Prochaine phase à trancher.
+**Phase courante** : Phase 06.18 « Page de connexion — champs + UI aux normes » livrée localement (cadrage + exécution dans une seule PR). Entrée ROADMAP posée [ ]. Sync STATE après merge.
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.17 close (2026-06-04) — Conformité des champs de saisie livrée en 3 PR (#230, #231, #232)
-Phase next: à trancher par le dirigeant. Bloc design system (06.13 → 06.17) complet sur 5 phases. Candidates ouvertes : 06.9 (Next.js 15), 06.12 (réactivation solveur), 07 (mobile natif), 09 (HDS), 10 (géoloc temps réel).
-Status: Phase 06.17 livrée et close. <Field> + <NumberField> + <Combobox> communs, 132 champs aux normes. 0 type=number, défauts cohérents, maxLength, hints, normalisation submit. 0 dépendance, 0 migration BDD.
+Phase: 06.18 livrée localement (2026-06-04) — Login + AuthShell aux normes, PR ouverte
+Phase next: sync STATE + ROADMAP après merge 06.18. Puis trancher : 06.9, 06.12, 07, 09, 10.
+Status: Phase 06.18 livrée localement. <PasswordInput> (toggle visibilité W3C accessible) + <ThemeToggle> (hook useTheme partagé avec UserMenu, DRY). AuthShell repassé en RSC. login + accept-invite consomment PasswordInput. Email login inputMode=email. 77 tests verts (9 nouveaux).
 Blockers: aucun
-Last activity: Synchronisation STATE après merge PR #228. Phase 06.16 cochée livrée dans ROADMAP, compteurs progress mis à jour (23/29 phases, 80 plans).
-Précédent: Bloc design system complet — 06.13 foundations (#218), 06.14 tokens→Tailwind (#223), 06.15 data tables (#226), 06.16 PageHeader (#228).
+Last activity: Phase 06.18 « Page de connexion — champs + UI aux normes » exécutée en local. Composants <PasswordInput> (toggle visibilité W3C, aria-pressed, slot suffixe) et <ThemeToggle> (extrait UserMenu via hook useTheme partagé, DRY ~20 LOC supprimées). AuthShell repassé Server Component (toggle = unique îlot client). login + accept-invite consomment PasswordInput. Email login inputMode=email. 77 tests verts (9 nouveaux). 0 dépendance, 0 migration BDD.
+Précédent: Bloc design system étendu à 6 phases — 06.13 foundations (#218), 06.14 tokens→Tailwind (#223), 06.15 data tables (#226), 06.16 PageHeader (#228), 06.17 conformité champs (#230+#231+#232), 06.18 login + AuthShell (PR à ouvrir).
 
 Progress: [██████████] 100%
 
@@ -190,10 +190,10 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-06-04T22:00:00.000Z
-Stopped at: Phase 06.17 close (Conformité des champs de saisie, PR #230 + #231 + #232 mergées). 132 champs aux normes UX/a11y. Bloc design system 06.13 → 06.17 complet sur 5 phases. Prochaine phase à trancher (06.9 / 06.12 / 07 / 09 / 10).
+Last session: 2026-06-04T23:00:00.000Z
+Stopped at: Phase 06.18 livrée localement (Page de connexion + AuthShell aux normes). PR à ouvrir + à attendre merge avant sync STATE final. Bloc design system étendu à 6 phases (06.13 → 06.18). Prochaine phase à trancher après merge (06.9 / 06.12 / 07 / 09 / 10).
 Resume file: None
-Next command suggested: `/gsd-discuss-phase <phase choisie>`
+Next command suggested: après merge PR 06.18 → `/gsd-sync-state` puis `/gsd-discuss-phase <phase choisie>`
 
 ## Ingest Runs
 

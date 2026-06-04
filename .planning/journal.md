@@ -1,5 +1,22 @@
 # Journal — phases livrées
 
+## 2026-06-04 (suite) — Phase 06.18 livrée localement (Page de connexion + AuthShell aux normes)
+
+Phase 06.18 « Page de connexion — champs + UI aux normes » cadrée + exécutée dans une seule PR (périmètre léger ~4-6 h). Application directe des normes auth/UI 2025-2026 (NN/G, muz.li 4 problèmes login, web.dev, UX Patterns, anti-autofocus a11y) à `/login` et `/accept-invite`. **Reset MDP exclu** (décision dirigeant).
+
+**Composants nouveaux** :
+- `<PasswordInput>` (`apps/web/src/components/form/password-input.client.tsx`) — wrapper `<Input>` avec toggle œil/œil-barré (`Eye`/`EyeOff` lucide), `type={visible ? 'text' : 'password'}`, `aria-label` parlant (« Afficher / Masquer le mot de passe »), `aria-pressed` reflète l'état, `pr-40` pour éviter le chevauchement texte/bouton, `forwardRef` pour compat RHF `register`. W3C ARIA APG. 5 tests Vitest.
+- `<ThemeToggle>` (`apps/web/src/components/theme-toggle.client.tsx`) — bouton standalone Sun/Moon, `aria-label` parlant, `aria-pressed` reflète l'état, cible tactile 40 px, focus visible via `--ring`. Posable hors session auth (header form AuthShell). 4 tests Vitest.
+- `useTheme()` hook partagé (`apps/web/src/lib/use-theme.client.ts`) — lecture `data-theme` du document + persistance localStorage `theme` (clé compat anti-FOUC `app/layout.tsx`). Consommé par `<ThemeToggle>` ET `UserMenu` → DRY (~20 LOC supprimées de UserMenu).
+
+**Refactor AuthShell en Server Component (D-06)** : `apps/web/src/app/(auth)/_components/auth-shell.client.tsx` supprimé → `auth-shell.tsx` (RSC). Le seul îlot client est `<ThemeToggle>` posé dans le header form (bascule jour/nuit avant connexion). Imports redirigés dans 4 pages (`login`, `accept-invite`, `welcome`, `setup`). Commentaires « mode jour uniquement » périmés retirés.
+
+**login-form** : email gagne `inputMode="email"` (D-02 — clavier email mobile). Mot de passe utilise `<PasswordInput>` (D-01). Aucun autofocus (anti-pattern a11y respecté).
+
+**accept-invite-form** : 2 champs password convertis en `<PasswordInput>` avec recomposition manuelle du pattern Field (label + PasswordInput + p#hint OR p#error + aria-describedby) — PasswordInput n'est pas un Input simple, ne s'intègre pas directement à `<Field>`. Import `Field` retiré (lint propre).
+
+**Validation** : `pnpm typecheck` propre, `pnpm lint` clean (9 warnings préexistants hors périmètre), `pnpm test` 77/77 verts (11 fichiers ; +9 nouveaux : PasswordInput 5 + ThemeToggle 4). 0 migration BDD. 0 nouvelle dépendance npm (toutes icônes lucide déjà disponibles). Tokens 06.14 uniquement, 0 hex.
+
 ## 2026-06-04 (suite) — Phase 06.17 close (3 PR mergées)
 
 Phase 06.17 « Conformité des champs de saisie » **close** après 3 PR séquentielles mergées : PR #230 (composants communs + véhicule/chauffeur), PR #231 (légal + tarifs + rattrapage défauts places), PR #232 (reste + clôture). **132 champs aux normes UX/a11y** (NN/G, Deque, Shopify Polaris, USWDS, W3C ARIA APG). Composants communs : `<Field>` (hint persistant lié `aria-describedby`, `name` explicite respecté), `<NumberField>` (`type=text` + `inputMode=numeric|decimal`, règle de défaut cohérent counter/optional), `<Combobox>` 100 % maison W3C APG (DEC-003 préservée, sans Radix Popover ni cmdk). Catalogue `lib/vehicles/catalog.ts` (13 marques × ~5 modèles + `normalizeBrandOrModel` Title Case). PR3 : migration `dpia-form`, `dpa-prefill-card`, `dpo-form`, `accept-invite-form` sur `<Field>` + hints d'exemple ; `maxLength` posée sur tous les champs à format (immat=9, NIR=19, tél=14, email=120, version=50, titre=200, mot de passe=128) ; normalisation submit DPA. **0 `type="number"` restant** dans `apps/web/src` (vérifié `grep -rE 'type=\"number\"'`). **23 tests Vitest** verts (Field 5 + NumberField 8 + Combobox 8 + catalog 7) sur 68 tests total. Documenté `docs/design-system/07-form-completion.md`. 0 migration BDD, 0 dépendance npm. Bloc design system 06.13 → 06.17 complet sur 5 phases.

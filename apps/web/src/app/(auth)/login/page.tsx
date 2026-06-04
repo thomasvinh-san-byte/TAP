@@ -1,4 +1,4 @@
-import { AuthShell } from '../_components/auth-shell.client';
+import { AuthShell } from '../_components/auth-shell';
 import { LoginFormShell } from './_components/login-form-shell.client';
 
 export const metadata = {

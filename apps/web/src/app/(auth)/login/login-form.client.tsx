@@ -27,6 +27,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PasswordInput } from '@/components/form/password-input.client';
 import { signInAction } from './actions';
 
 const signInSchema = z.object({
@@ -77,6 +78,8 @@ export function LoginForm({ next, prefill }: LoginFormProps) {
         <Input
           id="email"
           type="email"
+          // Phase 06.18 D-02 : inputMode email pour clavier mobile (@ et .).
+          inputMode="email"
           autoComplete="username"
           className="h-10"
           {...form.register('email')}
@@ -91,9 +94,9 @@ export function LoginForm({ next, prefill }: LoginFormProps) {
 
       <div className="space-y-8">
         <Label htmlFor="password">Mot de passe</Label>
-        <Input
+        {/* Phase 06.18 D-01 : toggle afficher/masquer (PasswordInput commun). */}
+        <PasswordInput
           id="password"
-          type="password"
           autoComplete="current-password"
           className="h-10"
           {...form.register('password')}

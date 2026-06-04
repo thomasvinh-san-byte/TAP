@@ -12,7 +12,7 @@
  */
 
 import { redirect } from 'next/navigation';
-import { AuthShell } from '../(auth)/_components/auth-shell.client';
+import { AuthShell } from '../(auth)/_components/auth-shell';
 import { checkDatabaseState } from './actions';
 import { InitButton } from './init-button.client';
 
