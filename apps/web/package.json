@@ -5,7 +5,8 @@
   "description": "Application web régulateur (Next.js 14 App Router)",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "tokens:build": "node style-dictionary.config.mjs",
+    "build": "pnpm tokens:build && next build",
     "start": "next start",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",

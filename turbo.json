@@ -12,6 +12,14 @@
       "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
+    "tokens:build": {
+      "inputs": [
+        "src/styles/tokens.json",
+        "src/styles/tokens.dark.json",
+        "style-dictionary.config.mjs"
+      ],
+      "outputs": ["src/styles/tokens.generated.css", "src/styles/tokens.generated.ts"]
+    },
     "dev": {
       "cache": false,
       "persistent": true
