@@ -1,9 +1,10 @@
 # ADR-008 — Hébergement de `services/optimizer` sur Vercel Python serverless
 
-- **Statut** : Accepté
+- **Statut** : **Superseded par ADR-010** (2026-06-04)
 - **Date** : 2026-06-01
 - **Remplace** : aucun (clôt DEC-079 CANDIDATE inscrite Wave 1 le 2026-05-27)
 - **Affecte** : `services/optimizer`, Phase 06.7 Wave 3, DEC-079, DEC-080
+- **Note 2026-06-04** : Cette ADR est superseded par [ADR-010](./ADR-010-solveur-heuristique-ts-native.md). Le solveur a été réimplémenté en heuristique TS native ; le microservice Python est supprimé. Le contenu ci-dessous est conservé pour traçabilité décisionnelle.
 
 ## Contexte
 

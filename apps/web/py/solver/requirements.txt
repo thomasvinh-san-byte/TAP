@@ -1,4 +1,0 @@
-ortools==9.15.6755
-fastapi==0.136.1
-uvicorn[standard]==0.47.0
-pydantic==2.13.4

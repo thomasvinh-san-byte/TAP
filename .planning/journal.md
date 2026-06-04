@@ -1,5 +1,47 @@
 # Journal — phases livrées
 
+## 2026-06-04 (suite) — Phase 06.12 livrée localement (solveur heuristique TS natif, OR-Tools/Python/mock supprimés)
+
+Phase 06.12 « Solveur d'optimisation = heuristique TypeScript native » cadrée + exécutée dans une seule PR. Décision tranchée (dirigeant + recherche OR) : abandonner OR-Tools / Python / mock / hébergement séparé. Réécriture en heuristique TS native dans `apps/web/src/lib/optimizer/`. Autoporteur, zéro coût marginal, zéro hébergement externe.
+
+**Motivation (faits)** :
+- Volume réel ≤ 500 courses absolu, en pratique quelques dizaines/jour. Le contrat zod plafonne déjà à `rides.max(200)`.
+- OR-Tools est calibré pour 1000+ waypoints — disproportionné ; sa lourdeur (binaires C++ ~75 MB) a bloqué l'hébergement Vercel (5 PR de fix Phase 06.7 + 5 PR Phase 06.10), d'où le mock actuel.
+- Pour fenêtres temporelles petites + horaires quasi-fixes (dialyse programmée = cas TAP majoritaire), une heuristique greedy cluster-first/route-second est quasi-optimale.
+- Indicateurs « estimés » DEC-081 → exactitude non contractuelle.
+- Supprime la SEULE vraie barrière (hébergement). Plus de Python, plus de cold start, plus de mock, plus d'hébergeur tiers, plus de plan Vercel Pro à arbitrer.
+
+**Composants nouveaux** :
+- `apps/web/src/lib/optimizer/haversine.ts` — port direct des 44 lignes de `solver.py:haversine.py`. `haversineKm()` + `distanceMatrix(coords, correctionFactor)`. 4 tests Vitest.
+- `apps/web/src/lib/optimizer/solve-local.ts` (~280 LOC) — heuristique cluster-first/route-second. Pré-filtre fenêtres temporelles (port `_pre_filter_rides`), appariement greedy 2-par-2 sur compat fenêtre + transport_mode→vehicle.type + capacité, ordre nearest-neighbor sur Haversine corrigée, calcul km_a_vide. Export `timeWindow()` testable. 9 tests Vitest portés des 6 scénarios pytest.
+
+**Branchement Route Handler** (D-03) : `apps/web/src/app/api/optimizer/route.ts` point 7 — remplace le bloc `useMock ? mockSolve(payload) : solve(payload, {HTTP})` par un `solveLocal(payload)` synchrone. Conservé : auth Supabase, vérif rôle, dé-identification D-08, `ridesToSolveRequest`, `solveResponseToProposal`, `enrichProposal`, try/catch défensif. Retiré : imports `solve`/`OptimizerError`, `process.env.OPTIMIZER_USE_MOCK`, `VERCEL_URL`/`serviceUrl`, `timeoutMs: 30000`.
+
+**Suppressions** (D-04) :
+- `apps/web/py/solver/` (13 fichiers Python : solver.py, _extract.py, haversine.py, models.py, index.py, requirements*.txt, tests/, README.md, pytest.ini) → supprimé intégralement.
+- `apps/web/src/app/api/optimizer/_mock-solver.ts` → supprimé.
+- `apps/web/vercel.json` : `builds` Python + `routes` `/api/solver/*` retirés (reste un fichier `$schema` minimal).
+- `packages/optimizer-client/src/client.ts` (`solve()` HTTP + `OptimizerError`) → vidé. `index.ts` ne re-exporte plus `./client`.
+- `packages/optimizer-client/src/__tests__/client.test.ts` (4 tests du client HTTP) → supprimé.
+- `apps/web/src/middleware.ts` : commentaire ADR-009 référant à `apps/web/py/solver/` → retiré.
+
+**Contrat préservé** : `packages/optimizer-client/contract.ts` (zod `SolveRequestSchema` / `SolveResponseSchema`) + `transform.ts` (`ridesToSolveRequest`, `solveResponseToProposal`) inchangés. `solveLocal()` produit exactement le même `SolveResponse` qu'OR-Tools. Le frontend `/cockpit/optimisation` ne voit aucun changement.
+
+**Documentation** :
+- ADR-010 « Solveur heuristique TS native » créée, supersede ADR-008 (hébergement Vercel Python) + ADR-009 (pattern container long-running).
+- DEC-093 LOCKED inscrite dans STATE.md (Decisions).
+- Runbook `runbook-bascule-vercel-services-vers-deux-projets.md` rendu sans objet pour le solveur (conservé pour traçabilité ou usage futur).
+
+**Variables d'env devenues obsolètes** (à retirer Vercel post-merge) : `OPTIMIZER_USE_MOCK`, `OPTIMIZER_SERVICE_URL`.
+
+**Validation** :
+- `pnpm typecheck` propre
+- `pnpm build` vert (apps/web)
+- `pnpm test` 90/90 verts (+13 nouveaux : haversine 4 + solveur 9 ; -4 retirés client HTTP). 17/17 verts `@tap/optimizer-client` (contract 7 + transform 10).
+- `grep -rn 'ortools' apps/web` = 0 référence active.
+- `apps/web/py/solver/` = supprimé. `_mock-solver.ts` = supprimé.
+- 0 migration BDD, 0 nouvelle dépendance npm.
+
 ## 2026-06-04 (suite) — Sync planning post-audit (06.11 + 06.18 + total_phases + DEC-092 abandon 07)
 
 Audit planning passé. Trois corrections + une décision dirigeant en une PR planning-only.

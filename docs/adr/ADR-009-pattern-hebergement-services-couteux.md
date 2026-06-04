@@ -1,9 +1,10 @@
 # ADR-009 — Pattern « container long-running » pour algorithmes coûteux
 
-- **Statut** : Accepté
+- **Statut** : **Superseded par ADR-010** (2026-06-04) — au sens : le solveur d'optimisation ne suit plus ce pattern ; il a été réimplémenté en heuristique TS native, plus aucun binaire natif coûteux ne reste dans le projet.
 - **Date** : 2026-06-01
 - **Remplace** : aucun (précise et conditionne DEC-079 / ADR-008)
 - **Affecte** : `apps/web/api/solver/` (OR-Tools), futurs services type ML / OSRM / geocoding intensif
+- **Note 2026-06-04** : Cette ADR est superseded par [ADR-010](./ADR-010-solveur-heuristique-ts-native.md) sur l'application au solveur d'optimisation. Le **pattern général** « container long-running pour binaire natif > 30 MB » reste valide en théorie pour des services futurs (ML, OSRM, géocodage intensif) — mais aucun service du projet ne le remplit aujourd'hui.
 
 ## Contexte
 
