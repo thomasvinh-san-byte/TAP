@@ -1,5 +1,16 @@
 # Journal — phases livrées
 
+## 2026-06-04 (suite) — Sync planning post-audit (06.11 + 06.18 + total_phases + DEC-092 abandon 07)
+
+Audit planning passé. Trois corrections + une décision dirigeant en une PR planning-only.
+
+1. **06.11 (Polish produit) cochée** : phase livrée (PR #214-#217, statut détaillé « Complete (2026-06-03) ») mais sa checkbox ROADMAP était restée `[ ]`. Corrigée.
+2. **06.18 (Page de connexion) clôturée** : livrée via PR #233 (mergée). Checkbox passée `[x]` avec préfixe livraison.
+3. **`total_phases` réaligné 29 → 31** : la ROADMAP comptait 31 lignes de phases mais STATE en déclarait 29 — l'ajout de 06.17 puis 06.18 n'avait jamais été propagé au compteur. Compteurs : 26/31 livrées, 4 ouvertes actives, 1 abandonnée. Percent 84.
+4. **DEC-092 — Phase 07 (Mobile natif) ABANDONNÉE** (décision dirigeant 2026-06-04). Motif : la PWA Phase 04.9 couvre le périmètre terrain retenu, le coût natif (10×, 25-40 h) n'est pas justifié au stade actuel. Réversible si business case mobile validé ultérieurement. Conservée en ROADMAP pour traçabilité (marquée `[~]` avec préfixe ABANDONNÉE). Phase 10 (géoloc) reformulée : la référence orpheline à 07 a été retirée, le discuss 10 devra concevoir une solution PWA premier-plan dégradé, pas de fallback natif.
+
+Candidates ouvertes restantes (4) : 06.9 (Next.js 15), 06.12 (réactivation solveur OR-Tools), 09 (HDS), 10 (géoloc temps réel). Pas de suite design « naturelle » — choix dirigeant requis pour la prochaine phase.
+
 ## 2026-06-04 (suite) — Phase 06.18 livrée localement (Page de connexion + AuthShell aux normes)
 
 Phase 06.18 « Page de connexion — champs + UI aux normes » cadrée + exécutée dans une seule PR (périmètre léger ~4-6 h). Application directe des normes auth/UI 2025-2026 (NN/G, muz.li 4 problèmes login, web.dev, UX Patterns, anti-autofocus a11y) à `/login` et `/accept-invite`. **Reset MDP exclu** (décision dirigeant).
