@@ -1,5 +1,9 @@
 # Journal — phases livrées
 
+## 2026-06-04 (suite) — Phase 06.15 cadrée
+
+Phase 06.15 « Refonte data tables » cadrée. Décision dirigeant Option 3 (uniformiser les 13 tables sur un composant `<DataTable>` sémantique commun, API extensible tri/pagination prévus mais V1 implémente seulement le tri existant de `caisse-table`). 13 tables incluses (8 `<table>` + 4 `divide-y` + 1 mixte) ; 3 dropdowns de saisie exclus (pas des data tables). Décisions D-01..D-06 LOCKED : composant sémantique, compose primitives existantes (EmptyState/Badge/Skeleton + tokens 06.14), API extensible, logique métier préservée par table, RGAA 4.1.2 + densité DEC-034 + jour+nuit, ROADMAP entrée [ ] = premier acte. Estimation 12-16 h. 0 migration BDD, 0 dépendance npm. PLAN 06.15-01 à écrire ensuite.
+
 ## 2026-06-04 — Phase 06.14 cadrée
 
 Phase 06.14 « Migration tokens.json → Tailwind config » cadrée. Entrée ROADMAP posée `[ ]` après 06.13. RESEARCH sourcé (versé en PR #220, mergée) rangé dans le dossier de phase `.planning/phases/06.14-migration-tokens-tailwind/06.14-RESEARCH.md` pour cohérence de structure GSD. STATE + journal mis à jour (06.14 en cadrage). Décisions dirigeant déjà actées : dark généré depuis les tokens (anti-dérive), rester Tailwind v3 (v4 = décision séparée couplée à 06.9). Architecture DTCG du dark à trancher au discuss (Token Sets vs `$value` structuré). Estimation indicative 5-8 h. Périmètre dark chiffré : 12 couleurs sur 57 tokens.
