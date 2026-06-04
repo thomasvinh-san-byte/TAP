@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { tokensLight } from '@/styles/tokens.generated';
 
 /**
  * Template PDF partagé — socle commun des exports de l'application.
@@ -8,11 +9,13 @@ import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
  * paginés, sections titrées, paires label/valeur, styles sur les tokens de la
  * charte. Chaque export instancie `PdfDocument` avec son seul contenu.
  *
- * Rendu serveur via `@react-pdf/renderer` (runtime nodejs).
+ * Rendu serveur via `@react-pdf/renderer` (runtime nodejs). Phase 06.14 D-08 :
+ * consomme `tokens.generated.ts` (export JS hex dérivé de tokens.json) au lieu
+ * de hex en dur. Les valeurs label/meta/border/text restent sur des gris hors
+ * tokens (pas de token sémantique correspondant dans la palette TAP V1).
  */
 
-// Tokens repris de la charte (équiv. des variables CSS `--primary`, gris).
-const COLOR_PRIMARY = '#1466DB';
+const COLOR_PRIMARY = tokensLight.color.action.primary;
 const COLOR_LABEL = '#666666';
 const COLOR_META = '#999999';
 const COLOR_BORDER = '#E2E2E2';

@@ -1,0 +1,49 @@
+/* GÉNÉRÉ par tokens:build — ne pas éditer.
+ * Source : apps/web/src/styles/tokens.json + tokens.dark.json
+ * Régénérer : pnpm --filter @tap/web tokens:build
+ */
+
+:root {
+  --background: 0 0% 100%;
+  --muted: 210 40% 96%;
+  --driver-surface: 45 100% 98%;
+  --popover: 0 0% 100%;
+  --foreground: 222 47% 11%;
+  --muted-foreground: 215 16% 47%;
+  --primary-foreground: 0 0% 100%;
+  --accent-foreground: 0 0% 100%;
+  --destructive-foreground: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --primary: 217 92% 32%;
+  --accent: 14 78% 55%;
+  --ring: 217 92% 32%;
+  --success: 142 71% 35%;
+  --warning: 32 95% 50%;
+  --destructive: 0 72% 51%;
+  --info: 217 91% 60%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --radius: 8px;
+}
+
+[data-theme='dark'] {
+  --background: 222 47% 8%;
+  --muted: 217 33% 17%;
+  --driver-surface: 30 25% 10%;
+  --popover: 222 47% 8%;
+  --foreground: 210 40% 96%;
+  --muted-foreground: 215 20% 65%;
+  --primary-foreground: 222 47% 11%;
+  --accent-foreground: 222 47% 8%;
+  --destructive-foreground: 0 0% 100%;
+  --popover-foreground: 210 40% 96%;
+  --primary: 217 91% 60%;
+  --accent: 14 78% 60%;
+  --ring: 217 91% 60%;
+  --success: 142 71% 45%;
+  --warning: 32 95% 55%;
+  --destructive: 0 63% 50%;
+  --info: 217 91% 70%;
+  --border: 217 33% 22%;
+  --input: 217 33% 22%;
+}

@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
 import { Toaster } from 'sonner';
+import { tokensLight } from '@/styles/tokens.generated';
 
 export const metadata: Metadata = {
   title: 'TAP Réunion — Régulation',
@@ -20,7 +21,9 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
-  themeColor: '#0944a0',
+  // Phase 06.14 D-08 : couleur synchronisée sur tokens.action.primary
+  // (avant : '#0944a0' en dur, dérive vs token hsl(217 92% 32%) ≈ #07409d).
+  themeColor: tokensLight.color.action.primary,
 };
 
 /**

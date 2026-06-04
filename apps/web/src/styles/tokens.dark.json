@@ -1,0 +1,111 @@
+{
+  "$schema": "https://designtokens.org/schema.json",
+  "$description": "Override dark — Phase 06.14 (D-01 Token Sets DTCG). Ne contient QUE les 19 couleurs chromatiques avec variante sombre. Les 45 invariants (spacing, typography, radius, shadow, motion, touchTarget) restent dans tokens.json — JAMAIS dupliqués ici (anti-dérive). Style Dictionary v4 fusionne ce fichier avec tokens.json pour générer le bloc `[data-theme='dark']` dans tokens.generated.css.",
+  "color": {
+    "surface": {
+      "primary": {
+        "$value": "hsl(222 47% 8%)",
+        "$type": "color",
+        "$description": "Override dark — fond principal mode nuit."
+      },
+      "muted": {
+        "$value": "hsl(217 33% 17%)",
+        "$type": "color",
+        "$description": "Override dark — surface secondaire."
+      },
+      "driver": {
+        "$value": "hsl(30 25% 10%)",
+        "$type": "color",
+        "$description": "Override dark — tint chaud chauffeur calé sur teinte ambre faible luminosité pour cabine de nuit (CLAUDE.md § 5)."
+      },
+      "popover": {
+        "$value": "hsl(222 47% 8%)",
+        "$type": "color",
+        "$description": "Override dark — popover (D-10)."
+      }
+    },
+    "text": {
+      "primary": {
+        "$value": "hsl(210 40% 96%)",
+        "$type": "color",
+        "$description": "Override dark — texte principal."
+      },
+      "muted": {
+        "$value": "hsl(215 20% 65%)",
+        "$type": "color",
+        "$description": "Override dark — texte secondaire."
+      },
+      "onAction": {
+        "$value": "hsl(222 47% 11%)",
+        "$type": "color",
+        "$description": "Override dark — texte sur fond action primaire (le primary dark est atténué, donc texte foncé pour contraste)."
+      },
+      "onAccent": {
+        "$value": "hsl(222 47% 8%)",
+        "$type": "color",
+        "$description": "Override dark — texte sur fond accent terracotta dark (D-12)."
+      },
+      "onDanger": {
+        "$value": "hsl(0 0% 100%)",
+        "$type": "color",
+        "$description": "Override dark — texte sur fond destructive (blanc, même en dark pour lisibilité)."
+      },
+      "onPopover": {
+        "$value": "hsl(210 40% 96%)",
+        "$type": "color",
+        "$description": "Override dark — texte sur popover (D-10)."
+      }
+    },
+    "action": {
+      "primary": {
+        "$value": "hsl(217 91% 60%)",
+        "$type": "color",
+        "$description": "Override dark — action primaire atténuée pour fond sombre."
+      },
+      "accent": {
+        "$value": "hsl(14 78% 60%)",
+        "$type": "color",
+        "$description": "Override dark — accent terracotta."
+      },
+      "focusRing": {
+        "$value": "hsl(217 91% 60%)",
+        "$type": "color",
+        "$description": "Override dark — focus ring aligné sur primary dark."
+      }
+    },
+    "feedback": {
+      "success": {
+        "$value": "hsl(142 71% 45%)",
+        "$type": "color",
+        "$description": "Override dark — success."
+      },
+      "warning": {
+        "$value": "hsl(32 95% 55%)",
+        "$type": "color",
+        "$description": "Override dark — warning."
+      },
+      "danger": {
+        "$value": "hsl(0 63% 50%)",
+        "$type": "color",
+        "$description": "Override dark — destructive."
+      },
+      "info": {
+        "$value": "hsl(217 91% 70%)",
+        "$type": "color",
+        "$description": "Override dark — info."
+      }
+    },
+    "border": {
+      "default": {
+        "$value": "hsl(217 33% 22%)",
+        "$type": "color",
+        "$description": "Override dark — bordure standard."
+      },
+      "input": {
+        "$value": "hsl(217 33% 22%)",
+        "$type": "color",
+        "$description": "Override dark — bordure input alignée sur border default (D-02)."
+      }
+    }
+  }
+}
