@@ -25,6 +25,7 @@ import { acceptInvitationSchema, type AcceptInvitationInput } from '@tap/shared'
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Field } from '@/components/form/field';
 import { acceptInvitationAction } from '../actions';
 
 export function AcceptInviteForm({ userEmail }: { userEmail: string }) {
@@ -57,40 +58,28 @@ export function AcceptInviteForm({ userEmail }: { userEmail: string }) {
         <Input id="email" value={userEmail} readOnly className="bg-muted/40 h-10" />
       </div>
 
-      <div className="space-y-8">
-        <Label htmlFor="password">Mot de passe</Label>
-        <Input
-          id="password"
-          type="password"
-          autoComplete="new-password"
-          className="h-10"
-          {...form.register('password')}
-          aria-invalid={!!form.formState.errors.password}
-        />
-        <p className="text-muted-foreground text-xs">8 caractères minimum.</p>
-        {form.formState.errors.password ? (
-          <p role="alert" className="text-destructive text-sm">
-            {form.formState.errors.password.message}
-          </p>
-        ) : null}
-      </div>
+      <Field
+        id="password"
+        label="Mot de passe"
+        type="password"
+        autoComplete="new-password"
+        className="h-10"
+        hint="8 caractères minimum."
+        error={form.formState.errors.password?.message}
+        maxLength={128}
+        {...form.register('password')}
+      />
 
-      <div className="space-y-8">
-        <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
-        <Input
-          id="confirmPassword"
-          type="password"
-          autoComplete="new-password"
-          className="h-10"
-          {...form.register('confirmPassword')}
-          aria-invalid={!!form.formState.errors.confirmPassword}
-        />
-        {form.formState.errors.confirmPassword ? (
-          <p role="alert" className="text-destructive text-sm">
-            {form.formState.errors.confirmPassword.message}
-          </p>
-        ) : null}
-      </div>
+      <Field
+        id="confirmPassword"
+        label="Confirmer le mot de passe"
+        type="password"
+        autoComplete="new-password"
+        className="h-10"
+        error={form.formState.errors.confirmPassword?.message}
+        maxLength={128}
+        {...form.register('confirmPassword')}
+      />
 
       <div className="flex items-start gap-8">
         <input

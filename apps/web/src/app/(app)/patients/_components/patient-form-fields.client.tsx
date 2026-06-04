@@ -170,6 +170,10 @@ export function NirField({ defaultValue }: NirFieldProps): JSX.Element {
           id="nir"
           inputMode="numeric"
           autoComplete="off"
+          // PR3 06.17 : maxLength HTML5 = 15 chiffres + 4 espaces de mise
+          // en forme (X 00 00 00 000 000 00). Le bornage métier reste
+          // dans onChange (`slice(0, 15)` sur les chiffres seuls).
+          maxLength={19}
           value={formatNirDisplay(raw)}
           onChange={(e) => {
             const next = e.target.value.replace(/\s+/g, '').toUpperCase();
@@ -242,6 +246,9 @@ export function TelField({ defaultValue, required }: TelFieldProps): JSX.Element
         id="telephone"
         inputMode="tel"
         autoComplete="tel"
+        // PR3 06.17 : maxLength HTML5 = 14 (10 chiffres + 4 espaces de
+        // mise en forme « 06 92 00 00 00 »). Bornage métier dans onChange.
+        maxLength={14}
         value={display}
         onChange={(e) => setRaw(e.target.value.replace(/\D/g, '').slice(0, 10))}
         placeholder="06 92 00 00 00"

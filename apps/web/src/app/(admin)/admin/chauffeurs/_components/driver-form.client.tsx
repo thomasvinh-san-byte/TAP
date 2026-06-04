@@ -60,8 +60,12 @@ export function DriverForm({ initial, onSuccess }: Props): JSX.Element {
         id="telephone"
         label="Téléphone"
         type="tel"
+        inputMode="tel"
         defaultValue={initial?.telephone ?? ''}
         error={fe.telephone}
+        hint="Format libre (ex : 06 12 34 56 78)."
+        placeholder="06 12 34 56 78"
+        maxLength={14}
       />
 
       <Field
