@@ -3,10 +3,9 @@
 import * as React from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { TYPE_PERMIS_VALUES, type TypePermis } from '@tap/shared';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { Field } from '@/components/form/field';
 import { type ActionState, createDriverAction, updateDriverAction } from '../actions';
 import type { DriverRow } from '../page';
 
@@ -111,36 +110,6 @@ export function DriverForm({ initial, onSuccess }: Props): JSX.Element {
 
       <SubmitButton edit={Boolean(initial)} />
     </form>
-  );
-}
-
-function Field({
-  id,
-  label,
-  error,
-  ...rest
-}: {
-  id: string;
-  label: string;
-  error?: string;
-} & React.InputHTMLAttributes<HTMLInputElement>) {
-  return (
-    <div className="space-y-8">
-      <Label htmlFor={id}>{label}</Label>
-      <Input
-        id={id}
-        name={id}
-        aria-invalid={error ? true : undefined}
-        className={cn(error && 'border-destructive focus-visible:ring-destructive')}
-        autoComplete="off"
-        {...rest}
-      />
-      {error && (
-        <p className="text-destructive text-xs" role="alert">
-          {error}
-        </p>
-      )}
-    </div>
   );
 }
 
