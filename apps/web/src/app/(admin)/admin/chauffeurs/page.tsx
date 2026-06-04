@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { getAuthContext } from '@/lib/auth/get-auth-context';
+import { PageHeader } from '@/components/page-header';
 import { DriversList } from './_components/drivers-list.client';
 
 export const metadata = { title: 'Chauffeurs' };
@@ -85,13 +86,10 @@ export default async function ChauffeursPage({
 
   return (
     <div className="space-y-24">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Chauffeurs</h1>
-        <p className="text-muted-foreground text-sm">
-          Référentiel des chauffeurs de l&apos;organisation. Invitez le chauffeur pour lui ouvrir
-          l&apos;accès à l&apos;application.
-        </p>
-      </header>
+      <PageHeader
+        title="Chauffeurs"
+        description="Référentiel des chauffeurs de l'organisation. Invitez le chauffeur pour lui ouvrir l'accès à l'application."
+      />
       <DriversList
         initialDrivers={driversWithInvitation}
         currentRole={role as 'dirigeant' | 'regulateur'}

@@ -2,6 +2,7 @@ import { Receipt } from 'lucide-react';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 import { createClient } from '@/lib/supabase/server';
 import { EmptyState } from '@/components/ui/empty-state';
+import { PageHeader } from '@/components/page-header';
 import type { TariffGrid } from '@tap/pricing';
 import { TariffGridCard } from './_components/tariff-grid-card.client';
 import { TariffSimulator } from './_components/tariff-simulator.client';
@@ -35,13 +36,10 @@ export default async function TarifsPage(): Promise<JSX.Element> {
 
   return (
     <div className="space-y-24">
-      <header className="space-y-8">
-        <h1 className="text-2xl font-semibold tracking-tight">Grille tarifaire CGSS</h1>
-        <p className="text-muted-foreground text-sm">
-          Convention-cadre nationale CNAM applicable 2026. Toute modification crée une nouvelle
-          version datée — l&apos;historique est conservé.
-        </p>
-      </header>
+      <PageHeader
+        title="Grille tarifaire CGSS"
+        description="Convention-cadre nationale CNAM applicable 2026. Toute modification crée une nouvelle version datée — l'historique est conservé."
+      />
 
       {activeGrid === null ? (
         <EmptyState

@@ -2,6 +2,7 @@ import { MessageSquare } from 'lucide-react';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 import { createClient } from '@/lib/supabase/server';
 import { EmptyState } from '@/components/ui/empty-state';
+import { PageHeader } from '@/components/page-header';
 import { TEMPLATE_VARIABLES } from '@tap/sms';
 import { TemplateEditor } from './_components/template-editor.client';
 
@@ -33,12 +34,10 @@ export default async function SmsTemplatesPage(): Promise<JSX.Element> {
 
   return (
     <div className="space-y-24">
-      <header className="space-y-8">
-        <h1 className="text-2xl font-semibold tracking-tight">Modèles SMS</h1>
-        <p className="text-muted-foreground text-sm">
-          Rappels automatiques envoyés aux patients consentants. Limite 160 caractères par SMS.
-        </p>
-      </header>
+      <PageHeader
+        title="Modèles SMS"
+        description="Rappels automatiques envoyés aux patients consentants. Limite 160 caractères par SMS."
+      />
 
       <section className="border-border bg-muted/20 rounded-md border p-12">
         <h2 className="text-muted-foreground mb-8 text-xs font-semibold uppercase tracking-wide">

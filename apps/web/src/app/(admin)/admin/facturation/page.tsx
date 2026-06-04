@@ -1,4 +1,5 @@
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
+import { PageHeader } from '@/components/page-header';
 import {
   getCoursesFacturables,
   getCountCoursesSansTarif,
@@ -37,14 +38,10 @@ export default async function FacturationPage({
 
   return (
     <div className="space-y-24">
-      <header className="space-y-8">
-        <h1 className="text-2xl font-semibold tracking-tight">Facturation CGSS</h1>
-        <p className="text-muted-foreground text-sm">
-          Récapitulatif mensuel des courses en tiers payant CGSS. Le PDF agrège les montants déjà
-          calculés — tarif estimatif, non contractuel jusqu &apos;à la facturation CGSS
-          télétransmise.
-        </p>
-      </header>
+      <PageHeader
+        title="Facturation CGSS"
+        description="Récapitulatif mensuel des courses en tiers payant CGSS. Le PDF agrège les montants déjà calculés — tarif estimatif, non contractuel jusqu'à la facturation CGSS télétransmise."
+      />
 
       <PeriodeSelector mois={mois} chauffeurId={chauffeurId} chauffeurs={chauffeurs} />
 

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { VehiclesList } from './_components/vehicles-list.client';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
+import { PageHeader } from '@/components/page-header';
 
 export const metadata = { title: 'Véhicules' };
 export const dynamic = 'force-dynamic';
@@ -26,13 +27,10 @@ export default async function VehiculesPage() {
 
   return (
     <div className="space-y-24">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Véhicules</h1>
-        <p className="text-muted-foreground text-sm">
-          Référentiel des véhicules de l&apos;organisation. Une immatriculation active ne peut pas
-          être saisie deux fois.
-        </p>
-      </header>
+      <PageHeader
+        title="Véhicules"
+        description="Référentiel des véhicules de l'organisation. Une immatriculation active ne peut pas être saisie deux fois."
+      />
       <VehiclesList initialVehicles={(vehicles ?? []) as VehicleRow[]} />
     </div>
   );

@@ -1,5 +1,9 @@
 # Journal — phases livrées
 
+## 2026-06-04 (suite) — Phase 06.16 cadrée + exécutée
+
+Phase 06.16 « PageHeader admin commun » cadrée + livrée dans une seule PR (périmètre Strict dirigeant). Composant `<PageHeader>` créé (~50 LOC, props title + description + actions + className, 6 tests Vitest verts). 16 pages admin migrées (chauffeurs, facturation, legal, legal/breaches, legal/dpa, legal/dpa/pre-remplir, legal/dpia, legal/dpia/pre-remplir, legal/dpo, legal/registre, legal/registre/pre-remplir, legal/requests, maintenance, sms-templates, tarifs, vehicules). `legal/registre` conserve ses actions `ExportPdfButton` + bouton « Nouvelle entrée » via le slot `actions`. Chrome globale (`(admin)/layout.tsx`, `NavTabs`, `LegalNavMenu`) inchangée. Toolbar recherche/filtres différée (recoupe le tri généralisé du `<DataTable>` laissé en V2). Tokens 06.14 uniquement, 0 hex, 0 dépendance, 0 migration BDD. Documenté en `docs/design-system/06-page-header.md`.
+
 ## 2026-06-04 (suite) — Phase 06.15 cadrée
 
 Phase 06.15 « Refonte data tables » cadrée. Décision dirigeant Option 3 (uniformiser les 13 tables sur un composant `<DataTable>` sémantique commun, API extensible tri/pagination prévus mais V1 implémente seulement le tri existant de `caisse-table`). 13 tables incluses (8 `<table>` + 4 `divide-y` + 1 mixte) ; 3 dropdowns de saisie exclus (pas des data tables). Décisions D-01..D-06 LOCKED : composant sémantique, compose primitives existantes (EmptyState/Badge/Skeleton + tokens 06.14), API extensible, logique métier préservée par table, RGAA 4.1.2 + densité DEC-034 + jour+nuit, ROADMAP entrée [ ] = premier acte. Estimation 12-16 h. 0 migration BDD, 0 dépendance npm. PLAN 06.15-01 à écrire ensuite.

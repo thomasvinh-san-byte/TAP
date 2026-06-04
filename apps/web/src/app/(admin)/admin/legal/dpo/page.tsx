@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { DpoForm } from './dpo-form.client';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
+import { PageHeader } from '@/components/page-header';
 
 export const metadata = { title: 'Contact DPO' };
 
@@ -39,13 +40,10 @@ export default async function DpoPage() {
 
   return (
     <div className="max-w-2xl space-y-24">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Contact DPO</h1>
-        <p className="text-muted-foreground mt-4 text-sm">
-          La personne à contacter pour les questions de données ; ses coordonnées s&apos;affichent
-          pour vos patients sur le site public. (RGPD art. 37-39)
-        </p>
-      </header>
+      <PageHeader
+        title="Contact DPO"
+        description="La personne à contacter pour les questions de données ; ses coordonnées s'affichent pour vos patients sur le site public. (RGPD art. 37-39)"
+      />
 
       <DpoForm
         initial={{

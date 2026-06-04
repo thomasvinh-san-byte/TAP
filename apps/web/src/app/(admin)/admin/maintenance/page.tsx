@@ -1,4 +1,5 @@
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
+import { PageHeader } from '@/components/page-header';
 import { BackfillGeocoding } from './_components/backfill-geocoding.client';
 import { RecomputeTarifs } from './_components/recompute-tarifs.client';
 
@@ -17,12 +18,10 @@ export default async function MaintenancePage() {
   await requireDirigeantPage();
   return (
     <div className="max-w-[720px] space-y-24">
-      <header className="space-y-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Maintenance</h1>
-        <p className="text-muted-foreground text-sm">
-          Opérations ponctuelles sur les données. Réservé au dirigeant.
-        </p>
-      </header>
+      <PageHeader
+        title="Maintenance"
+        description="Opérations ponctuelles sur les données. Réservé au dirigeant."
+      />
 
       <section className="border-border space-y-12 rounded-md border p-16">
         <div className="space-y-4">
