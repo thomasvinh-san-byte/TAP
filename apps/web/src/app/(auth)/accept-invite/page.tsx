@@ -16,7 +16,7 @@
  * direct sur le client Supabase server-side suffit (session SSR + cookie).
  */
 
-import { AuthShell } from '../_components/auth-shell.client';
+import { AuthShell } from '../_components/auth-shell';
 import { AcceptInviteForm } from './_components/accept-invite-form.client';
 import { InvitationErrorPanel } from './_components/invitation-error-panel';
 import { createClient } from '@/lib/supabase/server';

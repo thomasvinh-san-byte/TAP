@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
+import { useTheme } from '@/lib/use-theme.client';
 import { cn } from '@/lib/utils';
 import { signOutAction } from '@/app/(auth)/actions';
 
@@ -38,27 +39,9 @@ const ROLE_LABELS: Record<Role, string> = {
  */
 export function UserMenu({ prenom, nom, email, role }: UserMenuProps): JSX.Element {
   const fullName = `${prenom} ${nom}`.trim();
-  const [theme, setTheme] = React.useState<'light' | 'dark'>('light');
-
-  React.useEffect(() => {
-    const current = document.documentElement.getAttribute('data-theme');
-    setTheme(current === 'dark' ? 'dark' : 'light');
-  }, []);
-
-  const toggleTheme = React.useCallback(() => {
-    const next = theme === 'dark' ? 'light' : 'dark';
-    setTheme(next);
-    if (next === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else {
-      document.documentElement.removeAttribute('data-theme');
-    }
-    try {
-      window.localStorage.setItem('theme', next);
-    } catch {
-      /* localStorage indisponible — préférence non persistée. */
-    }
-  }, [theme]);
+  // Phase 06.18 : mécanique partagée avec <ThemeToggle> (AuthShell) via
+  // le hook useTheme() — évite la duplication d'état/persistance.
+  const { theme, toggle: toggleTheme } = useTheme();
 
   return (
     <DropdownMenu>

@@ -1,7 +1,6 @@
-'use client';
-
 import { type ReactNode } from 'react';
 import Image from 'next/image';
+import { ThemeToggle } from '@/components/theme-toggle.client';
 
 interface AuthShellProps {
   children: ReactNode;
@@ -11,15 +10,20 @@ interface AuthShellProps {
 }
 
 /**
- * `<AuthShell>` — wrapper React mode jour pour les surfaces auth (C05).
+ * `<AuthShell>` — wrapper layout pour les surfaces auth (C05).
  *
  * Layout split desktop ≥ 1024 px (`lg:`), single column < 1024 px.
  * Colonne identité gauche `bg-muted` (logo + baseline + footer sobre).
  * Colonne form droite `bg-background` (titre 28 px + children + footerHint).
  *
- * Pas de toggle mode nuit Phase 04 (DEC-020 update — reporté Phase UI
- * dédiée). Le header `h-14` (56 px) côté form reste vide V1 mais est
- * réservé pour le futur toggle Sun/Moon.
+ * Phase 06.18 D-04..D-06 :
+ * - Server Component (D-06 — aucune interactivité au layout ; le toggle
+ *   thème est un îlot client encapsulé dans `<ThemeToggle>`).
+ * - Bascule de thème accessible avant connexion via `<ThemeToggle>` posé
+ *   dans le header form (D-05). Les classes Tailwind utilisées
+ *   (`bg-muted`, `bg-background`, `text-muted-foreground`) basculent
+ *   automatiquement en dark via les CSS vars 06.14 — pas d'inversion brute,
+ *   gris profonds, contraste WCAG AA préservé (D-04).
  *
  * Padding échelle stricte 4/8/12/16/24/32/48/64 (NFR-003). Spec complète
  * UI-SPEC § 7.6.
@@ -32,7 +36,7 @@ export function AuthShell({ children, title, footerHint, rightSlot }: AuthShellP
         className="bg-muted flex flex-1 flex-col justify-between p-24 lg:p-48"
         aria-label="Identité produit"
       >
-        <header className="h-14" /> {/* Header 56 px vide V1 */}
+        <header className="h-14" /> {/* Header 56 px vide (espace miroir form) */}
         <div className="flex flex-col items-start gap-24">
           <Image
             src="/logo-tap.svg"
@@ -53,7 +57,11 @@ export function AuthShell({ children, title, footerHint, rightSlot }: AuthShellP
 
       {/* Colonne form (droite desktop, body mobile) */}
       <section className="bg-background flex w-full flex-col p-24 lg:w-[480px] lg:flex-shrink-0 lg:p-32">
-        <header className="h-14" /> {/* Header 56 px — toggle nuit Phase UI future */}
+        {/* Header 56 px — Phase 06.18 D-05 : ThemeToggle pour l'utilisateur
+            non connecté. Aligné à droite. */}
+        <header className="flex h-14 items-center justify-end">
+          <ThemeToggle />
+        </header>
         <div className="flex flex-1 flex-col justify-center">
           <div className="mx-auto w-full max-w-[400px] space-y-24">
             <h1 className="text-[28px] font-semibold leading-[1.2]">{title}</h1>

@@ -25,7 +25,7 @@ import { acceptInvitationSchema, type AcceptInvitationInput } from '@tap/shared'
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Field } from '@/components/form/field';
+import { PasswordInput } from '@/components/form/password-input.client';
 import { acceptInvitationAction } from '../actions';
 
 export function AcceptInviteForm({ userEmail }: { userEmail: string }) {
@@ -58,28 +58,51 @@ export function AcceptInviteForm({ userEmail }: { userEmail: string }) {
         <Input id="email" value={userEmail} readOnly className="bg-muted/40 h-10" />
       </div>
 
-      <Field
-        id="password"
-        label="Mot de passe"
-        type="password"
-        autoComplete="new-password"
-        className="h-10"
-        hint="8 caractères minimum."
-        error={form.formState.errors.password?.message}
-        maxLength={128}
-        {...form.register('password')}
-      />
+      {/* Phase 06.18 D-01 : PasswordInput partagé (toggle visibilité). Le
+          pattern Field (label + hint + error + aria-describedby) est
+          recomposé manuellement car PasswordInput n'est pas un Input
+          simple — il englobe un bouton toggle. */}
+      <div className="space-y-8">
+        <Label htmlFor="password">Mot de passe</Label>
+        <PasswordInput
+          id="password"
+          autoComplete="new-password"
+          className="h-10"
+          aria-invalid={!!form.formState.errors.password}
+          aria-describedby={form.formState.errors.password ? 'password-error' : 'password-hint'}
+          maxLength={128}
+          {...form.register('password')}
+        />
+        {form.formState.errors.password ? (
+          <p id="password-error" role="alert" className="text-destructive text-sm">
+            {form.formState.errors.password.message}
+          </p>
+        ) : (
+          <p id="password-hint" className="text-muted-foreground text-xs">
+            8 caractères minimum.
+          </p>
+        )}
+      </div>
 
-      <Field
-        id="confirmPassword"
-        label="Confirmer le mot de passe"
-        type="password"
-        autoComplete="new-password"
-        className="h-10"
-        error={form.formState.errors.confirmPassword?.message}
-        maxLength={128}
-        {...form.register('confirmPassword')}
-      />
+      <div className="space-y-8">
+        <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
+        <PasswordInput
+          id="confirmPassword"
+          autoComplete="new-password"
+          className="h-10"
+          aria-invalid={!!form.formState.errors.confirmPassword}
+          aria-describedby={
+            form.formState.errors.confirmPassword ? 'confirmPassword-error' : undefined
+          }
+          maxLength={128}
+          {...form.register('confirmPassword')}
+        />
+        {form.formState.errors.confirmPassword ? (
+          <p id="confirmPassword-error" role="alert" className="text-destructive text-sm">
+            {form.formState.errors.confirmPassword.message}
+          </p>
+        ) : null}
+      </div>
 
       <div className="flex items-start gap-8">
         <input
