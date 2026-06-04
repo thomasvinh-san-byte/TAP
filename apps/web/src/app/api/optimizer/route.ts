@@ -3,27 +3,29 @@ import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { getAuthContext } from '@/lib/auth/get-auth-context';
 import {
-  solve,
   ridesToSolveRequest,
   solveResponseToProposal,
-  OptimizerError,
   type RideRow,
   type VehicleRow,
   type OptimizationProposal,
   type RideAttributes,
 } from '@tap/optimizer-client';
+import { solveLocal } from '@/lib/optimizer/solve-local';
 
 /**
  * POST /api/optimizer
  *
- * Orchestre l'appel au solveur OR-Tools pour une journée donnée.
+ * Orchestre l'optimisation des tournées d'une journée.
  * Contraintes de sécurité :
  *   - Auth obligatoire (401) + rôle régulateur/dirigeant (403).
  *   - D-08 : aucune donnée patient identifiante dans le payload solveur.
  *     Le SELECT ne lit que les colonnes géométriques et de contrainte.
  *   - D-18 : calcul pur, aucun effet de bord en base.
  *
- * Refs : DEC-079 LOCKED, ADR-008, CONTEXT.md D-05/D-08/D-14/D-17/D-18.
+ * Phase 06.12 (ADR-010) : appel direct au solveur heuristique TS native
+ * `solveLocal()`. Plus de microservice Python OR-Tools, plus de mock,
+ * plus d'hébergement séparé. Le contrat zod
+ * (`@tap/optimizer-client`) reste l'interface canonique.
  */
 
 const requestSchema = z.object({
@@ -36,14 +38,6 @@ const CORRECTION_FACTOR_DEFAULT = 1.3;
 const AVG_SPEED_KMH = 50;
 const TIME_LIMIT_SECONDS = 3;
 
-/**
- * Type local : RideRow enrichi avec champs nécessaires à la construction
- * des labels UI (Wave 4). Les colonnes supplémentaires (pickup_city,
- * dropoff_city, addresses, patient join) ne sont JAMAIS transmises au
- * solveur — la dé-identification D-08 est enforcée par le mapping
- * explicite dans `ridesToSolveRequest()` côté @tap/optimizer-client
- * (cf. commentaire ligne 93 de transform.ts).
- */
 type RideRowForOptim = RideRow & {
   pickup_city: string | null;
   dropoff_city: string | null;
@@ -60,8 +54,6 @@ async function readRidesForDate(
   supabase: ReturnType<typeof createClient>,
   date: string,
 ): Promise<RideRowForOptim[]> {
-  // Colonnes de géométrie + contraintes (pour le solveur, D-08) + champs
-  // d'enrichissement UI (pour les labels Wave 4, jamais transmis au solveur).
   const { data, error } = await supabase
     .from('rides')
     .select(
@@ -98,11 +90,11 @@ async function readActiveVehicles(
  * Enrichit la proposition retournée par `solveResponseToProposal()` avec :
  *   - `rideLabels` : map UUID → label lisible (heure + ville pickup → ville dropoff + initiales patient).
  *   - `vehicles` : liste véhicules avec immatriculation pour les dropdowns UI.
+ *   - `rideAttributes` : urgency + transport_mode pour les badges UI (Phase 06.11).
  *
- * Wave 4 — D-08 respectée : enrichissement côté Route Handler authentifié,
- * le solveur (Python ou mock) ne voit toujours que des UUIDs opaques. Le
- * front voit déjà ces données via le cockpit (DEC-054) donc aucune
- * nouvelle surface d'exposition.
+ * D-08 respectée : enrichissement côté Route Handler authentifié, le solveur
+ * ne voit toujours que des UUIDs opaques. Le front voit déjà ces données via
+ * le cockpit (DEC-054) donc aucune nouvelle surface d'exposition.
  */
 function enrichProposal(
   proposal: OptimizationProposal,
@@ -130,9 +122,6 @@ function enrichProposal(
     label: `${v.immatriculation ?? v.id.slice(0, 8)} — ${v.type}`,
   }));
 
-  // Wave 2 Phase 06.11 — B3 : attributs métier pour badges UI (urgence,
-  // transport_mode). Source identique aux `rideLabels` : `rides` déjà
-  // fetchées en début de route. Pas de query supplémentaire.
   const rideAttributes: Record<string, RideAttributes> = {};
   for (const ride of rides) {
     rideAttributes[ride.id] = {
@@ -204,49 +193,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json(enrichProposal(emptyProposal, rides, vehicles), { status: 200 });
   }
 
-  // 7. Appel au solveur — mock ou service Python selon OPTIMIZER_USE_MOCK.
-  //
-  // Voie hybride single-projet Vercel (ADR-008 révision 2026-06-01) : le solveur
-  // Python est déployé dans le même projet Vercel, à /api/solver/*.
-  // L'URL est construite depuis VERCEL_URL (fournie automatiquement par Vercel
-  // en preview et production) ou un fallback localhost en dev.
-  //
-  // Si OPTIMIZER_USE_MOCK=true, court-circuite l'appel HTTP et utilise un mock
-  // local qui produit une réponse conforme au contrat zod. Débloque la
-  // validation fonctionnelle Wave 3 sans dépendre de l'hébergement Python.
-  const useMock = process.env.OPTIMIZER_USE_MOCK === 'true';
-
+  // 7. Appel synchrone au solveur heuristique TS native (Phase 06.12, ADR-010).
+  //    Pure fonction, pas de réseau, pas de timeout — le volume reste petit
+  //    (≤ 200 courses, plafond zod), l'algorithme termine en quelques ms.
   try {
-    let response;
-    if (useMock) {
-      const { mockSolve } = await import('./_mock-solver');
-      response = mockSolve(payload);
-    } else {
-      const baseHost = process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : (process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000');
-      const serviceUrl = `${baseHost}/api/solver`;
-      response = await solve(payload, {
-        baseUrl: serviceUrl,
-        // 30s pour absorber cold start Vercel Python (~1-3s pour charger
-        // ortools ~50MB) + solving OR-Tools (jusqu'à 5s, capé par
-        // time_limit_seconds.max(5) du contrat zod). Pattern documenté
-        // pour algorithmes à binaires natifs lourds (ADR-009).
-        timeoutMs: 30000,
-      });
-    }
+    const response = solveLocal(payload);
     const proposal = solveResponseToProposal(response, rides.length, excluded);
     return NextResponse.json(enrichProposal(proposal, rides, vehicles), { status: 200 });
   } catch (err) {
-    if (err instanceof OptimizerError) {
-      return NextResponse.json(
-        {
-          error:
-            "Le service d'optimisation n'est pas disponible pour le moment. Les tournées ne sont pas affectées. Réessayez dans quelques minutes.",
-        },
-        { status: 503 },
-      );
-    }
+    console.error('[optimizer] erreur solveLocal:', err);
     return NextResponse.json(
       {
         error:

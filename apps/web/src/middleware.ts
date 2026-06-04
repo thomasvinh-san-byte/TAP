@@ -17,12 +17,6 @@ import { createSupabaseMiddlewareClient } from '@tap/database';
  * Exclusions matcher (cf. config en bas de fichier) :
  *   - `_next/static`, `_next/image`, `favicon.ico` : assets statiques Next.
  *   - `api/health` : sonde de disponibilité publique.
- *
- * Note Wave 1 Phase 06.10 (ADR-009) : la fonction Python solveur est
- * désormais physiquement à `apps/web/py/solver/` (hors `/api/`). Le
- * rewrite Next.js redirige `/api/solver/*` vers `/py/solver/*` avant que
- * le middleware s'exécute en production — pas besoin d'exclusion
- * explicite dans le matcher.
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;

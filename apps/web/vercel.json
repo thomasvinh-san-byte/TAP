@@ -1,15 +1,3 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "builds": [
-    {
-      "src": "py/solver/index.py",
-      "use": "@vercel/python",
-      "config": { "maxDuration": 30 }
-    },
-    { "src": "package.json", "use": "@vercel/next" }
-  ],
-  "routes": [
-    { "src": "/api/solver/(.*)", "dest": "/py/solver/index.py" },
-    { "src": "/(.*)", "dest": "/$1" }
-  ]
+  "$schema": "https://openapi.vercel.sh/vercel.json"
 }
