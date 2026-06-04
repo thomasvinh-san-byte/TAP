@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.16 livrée localement (PageHeader admin commun, 16 pages uniformisées) — PR ouverte, sync STATE après merge"
-last_updated: "2026-06-04T16:00:00.000Z"
-last_activity: Phase 06.16 « PageHeader admin commun » cadrée + exécutée dans une seule PR. Composant <PageHeader> créé (~50 LOC, 6 tests), 16 pages admin migrées (legal/registre conserve ses actions ExportPdfButton + Nouvelle entrée). Chrome inchangée. Toolbar recherche/filtres différée (décision dirigeant Strict). 0 logique métier, 0 dépendance, 0 migration BDD.
+stopped_at: "Phase 06.16 close (PageHeader admin commun, PR #228 mergée) — STATE synchronisé 2026-06-04"
+last_updated: "2026-06-04T18:00:00.000Z"
+last_activity: Phase 06.16 « PageHeader admin commun » exécutée et mergée (PR #228). Composant <PageHeader> créé, 16 pages admin uniformisées, actions registre préservées, chrome inchangée. STATE synchronisé.
 progress:
-  total_phases: 28
-  completed_phases: 22
+  total_phases: 29
+  completed_phases: 23
   total_plans: 80
   completed_plans: 80
   percent: 79
@@ -21,21 +21,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.16 « PageHeader admin commun » en cours de merge. Cadrage + exécution livrés dans une seule PR (Strict dirigeant). 16 pages admin uniformisées sur <PageHeader>. Design system (06.13→06.14→06.15→06.16) cohérent.
+**Current focus:** Phase 06.16 close. Design system bouclé sur 4 phases (06.13 doctrine+tokens → 06.14 tokens source unique → 06.15 DataTable → 06.16 PageHeader). Prochaine phase candidate : 06.9, 06.12, 07, 09 ou 10.
 
 ## Current Position
 
 **Dernière mise à jour** : 2026-06-04 (cadrage Phase 06.14 lancé)
-**Phase courante** : Phase 06.16 « PageHeader admin commun » livrée localement (cadrage + exécution dans une seule PR). Entrée ROADMAP posée [ ]. Sync STATE après merge.
+**Phase courante** : aucune en exécution. Phase 06.16 « PageHeader admin commun » LIVRÉE (PR #228 mergée). Bloc design system 06.13→06.16 complet. Prochaine phase à trancher par le dirigeant.
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.16 livrée localement (2026-06-04) — PageHeader admin commun, cadrage + exécution dans une seule PR ouverte
-Phase next: sync STATE + ROADMAP après merge 06.16. Puis trancher : 06.9 (Next.js 15), 06.12 (réactivation solveur), 07 (mobile natif), 09 (HDS), 10 (géoloc temps réel).
-Status: Phase 06.16 livrée localement. Composant <PageHeader> (~50 LOC, 6 tests verts), 16 pages admin migrées, chrome inchangée. Toolbar recherche/filtres différée (Strict).
+Phase: 06.16 close (2026-06-04) — PageHeader admin commun livré, PR #228 mergée
+Phase next: à trancher par le dirigeant. Le bloc design system (06.13→06.16) est complet. Candidates ouvertes : 06.9 (modernisation Next.js 15, autonome), 06.12 (réactivation solveur — décision plan Vercel en attente), 07 (mobile natif, décision business), 09 (HDS, verrou 1er client payant), 10 (géoloc temps réel, post-HDS).
+Status: Phase 06.16 livrée et close. <PageHeader> commun, 16 pages admin uniformisées. 0 logique métier, 0 migration BDD, 0 dépendance.
 Blockers: aucun
-Last activity: Synchronisation STATE après merge PR #226. Phase 06.15 cochée livrée dans ROADMAP, compteurs progress mis à jour (22/28 phases, 80 plans).
-Précédent: Phase 06.15 cadrée (#225) puis exécutée (#226). Avant : 06.14 migration tokens (#223).
+Last activity: Synchronisation STATE après merge PR #228. Phase 06.16 cochée livrée dans ROADMAP, compteurs progress mis à jour (23/29 phases, 80 plans).
+Précédent: Bloc design system complet — 06.13 foundations (#218), 06.14 tokens→Tailwind (#223), 06.15 data tables (#226), 06.16 PageHeader (#228).
 
 Progress: [██████████] 100%
 
@@ -190,10 +190,10 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-06-04T14:00:00.000Z
-Stopped at: Phase 06.15 close (Refonte data tables, PR #226 mergée). STATE synchronisé. Prochaine phase à trancher (06.16 candidate naturelle — consomme DataTable + tokens).
+Last session: 2026-06-04T18:00:00.000Z
+Stopped at: Phase 06.16 close (PageHeader admin, PR #228 mergée). Bloc design system 06.13→06.16 complet. STATE synchronisé. Prochaine phase à trancher (plus de suite « naturelle » design — choix dirigeant parmi 06.9 / 06.12 / 07 / 09 / 10).
 Resume file: None
-Next command suggested: `/gsd-discuss-phase 06.16` (ou phase next choisie)
+Next command suggested: `/gsd-discuss-phase <phase choisie>`
 
 ## Ingest Runs
 
