@@ -1,4 +1,7 @@
+'use client';
+
 import { AlertTriangle, Download, FileText } from 'lucide-react';
+import { DataTable, type DataTableColumn } from '@/components/data-table';
 import { aggregateFacture } from '../_lib/aggregate-facture';
 import type { CourseFacturable } from '../_lib/queries-facturation';
 
@@ -21,6 +24,40 @@ function lieu(adresse: string): string {
   return adresse.split(',')[0]?.trim() ?? adresse;
 }
 
+const COLUMNS: DataTableColumn<CourseFacturable>[] = [
+  {
+    key: 'date',
+    header: 'Date',
+    cell: (c) => <span className="tabular-nums">{formatDateFr(c.ended_at)}</span>,
+  },
+  {
+    key: 'patient',
+    header: 'Patient',
+    cell: (c) => `${c.patient_nom} ${c.patient_prenom}`,
+  },
+  {
+    key: 'trajet',
+    header: 'Trajet',
+    cell: (c) => (
+      <span className="text-muted-foreground">
+        {lieu(c.pickup_address)} → {lieu(c.dropoff_address)}
+      </span>
+    ),
+  },
+  {
+    key: 'montant',
+    header: 'Montant',
+    align: 'right',
+    cell: (c) => <span className="font-mono tabular-nums">{formatEur(c.tarif_amount_eur)}</span>,
+  },
+];
+
+/**
+ * Aperçu de facturation CGSS. Phase 06.15 D-07 : converti en composant
+ * client mince pour consommer `<DataTable>` (qui est client : tri, hover).
+ * Reçoit toujours les données déjà sérialisées par `facturation/page.tsx`
+ * (aucune fonction traversée server→client).
+ */
 export function FactureApercu({
   courses,
   countSansTarif,
@@ -48,47 +85,24 @@ export function FactureApercu({
           <span className="font-mono tabular-nums">{formatEur(totalEur)}</span>
         </p>
 
-        {empty ? (
-          <div className="text-muted-foreground flex flex-col items-center gap-8 py-32 text-center text-sm">
-            <FileText className="h-32 w-32" strokeWidth={1.5} aria-hidden />
-            <p>Aucune course facturable CGSS pour cette période.</p>
-            <p className="text-xs">
-              Les courses en tiers payant CGSS clôturées sur la période apparaîtront ici.
-            </p>
-          </div>
-        ) : (
-          <div className="border-border overflow-x-auto rounded-md border">
-            <table className="w-full border-collapse">
-              <thead className="bg-muted/40">
-                <tr className="border-border text-muted-foreground h-10 border-b text-xs uppercase tracking-wide">
-                  <th className="px-12 text-left font-medium">Date</th>
-                  <th className="px-12 text-left font-medium">Patient</th>
-                  <th className="px-12 text-left font-medium">Trajet</th>
-                  <th className="px-12 text-right font-medium">Montant</th>
-                </tr>
-              </thead>
-              <tbody>
-                {courses.map((c) => (
-                  <tr key={c.id} className="border-border h-10 border-b text-sm">
-                    <td className="px-12 tabular-nums">{formatDateFr(c.ended_at)}</td>
-                    <td className="px-12">
-                      {c.patient_nom} {c.patient_prenom}
-                    </td>
-                    <td className="text-muted-foreground px-12">
-                      {lieu(c.pickup_address)} → {lieu(c.dropoff_address)}
-                    </td>
-                    <td className="px-12 text-right font-mono tabular-nums">
-                      {formatEur(c.tarif_amount_eur)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <DataTable
+          columns={COLUMNS}
+          rows={courses}
+          rowKey={(c) => c.id}
+          ariaLabel="Aperçu des courses facturables CGSS de la période"
+          emptyState={
+            <div className="text-muted-foreground flex flex-col items-center gap-8 py-32 text-center text-sm">
+              <FileText className="h-32 w-32" strokeWidth={1.5} aria-hidden />
+              <p>Aucune course facturable CGSS pour cette période.</p>
+              <p className="text-xs">
+                Les courses en tiers payant CGSS clôturées sur la période apparaîtront ici.
+              </p>
+            </div>
+          }
+        />
 
         {countSansTarif > 0 && (
-          <p className="flex items-center gap-8 text-xs text-amber-700">
+          <p className="text-warning flex items-center gap-8 text-xs">
             <AlertTriangle className="h-12 w-12 shrink-0" aria-hidden />
             {countSansTarif} course{countSansTarif > 1 ? 's' : ''} CGSS clôturée
             {countSansTarif > 1 ? 's' : ''} sans tarif — non incluse

@@ -1,9 +1,60 @@
 'use client';
 
 import { LayoutDashboard } from 'lucide-react';
-import { CourseRow } from './course-row.client';
 import { EmptyState } from '@/components/ui/empty-state';
+import { DataTable, type DataTableColumn } from '@/components/data-table';
+import { StatusBadge } from '../../courses/_components/ride-badges';
 import type { CockpitRide } from '../_lib/types';
+
+function formatTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleTimeString('fr-FR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Indian/Reunion',
+  });
+}
+
+function formatName(person: CockpitRide['patient']): string {
+  if (!person) return '—';
+  const parts = [person.prenom, person.nom].filter(Boolean);
+  return parts.length > 0 ? parts.join(' ') : '—';
+}
+
+const COLUMNS: DataTableColumn<CockpitRide>[] = [
+  {
+    key: 'heure',
+    header: 'Heure',
+    cell: (ride) => <span className="tabular-nums">{formatTime(ride.scheduled_at)}</span>,
+  },
+  {
+    key: 'patient',
+    header: 'Patient',
+    cell: (ride) => (
+      <span className="text-foreground block truncate font-medium">{formatName(ride.patient)}</span>
+    ),
+  },
+  {
+    key: 'depart',
+    header: 'Départ',
+    cell: (ride) => (
+      <span className="text-muted-foreground block max-w-[280px] truncate">
+        {ride.pickup_address || '—'}
+      </span>
+    ),
+  },
+  {
+    key: 'chauffeur',
+    header: 'Chauffeur',
+    cell: (ride) => ride.driver?.nom_affichage ?? '—',
+  },
+  {
+    key: 'statut',
+    header: 'Statut',
+    cell: (ride) => <StatusBadge status={ride.status} />,
+  },
+];
 
 export function CoursesTable({
   rides,
@@ -12,34 +63,20 @@ export function CoursesTable({
   rides: CockpitRide[];
   newRideIds: Set<string>;
 }): JSX.Element {
-  if (rides.length === 0) {
-    return (
-      <EmptyState
-        icon={LayoutDashboard}
-        title="Aucune course en cours"
-        description="Aucune activité opérationnelle pour le moment. Les nouvelles courses apparaîtront ici en temps réel."
-      />
-    );
-  }
-
   return (
-    <div className="border-border bg-background overflow-x-auto rounded-lg border">
-      <table className="w-full border-collapse">
-        <thead className="bg-muted/40">
-          <tr className="border-border text-muted-foreground h-10 border-b text-xs uppercase tracking-wide">
-            <th className="px-12 text-left font-medium">Heure</th>
-            <th className="px-12 text-left font-medium">Patient</th>
-            <th className="px-12 text-left font-medium">Départ</th>
-            <th className="px-12 text-left font-medium">Chauffeur</th>
-            <th className="px-12 text-left font-medium">Statut</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rides.map((ride) => (
-            <CourseRow key={ride.id} ride={ride} isNew={newRideIds.has(ride.id)} />
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <DataTable
+      columns={COLUMNS}
+      rows={rides}
+      rowKey={(ride) => `${ride.id}:${ride.status}`}
+      ariaLabel="Liste des courses en cours dans le cockpit régulateur"
+      rowClassName={(ride) => (newRideIds.has(ride.id) ? 'cockpit-row-fade-in' : '')}
+      emptyState={
+        <EmptyState
+          icon={LayoutDashboard}
+          title="Aucune course en cours"
+          description="Aucune activité opérationnelle pour le moment. Les nouvelles courses apparaîtront ici en temps réel."
+        />
+      }
+    />
   );
 }

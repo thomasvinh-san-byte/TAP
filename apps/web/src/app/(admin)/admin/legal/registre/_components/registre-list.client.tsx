@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { BookOpen, Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
+import { DataTable, type DataTableColumn } from '@/components/data-table';
 import { RegistreDrawer } from './registre-drawer.client';
 
 type Entry = {
@@ -15,9 +16,38 @@ type Entry = {
   created_at: string;
 };
 
+const COLUMNS: DataTableColumn<Entry>[] = [
+  { key: 'purpose', header: 'Finalité', cell: (e) => e.purpose },
+  {
+    key: 'legal_basis',
+    header: 'Base légale',
+    cell: (e) => <Badge variant="outline">{e.legal_basis}</Badge>,
+  },
+  {
+    key: 'retention',
+    header: 'Conservation',
+    cell: (e) => <span className="tabular-nums">{e.retention_period_days} jours</span>,
+  },
+  {
+    key: 'international_transfer',
+    header: 'Transfert intl.',
+    cell: (e) => (e.international_transfer ? 'Oui' : 'Non'),
+  },
+  {
+    key: 'created_at',
+    header: 'Créé le',
+    cell: (e) => (
+      <span className="text-muted-foreground tabular-nums">
+        {new Date(e.created_at).toLocaleDateString('fr-FR')}
+      </span>
+    ),
+  },
+];
+
 /**
  * Liste registre des traitements + ouverture drawer création.
- * D-05 : versioning par lignes — chaque ligne est une version archivée.
+ * D-05 (Phase 06.6) : versioning par lignes — chaque ligne est une version
+ * archivée.
  */
 export function RegistreList({ entries }: { entries: Entry[] }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -46,34 +76,12 @@ export function RegistreList({ entries }: { entries: Entry[] }) {
 
   return (
     <>
-      <div className="rounded-lg border">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/40 border-b">
-            <tr>
-              <th className="p-12 text-left font-medium">Finalité</th>
-              <th className="p-12 text-left font-medium">Base légale</th>
-              <th className="p-12 text-left font-medium">Conservation</th>
-              <th className="p-12 text-left font-medium">Transfert intl.</th>
-              <th className="p-12 text-left font-medium">Créé le</th>
-            </tr>
-          </thead>
-          <tbody>
-            {entries.map((e) => (
-              <tr key={e.id} className="hover:bg-muted/20 border-b last:border-0">
-                <td className="p-12">{e.purpose}</td>
-                <td className="p-12">
-                  <Badge variant="outline">{e.legal_basis}</Badge>
-                </td>
-                <td className="p-12 tabular-nums">{e.retention_period_days} jours</td>
-                <td className="p-12">{e.international_transfer ? 'Oui' : 'Non'}</td>
-                <td className="text-muted-foreground p-12 tabular-nums">
-                  {new Date(e.created_at).toLocaleDateString('fr-FR')}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        columns={COLUMNS}
+        rows={entries}
+        rowKey={(e) => e.id}
+        ariaLabel="Registre des traitements RGPD"
+      />
       <RegistreDrawer open={drawerOpen} onOpenChange={setDrawerOpen} />
     </>
   );

@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState as SharedEmptyState } from '@/components/ui/empty-state';
+import { DataTable, type DataTableColumn } from '@/components/data-table';
 import {
   Sheet,
   SheetContent,
@@ -76,23 +77,16 @@ export function VehiclesList({ initialVehicles }: Props): JSX.Element {
         </Button>
       </div>
 
-      {initialVehicles.length === 0 ? (
-        <EmptyState onCreate={() => setMode({ kind: 'create' })} />
-      ) : (
-        <ul className="divide-border border-border divide-y rounded-md border">
-          {initialVehicles.map((v) => {
-            const Icon = TYPE_ICONS[v.type];
-            return (
-              // Clé inclut `actif` pour forcer le re-mount au changement
-              // de l'état actif (toggle via formulaire). Pas `archive` ici :
-              // page.tsx ne fetch que les véhicules non-archivés (DEC-033).
-              <li key={`${v.id}-${v.actif}`}>
-                <button
-                  type="button"
-                  onClick={() => setMode({ kind: 'edit', vehicle: v })}
-                  className="hover:bg-muted focus-visible:ring-ring flex w-full items-center gap-12 px-16 py-12 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset"
-                >
-                  <div className="bg-muted text-muted-foreground flex h-32 w-32 items-center justify-center rounded-md">
+      <DataTable<VehicleRow>
+        columns={[
+          {
+            key: 'vehicule',
+            header: 'Véhicule',
+            cell: (v) => {
+              const Icon = TYPE_ICONS[v.type];
+              return (
+                <div className="flex items-center gap-12">
+                  <div className="bg-muted text-muted-foreground flex h-32 w-32 shrink-0 items-center justify-center rounded-md">
                     <Icon className="h-16 w-16" aria-hidden />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -102,23 +96,48 @@ export function VehiclesList({ initialVehicles }: Props): JSX.Element {
                         'Marque/modèle non renseigné'}
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-8">
-                    <Badge variant="secondary" className="text-xs">
-                      {TYPE_LABELS[v.type]}
-                    </Badge>
-                    {v.places_assises !== null && (
-                      <Badge variant="outline" className="text-xs tabular-nums">
-                        {v.places_assises} pl.
-                      </Badge>
-                    )}
-                    {v.actif ? <Badge>Actif</Badge> : <Badge variant="outline">Inactif</Badge>}
-                  </div>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+                </div>
+              );
+            },
+          },
+          {
+            key: 'type',
+            header: 'Type',
+            width: '180px',
+            cell: (v) => (
+              <Badge variant="secondary" className="text-xs">
+                {TYPE_LABELS[v.type]}
+              </Badge>
+            ),
+          },
+          {
+            key: 'places',
+            header: 'Places',
+            width: '100px',
+            cell: (v) =>
+              v.places_assises !== null ? (
+                <Badge variant="outline" className="text-xs tabular-nums">
+                  {v.places_assises} pl.
+                </Badge>
+              ) : (
+                <span className="text-muted-foreground text-xs">—</span>
+              ),
+          },
+          {
+            key: 'actif',
+            header: 'Statut',
+            width: '120px',
+            cell: (v) =>
+              v.actif ? <Badge>Actif</Badge> : <Badge variant="outline">Inactif</Badge>,
+          },
+        ]}
+        rows={initialVehicles}
+        // DEC-033 : clé inclut `actif` pour re-mount au changement.
+        rowKey={(v) => `${v.id}-${v.actif}`}
+        ariaLabel="Liste des véhicules de la flotte"
+        onRowClick={(v) => setMode({ kind: 'edit', vehicle: v })}
+        emptyState={<EmptyState onCreate={() => setMode({ kind: 'create' })} />}
+      />
 
       <Sheet
         open={mode.kind !== 'closed'}

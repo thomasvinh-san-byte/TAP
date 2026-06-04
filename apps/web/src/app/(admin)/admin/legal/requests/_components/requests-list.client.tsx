@@ -5,6 +5,7 @@ import { Plus, Inbox } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
+import { DataTable, type DataTableColumn } from '@/components/data-table';
 import { RequestDrawer } from './request-drawer.client';
 
 type Entry = {
@@ -16,6 +17,43 @@ type Entry = {
   requester_email: string | null;
   response_at: string | null;
 };
+
+const COLUMNS: DataTableColumn<Entry>[] = [
+  {
+    key: 'request_type',
+    header: 'Type',
+    cell: (e) => <Badge variant="outline">{e.request_type}</Badge>,
+  },
+  { key: 'status', header: 'Statut', cell: (e) => e.status },
+  {
+    key: 'requested_at',
+    header: 'Reçue le',
+    cell: (e) => (
+      <span className="tabular-nums">{new Date(e.requested_at).toLocaleDateString('fr-FR')}</span>
+    ),
+  },
+  {
+    key: 'deadline_at',
+    header: 'Échéance',
+    cell: (e) => (
+      <span className="tabular-nums">{new Date(e.deadline_at).toLocaleDateString('fr-FR')}</span>
+    ),
+  },
+  {
+    key: 'requester_email',
+    header: 'Demandeur',
+    cell: (e) => <span className="text-muted-foreground">{e.requester_email ?? '—'}</span>,
+  },
+  {
+    key: 'response_at',
+    header: 'Répondue le',
+    cell: (e) => (
+      <span className="text-muted-foreground tabular-nums">
+        {e.response_at ? new Date(e.response_at).toLocaleDateString('fr-FR') : '—'}
+      </span>
+    ),
+  },
+];
 
 export function RequestsList({ entries }: { entries: Entry[] }) {
   const [open, setOpen] = useState(false);
@@ -29,48 +67,19 @@ export function RequestsList({ entries }: { entries: Entry[] }) {
         </Button>
       </div>
 
-      {entries.length === 0 ? (
-        <EmptyState
-          icon={Inbox}
-          title="Aucune demande en attente"
-          description="Aucune demande de droits patients reçue. Vous disposez de 30 jours pour répondre à chaque demande."
-        />
-      ) : (
-        <div className="rounded-lg border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40 border-b">
-              <tr>
-                <th className="p-12 text-left font-medium">Type</th>
-                <th className="p-12 text-left font-medium">Statut</th>
-                <th className="p-12 text-left font-medium">Reçue le</th>
-                <th className="p-12 text-left font-medium">Échéance</th>
-                <th className="p-12 text-left font-medium">Demandeur</th>
-                <th className="p-12 text-left font-medium">Répondue le</th>
-              </tr>
-            </thead>
-            <tbody>
-              {entries.map((e) => (
-                <tr key={e.id} className="hover:bg-muted/20 border-b last:border-0">
-                  <td className="p-12">
-                    <Badge variant="outline">{e.request_type}</Badge>
-                  </td>
-                  <td className="p-12">{e.status}</td>
-                  <td className="p-12 tabular-nums">
-                    {new Date(e.requested_at).toLocaleDateString('fr-FR')}
-                  </td>
-                  <td className="p-12 tabular-nums">
-                    {new Date(e.deadline_at).toLocaleDateString('fr-FR')}
-                  </td>
-                  <td className="text-muted-foreground p-12">{e.requester_email ?? '—'}</td>
-                  <td className="text-muted-foreground p-12 tabular-nums">
-                    {e.response_at ? new Date(e.response_at).toLocaleDateString('fr-FR') : '—'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <DataTable
+        columns={COLUMNS}
+        rows={entries}
+        rowKey={(e) => `${e.id}:${e.status}`}
+        ariaLabel="Liste des demandes de droits patients"
+        emptyState={
+          <EmptyState
+            icon={Inbox}
+            title="Aucune demande en attente"
+            description="Aucune demande de droits patients reçue. Vous disposez de 30 jours pour répondre à chaque demande."
+          />
+        }
+      />
 
       <RequestDrawer open={open} onOpenChange={setOpen} />
     </>
