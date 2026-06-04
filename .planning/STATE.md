@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.18 livrée localement (login + AuthShell aux normes) — PR ouverte, sync STATE après merge"
-last_updated: "2026-06-04T23:00:00.000Z"
-last_activity: Phase 06.18 « Page de connexion — champs + UI aux normes » cadrée + exécutée dans une seule PR. Composants <PasswordInput> (toggle visibilité accessible W3C, aria-pressed) et <ThemeToggle> (extrait de UserMenu via hook partagé useTheme — DRY). login + accept-invite consomment PasswordInput. AuthShell repassé en Server Component avec ThemeToggle dans le header form (bascule jour/nuit avant connexion). Email login en inputMode=email. Reset MDP exclu. 77 tests verts (9 nouveaux : PasswordInput 5 + ThemeToggle 4).
+stopped_at: "Audit planning : 06.11 + 06.18 cochées livrées, total_phases réaligné (31). 06.18 close. 2026-06-04"
+last_updated: "2026-06-04T23:30:00.000Z"
+last_activity: Sync planning post-audit : correction de la checkbox 06.11 (livrée mais jamais cochée), clôture 06.18 (page login, PR #233), réalignement total_phases 29→31 (jamais suivi l'ajout 06.17/06.18), Phase 07 (mobile natif) marquée abandonnée par décision dirigeant (DEC-092). Compteurs : 26/31 phases livrées, 4 phases ouvertes actives (06.9 / 06.12 / 09 / 10), 1 abandonnée (07).
 progress:
-  total_phases: 29
-  completed_phases: 24
+  total_phases: 31
+  completed_phases: 26
   total_plans: 80
   completed_plans: 80
-  percent: 83
+  percent: 84
 ---
 
 # Project State
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.18 « Login + AuthShell aux normes » en cours de merge. PasswordInput + ThemeToggle communs, hook useTheme partagé. AuthShell repassé en RSC. Bloc UI/forms étendu à 6 phases (06.13 → 06.18).
+**Current focus:** 26/31 phases livrées. Bloc design system + qualité saisie + login complet et cohérent. Prochaine phase à trancher : 06.9, 06.12, 09, 10.
 
 ## Current Position
 
@@ -30,12 +30,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.18 livrée localement (2026-06-04) — Login + AuthShell aux normes, PR ouverte
-Phase next: sync STATE + ROADMAP après merge 06.18. Puis trancher : 06.9, 06.12, 07, 09, 10.
-Status: Phase 06.18 livrée localement. <PasswordInput> (toggle visibilité W3C accessible) + <ThemeToggle> (hook useTheme partagé avec UserMenu, DRY). AuthShell repassé en RSC. login + accept-invite consomment PasswordInput. Email login inputMode=email. 77 tests verts (9 nouveaux).
+Phase: 06.18 close (2026-06-04) — Page de connexion aux normes livrée (#233). Audit planning passé : 06.11 + 06.18 cochées, compteurs réalignés.
+Phase next: à trancher par le dirigeant. Candidates ouvertes (4) : 06.9 (Next.js 15, autonome), 06.12 (réactivation solveur — décision plan Vercel en attente), 09 (HDS, verrou 1er client payant), 10 (géoloc temps réel, post-HDS). Phase 07 (mobile natif) abandonnée DEC-092.
+Status: 26/31 phases livrées. Plus de suite design « naturelle » — choix dirigeant requis.
 Blockers: aucun
-Last activity: Phase 06.18 « Page de connexion — champs + UI aux normes » exécutée en local. Composants <PasswordInput> (toggle visibilité W3C, aria-pressed, slot suffixe) et <ThemeToggle> (extrait UserMenu via hook useTheme partagé, DRY ~20 LOC supprimées). AuthShell repassé Server Component (toggle = unique îlot client). login + accept-invite consomment PasswordInput. Email login inputMode=email. 77 tests verts (9 nouveaux). 0 dépendance, 0 migration BDD.
-Précédent: Bloc design system étendu à 6 phases — 06.13 foundations (#218), 06.14 tokens→Tailwind (#223), 06.15 data tables (#226), 06.16 PageHeader (#228), 06.17 conformité champs (#230+#231+#232), 06.18 login + AuthShell (PR à ouvrir).
+Last activity: Sync planning post-audit (correction 06.11 + clôture 06.18 + réalignement total_phases 31 + abandon 07 DEC-092).
+Précédent: 06.17 conformité 132 champs (#230/#231/#232), 06.18 page login (#233).
 
 Progress: [██████████] 100%
 
@@ -143,6 +143,8 @@ DEC-040 candidate (Phase 06 HDS) — Server Actions admin obligatoirement gardé
 DEC-082 (06.7-01) — Pre-filtrage fenêtres temporelles remplace AddDisjunction OR-Tools (bad_alloc combinaison Time+PDP+Disjunction) ; comportement observable identique.
 DEC-083 (06.7-01) — CONTRACT_VERSION='1' dans SolveRequest+SolveResponse Python (Literal['1']) ; à synchroniser manuellement avec zod Wave 2.
 
+DEC-092 (2026-06-04) — Mobile natif (Phase 07) abandonné. Motif : la PWA Phase 04.9 couvre le périmètre terrain retenu, le coût natif (10×, 25-40 h) n'est pas justifié au stade actuel. Réversible si business case mobile validé ultérieurement. Conséquence Phase 10 (géoloc) : pas de fallback natif, le discuss devra concevoir une solution PWA premier-plan dégradé (capture pendant l'usage actif chauffeur).
+
 ### NFR (Non-Functional Requirements transverses)
 
 6 NFR ajoutés en REQUIREMENTS.md (run ingest 2026-05-12) :
@@ -190,10 +192,10 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-06-04T23:00:00.000Z
-Stopped at: Phase 06.18 livrée localement (Page de connexion + AuthShell aux normes). PR à ouvrir + à attendre merge avant sync STATE final. Bloc design system étendu à 6 phases (06.13 → 06.18). Prochaine phase à trancher après merge (06.9 / 06.12 / 07 / 09 / 10).
+Last session: 2026-06-04T23:30:00.000Z
+Stopped at: Audit planning passé, 26/31 phases livrées. Prochaine phase à trancher (06.9 / 06.12 / 09 / 10). Phase 07 abandonnée (DEC-092).
 Resume file: None
-Next command suggested: après merge PR 06.18 → `/gsd-sync-state` puis `/gsd-discuss-phase <phase choisie>`
+Next command suggested: `/gsd-discuss-phase <phase choisie>`
 
 ## Ingest Runs
 
