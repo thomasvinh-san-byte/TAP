@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.14 en cadrage (entrée ROADMAP posée + RESEARCH rangé en dossier de phase + discuss à lancer)"
-last_updated: "2026-06-04T08:00:00.000Z"
-last_activity: Cadrage Phase 06.14 « Migration tokens.json → Tailwind config » lancé — entrée ROADMAP posée [ ], RESEARCH déplacé en `.planning/phases/06.14-migration-tokens-tailwind/06.14-RESEARCH.md` (cohérence structure GSD). Prochain pas : discuss + CONTEXT + DISCUSSION-LOG (architecture DTCG du dark à trancher entre Token Sets et $value structuré).
+stopped_at: "Phase 06.14 context gathered (assumptions mode) — CONTEXT + DISCUSSION-LOG livrés"
+last_updated: "2026-06-04T05:24:10.111Z"
+last_activity: Phase 06.14 « Migration tokens.json → Tailwind config » — CONTEXT + DISCUSSION-LOG livrés (mode assumptions). 8 décisions D-01..D-08 inscrites (Token Sets DTCG, style-dictionary v4 devDep racine prebuild, alpha-value sur 16 occurrences tailwind.config.ts uniquement, périmètre élargi PDF + themeColor PWA via export JS tokens.generated.ts). Prochain pas : plan-phase.
 progress:
   total_phases: 27
   completed_phases: 20
@@ -190,10 +190,10 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-06-04T08:00:00.000Z
-Stopped at: Phase 06.14 cadrée — entrée ROADMAP posée, RESEARCH rangé en dossier de phase, STATE + journal mis à jour. Discuss à lancer dans la foulée (architecture DTCG du dark à trancher).
-Resume file: .planning/phases/06.14-migration-tokens-tailwind/06.14-RESEARCH.md
-Next command suggested: `/gsd-discuss-phase 06.14`
+Last session: 2026-06-04T05:24:10.086Z
+Stopped at: Phase 06.14 context gathered (assumptions mode)
+Resume file: .planning/phases/06.14-migration-tokens-tailwind/06.14-CONTEXT.md
+Next command suggested: `/gsd-plan-phase 06.14`
 
 ## Ingest Runs
 
