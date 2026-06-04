@@ -1,7 +1,7 @@
 'use client';
 
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Field } from '@/components/form/field';
 import { DateFieldFr } from '@/components/date-field-fr.client';
 import type { DpaPrefillFiche } from '../../_lib/dpa-prefill-content';
 
@@ -50,29 +50,30 @@ export function DpaPrefillCard({
         onSubmit={(e) => e.preventDefault()}
         className={included ? 'mt-16 space-y-16' : 'hidden'}
       >
-        <div className="space-y-4">
-          <Label htmlFor={fieldId('subprocessor_name')}>Sous-traitant</Label>
-          <Input
-            id={fieldId('subprocessor_name')}
-            name="subprocessor_name"
-            required
-            defaultValue={fiche.subprocessor_name}
-          />
-        </div>
-        <div className="space-y-4">
-          <Label htmlFor={fieldId('subprocessor_role')}>Rôle</Label>
-          <Input
-            id={fieldId('subprocessor_role')}
-            name="subprocessor_role"
-            required
-            defaultValue={fiche.subprocessor_role}
-          />
-        </div>
-        <div className="space-y-4">
-          <Label htmlFor={fieldId('dpa_version')}>Version du DPA</Label>
-          <Input id={fieldId('dpa_version')} name="dpa_version" defaultValue={fiche.dpa_version} />
-          <p className="text-muted-foreground text-xs">Obligatoire — à renseigner.</p>
-        </div>
+        <Field
+          id={fieldId('subprocessor_name')}
+          name="subprocessor_name"
+          label="Sous-traitant"
+          required
+          defaultValue={fiche.subprocessor_name}
+          maxLength={120}
+        />
+        <Field
+          id={fieldId('subprocessor_role')}
+          name="subprocessor_role"
+          label="Rôle"
+          required
+          defaultValue={fiche.subprocessor_role}
+          maxLength={200}
+        />
+        <Field
+          id={fieldId('dpa_version')}
+          name="dpa_version"
+          label="Version du DPA"
+          defaultValue={fiche.dpa_version}
+          hint="Obligatoire — à renseigner (ex : « v2.1 - juin 2024 »)."
+          maxLength={50}
+        />
         <div className="space-y-4">
           <Label htmlFor={fieldId('signed_at')}>Date de signature</Label>
           <DateFieldFr id={fieldId('signed_at')} name="signed_at" defaultValue={fiche.signed_at} />

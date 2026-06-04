@@ -14,10 +14,13 @@ export type ActionState = { error?: string; success?: boolean };
 
 function parseDpaForm(formData: FormData) {
   const raw = Object.fromEntries(formData.entries()) as Record<string, string>;
+  // PR3 06.17 — normalisation submit : trim sur toutes les saisies texte.
+  // Pas de Title Case sur subprocessor_name (les marques/services
+  // sous-traitants ont leur casse canonique propre — OVH, AWS, etc.).
   return dpaRecordSchema.safeParse({
-    subprocessor_name: raw.subprocessor_name,
-    subprocessor_role: raw.subprocessor_role,
-    dpa_version: raw.dpa_version,
+    subprocessor_name: raw.subprocessor_name?.trim(),
+    subprocessor_role: raw.subprocessor_role?.trim(),
+    dpa_version: raw.dpa_version?.trim(),
     dpa_document_url: raw.dpa_document_url?.trim() || null,
     signed_at: raw.signed_at,
     expires_at: raw.expires_at?.trim() || null,

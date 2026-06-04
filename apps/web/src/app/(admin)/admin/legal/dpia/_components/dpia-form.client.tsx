@@ -3,8 +3,8 @@
 import { useState, useTransition } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Field } from '@/components/form/field';
 import { DateFieldFr } from '@/components/date-field-fr.client';
 import { createDpiaAction, updateDpiaAction } from '../actions';
 
@@ -46,10 +46,13 @@ export function DpiaForm({ mode, dpiaId, onClose }: Props) {
         </SheetHeader>
 
         <form action={onSubmit} className="mt-24 space-y-16">
-          <div className="space-y-4">
-            <Label htmlFor="title">Titre</Label>
-            <Input id="title" name="title" required />
-          </div>
+          <Field
+            id="title"
+            label="Titre"
+            required
+            hint="Nom court de l'analyse d'impact (ex : « DPIA Transport patients dialyse »)."
+            maxLength={200}
+          />
           <div className="space-y-4">
             <Label htmlFor="scope">Périmètre</Label>
             <textarea

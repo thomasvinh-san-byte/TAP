@@ -58,6 +58,7 @@ export function VehicleForm({ initial, onSuccess }: Props): JSX.Element {
         error={fe.immatriculation}
         autoFocus
         required
+        maxLength={9}
         className="uppercase tabular-nums"
       />
 

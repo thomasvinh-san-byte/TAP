@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Field } from '@/components/form/field';
 import { updateDpoContactAction } from './actions';
 
 interface Props {
@@ -32,25 +32,25 @@ export function DpoForm({ initial }: Props) {
 
   return (
     <form action={onSubmit} className="space-y-16">
-      <div className="space-y-4">
-        <Label htmlFor="dpo_contact_email">Email DPO</Label>
-        <Input
-          id="dpo_contact_email"
-          name="dpo_contact_email"
-          type="email"
-          defaultValue={initial.dpo_contact_email}
-          placeholder="dpo@societe.fr"
-        />
-      </div>
-      <div className="space-y-4">
-        <Label htmlFor="dpo_contact_phone">Téléphone DPO</Label>
-        <Input
-          id="dpo_contact_phone"
-          name="dpo_contact_phone"
-          type="tel"
-          defaultValue={initial.dpo_contact_phone}
-        />
-      </div>
+      <Field
+        id="dpo_contact_email"
+        label="Email DPO"
+        type="email"
+        defaultValue={initial.dpo_contact_email}
+        placeholder="dpo@societe.fr"
+        hint="Adresse mail à afficher pour les contacts RGPD patients."
+        maxLength={120}
+      />
+      <Field
+        id="dpo_contact_phone"
+        label="Téléphone DPO"
+        type="tel"
+        inputMode="tel"
+        defaultValue={initial.dpo_contact_phone}
+        placeholder="02 62 12 34 56"
+        hint="Numéro de contact (format libre, jusqu'à 14 caractères)."
+        maxLength={14}
+      />
       <div className="space-y-4">
         <Label htmlFor="dpo_contact_address">Adresse postale</Label>
         <textarea
