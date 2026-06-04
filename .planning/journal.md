@@ -1,5 +1,9 @@
 # Journal — phases livrées
 
+## 2026-06-04 — Phase 06.14 cadrée
+
+Phase 06.14 « Migration tokens.json → Tailwind config » cadrée. Entrée ROADMAP posée `[ ]` après 06.13. RESEARCH sourcé (versé en PR #220, mergée) rangé dans le dossier de phase `.planning/phases/06.14-migration-tokens-tailwind/06.14-RESEARCH.md` pour cohérence de structure GSD. STATE + journal mis à jour (06.14 en cadrage). Décisions dirigeant déjà actées : dark généré depuis les tokens (anti-dérive), rester Tailwind v3 (v4 = décision séparée couplée à 06.9). Architecture DTCG du dark à trancher au discuss (Token Sets vs `$value` structuré). Estimation indicative 5-8 h. Périmètre dark chiffré : 12 couleurs sur 57 tokens.
+
 ## 2026-06-03 (suite) — Phase 06.13 lancée et livrée
 
 Phase 06.13 « Foundations design system » lancée et livrée en 1 PR documentaire pure. 4 livrables : 01-foundations.md (doctrine WCAG 2.1 AA + RGAA 4.1.2 + conventions visuelles), tokens.json (W3C Design Tokens 2025.10), 02-patterns-emergents.md (5 patterns réutilisables documentés : KpiCard, EmptyState, RideBadge, SlaBadgesCard, HautsBadge), 03-benchmark-foss.md (recherche FOSS méthodique capitalisée en version compacte). DEC-088 doctrine accessibilité, DEC-089 étoile polaire hybride Carbon+Atlassian+NHS, DEC-090 phase 100% documentaire, DEC-091 chantier PDF reporté. Base établie pour phases 06.14+ (migration tokens, refonte tables, refonte settings).
