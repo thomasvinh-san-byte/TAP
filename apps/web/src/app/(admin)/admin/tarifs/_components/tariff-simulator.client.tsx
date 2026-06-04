@@ -62,11 +62,13 @@ export function TariffSimulator({ grid }: { grid: TariffGrid }): JSX.Element {
       <div className="grid grid-cols-2 gap-12">
         <div className="space-y-4">
           <Label htmlFor="sim-distance">Distance (km)</Label>
+          {/* PR2 06.17 : pas de spinner, inputMode décimal pour mobile.
+              Champ contrôlé → Input direct avec attributs explicites. */}
           <Input
             id="sim-distance"
-            type="number"
-            min={0}
-            step={0.1}
+            type="text"
+            inputMode="decimal"
+            pattern="[0-9]+([.,][0-9]+)?"
             value={distanceKm}
             onChange={(e) => setDistanceKm(e.target.value)}
           />

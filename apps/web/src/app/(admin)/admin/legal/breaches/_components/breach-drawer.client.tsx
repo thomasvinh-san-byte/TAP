@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { NumberField } from '@/components/form/number-field';
 import { createBreachAction } from '../actions';
 import {
   SEVERITY_OPTS,
@@ -73,15 +74,13 @@ export function BreachDrawer({ open, onOpenChange }: Props) {
               placeholder="identite, sante"
             />
           </div>
-          <div className="space-y-4">
-            <Label htmlFor="affected_subjects_count">Nombre de personnes concernées</Label>
-            <Input
-              id="affected_subjects_count"
-              name="affected_subjects_count"
-              type="number"
-              min="0"
-            />
-          </div>
+          <NumberField
+            id="affected_subjects_count"
+            label="Nombre de personnes concernées"
+            min={0}
+            kind="counter"
+            hint="Nombre estimé de personnes dont les données sont touchées."
+          />
           <div className="space-y-4">
             <Label htmlFor="description">Description</Label>
             <textarea

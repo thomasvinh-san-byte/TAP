@@ -3,6 +3,7 @@
 import { legalBasisLabels } from '@tap/shared';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { NumberField } from '@/components/form/number-field';
 
 /**
  * Jeu de champs du registre des traitements — fragment partagé.
@@ -91,18 +92,17 @@ export function RegistreFields({ idPrefix = '', values }: RegistreFieldsProps): 
           defaultValue={values?.recipients}
         />
       </div>
-      <div className="space-y-4">
-        <Label htmlFor={fieldId('retention_period_days')}>Conservation (jours)</Label>
-        <Input
-          id={fieldId('retention_period_days')}
-          name="retention_period_days"
-          type="number"
-          min="1"
-          max="36500"
-          required
-          defaultValue={values?.retention_period_days}
-        />
-      </div>
+      <NumberField
+        id={fieldId('retention_period_days')}
+        name="retention_period_days"
+        label="Conservation (jours)"
+        min={1}
+        max={36500}
+        kind="counter"
+        required
+        defaultValue={values?.retention_period_days ?? null}
+        hint="Durée légale ou contractuelle de conservation, en jours."
+      />
       <div className="space-y-4">
         <Label htmlFor={fieldId('security_measures')}>Mesures de sécurité</Label>
         <textarea

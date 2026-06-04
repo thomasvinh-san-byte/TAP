@@ -32,17 +32,29 @@ export interface FieldProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
   error?: string;
 }
 
-export function Field({ id, label, hint, error, className, ...rest }: FieldProps): JSX.Element {
+export function Field({
+  id,
+  label,
+  hint,
+  error,
+  className,
+  name,
+  ...rest
+}: FieldProps): JSX.Element {
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
   const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
+  // PR2 06.17 : `name` explicite respecté (utile quand un `idPrefix`
+  // rend les `id` uniques mais le `name` reste celui attendu par la
+  // Server Action — cf. registre-fields).
+  const effectiveName = name ?? id;
 
   return (
     <div className="space-y-8">
       <Label htmlFor={id}>{label}</Label>
       <Input
         id={id}
-        name={id}
+        name={effectiveName}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy}
         className={cn(error && 'border-destructive focus-visible:ring-destructive', className)}

@@ -133,13 +133,13 @@ export function OverrideTarifModal({
 
           <div className="space-y-8">
             <Label htmlFor="new-tarif">Nouveau tarif (€)</Label>
+            {/* PR2 06.17 : pas de spinner, inputMode décimal mobile,
+                pattern pour validation HTML5. */}
             <Input
               id="new-tarif"
-              type="number"
-              step={0.01}
-              min={0.01}
-              max={TARIF_MAX}
+              type="text"
               inputMode="decimal"
+              pattern="[0-9]+([.,][0-9]+)?"
               value={tarifInput}
               onChange={(e) => setTarifInput(e.target.value)}
               required
