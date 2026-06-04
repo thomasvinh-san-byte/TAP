@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.14 close (Migration tokens → Tailwind, PR #223 mergée) — STATE synchronisé 2026-06-04"
-last_updated: "2026-06-04T10:00:00.000Z"
-last_activity: Phase 06.14 « Migration tokens.json → Tailwind config » exécutée et mergée (PR #223). tokens.json source unique, génération Style Dictionary (fragment CSS + export JS hex), Token Sets light/dark, pattern alpha corrigé, 4 vars latentes matérialisées, 3 sites hex migrés. STATE synchronisé.
+stopped_at: "Phase 06.15 en cadrage (CONTEXT + DISCUSSION-LOG livrés) — décision Option 3 actée"
+last_updated: "2026-06-04T12:00:00.000Z"
+last_activity: Phase 06.15 « Refonte data tables » cadrée — décision dirigeant Option 3 (uniformiser sur composant DataTable commun, API extensible, sans implémenter tri/pagination au-delà de l'existant). CONTEXT D-01..D-06 + DISCUSSION-LOG livrés. ROADMAP entrée [ ] posée. 13 tables incluses (8 table + 4 divide-y + 1 mixte), 3 dropdowns saisie exclus. Estimation 12-16 h. Prochain pas : PLAN puis exécution.
 progress:
   total_phases: 27
   completed_phases: 21
@@ -21,18 +21,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.14 close. Design system branché sur le code (tokens.json source unique, génération Style Dictionary). Prochaine phase candidate : 06.15 (refonte data tables Carbon-inspired) ou autre candidate ouverte.
+**Current focus:** Phase 06.15 « Refonte data tables » en cadrage. CONTEXT + DISCUSSION-LOG livrés. Décision Option 3 (uniformiser maintenant, enrichir plus tard). Prochain pas : PLAN puis exécution.
 
 ## Current Position
 
 **Dernière mise à jour** : 2026-06-04 (cadrage Phase 06.14 lancé)
-**Phase courante** : aucune en exécution. Phase 06.14 « Migration tokens.json → Tailwind config » LIVRÉE (PR #223 mergée). Prochaine phase à trancher par le dirigeant.
+**Phase courante** : Phase 06.15 « Refonte data tables » en cadrage. Entrée ROADMAP posée [ ], CONTEXT + DISCUSSION-LOG livrés. PLAN à écrire puis exécution.
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.14 close (2026-06-04) — Migration tokens → Tailwind livrée, PR #223 mergée
-Phase next: à trancher par le dirigeant. Candidates ouvertes : 06.15 (refonte data tables Carbon-inspired, consomme les tokens migrés), 06.16 (refonte settings Linear+Stripe), 06.9 (Next.js 15), 06.12 (réactivation solveur), 07 (mobile natif), 09 (HDS), 10 (géoloc temps réel).
-Status: Phase 06.14 livrée et close. tokens.json source unique branchée via Style Dictionary. Aucune dépendance runtime, 0 migration BDD. Pattern alpha + 4 vars latentes corrigés.
+Phase: 06.15 en cadrage (2026-06-04) — Refonte data tables (Option 3 actée), CONTEXT + DISCUSSION-LOG livrés, ROADMAP entrée posée
+Phase next: PLAN 06.15-01 (découpage T1→T6 esquissé dans CONTEXT) puis exécution sur branche feat/06.15-refonte-data-tables. Estimation 12-16 h.
+Status: Phase 06.15 cadrée. 13 tables identifiées (8 `<table>` + 4 `divide-y` + 1 mixte) ; 3 dropdowns saisie exclus. Décisions D-01..D-06 LOCKED. API `<DataTable>` extensible avec tri/pagination prévus mais V1 implémente uniquement le tri existant de caisse-table. Logique métier préservée par table.
 Blockers: aucun
 Last activity: Synchronisation STATE après merge PR #223. Phase 06.14 cochée livrée dans ROADMAP, compteurs progress mis à jour (21/27 phases, 80 plans).
 Précédent: Phase 06.14 cadrée (RESEARCH #220, cadrage #221/#222) puis exécutée (#223).
@@ -190,10 +190,10 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-06-04T10:00:00.000Z
-Stopped at: Phase 06.14 close (Migration tokens → Tailwind, PR #223 mergée). STATE synchronisé. Prochaine phase à trancher (06.15 candidate naturelle — consomme les tokens migrés).
-Resume file: None
-Next command suggested: `/gsd-discuss-phase 06.15` (ou phase next choisie)
+Last session: 2026-06-04T12:00:00.000Z
+Stopped at: Phase 06.15 cadrée (Option 3 actée, CONTEXT + DISCUSSION-LOG livrés). PLAN à écrire puis exécution.
+Resume file: .planning/phases/06.15-refonte-data-tables/06.15-CONTEXT.md
+Next command suggested: `/gsd-plan-phase 06.15`
 
 ## Ingest Runs
 
