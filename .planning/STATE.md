@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.13 close (Foundations design system livrée + mergée PR #218) — STATE synchronisé 2026-06-03"
-last_updated: "2026-06-03T12:00:00.000Z"
-last_activity: STATE synchronisé avec l'état réel du repo après merge PR #218. Phase 06.13 « Foundations design system » officiellement close (4 livrables documentaires présents et vérifiés, 0 ligne code applicatif). Compteurs progress corrigés (incohérence total_plans<completed_plans purgée). Prochaine phase candidate 06.14 (migration tokens.json → tailwind.config.ts).
+stopped_at: "Phase 06.14 context gathered (assumptions mode) — CONTEXT + DISCUSSION-LOG livrés"
+last_updated: "2026-06-04T05:24:10.111Z"
+last_activity: Phase 06.14 « Migration tokens.json → Tailwind config » — CONTEXT + DISCUSSION-LOG livrés (mode assumptions). 8 décisions D-01..D-08 inscrites (Token Sets DTCG, style-dictionary v4 devDep racine prebuild, alpha-value sur 16 occurrences tailwind.config.ts uniquement, périmètre élargi PDF + themeColor PWA via export JS tokens.generated.ts). Prochain pas : plan-phase.
 progress:
-  total_phases: 26
+  total_phases: 27
   completed_phases: 20
   total_plans: 79
   completed_plans: 79
-  percent: 77
+  percent: 74
 ---
 
 # Project State
@@ -21,21 +21,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.13 « Foundations design system » close. Design system documenté (doctrine + tokens + patterns + benchmark). Prochaine étape candidate : 06.14 migration tokens → Tailwind config.
+**Current focus:** Phase 06.14 « Migration tokens.json → Tailwind config » en cadrage. RESEARCH versé (PR #220), entrée ROADMAP posée. Prochain pas : discuss (architecture DTCG du dark à trancher) puis plan.
 
 ## Current Position
 
-**Dernière mise à jour** : 2026-06-03 (Phase 06.13 close, mergée PR #218)
-**Phase courante** : aucune en exécution. Phase 06.13 « Foundations design system » LIVRÉE (PR #218). Prochaine phase candidate : 06.14 (migration tokens.json → tailwind.config.ts).
+**Dernière mise à jour** : 2026-06-04 (cadrage Phase 06.14 lancé)
+**Phase courante** : Phase 06.14 « Migration tokens.json → Tailwind config » en cadrage. Entrée ROADMAP posée, RESEARCH versé dans le dossier de phase, discuss à lancer.
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.13 close (2026-06-03) — Foundations design system livrée, PR #218 mergée
-Phase next: 06.14 candidate (migration tokens.json → tailwind.config.ts, 5-8 h estimé) — à cadrer en discuss. Alternatives ouvertes : 06.9 (Next.js 15), 06.12 (réactivation solveur), 07 (mobile natif), 09 (HDS), 10 (géoloc temps réel).
-Status: Phase 06.13 livrée et close. 4 livrables documentaires présents et vérifiés (01-foundations, 02-patterns-emergents, 03-benchmark-foss, tokens.json), 0 ligne de code applicatif. DEC-088..091 LOCKED. Aucune dépendance externe.
+Phase: 06.14 en cadrage (2026-06-04) — Migration tokens.json → Tailwind config, RESEARCH versé (PR #220 mergée), entrée ROADMAP posée
+Phase next: 06.14 discuss à lancer (architecture DTCG du dark à trancher : Token Sets vs $value structuré), puis plan, puis execute. Estimation indicative 5-8 h.
+Status: Phase 06.14 en cadrage. RESEARCH sourcé déjà mergé sur main. Décisions dirigeant actées : dark généré depuis les tokens, rester Tailwind v3 (v4 = décision séparée couplée à 06.9). Architecture DTCG du dark déléguée à Claude Code (DEC à inscrire au DISCUSSION-LOG).
 Blockers: aucun
-Last activity: Synchronisation STATE avec l'état réel du repo (post-merge PR #218). Phase 06.13 cochée livrée dans ROADMAP, compteurs progress corrigés (20/26 phases, 79 plans), bloc de position 06.11 fossile remplacé.
-Précédent: Phase 06.11 « Polish produit » livrée (PR #214..#217, 3 waves) ; clôture Phase 06.10 dettes techniques (PR #213).
+Last activity: Cadrage Phase 06.14 — entrée ROADMAP posée [ ], RESEARCH déplacé en dossier de phase `.planning/phases/06.14-migration-tokens-tailwind/`, STATE + journal mis à jour.
+Précédent: Phase 06.13 « Foundations design system » livrée (PR #218) + sync STATE (PR #219) + RESEARCH 06.14 versé (PR #220).
 
 Progress: [██████████] 100%
 
@@ -190,10 +190,10 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-06-03T12:00:00.000Z
-Stopped at: Phase 06.13 close (Foundations design system, PR #218 mergée). STATE synchronisé. Prochaine phase candidate 06.14 (migration tokens → Tailwind config) ou alternative ouverte (06.9 / 06.12 / 07 / 09 / 10) — décision dirigeant en attente.
-Resume file: None
-Next command suggested: `/gsd-discuss-phase 06.14` (ou phase next choisie)
+Last session: 2026-06-04T05:24:10.086Z
+Stopped at: Phase 06.14 context gathered (assumptions mode)
+Resume file: .planning/phases/06.14-migration-tokens-tailwind/06.14-CONTEXT.md
+Next command suggested: `/gsd-plan-phase 06.14`
 
 ## Ingest Runs
 
