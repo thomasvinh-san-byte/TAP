@@ -15,6 +15,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { rideExpressInputSchema, rideDraftSchema } from '@tap/shared';
+import { geocodeIfMissing } from '@/lib/geocoding/geocode-safety-net';
 import { getAuthContext, type ActionState } from './_shared';
 
 // --------------------------------------------------------------------------
@@ -38,11 +39,37 @@ export async function createRideAction(
   if (!ctx) return { error: 'Session expirée. Reconnectez-vous.' };
   const { supabase, user, organization_id } = ctx;
 
+  // DEC-094 Phase 06.19 : filet serveur de géocodage si coords absentes.
+  // Garantit que les courses créées sans picker (ex : API tierce, seed,
+  // brouillon resté en mode texte libre) sont quand même éligibles à
+  // l'optimisation `solveLocal`.
+  const input = parsed.data.input;
+  const [pickupCoords, dropoffCoords] = await Promise.all([
+    geocodeIfMissing(
+      input.pickup_address,
+      input.pickup_lat,
+      input.pickup_lng,
+      input.pickup_citycode,
+    ),
+    geocodeIfMissing(
+      input.dropoff_address,
+      input.dropoff_lat,
+      input.dropoff_lng,
+      input.dropoff_citycode,
+    ),
+  ]);
+
   const { data: row, error } = await supabase
     .from('rides')
     .insert({
       organization_id,
-      ...parsed.data.input,
+      ...input,
+      pickup_lat: pickupCoords.lat,
+      pickup_lng: pickupCoords.lng,
+      pickup_citycode: pickupCoords.citycode,
+      dropoff_lat: dropoffCoords.lat,
+      dropoff_lng: dropoffCoords.lng,
+      dropoff_citycode: dropoffCoords.citycode,
       created_by: user.id,
       updated_by: user.id,
     } as never)

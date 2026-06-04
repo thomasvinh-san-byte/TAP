@@ -10,13 +10,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { TimeField24 } from '@/components/time-field-24.client';
 import { DateFieldFr } from '@/components/date-field-fr.client';
+import { AddressOrPOIPicker } from '@/app/(app)/courses/_components/address-or-poi-picker.client';
 import { createRecurrenceAction } from '../../actions/recurrences';
 import { useHolidays974 } from '../_lib/use-holidays-974';
 import { RecurrencePreview } from './recurrence-preview.client';
+
+type Coords = { lat: number | null; lng: number | null; citycode: string | null };
+const EMPTY_COORDS: Coords = { lat: null, lng: null, citycode: null };
 
 const DAY_OPTIONS: { code: string; label: string }[] = [
   { code: 'MO', label: 'Lun' },
@@ -47,6 +50,10 @@ export function RecurrenceCreateModal({
   const [days, setDays] = useState<string[]>(['MO', 'WE', 'FR']);
   const [hour, setHour] = useState('08:00');
   const [startDate, setStartDate] = useState('');
+  const [pickupAddress, setPickupAddress] = useState('');
+  const [pickupCoords, setPickupCoords] = useState<Coords>(EMPTY_COORDS);
+  const [dropoffAddress, setDropoffAddress] = useState('');
+  const [dropoffCoords, setDropoffCoords] = useState<Coords>(EMPTY_COORDS);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const holidays974 = useHolidays974();
@@ -62,6 +69,15 @@ export function RecurrenceCreateModal({
     setError(null);
     formData.set('rrule_str', rruleStr);
     formData.set('patient_id', patientId);
+    formData.set('pickup_address', pickupAddress);
+    formData.set('dropoff_address', dropoffAddress);
+    // DEC-094 : threadage coords picker → Server Action (filet serveur si null).
+    if (pickupCoords.lat != null) formData.set('pickup_lat', String(pickupCoords.lat));
+    if (pickupCoords.lng != null) formData.set('pickup_lng', String(pickupCoords.lng));
+    if (pickupCoords.citycode) formData.set('pickup_citycode', pickupCoords.citycode);
+    if (dropoffCoords.lat != null) formData.set('dropoff_lat', String(dropoffCoords.lat));
+    if (dropoffCoords.lng != null) formData.set('dropoff_lng', String(dropoffCoords.lng));
+    if (dropoffCoords.citycode) formData.set('dropoff_citycode', dropoffCoords.citycode);
     startTransition(async () => {
       const result = await createRecurrenceAction(formData);
       if (result.error) {
@@ -71,6 +87,10 @@ export function RecurrenceCreateModal({
       onOpenChange(false);
       setDays(['MO', 'WE', 'FR']);
       setStartDate('');
+      setPickupAddress('');
+      setPickupCoords(EMPTY_COORDS);
+      setDropoffAddress('');
+      setDropoffCoords(EMPTY_COORDS);
     });
   }
 
@@ -133,27 +153,41 @@ export function RecurrenceCreateModal({
             <DateFieldFr id="rec-end" name="end_date" />
           </div>
 
-          <div className="space-y-4">
-            <Label htmlFor="rec-pickup">Adresse de prise en charge</Label>
-            <Input
-              id="rec-pickup"
-              name="pickup_address"
-              type="text"
-              placeholder="12 rue de Paris, Saint-Denis"
-              required
-            />
-          </div>
+          <AddressOrPOIPicker
+            id="rec-pickup"
+            label="Adresse de prise en charge"
+            ariaLabel="Adresse de prise en charge de la récurrence"
+            value={pickupAddress}
+            onChange={(v) => {
+              setPickupAddress(v);
+              if (pickupCoords.lat != null) setPickupCoords(EMPTY_COORDS);
+            }}
+            onSelect={(sel) =>
+              setPickupCoords({
+                lat: sel.lat ?? null,
+                lng: sel.lng ?? null,
+                citycode: sel.citycode ?? null,
+              })
+            }
+          />
 
-          <div className="space-y-4">
-            <Label htmlFor="rec-dropoff">Adresse de destination</Label>
-            <Input
-              id="rec-dropoff"
-              name="dropoff_address"
-              type="text"
-              placeholder="CHU Félix Guyon"
-              required
-            />
-          </div>
+          <AddressOrPOIPicker
+            id="rec-dropoff"
+            label="Adresse de destination"
+            ariaLabel="Adresse de destination de la récurrence"
+            value={dropoffAddress}
+            onChange={(v) => {
+              setDropoffAddress(v);
+              if (dropoffCoords.lat != null) setDropoffCoords(EMPTY_COORDS);
+            }}
+            onSelect={(sel) =>
+              setDropoffCoords({
+                lat: sel.lat ?? null,
+                lng: sel.lng ?? null,
+                citycode: sel.citycode ?? null,
+              })
+            }
+          />
 
           <div className="grid grid-cols-2 gap-16">
             <div className="space-y-4">
@@ -201,7 +235,15 @@ export function RecurrenceCreateModal({
             >
               Annuler
             </Button>
-            <Button type="submit" disabled={pending || days.length === 0}>
+            <Button
+              type="submit"
+              disabled={
+                pending ||
+                days.length === 0 ||
+                pickupAddress.trim().length === 0 ||
+                dropoffAddress.trim().length === 0
+              }
+            >
               {pending ? 'Création…' : 'Créer occurrences'}
             </Button>
           </DialogFooter>

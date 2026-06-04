@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.12 livrée localement (solveur heuristique TS, OR-Tools/Python/mock supprimés) — PR à ouvrir"
-last_updated: "2026-06-04T23:45:00.000Z"
-last_activity: Phase 06.12 « Solveur heuristique TypeScript natif » cadrée + exécutée. Abandon OR-Tools / Python / mock / hébergement séparé. Réécriture en heuristique TS cluster-first/route-second dans `apps/web/src/lib/optimizer/` (haversine.ts + solve-local.ts ~280 LOC). Contrat zod `@tap/optimizer-client` inchangé → réversible. Supprimés intégralement : `apps/web/py/solver/` (13 fichiers), `_mock-solver.ts`, `client.ts` HTTP, vercel.json Python builds. 6 scénarios pytest portés en Vitest (13 tests). ADR-010 supersede ADR-008 + ADR-009. DEC-093 LOCKED. 90 tests web verts (+13 nouveaux), build vert.
+stopped_at: "Phase 06.19 livrée localement (géocodage récurrences + filet serveur, alimente solveLocal) — PR à ouvrir"
+last_updated: "2026-06-04T23:55:00.000Z"
+last_activity: Phase 06.19 « Branchement géocodage (récurrences + filet serveur) » cadrée + exécutée. Comble le trou applicatif qui privait `solveLocal` (06.12) des courses récurrentes — dialyse = transport le plus mutualisable. AddressOrPOIPicker dans les 2 modales de récurrence (create + edit), schéma Zod étendu 6 champs coords, persistance template, propagation aux occurrences (helper extrait `lib/recurrence/build-rides-payload.ts`). Filet serveur idempotent + non bloquant `lib/geocoding/geocode-safety-net.ts` consommé par createRideAction + create/updateRecurrenceAction. Backfill étendu aux templates + occurrences futures (3 passes). Message exclusion reformulé + lien `/admin/maintenance`. DEC-094 LOCKED. 0 migration BDD (colonnes déjà existantes), 0 dépendance npm. 101 tests web verts (+11 nouveaux : 6 geocode-safety-net + 5 build-rides-payload).
 progress:
-  total_phases: 31
+  total_phases: 32
   completed_phases: 27
   total_plans: 80
   completed_plans: 80
-  percent: 87
+  percent: 84
 ---
 
 # Project State
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.12 livrée localement — solveur d'optimisation réécrit en heuristique TS native, OR-Tools/Python/mock supprimés. 27/31 phases livrées. Prochaines candidates ouvertes (3) : 06.9 (Next.js 15), 09 (HDS), 10 (géoloc).
+**Current focus:** Phase 06.19 livrée localement — géocodage branché sur récurrences + filet serveur, alimente solveLocal (06.12) sur le segment dialyse (cas le plus mutualisable). 27/32 phases livrées (06.19 PR à ouvrir). Candidates ouvertes (4) : 06.9 (Next.js 15), 06.19 (en cours), 09 (HDS), 10 (géoloc).
 
 ## Current Position
 
@@ -30,12 +30,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.12 livrée localement (2026-06-04) — Solveur heuristique TS natif, OR-Tools/Python/mock supprimés, PR à ouvrir.
-Phase next: à trancher par le dirigeant. Candidates ouvertes (3) : 06.9 (Next.js 15, autonome), 09 (HDS, verrou 1er client payant), 10 (géoloc temps réel, post-HDS). Phase 07 (mobile natif) abandonnée DEC-092.
-Status: 27/31 phases livrées. Solveur d'optimisation autonome, zéro hébergement externe, contrat zod préservé. 90 tests web verts (+13 solveur).
+Phase: 06.19 livrée localement (2026-06-04) — Géocodage récurrences + filet serveur, alimente solveLocal. PR à ouvrir.
+Phase next: à trancher par le dirigeant. Candidates ouvertes (3 après merge 06.19) : 06.9 (Next.js 15, autonome), 09 (HDS, verrou 1er client payant), 10 (géoloc temps réel, post-HDS). Phase 07 (mobile natif) abandonnée DEC-092.
+Status: 27/32 phases livrées. 06.19 dénoue le verrou de l'optimisation sur les courses récurrentes (dialyse = mutualisation maximale). 101 tests web verts (+11 nouveaux).
 Blockers: aucun
-Last activity: Phase 06.12 cadrée + exécutée (heuristique TS native, ADR-010 supersede ADR-008+009, DEC-093 LOCKED). PR à ouvrir.
-Précédent: Audit planning (06.11 + 06.18 cochées + abandon 07 DEC-092 + total_phases 31), 06.18 page login (#233), 06.17 conformité 132 champs (#230/#231/#232).
+Last activity: Phase 06.19 cadrée + exécutée (AddressOrPOIPicker dans les 2 modales récurrence + persistance template + propagation occurrences + filet serveur BAN + backfill étendu). DEC-094 LOCKED. PR à ouvrir.
+Précédent: Phase 06.12 solveur heuristique TS natif (#235), audit planning (06.11 + 06.18 cochées + abandon 07 DEC-092 + total_phases 31), 06.18 page login (#233).
 
 Progress: [██████████] 100%
 
@@ -147,6 +147,8 @@ DEC-092 (2026-06-04) — Mobile natif (Phase 07) abandonné. Motif : la PWA Phas
 
 DEC-093 (2026-06-04, Phase 06.12) — Solveur d'optimisation réimplémenté en heuristique TS native (cluster-first / route-second) dans `apps/web/src/lib/optimizer/`. OR-Tools / Python / mock / hébergement séparé abandonnés. Motif : volume réel ≤ 500 courses (contrat zod plafonne `rides.max(200)`), OR-Tools calibré 1000+ waypoints = disproportionné ; pour fenêtres temporelles petites + horaires quasi-fixes (dialyse) l'heuristique greedy est quasi-optimale ; indicateurs « estimés » DEC-081. Bénéfice : supprime la seule barrière d'hébergement, zéro coût marginal. Contrat zod `@tap/optimizer-client` inchangé → réversible. ADR-010 supersede ADR-008 + ADR-009.
 
+DEC-094 (2026-06-04, Phase 06.19) — Géocodage branché sur récurrences (`AddressOrPOIPicker` dans les 2 modales create + edit, persistance template `ride_recurrences`, propagation aux occurrences générées) + filet serveur idempotent + non bloquant `geocodeBanSearch` (helper partagé `lib/geocoding/geocode-safety-net.ts`) sur `createRideAction` et `create/updateRecurrenceAction`. Backfill `/admin/maintenance` étendu : pass templates + pass occurrences futures (cohérent cascade DEC-048). Alimente `solveLocal` (06.12) sur le segment dialyse (cas le plus mutualisable). Colonnes coords déjà présentes dans `ride_recurrences` (migration 20260519000001) → **0 migration BDD ajoutée**. OSRM toujours hors périmètre (DEC-056).
+
 ### NFR (Non-Functional Requirements transverses)
 
 6 NFR ajoutés en REQUIREMENTS.md (run ingest 2026-05-12) :
@@ -194,10 +196,10 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-06-04T23:45:00.000Z
-Stopped at: Phase 06.12 livrée localement (solveur heuristique TS, OR-Tools/Python/mock supprimés). PR à ouvrir + à attendre merge avant sync STATE final. 27/31 phases livrées. Prochaine phase à trancher après merge (06.9 / 09 / 10).
+Last session: 2026-06-04T23:55:00.000Z
+Stopped at: Phase 06.19 livrée localement (géocodage récurrences + filet serveur, alimente solveLocal). PR à ouvrir + à attendre merge avant sync STATE final. 27/32 phases livrées (28/32 après merge). Prochaine phase à trancher après merge (06.9 / 09 / 10).
 Resume file: None
-Next command suggested: après merge PR 06.12 → `/gsd-sync-state` puis `/gsd-discuss-phase <phase choisie>`
+Next command suggested: après merge PR 06.19 → `/gsd-sync-state` puis `/gsd-discuss-phase <phase choisie>`
 
 ## Ingest Runs
 

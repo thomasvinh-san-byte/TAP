@@ -106,11 +106,18 @@ export function OptimizationShell({ initialRides, date }: Props): JSX.Element {
         <div className="bg-background flex flex-col items-center gap-8 py-48 text-center">
           <h2 className="text-base font-semibold">Aucun groupement proposé</h2>
           {emptyDueToNoCoords ? (
-            <p className="text-muted-foreground max-w-md text-sm">
-              Aucune course exploitable : les {state.excludedRides.length} course
-              {state.excludedRides.length > 1 ? 's' : ''} de la journée n&apos;ont pas de
-              coordonnées géographiques. L&apos;optimisation nécessite des adresses géocodées.
-            </p>
+            <>
+              <p className="text-muted-foreground max-w-md text-sm">
+                {state.excludedRides.length} course{state.excludedRides.length > 1 ? 's' : ''}{' '}
+                exclue{state.excludedRides.length > 1 ? 's' : ''} faute de coordonnées
+                géographiques. L&apos;optimisation nécessite des adresses géocodées (DEC-094 Phase
+                06.19 : géocodage automatique au moment de la création, backfill rétroactif
+                disponible).
+              </p>
+              <Link href="/admin/maintenance" className="text-primary text-xs underline">
+                Lancer le backfill géocodage
+              </Link>
+            </>
           ) : (
             <p className="text-muted-foreground max-w-md text-sm">
               Aucune course compatible n&apos;a été identifiée pour cette journée. Vérifiez les
