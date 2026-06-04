@@ -2,6 +2,7 @@ import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/page-header';
 import { ExportPdfButton } from './_components/export-pdf-button.client';
 import { RegistreList } from './_components/registre-list.client';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
@@ -37,24 +38,21 @@ export default async function RegistrePage() {
 
   return (
     <div className="space-y-24">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Registre des traitements</h1>
-          <p className="text-muted-foreground mt-4 text-sm">
-            Recensez quelles données patients vous utilisez et pourquoi — la première chose
-            qu&apos;un contrôle vous demandera. (RGPD art. 30)
-          </p>
-        </div>
-        <div className="flex gap-12">
-          <ExportPdfButton />
-          <Button asChild>
-            <Link href="#nouveau">
-              <Plus className="mr-8 h-16 w-16" aria-hidden />
-              Nouvelle entrée
-            </Link>
-          </Button>
-        </div>
-      </header>
+      <PageHeader
+        title="Registre des traitements"
+        description="Recensez quelles données patients vous utilisez et pourquoi — la première chose qu'un contrôle vous demandera. (RGPD art. 30)"
+        actions={
+          <>
+            <ExportPdfButton />
+            <Button asChild>
+              <Link href="#nouveau">
+                <Plus className="mr-8 h-16 w-16" aria-hidden />
+                Nouvelle entrée
+              </Link>
+            </Button>
+          </>
+        }
+      />
 
       <RegistreList entries={entries} />
     </div>

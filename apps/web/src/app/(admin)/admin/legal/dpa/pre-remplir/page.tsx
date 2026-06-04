@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
+import { PageHeader } from '@/components/page-header';
 import { DPA_PREFILL_FICHES } from '../_lib/dpa-prefill-content';
 import { DpaPrefillReview } from './_components/dpa-prefill-review.client';
 
@@ -23,15 +24,10 @@ export default async function DpaPrefillPage() {
 
   return (
     <div className="space-y-24">
-      <header className="space-y-4">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Pré-remplir les fiches sous-traitants
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          Relisez chaque fiche et renseignez la version et la date de signature du DPA. Seules les
-          fiches cochées seront ajoutées.
-        </p>
-      </header>
+      <PageHeader
+        title="Pré-remplir les fiches sous-traitants"
+        description="Relisez chaque fiche et renseignez la version et la date de signature du DPA. Seules les fiches cochées seront ajoutées."
+      />
 
       <DpaPrefillReview fiches={DPA_PREFILL_FICHES} />
     </div>

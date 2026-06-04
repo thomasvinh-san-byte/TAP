@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { BreachList } from './_components/breach-list.client';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
+import { PageHeader } from '@/components/page-header';
 
 export const metadata = { title: 'Violations de données' };
 
@@ -35,13 +36,10 @@ export default async function BreachesPage() {
 
   return (
     <div className="space-y-24">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Violations de données</h1>
-        <p className="text-muted-foreground mt-4 text-sm">
-          Une donnée patient a fuité ou été perdue ? Déclarez-le ici : vous avez 72 h pour prévenir
-          la CNIL. (RGPD art. 33)
-        </p>
-      </header>
+      <PageHeader
+        title="Violations de données"
+        description="Une donnée patient a fuité ou été perdue ? Déclarez-le ici : vous avez 72 h pour prévenir la CNIL. (RGPD art. 33)"
+      />
 
       <BreachList entries={entries} />
     </div>

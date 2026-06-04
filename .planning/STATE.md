@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.15 close (Refonte data tables, PR #226 mergée) — STATE synchronisé 2026-06-04"
-last_updated: "2026-06-04T14:00:00.000Z"
-last_activity: Phase 06.15 « Refonte data tables » exécutée et mergée (PR #226). Composant <DataTable> commun créé, 13 tables uniformisées, facture-apercu converti client (D-07), tri caisse généralisé. STATE synchronisé.
+stopped_at: "Phase 06.16 livrée localement (PageHeader admin commun, 16 pages uniformisées) — PR ouverte, sync STATE après merge"
+last_updated: "2026-06-04T16:00:00.000Z"
+last_activity: Phase 06.16 « PageHeader admin commun » cadrée + exécutée dans une seule PR. Composant <PageHeader> créé (~50 LOC, 6 tests), 16 pages admin migrées (legal/registre conserve ses actions ExportPdfButton + Nouvelle entrée). Chrome inchangée. Toolbar recherche/filtres différée (décision dirigeant Strict). 0 logique métier, 0 dépendance, 0 migration BDD.
 progress:
   total_phases: 28
   completed_phases: 22
@@ -21,18 +21,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.15 close. Data tables uniformisées sur composant <DataTable> commun. Design system (06.13→06.14→06.15) cohérent. Prochaine phase candidate : 06.16 (refonte settings/admin) ou autre.
+**Current focus:** Phase 06.16 « PageHeader admin commun » en cours de merge. Cadrage + exécution livrés dans une seule PR (Strict dirigeant). 16 pages admin uniformisées sur <PageHeader>. Design system (06.13→06.14→06.15→06.16) cohérent.
 
 ## Current Position
 
 **Dernière mise à jour** : 2026-06-04 (cadrage Phase 06.14 lancé)
-**Phase courante** : aucune en exécution. Phase 06.15 « Refonte data tables » LIVRÉE (PR #226 mergée). Prochaine phase à trancher par le dirigeant.
+**Phase courante** : Phase 06.16 « PageHeader admin commun » livrée localement (cadrage + exécution dans une seule PR). Entrée ROADMAP posée [ ]. Sync STATE après merge.
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.15 close (2026-06-04) — Refonte data tables livrée, PR #226 mergée
-Phase next: à trancher par le dirigeant. Candidates ouvertes : 06.16 (refonte settings/admin Linear+Stripe, consomme DataTable + tokens), 06.9 (Next.js 15), 06.12 (réactivation solveur — décision plan Vercel en attente), 07 (mobile natif), 09 (HDS), 10 (géoloc temps réel).
-Status: Phase 06.15 livrée et close. Composant DataTable commun, 13 tables uniformisées, API extensible. 0 dépendance, 0 migration BDD.
+Phase: 06.16 livrée localement (2026-06-04) — PageHeader admin commun, cadrage + exécution dans une seule PR ouverte
+Phase next: sync STATE + ROADMAP après merge 06.16. Puis trancher : 06.9 (Next.js 15), 06.12 (réactivation solveur), 07 (mobile natif), 09 (HDS), 10 (géoloc temps réel).
+Status: Phase 06.16 livrée localement. Composant <PageHeader> (~50 LOC, 6 tests verts), 16 pages admin migrées, chrome inchangée. Toolbar recherche/filtres différée (Strict).
 Blockers: aucun
 Last activity: Synchronisation STATE après merge PR #226. Phase 06.15 cochée livrée dans ROADMAP, compteurs progress mis à jour (22/28 phases, 80 plans).
 Précédent: Phase 06.15 cadrée (#225) puis exécutée (#226). Avant : 06.14 migration tokens (#223).

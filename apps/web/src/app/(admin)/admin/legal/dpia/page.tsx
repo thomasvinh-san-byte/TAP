@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { DpiaList } from './_components/dpia-list.client';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
+import { PageHeader } from '@/components/page-header';
 
 export const metadata = { title: "Analyse d'impact DPIA — TAP Admin" };
 
@@ -30,13 +31,10 @@ export default async function DpiaPage() {
 
   return (
     <div className="space-y-24">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Analyses d&apos;impact (DPIA)</h1>
-        <p className="text-muted-foreground mt-4 text-sm">
-          Vous manipulez des données de santé sensibles : cette analyse montre que vous avez
-          identifié les risques et comment vous les limitez. (RGPD art. 35)
-        </p>
-      </header>
+      <PageHeader
+        title="Analyses d'impact (DPIA)"
+        description="Vous manipulez des données de santé sensibles : cette analyse montre que vous avez identifié les risques et comment vous les limitez. (RGPD art. 35)"
+      />
 
       <DpiaList entries={entries} />
     </div>

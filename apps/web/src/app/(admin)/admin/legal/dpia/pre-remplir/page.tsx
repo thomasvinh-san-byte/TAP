@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
+import { PageHeader } from '@/components/page-header';
 import { DpiaPrefillConfirm } from './_components/dpia-prefill-confirm.client';
 
 export const metadata = { title: 'Créer une trame DPIA' };
@@ -22,15 +23,10 @@ export default async function DpiaPrefillPage() {
 
   return (
     <div className="max-w-2xl space-y-24">
-      <header className="space-y-4">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Créer une trame d&apos;analyse d&apos;impact (DPIA)
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          TAP propose la structure d&apos;une DPIA pour le transport de données de santé. Vous la
-          complétez ensuite.
-        </p>
-      </header>
+      <PageHeader
+        title="Créer une trame d'analyse d'impact (DPIA)"
+        description="TAP propose la structure d'une DPIA pour le transport de données de santé. Vous la complétez ensuite."
+      />
 
       <DpiaPrefillConfirm />
     </div>

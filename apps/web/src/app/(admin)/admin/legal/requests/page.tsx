@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { RequestsList } from './_components/requests-list.client';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
+import { PageHeader } from '@/components/page-header';
 
 export const metadata = { title: 'Demandes RGPD patients' };
 
@@ -31,13 +32,10 @@ export default async function RequestsPage() {
 
   return (
     <div className="space-y-24">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Demandes RGPD patients</h1>
-        <p className="text-muted-foreground mt-4 text-sm">
-          Un patient veut consulter ou effacer ses données ? Suivez sa demande ici — vous devez
-          répondre sous 30 jours. (RGPD art. 15-21)
-        </p>
-      </header>
+      <PageHeader
+        title="Demandes RGPD patients"
+        description="Un patient veut consulter ou effacer ses données ? Suivez sa demande ici — vous devez répondre sous 30 jours. (RGPD art. 15-21)"
+      />
 
       <RequestsList entries={entries} />
     </div>

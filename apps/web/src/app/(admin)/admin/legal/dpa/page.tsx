@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { DpaList } from './_components/dpa-list.client';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
+import { PageHeader } from '@/components/page-header';
 
 export const metadata = { title: 'DPA sous-traitants' };
 
@@ -31,13 +32,10 @@ export default async function DpaPage() {
 
   return (
     <div className="space-y-24">
-      <header>
-        <h1 className="text-2xl font-semibold tracking-tight">DPA sous-traitants</h1>
-        <p className="text-muted-foreground mt-4 text-sm">
-          Vos prestataires qui accèdent aux données patients doivent signer un contrat —
-          conservez-les ici pour prouver que vous êtes en règle. (RGPD art. 28)
-        </p>
-      </header>
+      <PageHeader
+        title="DPA sous-traitants"
+        description="Vos prestataires qui accèdent aux données patients doivent signer un contrat — conservez-les ici pour prouver que vous êtes en règle. (RGPD art. 28)"
+      />
 
       <DpaList entries={entries} />
     </div>

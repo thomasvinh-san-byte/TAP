@@ -9,6 +9,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
+import { PageHeader } from '@/components/page-header';
 
 export const metadata = { title: 'Conformité RGPD' };
 
@@ -90,14 +91,10 @@ export default async function LegalHubPage(): Promise<JSX.Element> {
 
   return (
     <div className="space-y-24">
-      <header className="space-y-8">
-        <h1 className="text-2xl font-semibold tracking-tight">Conformité RGPD</h1>
-        <p className="text-muted-foreground text-sm">
-          Protéger les données de vos patients est une obligation légale. Chaque section ci-dessous
-          couvre une de vos obligations — cliquez pour voir de quoi il s&apos;agit et ce que vous
-          devez faire.
-        </p>
-      </header>
+      <PageHeader
+        title="Conformité RGPD"
+        description="Protéger les données de vos patients est une obligation légale. Chaque section ci-dessous couvre une de vos obligations — cliquez pour voir de quoi il s'agit et ce que vous devez faire."
+      />
 
       <div className="grid gap-16 sm:grid-cols-2">
         {LEGAL_CARDS.map((card) => {
