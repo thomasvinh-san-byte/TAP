@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { EmptyState } from '@/components/ui/empty-state';
+import { DataTable, type DataTableColumn } from '@/components/data-table';
 import { DateFieldFr } from '@/components/date-field-fr.client';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
 import { formatShortDateFr, formatTimeFr, isToday } from '@/lib/dates-fr';
@@ -205,37 +206,16 @@ export function RidesList(): JSX.Element {
       )}
 
       {!isPending && filtered.length > 0 && (
-        <div className="border-border overflow-x-auto rounded-md border">
-          <table className="w-full text-sm" aria-label="Liste des courses">
-            <thead className="bg-muted/50 text-muted-foreground text-left text-xs uppercase tracking-wide">
-              <tr>
-                <th className="px-12 py-12 font-medium">Heure</th>
-                <th className="px-12 py-12 font-medium">Patient</th>
-                <th className="px-12 py-12 font-medium">Trajet</th>
-                <th className="px-12 py-12 font-medium">Mode</th>
-                <th className="px-12 py-12 font-medium">Urgence</th>
-                <th className="px-12 py-12 font-medium">Chauffeur</th>
-                <th className="px-12 py-12 font-medium">Statut</th>
-                <th className="px-12 py-12 font-medium">Paiement</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((r) => (
-                // Clé inclut `status` pour forcer le re-mount au changement
-                // de statut (validee/assignee/en_cours/terminee/annulee).
-                // Sans ça, le bouton « Affecter » reste actif après affectation
-                // ou le bouton « Annuler » reste cliquable après annulation
-                // (DEC-033 + précédent Phase 03.2 #4).
-                <RideRowView
-                  key={`${r.id}-${r.status}`}
-                  ride={r}
-                  onOpen={() => setOpenRideId(r.id)}
-                  onAssign={() => setAssignRideId(r.id)}
-                />
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable<RideRowEnriched>
+          columns={RIDE_COLUMNS((rid) => setAssignRideId(rid))}
+          rows={filtered}
+          // DEC-033 : clé inclut `status` pour re-mount au changement
+          // (sans ça, « Assigner » reste actif après affectation —
+          // précédent Phase 03.2 #4).
+          rowKey={(r) => `${r.id}-${r.status}`}
+          ariaLabel="Liste des courses"
+          onRowClick={(r) => setOpenRideId(r.id)}
+        />
       )}
 
       {!isPending && filtered.length > 0 && hasMore && (
@@ -268,38 +248,51 @@ export function RidesList(): JSX.Element {
   );
 }
 
-interface RideRowProps {
-  ride: RideRowEnriched;
-  onOpen: () => void;
-  onAssign: () => void;
-}
-
-function RideRowView({ ride, onOpen, onAssign }: RideRowProps): JSX.Element {
-  const today = isToday(ride.scheduled_at);
-  const patientName = ride.patient
-    ? `${ride.patient.nom} ${ride.patient.prenom}`.trim()
-    : 'Patient inconnu';
-  return (
-    <tr
-      className="border-border hover:bg-muted/50 cursor-pointer border-t transition-colors duration-150"
-      onClick={onOpen}
-    >
-      <td className="px-12 py-12 align-top tabular-nums">
-        <div className="font-medium">{formatTimeFr(ride.scheduled_at)}</div>
-        {!today && (
-          <div className="text-muted-foreground text-xs">
-            {formatShortDateFr(ride.scheduled_at)}
+/**
+ * Définition des colonnes de la liste courses (Phase 06.15 D-04). Le clic
+ * de ligne ouvre le drawer (`onRowClick` sur DataTable). Le bouton
+ * « Assigner » appelle `e.stopPropagation()` pour éviter de déclencher
+ * l'ouverture du drawer.
+ */
+function RIDE_COLUMNS(onAssign: (rideId: string) => void): DataTableColumn<RideRowEnriched>[] {
+  return [
+    {
+      key: 'heure',
+      header: 'Heure',
+      cell: (ride) => {
+        const today = isToday(ride.scheduled_at);
+        return (
+          <div className="tabular-nums">
+            <div className="font-medium">{formatTimeFr(ride.scheduled_at)}</div>
+            {!today && (
+              <div className="text-muted-foreground text-xs">
+                {formatShortDateFr(ride.scheduled_at)}
+              </div>
+            )}
           </div>
-        )}
-      </td>
-      <td className="px-12 py-12 align-top">
-        <div className="flex items-center gap-8">
-          <InitialsAvatar name={patientName} size={24} />
-          <span className="max-w-[180px] truncate">{patientName}</span>
-        </div>
-      </td>
-      <td className="min-w-0 px-12 py-12 align-top">
-        <div className="flex min-w-0 items-center gap-8 text-sm">
+        );
+      },
+    },
+    {
+      key: 'patient',
+      header: 'Patient',
+      cell: (ride) => {
+        const patientName = ride.patient
+          ? `${ride.patient.nom} ${ride.patient.prenom}`.trim()
+          : 'Patient inconnu';
+        return (
+          <div className="flex items-center gap-8">
+            <InitialsAvatar name={patientName} size={24} />
+            <span className="max-w-[180px] truncate">{patientName}</span>
+          </div>
+        );
+      },
+    },
+    {
+      key: 'trajet',
+      header: 'Trajet',
+      cell: (ride) => (
+        <div className="flex min-w-0 items-center gap-8">
           <span className="max-w-[180px] truncate" title={ride.pickup_address}>
             {shortAddress(ride.pickup_address)}
           </span>
@@ -308,15 +301,23 @@ function RideRowView({ ride, onOpen, onAssign }: RideRowProps): JSX.Element {
             {shortAddress(ride.dropoff_address)}
           </span>
         </div>
-      </td>
-      <td className="px-12 py-12 align-top">
-        <ModeBadge mode={ride.transport_mode} />
-      </td>
-      <td className="px-12 py-12 align-top">
-        <UrgencyBadge urgency={ride.urgency} />
-      </td>
-      <td className="px-12 py-12 align-top">
-        {ride.driver ? (
+      ),
+    },
+    {
+      key: 'mode',
+      header: 'Mode',
+      cell: (ride) => <ModeBadge mode={ride.transport_mode} />,
+    },
+    {
+      key: 'urgence',
+      header: 'Urgence',
+      cell: (ride) => <UrgencyBadge urgency={ride.urgency} />,
+    },
+    {
+      key: 'chauffeur',
+      header: 'Chauffeur',
+      cell: (ride) =>
+        ride.driver ? (
           <div className="flex items-center gap-8">
             <InitialsAvatar name={ride.driver.nom_affichage} role="chauffeur" size={24} />
             <span className="max-w-[140px] truncate">{ride.driver.nom_affichage}</span>
@@ -328,21 +329,26 @@ function RideRowView({ ride, onOpen, onAssign }: RideRowProps): JSX.Element {
             variant="outline"
             onClick={(e) => {
               e.stopPropagation();
-              onAssign();
+              onAssign(ride.id);
             }}
           >
             Assigner
           </Button>
         ) : (
           <span className="text-muted-foreground text-xs">—</span>
-        )}
-      </td>
-      <td className="px-12 py-12 align-top">
-        <StatusBadge status={ride.status} />
-      </td>
-      <td className="px-12 py-12 align-top">
+        ),
+    },
+    {
+      key: 'statut',
+      header: 'Statut',
+      cell: (ride) => <StatusBadge status={ride.status} />,
+    },
+    {
+      key: 'paiement',
+      header: 'Paiement',
+      cell: (ride) => (
         <PaymentBadge status={ride.payment_status} amountEur={ride.tarif_amount_eur} />
-      </td>
-    </tr>
-  );
+      ),
+    },
+  ];
 }

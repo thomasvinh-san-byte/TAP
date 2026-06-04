@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Plus, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
+import { DataTable, type DataTableColumn } from '@/components/data-table';
 import { DpaDrawer } from './dpa-drawer.client';
 
 type Entry = {
@@ -14,6 +15,36 @@ type Entry = {
   signed_at: string;
   expires_at: string | null;
 };
+
+const COLUMNS: DataTableColumn<Entry>[] = [
+  {
+    key: 'subprocessor_name',
+    header: 'Sous-traitant',
+    cell: (e) => <span className="font-medium">{e.subprocessor_name}</span>,
+  },
+  { key: 'subprocessor_role', header: 'Rôle', cell: (e) => e.subprocessor_role },
+  {
+    key: 'dpa_version',
+    header: 'Version',
+    cell: (e) => <span className="tabular-nums">{e.dpa_version}</span>,
+  },
+  {
+    key: 'signed_at',
+    header: 'Signé le',
+    cell: (e) => (
+      <span className="tabular-nums">{new Date(e.signed_at).toLocaleDateString('fr-FR')}</span>
+    ),
+  },
+  {
+    key: 'expires_at',
+    header: 'Expire le',
+    cell: (e) => (
+      <span className="text-muted-foreground tabular-nums">
+        {e.expires_at ? new Date(e.expires_at).toLocaleDateString('fr-FR') : 'Évergreen'}
+      </span>
+    ),
+  },
+];
 
 export function DpaList({ entries }: { entries: Entry[] }) {
   const [open, setOpen] = useState(false);
@@ -27,48 +58,23 @@ export function DpaList({ entries }: { entries: Entry[] }) {
         </Button>
       </div>
 
-      {entries.length === 0 ? (
-        <EmptyState
-          icon={FileText}
-          title="Aucun DPA enregistré"
-          description="Pré-remplissez vos accords sous-traitant pour les services tiers détectés."
-          action={{
-            href: '/admin/legal/dpa/pre-remplir',
-            label: 'Pré-remplir',
-          }}
-        />
-      ) : (
-        <div className="rounded-lg border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40 border-b">
-              <tr>
-                <th className="p-12 text-left font-medium">Sous-traitant</th>
-                <th className="p-12 text-left font-medium">Rôle</th>
-                <th className="p-12 text-left font-medium">Version</th>
-                <th className="p-12 text-left font-medium">Signé le</th>
-                <th className="p-12 text-left font-medium">Expire le</th>
-              </tr>
-            </thead>
-            <tbody>
-              {entries.map((e) => (
-                <tr key={e.id} className="hover:bg-muted/20 border-b last:border-0">
-                  <td className="p-12 font-medium">{e.subprocessor_name}</td>
-                  <td className="p-12">{e.subprocessor_role}</td>
-                  <td className="p-12 tabular-nums">{e.dpa_version}</td>
-                  <td className="p-12 tabular-nums">
-                    {new Date(e.signed_at).toLocaleDateString('fr-FR')}
-                  </td>
-                  <td className="text-muted-foreground p-12 tabular-nums">
-                    {e.expires_at
-                      ? new Date(e.expires_at).toLocaleDateString('fr-FR')
-                      : 'Évergreen'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <DataTable
+        columns={COLUMNS}
+        rows={entries}
+        rowKey={(e) => e.id}
+        ariaLabel="Liste des accords sous-traitant DPA"
+        emptyState={
+          <EmptyState
+            icon={FileText}
+            title="Aucun DPA enregistré"
+            description="Pré-remplissez vos accords sous-traitant pour les services tiers détectés."
+            action={{
+              href: '/admin/legal/dpa/pre-remplir',
+              label: 'Pré-remplir',
+            }}
+          />
+        }
+      />
 
       <DpaDrawer open={open} onOpenChange={setOpen} />
     </>

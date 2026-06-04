@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState as SharedEmptyState } from '@/components/ui/empty-state';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
+import { DataTable, type DataTableColumn } from '@/components/data-table';
 import {
   Sheet,
   SheetContent,
@@ -187,53 +188,69 @@ export function DriversList({ initialDrivers, currentRole, vue }: Props): JSX.El
         ) : null}
       </div>
 
-      {initialDrivers.length === 0 ? (
-        <EmptyState vue={vue} onCreate={() => setMode({ kind: 'create' })} />
-      ) : (
-        <ul className="divide-border border-border divide-y rounded-md border">
-          {initialDrivers.map((d) => {
-            const status = getAccountStatus(d);
-            return (
-              // Clé inclut `actif`/`archive` pour forcer le re-mount au
-              // changement d'état (Désactiver / Réactiver / Archiver /
-              // Désarchiver). Sans ça, les boutons d'action restent figés
-              // sur l'ancien état après router.refresh() (DEC-033).
-              <li
-                key={`${d.id}-${d.actif}-${d.archive}`}
-                className="flex w-full items-center gap-12 px-16 py-12"
+      <DataTable<DriverRow>
+        columns={[
+          {
+            key: 'chauffeur',
+            header: 'Chauffeur',
+            cell: (d) => (
+              <div className="flex items-center gap-12">
+                <InitialsAvatar name={d.nom_affichage} role="chauffeur" size={32} />
+                <div className="min-w-0">
+                  <div className="truncate font-medium">{d.nom_affichage}</div>
+                  <div className="text-muted-foreground flex items-center gap-8 text-xs tabular-nums">
+                    {d.telephone ?? 'Téléphone non renseigné'}
+                    {d.numero_licence && <span>· Lic. {d.numero_licence}</span>}
+                  </div>
+                </div>
+              </div>
+            ),
+          },
+          {
+            key: 'permis',
+            header: 'Permis',
+            width: '160px',
+            cell: (d) => (
+              <div className="flex flex-wrap gap-4">
+                {d.type_permis.map((t: string) => (
+                  <Badge key={t} variant="secondary" className="text-xs">
+                    {t.toUpperCase()}
+                  </Badge>
+                ))}
+              </div>
+            ),
+          },
+          {
+            key: 'compte',
+            header: 'Compte',
+            width: '140px',
+            cell: (d) => <AccountStatusBadge status={getAccountStatus(d)} />,
+          },
+          {
+            key: 'statut',
+            header: 'Statut',
+            width: '120px',
+            cell: (d) =>
+              d.archive ? (
+                <Badge variant="outline" className="border-muted-foreground/40">
+                  Archivé
+                </Badge>
+              ) : d.actif ? (
+                <Badge>Actif</Badge>
+              ) : (
+                <Badge variant="outline">Désactivé</Badge>
+              ),
+          },
+          {
+            key: 'actions',
+            header: 'Actions',
+            align: 'right',
+            cell: (d) => (
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="flex justify-end"
+                role="presentation"
               >
-                <button
-                  type="button"
-                  onClick={() => setMode({ kind: 'edit', driver: d })}
-                  className="hover:bg-muted focus-visible:ring-ring -mx-16 flex flex-1 items-center gap-12 rounded-sm px-16 py-8 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset"
-                >
-                  <InitialsAvatar name={d.nom_affichage} role="chauffeur" size={32} />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate font-medium">{d.nom_affichage}</div>
-                    <div className="text-muted-foreground flex items-center gap-8 text-xs tabular-nums">
-                      {d.telephone ?? 'Téléphone non renseigné'}
-                      {d.numero_licence && <span>· Lic. {d.numero_licence}</span>}
-                    </div>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-8">
-                    {d.type_permis.map((t) => (
-                      <Badge key={t} variant="secondary" className="text-xs">
-                        {t.toUpperCase()}
-                      </Badge>
-                    ))}
-                    <AccountStatusBadge status={status} />
-                    {d.archive ? (
-                      <Badge variant="outline" className="border-muted-foreground/40">
-                        Archivé
-                      </Badge>
-                    ) : d.actif ? (
-                      <Badge>Actif</Badge>
-                    ) : (
-                      <Badge variant="outline">Désactivé</Badge>
-                    )}
-                  </div>
-                </button>
-
                 <DriverRowActions
                   driver={d}
                   role={currentRole}
@@ -248,11 +265,20 @@ export function DriversList({ initialDrivers, currentRole, vue }: Props): JSX.El
                   onArchive={(driver) => setArchiveTarget(driver)}
                   onUnarchive={(driver) => setUnarchiveTarget(driver)}
                 />
-              </li>
-            );
-          })}
-        </ul>
-      )}
+              </div>
+            ),
+          },
+        ]}
+        rows={initialDrivers}
+        // DEC-033 : clé inclut `actif`/`archive` pour re-mount au changement
+        // d'état (Désactiver / Réactiver / Archiver / Désarchiver). Sans ça,
+        // les boutons d'action restent figés sur l'ancien état après
+        // router.refresh().
+        rowKey={(d) => `${d.id}-${d.actif}-${d.archive}`}
+        ariaLabel={`Liste des chauffeurs ${vue === 'archives' ? 'archivés' : 'actifs'}`}
+        onRowClick={(d) => setMode({ kind: 'edit', driver: d })}
+        emptyState={<EmptyState vue={vue} onCreate={() => setMode({ kind: 'create' })} />}
+      />
 
       <Sheet
         open={mode.kind !== 'closed'}

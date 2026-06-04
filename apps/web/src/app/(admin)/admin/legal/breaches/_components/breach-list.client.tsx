@@ -5,6 +5,7 @@ import { Plus, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
+import { DataTable, type DataTableColumn } from '@/components/data-table';
 import { BreachTimer } from './breach-timer.client';
 import { BreachDrawer } from './breach-drawer.client';
 
@@ -19,6 +20,42 @@ type Entry = {
   closed_at: string | null;
 };
 
+const COLUMNS: DataTableColumn<Entry>[] = [
+  {
+    key: 'detected_at',
+    header: 'Détecté le',
+    cell: (e) => (
+      <span className="tabular-nums">{new Date(e.detected_at).toLocaleString('fr-FR')}</span>
+    ),
+  },
+  {
+    key: 'severity',
+    header: 'Gravité',
+    cell: (e) => <Badge variant="outline">{e.severity}</Badge>,
+  },
+  { key: 'nature', header: 'Nature', cell: (e) => e.nature },
+  {
+    key: 'description',
+    header: 'Description',
+    cell: (e) => <span className="block max-w-[300px] truncate">{e.description}</span>,
+  },
+  {
+    key: 'cnil_delay',
+    header: 'Délai CNIL',
+    cell: (e) =>
+      e.cnil_notification_required && !e.cnil_notification_at && !e.closed_at ? (
+        <BreachTimer detectedAt={e.detected_at} />
+      ) : (
+        <span className="text-muted-foreground">—</span>
+      ),
+  },
+  {
+    key: 'state',
+    header: 'État',
+    cell: (e) => (e.closed_at ? <Badge>Clôturé</Badge> : <Badge variant="outline">Ouvert</Badge>),
+  },
+];
+
 export function BreachList({ entries }: { entries: Entry[] }) {
   const [open, setOpen] = useState(false);
 
@@ -31,60 +68,19 @@ export function BreachList({ entries }: { entries: Entry[] }) {
         </Button>
       </div>
 
-      {entries.length === 0 ? (
-        <EmptyState
-          icon={ShieldCheck}
-          title="Aucun incident enregistré"
-          description="Aucune violation de données déclarée. En cas d'incident, déclarez-le ici — vous avez 72 h pour notifier la CNIL, un compte à rebours vous accompagne."
-        />
-      ) : (
-        <div className="rounded-lg border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/40 border-b">
-              <tr>
-                <th className="p-12 text-left font-medium">Détecté le</th>
-                <th className="p-12 text-left font-medium">Gravité</th>
-                <th className="p-12 text-left font-medium">Nature</th>
-                <th className="p-12 text-left font-medium">Description</th>
-                <th className="p-12 text-left font-medium">Délai CNIL</th>
-                <th className="p-12 text-left font-medium">État</th>
-              </tr>
-            </thead>
-            <tbody>
-              {entries.map((e) => {
-                const showTimer =
-                  e.cnil_notification_required && !e.cnil_notification_at && !e.closed_at;
-                return (
-                  <tr key={e.id} className="hover:bg-muted/20 border-b last:border-0">
-                    <td className="p-12 tabular-nums">
-                      {new Date(e.detected_at).toLocaleString('fr-FR')}
-                    </td>
-                    <td className="p-12">
-                      <Badge variant="outline">{e.severity}</Badge>
-                    </td>
-                    <td className="p-12">{e.nature}</td>
-                    <td className="max-w-[300px] truncate p-12">{e.description}</td>
-                    <td className="p-12">
-                      {showTimer ? (
-                        <BreachTimer detectedAt={e.detected_at} />
-                      ) : (
-                        <span className="text-muted-foreground">—</span>
-                      )}
-                    </td>
-                    <td className="p-12">
-                      {e.closed_at ? (
-                        <Badge>Clôturé</Badge>
-                      ) : (
-                        <Badge variant="outline">Ouvert</Badge>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <DataTable
+        columns={COLUMNS}
+        rows={entries}
+        rowKey={(e) => `${e.id}:${e.closed_at ?? 'open'}`}
+        ariaLabel="Liste des incidents de sécurité enregistrés"
+        emptyState={
+          <EmptyState
+            icon={ShieldCheck}
+            title="Aucun incident enregistré"
+            description="Aucune violation de données déclarée. En cas d'incident, déclarez-le ici — vous avez 72 h pour notifier la CNIL, un compte à rebours vous accompagne."
+          />
+        }
+      />
 
       <BreachDrawer open={open} onOpenChange={setOpen} />
     </>

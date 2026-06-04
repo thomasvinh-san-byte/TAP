@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
+import { DataTable } from '@/components/data-table';
 import { cn } from '@/lib/utils';
 import { daysFromNow, formatShortDateFr, formatTimeFr } from '@/lib/dates-fr';
 
@@ -199,36 +200,53 @@ export function PatientsList() {
       )}
 
       {data && data.length > 0 && (
-        <ul
-          className="divide-border border-border divide-y overflow-hidden rounded-md border"
-          aria-label="Résultats de recherche"
-        >
-          {data.map((p: PatientListItem) => {
-            const fullName = `${p.nom} ${p.prenom}`.trim();
-            const isPending = pendingArchive === p.id;
-            return (
-              <li key={p.id} className="flex items-stretch">
-                <button
-                  type="button"
-                  onClick={() => setOpenId(p.id)}
-                  className="hover:bg-muted/50 focus-visible:ring-ring flex flex-1 items-center gap-16 px-16 py-12 text-left transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset"
-                >
-                  <InitialsAvatar name={fullName} size={32} />
-                  <span className="flex min-w-0 flex-1 flex-col gap-4">
-                    <span className="text-foreground truncate font-semibold">
-                      {p.nom} {p.prenom}
+        <DataTable<PatientListItem>
+          columns={[
+            {
+              key: 'patient',
+              header: 'Patient',
+              cell: (p) => {
+                const fullName = `${p.nom} ${p.prenom}`.trim();
+                return (
+                  <button
+                    type="button"
+                    onClick={() => setOpenId(p.id)}
+                    className="hover:text-primary focus-visible:ring-ring -my-4 -ml-4 flex w-full items-center gap-12 rounded-sm py-4 pl-4 pr-12 text-left transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2"
+                  >
+                    <InitialsAvatar name={fullName} size={32} />
+                    <span className="flex min-w-0 flex-1 flex-col gap-4">
+                      <span className="text-foreground truncate font-semibold">
+                        {p.nom} {p.prenom}
+                      </span>
+                      <span className="text-muted-foreground text-xs tabular-nums">
+                        {describeRides(p)}
+                      </span>
                     </span>
-                    <span className="text-muted-foreground text-xs tabular-nums">
-                      {describeRides(p)}
-                    </span>
-                  </span>
-                  <Badge variant="secondary" className="shrink-0 gap-4">
-                    <CanalIcon canal={p.canal_contact_prefere} />
-                    <span>{CANAL_LABEL[p.canal_contact_prefere]}</span>
-                  </Badge>
-                </button>
-                <div className="flex items-center px-12">
-                  {scope === 'active' ? (
+                  </button>
+                );
+              },
+            },
+            {
+              key: 'canal',
+              header: 'Canal',
+              width: '160px',
+              cell: (p) => (
+                <Badge variant="secondary" className="shrink-0 gap-4">
+                  <CanalIcon canal={p.canal_contact_prefere} />
+                  <span>{CANAL_LABEL[p.canal_contact_prefere]}</span>
+                </Badge>
+              ),
+            },
+            {
+              key: 'action',
+              header: 'Action',
+              align: 'right',
+              width: '140px',
+              cell: (p) => {
+                const fullName = `${p.nom} ${p.prenom}`.trim();
+                const isPending = pendingArchive === p.id;
+                if (scope === 'active') {
+                  return (
                     <Button
                       type="button"
                       variant="ghost"
@@ -244,28 +262,32 @@ export function PatientsList() {
                       <Archive className="h-12 w-12" aria-hidden />
                       Archiver
                     </Button>
-                  ) : (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void handleUnarchive(p.id, fullName);
-                      }}
-                      disabled={isPending}
-                      aria-label={`Réactiver ${fullName}`}
-                      className="gap-4"
-                    >
-                      <ArchiveRestore className="h-12 w-12" aria-hidden />
-                      Réactiver
-                    </Button>
-                  )}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+                  );
+                }
+                return (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void handleUnarchive(p.id, fullName);
+                    }}
+                    disabled={isPending}
+                    aria-label={`Réactiver ${fullName}`}
+                    className="gap-4"
+                  >
+                    <ArchiveRestore className="h-12 w-12" aria-hidden />
+                    Réactiver
+                  </Button>
+                );
+              },
+            },
+          ]}
+          rows={data}
+          rowKey={(p) => p.id}
+          ariaLabel="Résultats de recherche patients"
+        />
       )}
 
       <PatientDrawer
