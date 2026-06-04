@@ -1,5 +1,41 @@
 # Journal — phases livrées
 
+## 2026-06-04 (suite) — Phase 06.19 livrée localement (branchement géocodage récurrences + filet serveur)
+
+Phase 06.19 « Branchement géocodage (récurrences + filet serveur) » cadrée + exécutée dans une seule PR. Comble le trou applicatif qui privait `solveLocal` (06.12, livré le même jour) des courses récurrentes — segment **dialyse** = transport le plus mutualisable, donc le plus coûteux à rater.
+
+**État vérifié AVANT** : la table `ride_recurrences` avait déjà les 6 colonnes `pickup_lat/lng/citycode` + `dropoff_*` depuis la migration `20260519000001_ride_recurrences.sql` (Phase 05). Le trou était purement applicatif (`patients/actions/recurrences.ts` schéma Zod + INSERT ignoraient ces colonnes). **0 migration BDD ajoutée**.
+
+**Composants nouveaux** :
+- `apps/web/src/lib/geocoding/geocode-safety-net.ts` — helper partagé `geocodeIfMissing(address, lat, lng, citycode)`. Idempotent (court-circuit si coords présentes), non bloquant (BAN down → null), pure pour le test. 6 tests Vitest.
+- `apps/web/src/lib/recurrence/build-rides-payload.ts` — pure helper de transformation occurrences → INSERT rides[]. Propage les coords du template à chaque ride générée. Extrait pour testabilité. 5 tests Vitest.
+
+**Modifs schémas / Server Actions** :
+- `patients/actions/recurrences.ts` : Zod `baseSchema` étendu de 6 champs coords (`numericFromString` + bornes lat ±90 / lng ±180 / citycode max 10), `BASE_KEYS` factorisée, `createRecurrenceAction` + `updateRecurrenceAction` appellent `geocodeIfMissing` avant INSERT/UPDATE et persistent les coords sur `ride_recurrences`. `regenerateOccurrencesFor` reçoit les coords pour propagation. Helper local supprimé au profit du module partagé.
+- `courses/actions/create.ts` : `createRideAction` appelle `geocodeIfMissing` avant INSERT (filet pour saisies sans picker — seed, API tierce, brouillons texte libre). Helper local supprimé au profit du module partagé.
+
+**UI** :
+- `recurrence-create-modal.client.tsx` : 2 `<Input>` remplacés par 2 `<AddressOrPOIPicker>` (pickup + dropoff). State coords pour threading. Submit pose les 6 champs coords dans FormData. Reset complet au close. Bouton submit désactivé si adresse vide.
+- `recurrence-edit-modal.client.tsx` : idem + initialisation des coords state depuis `recurrence.pickup_lat/lng/citycode` (déjà chargées via `RideRecurrence` row).
+- `optimization-shell.client.tsx` (cockpit) : empty state coords-vides reformulé « X course(s) exclue(s) faute de coordonnées géographiques » + lien `/admin/maintenance`.
+
+**Backfill `/admin/maintenance/actions.ts`** : `backfillRideGeocodingAction` étendu de 3 passes :
+1. Pass 1 (existant) : `rides` avec `pickup_lat IS NULL` (MAX_PER_RUN = 200, rate-limit 1 req/s).
+2. Pass 2 (nouveau) : `ride_recurrences` actives avec `pickup_lat IS NULL` → géocode + UPDATE template.
+3. Pass 3 (nouveau) : propagation aux occurrences futures non démarrées (`validee` + `assignee`, `scheduled_at > now`, `pickup_lat IS NULL`) — cohérent avec la cascade DEC-048 qui préserve courses `en_cours` / `terminee` / `annulee`.
+
+Audit log enrichi du compteur `recurrences_processed`. Idempotent, dirigeant only.
+
+**Validation** :
+- `pnpm typecheck` propre
+- `pnpm build` vert (apps/web)
+- `pnpm lint` clean (9 warnings préexistants hors périmètre)
+- `pnpm test` 101/101 verts (+11 nouveaux : 6 geocode-safety-net + 5 build-rides-payload). Tous les tests Vitest existants restent verts.
+- `git diff main --name-only | grep '^supabase/migrations/'` = 0 ligne (aucune migration ajoutée).
+- 0 nouvelle dépendance npm.
+
+**Pont vers 06.12** : le bénéfice est immédiat. Les récurrences dialyse étaient le scénario où `solveLocal` (heuristique cluster-first/route-second) trouvait théoriquement le plus de gain — fenêtres temporelles serrées, horaires quasi-fixes, mêmes destinations partagées par plusieurs patients. Avec coords remplies, `transform.ts` (`ridesToSolveRequest`) ne les exclut plus pour `no_coordinates`, et `solveLocal` peut grouper. Le ROI de la phase est entièrement porté par 06.12 (livré juste avant).
+
 ## 2026-06-04 (suite) — Phase 06.12 livrée localement (solveur heuristique TS natif, OR-Tools/Python/mock supprimés)
 
 Phase 06.12 « Solveur d'optimisation = heuristique TypeScript native » cadrée + exécutée dans une seule PR. Décision tranchée (dirigeant + recherche OR) : abandonner OR-Tools / Python / mock / hébergement séparé. Réécriture en heuristique TS native dans `apps/web/src/lib/optimizer/`. Autoporteur, zéro coût marginal, zéro hébergement externe.

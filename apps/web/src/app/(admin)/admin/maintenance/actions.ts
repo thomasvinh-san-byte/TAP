@@ -26,6 +26,7 @@ export interface BackfillResult {
   processed: number;
   skipped: number;
   errors: number;
+  recurrences_processed?: number;
   error?: string;
 }
 
@@ -36,6 +37,12 @@ interface BanGeocode {
 }
 
 interface RideRow {
+  id: string;
+  pickup_address: string;
+  dropoff_address: string;
+}
+
+interface RecurrenceRow {
   id: string;
   pickup_address: string;
   dropoff_address: string;
@@ -125,6 +132,62 @@ export async function backfillRideGeocodingAction(): Promise<BackfillResult> {
     processed++;
   }
 
+  // DEC-094 Phase 06.19 : étendre aux templates de récurrence sans coords.
+  // Quand la récurrence est mise à jour, l'updateRecurrenceAction
+  // régénère les rides futures avec les nouvelles coords — la cascade
+  // reste maître. Ici on remplit uniquement le template.
+  const recurrencesTarget = await supabase
+    .from('ride_recurrences' as never)
+    .select('id, pickup_address, dropoff_address')
+    .is('pickup_lat', null)
+    .is('archived_at', null)
+    .limit(MAX_PER_RUN);
+
+  let recurrencesProcessed = 0;
+  if (!recurrencesTarget.error && recurrencesTarget.data) {
+    const recurrences = recurrencesTarget.data as unknown as RecurrenceRow[];
+    for (const rec of recurrences) {
+      const pickup = await geocodeBan(rec.pickup_address);
+      await sleep(RATE_LIMIT_MS);
+      const dropoff = await geocodeBan(rec.dropoff_address);
+      await sleep(RATE_LIMIT_MS);
+      if (!pickup && !dropoff) continue;
+      const upd = await supabase
+        .from('ride_recurrences' as never)
+        .update({
+          pickup_lat: pickup?.lat ?? null,
+          pickup_lng: pickup?.lng ?? null,
+          pickup_citycode: pickup?.citycode ?? null,
+          dropoff_lat: dropoff?.lat ?? null,
+          dropoff_lng: dropoff?.lng ?? null,
+          dropoff_citycode: dropoff?.citycode ?? null,
+        } as never)
+        .eq('id', rec.id)
+        .select('id');
+      if (!upd.error && upd.data && (upd.data as unknown[]).length > 0) {
+        recurrencesProcessed++;
+        // Propager aux occurrences futures non démarrées (cohérent avec
+        // la cascade DEC-048 : pas de réécriture sur courses en cours /
+        // terminées). Évite que les rides déjà générées restent NULL.
+        const nowIso = new Date().toISOString();
+        await supabase
+          .from('rides')
+          .update({
+            pickup_lat: pickup?.lat ?? null,
+            pickup_lng: pickup?.lng ?? null,
+            pickup_citycode: pickup?.citycode ?? null,
+            dropoff_lat: dropoff?.lat ?? null,
+            dropoff_lng: dropoff?.lng ?? null,
+            dropoff_citycode: dropoff?.citycode ?? null,
+          } as never)
+          .eq('ride_recurrence_id', rec.id)
+          .in('status', ['validee', 'assignee'])
+          .gt('scheduled_at', nowIso)
+          .is('pickup_lat', null);
+      }
+    }
+  }
+
   // Audit log unique pour traçabilité (DEC-029 esprit)
   await supabase.from('audit_logs').insert({
     organization_id: ctx.organizationId,
@@ -133,10 +196,16 @@ export async function backfillRideGeocodingAction(): Promise<BackfillResult> {
     action: 'maintenance.backfill_geocoding',
     entity_type: 'maintenance',
     entity_id: null,
-    metadata: { processed, skipped, errors, max_per_run: MAX_PER_RUN },
+    metadata: {
+      processed,
+      skipped,
+      errors,
+      recurrences_processed: recurrencesProcessed,
+      max_per_run: MAX_PER_RUN,
+    },
   } as never);
 
-  return { processed, skipped, errors };
+  return { processed, skipped, errors, recurrences_processed: recurrencesProcessed };
 }
 
 /**

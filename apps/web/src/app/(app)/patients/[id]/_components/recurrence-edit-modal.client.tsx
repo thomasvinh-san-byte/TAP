@@ -11,14 +11,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { TimeField24 } from '@/components/time-field-24.client';
 import { DateFieldFr } from '@/components/date-field-fr.client';
+import { AddressOrPOIPicker } from '@/app/(app)/courses/_components/address-or-poi-picker.client';
 import { updateRecurrenceAction } from '../../actions/recurrences';
 import type { RideRecurrence } from '@/types/recurrence';
 import { useHolidays974 } from '../_lib/use-holidays-974';
 import { RecurrencePreview } from './recurrence-preview.client';
+
+type Coords = { lat: number | null; lng: number | null; citycode: string | null };
 
 const DAY_OPTIONS: { code: string; label: string }[] = [
   { code: 'MO', label: 'Lun' },
@@ -67,7 +69,17 @@ export function RecurrenceEditModal({
   const [startDate, setStartDate] = useState(recurrence.start_date);
   const [endDate, setEndDate] = useState(recurrence.end_date ?? '');
   const [pickupAddress, setPickupAddress] = useState(recurrence.pickup_address);
+  const [pickupCoords, setPickupCoords] = useState<Coords>({
+    lat: recurrence.pickup_lat ?? null,
+    lng: recurrence.pickup_lng ?? null,
+    citycode: recurrence.pickup_citycode ?? null,
+  });
   const [dropoffAddress, setDropoffAddress] = useState(recurrence.dropoff_address);
+  const [dropoffCoords, setDropoffCoords] = useState<Coords>({
+    lat: recurrence.dropoff_lat ?? null,
+    lng: recurrence.dropoff_lng ?? null,
+    citycode: recurrence.dropoff_citycode ?? null,
+  });
   const [transportMode, setTransportMode] = useState(recurrence.transport_mode);
   const [urgency, setUrgency] = useState(recurrence.urgency);
   const [showCascadeConfirm, setShowCascadeConfirm] = useState(false);
@@ -92,6 +104,13 @@ export function RecurrenceEditModal({
     if (endDate) formData.set('end_date', endDate);
     formData.set('pickup_address', pickupAddress);
     formData.set('dropoff_address', dropoffAddress);
+    // DEC-094 : threadage coords picker → Server Action (filet serveur si null).
+    if (pickupCoords.lat != null) formData.set('pickup_lat', String(pickupCoords.lat));
+    if (pickupCoords.lng != null) formData.set('pickup_lng', String(pickupCoords.lng));
+    if (pickupCoords.citycode) formData.set('pickup_citycode', pickupCoords.citycode);
+    if (dropoffCoords.lat != null) formData.set('dropoff_lat', String(dropoffCoords.lat));
+    if (dropoffCoords.lng != null) formData.set('dropoff_lng', String(dropoffCoords.lng));
+    if (dropoffCoords.citycode) formData.set('dropoff_citycode', dropoffCoords.citycode);
     formData.set('transport_mode', transportMode);
     formData.set('urgency', urgency);
 
@@ -174,25 +193,43 @@ export function RecurrenceEditModal({
               <DateFieldFr id="edit-end" value={endDate} onChange={setEndDate} />
             </div>
 
-            <div className="space-y-4">
-              <Label htmlFor="edit-pickup">Adresse de prise en charge</Label>
-              <Input
-                id="edit-pickup"
-                type="text"
-                value={pickupAddress}
-                onChange={(e) => setPickupAddress(e.target.value)}
-              />
-            </div>
+            <AddressOrPOIPicker
+              id="edit-pickup"
+              label="Adresse de prise en charge"
+              ariaLabel="Adresse de prise en charge de la récurrence"
+              value={pickupAddress}
+              onChange={(v) => {
+                setPickupAddress(v);
+                if (pickupCoords.lat != null)
+                  setPickupCoords({ lat: null, lng: null, citycode: null });
+              }}
+              onSelect={(sel) =>
+                setPickupCoords({
+                  lat: sel.lat ?? null,
+                  lng: sel.lng ?? null,
+                  citycode: sel.citycode ?? null,
+                })
+              }
+            />
 
-            <div className="space-y-4">
-              <Label htmlFor="edit-dropoff">Adresse de destination</Label>
-              <Input
-                id="edit-dropoff"
-                type="text"
-                value={dropoffAddress}
-                onChange={(e) => setDropoffAddress(e.target.value)}
-              />
-            </div>
+            <AddressOrPOIPicker
+              id="edit-dropoff"
+              label="Adresse de destination"
+              ariaLabel="Adresse de destination de la récurrence"
+              value={dropoffAddress}
+              onChange={(v) => {
+                setDropoffAddress(v);
+                if (dropoffCoords.lat != null)
+                  setDropoffCoords({ lat: null, lng: null, citycode: null });
+              }}
+              onSelect={(sel) =>
+                setDropoffCoords({
+                  lat: sel.lat ?? null,
+                  lng: sel.lng ?? null,
+                  citycode: sel.citycode ?? null,
+                })
+              }
+            />
 
             <div className="grid grid-cols-2 gap-16">
               <div className="space-y-4">
