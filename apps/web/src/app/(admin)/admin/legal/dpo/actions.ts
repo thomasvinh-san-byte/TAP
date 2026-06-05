@@ -51,7 +51,8 @@ export async function updateDpoContactAction(
   if (!profile) return { error: 'Profil introuvable.' };
 
   const data = parsed.data;
-  const { error } = await supabase
+  // DEC-041 row count check.
+  const upd = await supabase
     .from('organizations')
     .update({
       dpo_contact_email: data.dpo_contact_email ?? null,
@@ -60,9 +61,13 @@ export async function updateDpoContactAction(
       dpo_external: data.dpo_external,
       dpo_updated_at: new Date().toISOString(),
     } as never)
-    .eq('id', profile.organization_id);
+    .eq('id', profile.organization_id)
+    .select('id');
 
-  if (error) return { error: 'Modification impossible.' };
+  if (upd.error) return { error: 'Modification impossible.' };
+  if (!upd.data || (upd.data as unknown[]).length === 0) {
+    return { error: 'Modification refusée — droits insuffisants.' };
+  }
 
   revalidatePath('/admin/legal/dpo');
   revalidatePath('/legal/dpo');

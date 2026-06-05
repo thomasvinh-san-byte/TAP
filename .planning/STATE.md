@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.22 livrée localement (error boundaries par segment). Troisième amélioration RETEX livrée — bloc priorité haute pré-prod complet. PR à ouvrir."
-last_updated: "2026-06-05T09:50:00.000Z"
-last_activity: Phase 06.22 « Error boundaries par segment » cadrée + exécutée. Couverture étendue à 5 segments majeurs + 2 sous-segments critiques (cockpit, conduite). Gabarit commun <SegmentError> avec capture Sentry au mount, role="alert", autoFocus, stack en dev seulement (jamais en prod). Conduite offline soignée (bouton Réessayer = reset local, 0 dépendance réseau). Upgrade tableau-de-bord. 5 tests Vitest. DEC-099 LOCKED. PR à ouvrir.
+stopped_at: "Phase 06.23 livrée localement (audit DEC-041 complet + tests métier ciblés). Bloc améliorations pré-prod COMPLET. PR à ouvrir."
+last_updated: "2026-06-05T10:30:00.000Z"
+last_activity: Phase 06.23 « Durcissement couche données » cadrée + exécutée. Volet A : 11 vrais trous DEC-041 comblés sur 24 SA mutations + 2 N/A documentés. Volet B : 3 fichiers tests / 11 nouveaux tests sur angles morts mesurés (solve-local +1.68pp, geocode-safety-net +15.39pp → 100% branches, scrub +15.85pp). DEC-100 LOCKED. **Bloc améliorations pré-prod COMPLET** (Sentry + RLS + boundaries + DEC-041 + tests). PR à ouvrir.
 progress:
-  total_phases: 36
-  completed_phases: 32
-  total_plans: 87
-  completed_plans: 87
+  total_phases: 37
+  completed_phases: 33
+  total_plans: 88
+  completed_plans: 88
   percent: 89
 ---
 
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.22 livrée localement (error boundaries — troisième amélioration RETEX). **Bloc priorité haute pré-prod complet** (Sentry + tests RLS + error boundaries). 32/36 phases livrées. Restantes : 2 améliorations RETEX moyennes (audit DEC-041 complet, tests unit étendus), 09 HDS, 10 géoloc réelle.
+**Current focus:** Phase 06.23 livrée localement (audit DEC-041 + tests métier). **Bloc améliorations pré-prod COMPLET** (Sentry + RLS + boundaries + DEC-041 + tests). 33/37 phases livrées. Restantes : 09 HDS (décision business), 10 géoloc réelle (post-HDS).
 
 ## Current Position
 
@@ -30,12 +30,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.22 livrée localement (2026-06-05) — Error boundaries par segment, PR à ouvrir.
-Phase next: 2 améliorations RETEX moyennes restantes (audit complet DEC-041, tests unit étendus) + Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 32/36 phases livrées. **Bloc priorité haute pré-prod complet** (Sentry + tests RLS + error boundaries). Reste de la dette : moyennes / business.
+Phase: 06.23 livrée localement (2026-06-05) — Audit DEC-041 + tests métier, PR à ouvrir.
+Phase next: Phase 09 HDS (verrou 1er client payant) + Phase 10 géoloc réelle (post-HDS). Décisions business.
+Status: 33/37 phases livrées. **Bloc améliorations pré-prod COMPLET** (Sentry + RLS + boundaries + DEC-041 + tests métier). Reste : business uniquement.
 Blockers: aucun
-Last activity: Phase 06.22 cadrée + exécutée (gabarit SegmentError + 7 nouveaux error.tsx + upgrade tableau-de-bord + 5 tests). DEC-099 LOCKED. PR à ouvrir.
-Précédent: 06.21 tests RLS (#244), 06.20 Sentry (#243).
+Last activity: Phase 06.23 cadrée + exécutée (11 trous DEC-041 comblés + 3 fichiers tests angles morts métier). DEC-100 LOCKED. PR à ouvrir.
+Précédent: 06.22 error boundaries (#245), 06.21 tests RLS (#244), 06.20 Sentry (#243).
 
 Progress: [██████████] 100%
 
@@ -151,6 +151,8 @@ DEC-094 (2026-06-04, Phase 06.19) — Géocodage branché sur récurrences (`Add
 
 DEC-095 (2026-06-05, Phase 06.9) — Next.js 14.2 → 15.5 + migration async complète des Request APIs. React 18 conservé (R19 différé, ADR-007). `createClient` Supabase serveur passe **async** (84 sites consommateurs migrés `await createClient()`), 0 cast `UnsafeUnwrapped*` (interdits). `lib/geocoding/ban.ts` : `fetch(url, { cache: 'no-store' })` explicite (D-04). `typedRoutes` activé (stable 15.5). Rewrite `/api/solver` mort purgé (orphelin Phase 06.12, ADR-010). `next-mdx-remote` downgradé 6→5 + bascule `compileMDX` → `<MDXRemote>` + `force-dynamic` sur `/legal/*` (incident SSG résolu). ESLint au build conservé désactivé (nettoyage CI séparé, D-08). ADR-011 acte la décision et complète ADR-007.
 
+DEC-100 (2026-06-05, Phase 06.23) — Audit complet DEC-041 sur 24 Server Actions à mutations. **11 vrais trous comblés** (`(auth)/accept-invite` x2, `courses/assignment` x3, `courses/payment`, `legal/dpia`, `legal/breaches`, `legal/dpo`, `legal/requests` x2, `legal/_actions/cgu-accept`) + 1 confirmation déjà fait (sms-templates) + 2 N/A documentés (`setup/actions` = string ops, `(public)/legal/request/[token]` = service_role bypass). Pattern `.select('id')` + check `data.length === 0` + message « refusée — droits insuffisants ». **Tests métier ciblés** sur angles morts mesurés (`pnpm exec vitest run --coverage`). 3 fichiers / 11 nouveaux tests : `solve-local.edge-cases` (1 course, extension n=3, capacity dépassée, TPMR rejeté), `geocode-safety-net.edge-cases` (coords sans citycode, BAN citycode vide), `scrub.edge-cases` (tableau, query_string, request.data, récursion profondeur 6, primitives). Couverture branches : `geocode-safety-net` 84.61 → **100 %**, `scrub` 61.29 → **77.14 %**, `solve-local` 90.74 → **92.42 %**. `@tap/pricing` + `@tap/recurrence` 100 % maintenus. 1 nouvelle devDep `@vitest/coverage-v8`. **Clôt la dette DEC-041 reportée Phase 06.** Pas d'ADR.
+
 DEC-099 (2026-06-05, Phase 06.22) — Error boundaries par segment. 5 segments majeurs (`(app)`, `(admin)`, `(auth)`, `(public)`, `(driver)`) + 2 sous-segments critiques (`(app)/cockpit`, `(driver)/conduite`) couverts par un gabarit commun `<SegmentError>` (`components/error/segment-error.client.tsx`) qui : capture l'erreur dans Sentry au mount avec tag `segment`, affiche une UI dégradée `role="alert"` + `aria-live="assertive"` + `autoFocus` sur le bouton Réessayer, montre la stack UNIQUEMENT en dev via `<details>` (jamais en prod — CLAUDE.md §6). Bouton Réessayer = `reset()` Next 15 (re-render local, **0 dépendance réseau** — fonctionne offline côté PWA chauffeur). Message `/conduite` rassure sur la file offline (sync engine 04.9 — pointages sauvegardés sur l'appareil). Upgrade `tableau-de-bord/error.tsx` vers le gabarit (capture Sentry ajoutée). 5 tests Vitest. Pas d'ADR (activation pattern Next 15).
 
 DEC-098 (2026-06-05, Phase 06.21) — Couverture tests RLS étendue de **13 à 24 tables** (les 11 trous comblés). 11 fichiers de test pgTAP ajoutés (`ride_events`, `ride_recurrences`, `ride_recurrence_exceptions`, `cgu_acceptance`, `cookie_consent_log`, `legal_request_attempts`, `tariff_grids`, `sms_messages`, `sms_templates`, `pois_metier`, `holidays_974`). Gabarit `rides_rls.sql` réutilisé (fixtures Org Alpha/Bravo + rôles dirigeant/régulateur/chauffeur). Vérifs : RLS activée, cross-tenant strict, WITH CHECK, isolation par rôle, anon refusé. **0 policy modifiée** (D-04 « détection ≠ correction »). 3 observations `force row level security` non posé tracées en commentaire (`ride_events`, `tariff_grids`, `sms_messages`) — pas des trous de sécurité (rôle `authenticated` ne contourne pas RLS). Renforce DEC-002 / DEC-013. Pas d'ADR (activation d'un choix de qualité acté).
@@ -206,10 +208,10 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-06-05T09:50:00.000Z
-Stopped at: Phase 06.22 livrée localement (error boundaries — bloc priorité haute pré-prod complet). 32/36 phases livrées. PR à ouvrir.
+Last session: 2026-06-05T10:30:00.000Z
+Stopped at: Phase 06.23 livrée localement — bloc améliorations pré-prod COMPLET. 33/37 phases livrées. PR à ouvrir.
 Resume file: None
-Next command suggested: après merge PR 06.22 → améliorations moyennes (audit DEC-041 complet / tests unit étendus) ou décision business (Phase 09 HDS).
+Next command suggested: après merge PR 06.23 → décision business Phase 09 HDS (verrou 1er client payant) ou pause produit / démo design partners.
 
 ## Ingest Runs
 

@@ -118,7 +118,8 @@ export async function updateDpiaAction(
   if (!user) return { error: 'Session expirée.' };
 
   const data = parsed.data;
-  const { error } = await supabase
+  // DEC-041 row count check.
+  const upd = await supabase
     .from('dpia_record')
     .update({
       title: data.title,
@@ -135,9 +136,13 @@ export async function updateDpiaAction(
       next_review_at: data.next_review_at.toISOString().slice(0, 10),
       status: data.status,
     } as never)
-    .eq('id', id);
+    .eq('id', id)
+    .select('id');
 
-  if (error) return { error: 'Modification impossible.' };
+  if (upd.error) return { error: 'Modification impossible.' };
+  if (!upd.data || (upd.data as unknown[]).length === 0) {
+    return { error: 'Modification refusée — droits insuffisants ou DPIA absente.' };
+  }
   revalidatePath('/admin/legal/dpia');
   return { success: true };
 }

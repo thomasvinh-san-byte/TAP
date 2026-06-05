@@ -119,28 +119,30 @@ export async function acceptInvitationAction(
   }
 
   // 5. UPDATE driver_invitations → accepted (trigger audit émet
-  //    `driver_invitation_accepted`).
-  const { error: invUpdErr } = await supabase
+  //    `driver_invitation_accepted`). DEC-041 row count check.
+  const invUpdRes = await supabase
     .from('driver_invitations' as never)
     .update({
       status: 'accepted',
       accepted_at: new Date().toISOString(),
     } as never)
     .eq('id', inv.id)
-    .eq('status', 'pending');
-  if (invUpdErr) {
+    .eq('status', 'pending')
+    .select('id');
+  if (invUpdRes.error || !invUpdRes.data || (invUpdRes.data as unknown[]).length === 0) {
     return { error: "Validation de l'invitation impossible." };
   }
 
   // 6. UPDATE drivers.profile_id = auth.uid() — clause `.is('profile_id', null)`
   //    rend l'opération idempotente (race condition : double submit → la 2ᵉ
-  //    requête match 0 row).
-  const { error: drvUpdErr } = await supabase
+  //    requête match 0 row). DEC-041 row count check.
+  const drvUpdRes = await supabase
     .from('drivers' as never)
     .update({ profile_id: user.id } as never)
     .eq('id', inv.driver_id)
-    .is('profile_id', null);
-  if (drvUpdErr) {
+    .is('profile_id', null)
+    .select('id');
+  if (drvUpdRes.error || !drvUpdRes.data || (drvUpdRes.data as unknown[]).length === 0) {
     return { error: 'Rattachement du compte chauffeur impossible.' };
   }
 

@@ -58,11 +58,16 @@ export async function assignRideAction(
     vehicle_id: parsed.data.vehicleId ?? null,
     updated_by: ctx.userId,
   };
-  const { error } = await ctx.supabase
+  // DEC-041 row count check.
+  const upd = await ctx.supabase
     .from('rides')
     .update(update as never)
-    .eq('id', parsed.data.rideId);
-  if (error) return { error: 'Assignation impossible.' };
+    .eq('id', parsed.data.rideId)
+    .select('id');
+  if (upd.error) return { error: 'Assignation impossible.' };
+  if (!upd.data || upd.data.length === 0) {
+    return { error: 'Assignation refusée — droits insuffisants ou course absente.' };
+  }
 
   revalidatePath('/courses');
   return { success: true, id: parsed.data.rideId };
@@ -110,11 +115,16 @@ export async function assignVehicleAction(
     vehicle_id: parsed.data.vehicleId,
     updated_by: ctx.userId,
   };
-  const { error } = await ctx.supabase
+  // DEC-041 row count check.
+  const upd = await ctx.supabase
     .from('rides')
     .update(update as never)
-    .eq('id', parsed.data.rideId);
-  if (error) return { error: 'Affectation du véhicule impossible.' };
+    .eq('id', parsed.data.rideId)
+    .select('id');
+  if (upd.error) return { error: 'Affectation du véhicule impossible.' };
+  if (!upd.data || upd.data.length === 0) {
+    return { error: 'Affectation refusée — droits insuffisants ou course absente.' };
+  }
 
   revalidatePath('/courses');
   revalidatePath('/cockpit');
@@ -155,11 +165,16 @@ export async function unassignRideAction(rideId: string): Promise<ActionState> {
     vehicle_id: null,
     updated_by: ctx.userId,
   };
-  const { error } = await ctx.supabase
+  // DEC-041 row count check.
+  const upd = await ctx.supabase
     .from('rides')
     .update(update as never)
-    .eq('id', parsed.data);
-  if (error) return { error: 'Désassignation impossible.' };
+    .eq('id', parsed.data)
+    .select('id');
+  if (upd.error) return { error: 'Désassignation impossible.' };
+  if (!upd.data || upd.data.length === 0) {
+    return { error: 'Désassignation refusée — droits insuffisants ou course absente.' };
+  }
 
   revalidatePath('/courses');
   return { success: true, id: parsed.data };

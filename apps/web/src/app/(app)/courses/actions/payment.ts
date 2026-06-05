@@ -67,11 +67,16 @@ export async function updateRidePaymentAction(
     update.payment_received_at = new Date().toISOString();
   }
 
-  const { error } = await ctx.supabase
+  // DEC-041 row count check.
+  const upd = await ctx.supabase
     .from('rides')
     .update(update as never)
-    .eq('id', parsed.data.rideId);
-  if (error) return { error: 'Mise à jour paiement impossible.' };
+    .eq('id', parsed.data.rideId)
+    .select('id');
+  if (upd.error) return { error: 'Mise à jour paiement impossible.' };
+  if (!upd.data || upd.data.length === 0) {
+    return { error: 'Mise à jour refusée — droits insuffisants ou course absente.' };
+  }
 
   revalidatePath('/courses');
   return { success: true, id: parsed.data.rideId };

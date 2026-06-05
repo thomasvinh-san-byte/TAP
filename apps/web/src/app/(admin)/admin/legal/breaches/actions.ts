@@ -101,15 +101,20 @@ export async function closeBreachAction(id: string): Promise<ActionState> {
   } = await supabase.auth.getUser();
   if (!user) return { error: 'Session expirée.' };
 
-  const { error } = await supabase
+  // DEC-041 row count check.
+  const upd = await supabase
     .from('data_breach_incident')
     .update({
       closed_at: new Date().toISOString(),
       closed_by: user.id,
     } as never)
-    .eq('id', id);
+    .eq('id', id)
+    .select('id');
 
-  if (error) return { error: 'Fermeture impossible.' };
+  if (upd.error) return { error: 'Fermeture impossible.' };
+  if (!upd.data || (upd.data as unknown[]).length === 0) {
+    return { error: 'Fermeture refusée — droits insuffisants ou incident absent.' };
+  }
   revalidatePath('/admin/legal/breaches');
   return { success: true };
 }
