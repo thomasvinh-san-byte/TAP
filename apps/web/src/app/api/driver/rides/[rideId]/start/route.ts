@@ -1,8 +1,10 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { driverPositionInputSchema } from '@tap/shared';
 import { requireDriverFromRouteHandler } from '@/lib/api/driver-auth';
 import { withIdempotency } from '@/lib/api/idempotency';
+import { recordDriverPosition } from '@/lib/geoloc/record-position';
 
 /**
  * POST /api/driver/rides/[rideId]/start
@@ -21,9 +23,11 @@ import { withIdempotency } from '@/lib/api/idempotency';
  * Refs : DEC-045 LOCKED Route Handlers (PR #109), PLAN-1.md (PR #111).
  */
 
-const startPayloadSchema = z.object({
-  idempotency_key: z.string().uuid(),
-});
+const startPayloadSchema = z
+  .object({
+    idempotency_key: z.string().uuid(),
+  })
+  .merge(driverPositionInputSchema);
 
 const rideIdSchema = z.string().uuid();
 
@@ -110,6 +114,21 @@ export async function POST(req: NextRequest, props: { params: Promise<{ rideId: 
           },
         };
       }
+
+      // Phase 10.0 DEC-096 : capture événementielle position.
+      // Non bloquant — toute erreur est avalée par recordDriverPosition.
+      await recordDriverPosition({
+        supabase: auth.ctx.supabase,
+        organizationId: auth.ctx.organizationId,
+        driverId: auth.driverId,
+        rideId: rideIdParse.data,
+        source: 'event',
+        position: {
+          lat: bodyParse.data.lat,
+          lng: bodyParse.data.lng,
+          accuracy: bodyParse.data.accuracy,
+        },
+      });
 
       revalidatePath('/conduite');
       return {

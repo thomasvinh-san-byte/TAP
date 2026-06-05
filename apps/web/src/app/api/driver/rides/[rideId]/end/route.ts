@@ -1,7 +1,9 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { driverPositionInputSchema } from '@tap/shared';
 import { requireDriverFromRouteHandler } from '@/lib/api/driver-auth';
+import { recordDriverPosition } from '@/lib/geoloc/record-position';
 import { withIdempotency } from '@/lib/api/idempotency';
 
 /**
@@ -30,6 +32,7 @@ const endPayloadSchema = z
     payment_status: paymentStatusSchema,
     payment_method: paymentMethodSchema.optional(),
   })
+  .merge(driverPositionInputSchema)
   .refine((v) => v.payment_status !== 'encaisse' || !!v.payment_method, {
     message:
       'Une course encaissée doit indiquer le moyen de paiement (espèces, CB, chèque ou CGSS différé).',
@@ -132,6 +135,20 @@ export async function POST(req: NextRequest, props: { params: Promise<{ rideId: 
           },
         };
       }
+
+      // Phase 10.0 DEC-096 : capture événementielle position.
+      await recordDriverPosition({
+        supabase: auth.ctx.supabase,
+        organizationId: auth.ctx.organizationId,
+        driverId: auth.driverId,
+        rideId: rideIdParse.data,
+        source: 'event',
+        position: {
+          lat: bodyParse.data.lat,
+          lng: bodyParse.data.lng,
+          accuracy: bodyParse.data.accuracy,
+        },
+      });
 
       revalidatePath('/conduite');
       return {

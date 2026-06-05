@@ -1,5 +1,39 @@
 # Journal — phases livrées
 
+## 2026-06-05 — Phase 10.0 livrée localement (prototype géoloc terrain + UI/UX, données fictives)
+
+Phase 10.0 « Prototype géoloc » cadrée + exécutée dans une seule PR. Prépare le socle géoloc (fonctionnel + UI/UX cockpit + flow chauffeur) sur données FICTIVES, pré-HDS. Aucune vraie position persistée tant que `GEOLOC_ENABLED ≠ 'true'`.
+
+**Principe directeur (RETEX devs)** : capture **événementielle** aux pointages, **pas de suivi temps réel continu**. Raison vérifiée : le continu est techniquement impossible à garantir en PWA (la capture s'arrête dès que le chauffeur ouvre Waze/Maps ou éteint l'écran). Le cockpit affiche la dernière position connue + son âge (« vu il y a X min »), **jamais un faux « live »**. Mode démo = positions STATIQUES (aucune animation, aucun simulateur de déplacement).
+
+**Composants livrés** :
+
+- Migration `supabase/migrations/20260605000001_driver_positions.sql` : table `driver_positions` (`id`/`organization_id`/`driver_id`/`ride_id`/`lat`/`lng`/`accuracy`/`captured_at`/`source check('event','foreground','demo')`), index `(driver_id, captured_at desc)`, RLS (régulateur/dirigeant lisent leur org, chauffeur lit + INSERT sa propre position), fonction `purge_driver_positions()` rétention 90j câblée (schedule pg_cron NON activé tant que pré-HDS).
+- `packages/shared/src/validators/driver-position.ts` : `driverPositionInputSchema` zod partagé (`lat`/`lng`/`accuracy` tous optionnels, bornes ±90/±180/0-100k) + constante `POSITION_MAX_ACCURACY_M = 100`.
+- `apps/web/src/lib/geoloc/record-position.ts` : helper serveur `recordDriverPosition` gardé par flag `GEOLOC_ENABLED='true'` (pré-HDS = OFF). Non bloquant : toute erreur INSERT loggée, ne fait jamais échouer le pointage.
+- `apps/web/src/lib/geoloc/capture-current-position.client.ts` : helper client navigateur, `enableHighAccuracy: true`, `timeout: 8s`, `maximumAge: 5s`, filtre `accuracy ≤ 100m`, refus permission = `{}` (pointage non bloqué).
+- Routes `api/driver/rides/[rideId]/{start,end,no-show}` : `.merge(driverPositionInputSchema)` sur les 3 schémas + appel `recordDriverPosition(source='event')` après mutation métier.
+- `ride-actions.client.tsx` : `captureCurrentPosition()` AVANT le POST, body et payload enqueue offline-first étendus avec lat/lng/accuracy.
+- `apps/web/src/components/map/map.client.tsx` : composant Map MapLibre + protocole PMTiles. Détection `HEAD` du fichier `/tiles/reunion.pmtiles` ; fallback OSM raster + attribution si absent (preview sans extract bundlé). `role="region"` + `aria-label` (a11y).
+- `apps/web/src/app/(app)/cockpit/_lib/use-driver-positions.ts` : hook Realtime calqué sur `use-cockpit-rides`, canal `cockpit:driver_positions`. Garde `Map<driverId, position>` = dernière connue. Helpers `formatPositionAge()` (« vu il y a X min », typographie française NBSP devant unités) + `positionTone()` (primary < 5 min, muted ≥ 5 min). 6 tests Vitest.
+- `apps/web/src/app/(app)/cockpit/_components/driver-positions-panel.client.tsx` : panneau cockpit, carte + marqueurs (tone selon fraîcheur) + liste textuelle accompagnante (a11y) + badge « DÉMO » si au moins une position est `source='demo'`. Auto-refresh âge toutes les 30s.
+- `apps/web/src/app/(driver)/conduite/_components/geoloc-consent-banner.client.tsx` : banner consentement chauffeur dismissable (localStorage `geoloc:consent-ack`), information capture aux pointages + service only + 90j max.
+- `supabase/seed.demo.sql` étendu : 3 positions fictives sur les 3 chauffeurs démo (Saint-Denis 2 min, Saint-Pierre 15 min, Saint-Benoît 80 min). Statiques. Source `'demo'`.
+
+**Différé (D-04 watchPosition opportuniste)** : non livré V1. Le socle évènementiel couvre 80% du besoin cockpit. Ajout `watchPosition`/`clearWatch` à une itération ultérieure (garde-fous batterie/permission).
+
+**RGPD câblé** : information préalable chauffeur ✓, service only ✓ (pas de watch automatique en V1), rétention 90j câblée ✓ (cron activé Phase 09). Aucune vraie capture persistée tant que pré-HDS (flag OFF).
+
+**Dépendances** : `maplibre-gl@^4.7.0` + `pmtiles@^3.2.0` ajoutées. ADR-012 « MapLibre GL + PMTiles » justifie le choix (alternatives Mapbox/Leaflet/OpenLayers évaluées, rejetées).
+
+**Validation** :
+- `pnpm typecheck` propre
+- `pnpm build` vert (Serwist SW vert, MapLibre bundle inclus, 28 pages)
+- `pnpm test` **107/107 verts** (+6 nouveaux : use-driver-positions)
+- `pnpm lint` clean (9 warnings préexistants hors périmètre)
+- 1 migration BDD ajoutée (cohérente avec `git diff supabase/migrations/`)
+- ADR-012 + DEC-096 LOCKED
+
 ## 2026-06-05 — Phase 06.9 close (correctif mdx 5→6 + turbo env)
 
 Correctif post-merge PR #238 sur la Phase 06.9. Le downgrade `next-mdx-remote` 6.0.0 → 5.0.0 effectué en PR #238 était **injustifié sur le diagnostic** : la version 6.x ne requiert PAS React 19 (peerDep `react: ">=16"`, devDep `react: ^18.2.0`), et la 5.0.0 est signalée vulnérable RCE par Vercel. La version 6.0.0 est saine, récente (2026-02), et c'est celle qui était en place avant 06.9.

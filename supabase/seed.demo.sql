@@ -785,3 +785,37 @@ end $$;
 -- Phase 04 permet d'ajouter des chauffeurs à la demande sans toucher au
 -- seed. Le scope « 6 chauffeurs démo conformité » initial ne s'applique
 -- plus tel quel : la conformité Phase 15 se prouve via captures workflow.
+
+-- Phase 10.0 prototype géoloc (DEC-096) : positions chauffeurs fictives.
+-- Statiques (aucune animation, aucun simulateur de déplacement) sur des
+-- coordonnées 974 réelles. Horodatages variés pour illustrer le rendu
+-- « vu il y a X min » côté cockpit. Source 'demo' uniquement — non
+-- purgée par la rétention 90j tant qu'on est en démo.
+do $$
+declare
+  org_id uuid := '11111111-0000-0000-0000-000000000001';
+  drv1 uuid := '22222222-0000-0000-0000-000000000011';
+  drv2 uuid := '22222222-0000-0000-0000-000000000012';
+  drv3 uuid := '22222222-0000-0000-0000-000000000013';
+begin
+  -- Position fraîche (< 5 min) — apparait en couleur primary
+  insert into public.driver_positions
+    (organization_id, driver_id, ride_id, lat, lng, accuracy, captured_at, source)
+  values
+    (org_id, drv1, null, -20.8825, 55.4513, 18.0, now() - interval '2 minutes', 'demo')
+  on conflict do nothing;
+
+  -- Position légèrement ancienne (15 min) — couleur muted, label « 15 min »
+  insert into public.driver_positions
+    (organization_id, driver_id, ride_id, lat, lng, accuracy, captured_at, source)
+  values
+    (org_id, drv2, null, -21.3393, 55.4781, 22.0, now() - interval '15 minutes', 'demo')
+  on conflict do nothing;
+
+  -- Position ancienne (1 h 20) — label « 1 h20 »
+  insert into public.driver_positions
+    (organization_id, driver_id, ride_id, lat, lng, accuracy, captured_at, source)
+  values
+    (org_id, drv3, null, -21.0344, 55.7124, 35.0, now() - interval '80 minutes', 'demo')
+  on conflict do nothing;
+end$$;

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { enqueue } from '@/lib/offline/sync-engine';
 import { getDb } from '@/lib/offline/dexie-instance';
 import { formatTimeFr } from '@/lib/dates-fr';
+import { captureCurrentPosition } from '@/lib/geoloc/capture-current-position.client';
 import { EndRideModal } from './end-ride-modal.client';
 import { NoShowButton } from './no-show-button.client';
 
@@ -61,6 +62,10 @@ export function RideActions({ rideId, status, endedAt, variant = 'inline' }: Pro
     setPending(true);
     const idempotency_key = crypto.randomUUID();
 
+    // Phase 10.0 DEC-096 : capture position évènementielle (best-effort).
+    // Acquisition GPS pendant ce délai — affichée via `pending` côté UI.
+    const position = await captureCurrentPosition();
+
     try {
       if (!navigator.onLine) {
         throw new Error('offline');
@@ -69,7 +74,7 @@ export function RideActions({ rideId, status, endedAt, variant = 'inline' }: Pro
       const res = await fetch(`/api/driver/rides/${rideId}/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idempotency_key }),
+        body: JSON.stringify({ idempotency_key, ...position }),
       });
 
       if (!res.ok) {
@@ -95,7 +100,7 @@ export function RideActions({ rideId, status, endedAt, variant = 'inline' }: Pro
       await enqueue({
         type: 'start_ride',
         resource_id: rideId,
-        payload: {},
+        payload: position,
       });
       toast.warning('Mutation enregistrée — sync au retour réseau');
       router.refresh();

@@ -2,6 +2,7 @@ import { Calendar } from 'lucide-react';
 import { listMyRidesUpcoming, type RideForDriverWithBucket } from './_lib/queries';
 import { RideCard } from './_components/ride-card.client';
 import { ActivationToast } from './_components/activation-toast.client';
+import { GeolocConsentBanner } from './_components/geoloc-consent-banner.client';
 
 export const metadata = { title: 'Ma journée' };
 export const dynamic = 'force-dynamic';
@@ -42,6 +43,7 @@ export default async function ConduitePage() {
     <>
       <ActivationToast />
       <div className="space-y-24">
+        <GeolocConsentBanner />
         <header className="flex items-baseline justify-between">
           <h1 className="text-2xl font-semibold tracking-tight">Ma journée</h1>
           <span className="text-muted-foreground text-sm tabular-nums">

@@ -1,8 +1,10 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { driverPositionInputSchema } from '@tap/shared';
 import { requireDriverFromRouteHandler } from '@/lib/api/driver-auth';
 import { withIdempotency } from '@/lib/api/idempotency';
+import { recordDriverPosition } from '@/lib/geoloc/record-position';
 
 /**
  * POST /api/driver/rides/[rideId]/no-show
@@ -24,10 +26,12 @@ import { withIdempotency } from '@/lib/api/idempotency';
  * Refs : DEC-045 LOCKED (PR #109), DEC-053 LOCKED, PLAN-6.md.
  */
 
-const payloadSchema = z.object({
-  idempotency_key: z.string().uuid(),
-  motif: z.string().max(200).optional(),
-});
+const payloadSchema = z
+  .object({
+    idempotency_key: z.string().uuid(),
+    motif: z.string().max(200).optional(),
+  })
+  .merge(driverPositionInputSchema);
 
 const rideIdSchema = z.string().uuid();
 
@@ -155,6 +159,20 @@ export async function POST(
           motif: bodyParse.data.motif ?? null,
         },
       } as never);
+
+      // Phase 10.0 DEC-096 : capture événementielle position.
+      await recordDriverPosition({
+        supabase: auth.ctx.supabase,
+        organizationId: auth.ctx.organizationId,
+        driverId: auth.driverId,
+        rideId: rideIdParse.data,
+        source: 'event',
+        position: {
+          lat: bodyParse.data.lat,
+          lng: bodyParse.data.lng,
+          accuracy: bodyParse.data.accuracy,
+        },
+      });
 
       revalidatePath('/conduite');
       revalidatePath('/cockpit');
