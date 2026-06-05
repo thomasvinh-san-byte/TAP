@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.20 livrée localement (observabilité Sentry, zéro PII santé). Première amélioration RETEX 2026-06-04 livrée. PR à ouvrir."
-last_updated: "2026-06-05T07:55:00.000Z"
-last_activity: Phase 06.20 « Observabilité Sentry » cadrée + exécutée. `@sentry/nextjs` 8.55 activé sur 3 runtimes + `onRequestError` Next 15 + `global-error.tsx` root. Zéro PII santé (sendDefaultPii false, scrubbing beforeSend NIR/nom/adresse/tokens/cookies, Replay OFF). captureException dans optimizer + geoloc. turbo.json globalEnv complété. .env.example documenté. Dev sans DSN no-op. DEC-097 LOCKED. 113/113 tests verts (+6 scrub).
+stopped_at: "Phase 06.21 livrée localement (tests RLS — couverture 13→24 tables). Deuxième amélioration RETEX 2026-06-04 livrée. PR à ouvrir."
+last_updated: "2026-06-05T08:30:00.000Z"
+last_activity: Phase 06.21 « Tests RLS — couverture complète » cadrée + exécutée. Couverture RLS étendue de 13 à 24 tables (11 trous comblés) : 3 critiques (ride_events / ride_recurrences / ride_recurrence_exceptions) + 6 RGPD/métier (cgu_acceptance, cookie_consent_log, legal_request_attempts, tariff_grids, sms_messages, sms_templates) + 2 référentiels (pois_metier, holidays_974). Gabarit rides_rls.sql réutilisé. 0 policy modifiée (D-04). DEC-098 LOCKED. PR à ouvrir.
 progress:
-  total_phases: 34
-  completed_phases: 30
-  total_plans: 85
-  completed_plans: 85
-  percent: 88
+  total_phases: 35
+  completed_phases: 31
+  total_plans: 86
+  completed_plans: 86
+  percent: 89
 ---
 
 # Project State
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.20 livrée localement (Sentry — première amélioration RETEX). 30/34 phases livrées (06.20 PR à ouvrir). Restantes : 4 améliorations RETEX (tests RLS, error boundaries, audit DEC-041, tests unit étendus), 09 HDS, 10 géoloc réelle.
+**Current focus:** Phase 06.21 livrée localement (tests RLS 13→24 — deuxième amélioration RETEX). 31/35 phases livrées (06.21 PR à ouvrir). Restantes : 3 améliorations RETEX (error boundaries, audit DEC-041 complet, tests unit étendus), 09 HDS, 10 géoloc réelle.
 
 ## Current Position
 
@@ -30,12 +30,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.20 livrée localement (2026-06-05) — Observabilité Sentry, zéro PII santé, PR à ouvrir.
-Phase next: 4 améliorations RETEX restantes (tests RLS pgTAP, error boundaries par segment, audit complet DEC-041, tests unit étendus) + Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 30/34 phases livrées. Première amélioration RETEX (Sentry) livrée — durcit le terrain pré-prod sans toucher au métier.
+Phase: 06.21 livrée localement (2026-06-05) — Tests RLS couverture 13→24 tables, PR à ouvrir.
+Phase next: 3 améliorations RETEX restantes (error boundaries par segment, audit complet DEC-041, tests unit étendus) + Phase 09 HDS + Phase 10 géoloc réelle.
+Status: 31/35 phases livrées. Deux premières améliorations RETEX livrées (Sentry + tests RLS) — terrain pré-prod renforcé.
 Blockers: aucun
-Last activity: Phase 06.20 cadrée + exécutée (Sentry 3 runtimes, scrubbing PII, onRequestError, global-error). DEC-097 LOCKED. PR à ouvrir.
-Précédent: 10.0 prototype géoloc (#240), 06.9 Next.js 15.5 (#238/#239).
+Last activity: Phase 06.21 cadrée + exécutée (11 fichiers de test RLS, 0 policy modifiée). DEC-098 LOCKED. PR à ouvrir.
+Précédent: 06.20 Sentry (#243), 10.0 prototype géoloc (#240).
 
 Progress: [██████████] 100%
 
@@ -151,6 +151,8 @@ DEC-094 (2026-06-04, Phase 06.19) — Géocodage branché sur récurrences (`Add
 
 DEC-095 (2026-06-05, Phase 06.9) — Next.js 14.2 → 15.5 + migration async complète des Request APIs. React 18 conservé (R19 différé, ADR-007). `createClient` Supabase serveur passe **async** (84 sites consommateurs migrés `await createClient()`), 0 cast `UnsafeUnwrapped*` (interdits). `lib/geocoding/ban.ts` : `fetch(url, { cache: 'no-store' })` explicite (D-04). `typedRoutes` activé (stable 15.5). Rewrite `/api/solver` mort purgé (orphelin Phase 06.12, ADR-010). `next-mdx-remote` downgradé 6→5 + bascule `compileMDX` → `<MDXRemote>` + `force-dynamic` sur `/legal/*` (incident SSG résolu). ESLint au build conservé désactivé (nettoyage CI séparé, D-08). ADR-011 acte la décision et complète ADR-007.
 
+DEC-098 (2026-06-05, Phase 06.21) — Couverture tests RLS étendue de **13 à 24 tables** (les 11 trous comblés). 11 fichiers de test pgTAP ajoutés (`ride_events`, `ride_recurrences`, `ride_recurrence_exceptions`, `cgu_acceptance`, `cookie_consent_log`, `legal_request_attempts`, `tariff_grids`, `sms_messages`, `sms_templates`, `pois_metier`, `holidays_974`). Gabarit `rides_rls.sql` réutilisé (fixtures Org Alpha/Bravo + rôles dirigeant/régulateur/chauffeur). Vérifs : RLS activée, cross-tenant strict, WITH CHECK, isolation par rôle, anon refusé. **0 policy modifiée** (D-04 « détection ≠ correction »). 3 observations `force row level security` non posé tracées en commentaire (`ride_events`, `tariff_grids`, `sms_messages`) — pas des trous de sécurité (rôle `authenticated` ne contourne pas RLS). Renforce DEC-002 / DEC-013. Pas d'ADR (activation d'un choix de qualité acté).
+
 DEC-097 (2026-06-05, Phase 06.20) — Observabilité Sentry activée (stack figée DEC-003). **Zéro PII santé** : `sendDefaultPii: false` sur les 3 runtimes (client/server/edge), scrubbing `beforeSend` partagé (`lib/sentry/scrub.ts`) retire NIR / nom / prénom / adresses / téléphone / email / date_naissance / tokens / cookies / `Authorization` headers ; query strings URL retirées ; user → id auth seul. **Session Replay OFF** (laissé en commentaire avec `maskAllText: true` + `blockAllMedia: true` si réactivé). `onRequestError = Sentry.captureRequestError` pour capter RSC + Server Actions Next 15. `global-error.tsx` root. Init **no-op si DSN absent** (dev local fonctionne). `captureException` ajouté dans `api/optimizer/route.ts` + `lib/geoloc/record-position.ts`. `pnpm.overrides` étendu de `next: 15.5.19` pour dédup Sentry/opentelemetry. **Pas de nouvel ADR** (activation d'un choix acté DEC-003 stack figée).
 
 DEC-096 (2026-06-05, Phase 10.0) — Prototype géoloc sur données fictives, pré-HDS. **Capture événementielle aux pointages** (pas de suivi continu — barrière PWA réelle, RETEX devs : la capture s'arrête dès qu'une app tierce passe en premier plan). **Cockpit = dernière position connue + âge (« vu il y a X min »), JAMAIS faux « live »**. Aucune position simulée animée en démo (positions statiques uniquement). MapLibre + PMTiles fond statique + fallback OSM raster (ADR-012). Table `driver_positions` + RLS + rétention 90j câblée mais pg_cron non activé. Flag `GEOLOC_ENABLED` : pré-HDS = OFF en prod, seules les `source='demo'` du seed persistent. Réversible : la bascule réelle (`GEOLOC_ENABLED=true` + activation pg_cron) se fera en Phase 09 (HDS). Helper client `captureCurrentPosition` non bloquant (8s timeout, accuracy ≤ 100 m, refus permission = pointage OK sans position). Banner consentement chauffeur sur `/conduite`.
@@ -202,10 +204,10 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-06-05T07:55:00.000Z
-Stopped at: Phase 06.20 livrée localement (Sentry, première amélioration RETEX). 30/34 phases livrées. PR à ouvrir.
+Last session: 2026-06-05T08:30:00.000Z
+Stopped at: Phase 06.21 livrée localement (tests RLS 13→24). 31/35 phases livrées. PR à ouvrir.
 Resume file: None
-Next command suggested: après merge PR 06.20 → enchaîner sur la prochaine amélioration RETEX (tests RLS pgTAP / error boundaries / audit DEC-041 / tests unit étendus).
+Next command suggested: après merge PR 06.21 → enchaîner sur la prochaine amélioration RETEX (error boundaries par segment / audit DEC-041 complet / tests unit étendus).
 
 ## Ingest Runs
 
