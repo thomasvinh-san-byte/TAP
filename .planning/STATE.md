@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.9 livrée localement (Next.js 14.2 → 15.5, async APIs complètes, ADR-011) — PR à ouvrir"
-last_updated: "2026-06-05T05:30:00.000Z"
-last_activity: Phase 06.9 « Modernisation Next.js 15.5 » cadrée + exécutée. Codemod async-request-api (17 fichiers, 0 erreur) + 84 sites `createClient()` Supabase serveur passés `await createClient()` (signature async, 0 `UnsafeUnwrapped*` cast). `typedRoutes` stable activé. Rewrite `/api/solver` mort purgé. `next-mdx-remote` 6→5 + bascule `<MDXRemote>` + `force-dynamic /legal/*` (incident SSG résolu). React 18 conservé. ESLint au build conservé désactivé. ADR-011 + DEC-095 LOCKED. Build vert, 101/101 tests verts, typecheck propre.
+stopped_at: "Phase 06.9 close (Next 15.5 + correctif mdx 5→6, PR #238 + #239). 2026-06-05"
+last_updated: "2026-06-05T05:45:00.000Z"
+last_activity: Phase 06.9 close. Correctif fix/06.9-mdx-downgrade (#239) : retour `next-mdx-remote` 6.0.0 (downgrade injustifié corrigé — version 5.0.0 vulnérable RCE pour rien, 6.x n'a jamais exigé React 19, peerDep `>=16`, devDep `react: ^18.2.0`). `pnpm.overrides` épinglent React 18.3.1 (dédup hoisting). `<MDXRemote>` rendu dans les pages (pas dans le helper, évite cross-bundle RSC). `turbo.json` globalEnv complété (POSTGRES_URL, APP_NIR_SEARCH_KEY, etc.). `force-dynamic` conservé sur `/legal/*` (bug Next 15 + SSG + mdx persiste indépendamment de la version). Build vert, 101/101 tests verts.
 progress:
   total_phases: 32
-  completed_phases: 28
+  completed_phases: 29
   total_plans: 82
   completed_plans: 82
-  percent: 88
+  percent: 91
 ---
 
 # Project State
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.9 livrée localement (Next.js 15.5 + async APIs complètes). 28/32 phases livrées (06.9 PR à ouvrir). Candidates ouvertes restantes (2 après merge) : 09 (HDS), 10 (géoloc temps réel).
+**Current focus:** 29/32 phases livrées. Phase 06.9 close (Next 15.5 + fix mdx). Bloc moderne. Restent décisions business : 09 (HDS), 10 (géoloc).
 
 ## Current Position
 
@@ -30,12 +30,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.9 livrée localement (2026-06-05) — Next.js 14.2 → 15.5 + migration async complète, PR à ouvrir.
-Phase next: à trancher après merge 06.9. Candidates ouvertes (2) : 09 (HDS, verrou 1er client payant), 10 (géoloc temps réel + réévaluer OSRM, post-HDS).
-Status: 28/32 phases livrées. Stack moderne, async APIs alignées sur la trajectoire Next 16+. Reste 2 phases : décisions business (HDS) / techniques (géoloc).
+Phase: 06.9 close (2026-06-05) — Next 15.5 + correctif mdx (#239), PR #238 + #239.
+Phase next: à trancher par le dirigeant. Candidates ouvertes (2) : 09 (HDS, verrou 1er client payant), 10 (géoloc temps réel + réévaluer OSRM, post-HDS). Phase 07 (mobile natif) abandonnée DEC-092.
+Status: 29/32 phases livrées. Stack moderne, async APIs alignées Next 16+, mdx sain (6.0.0, plus de RCE), `pnpm.overrides` dédup React. Restent décisions business (HDS) / techniques (géoloc).
 Blockers: aucun
-Last activity: Phase 06.9 cadrée + exécutée (Next 15.5, async APIs, typedRoutes, purge rewrite mort, incident MDX résolu). ADR-011 + DEC-095 LOCKED.
-Précédent: 06.19 branchement géocodage (#236), 06.12 solveur heuristique TS + suppression OR-Tools (#235).
+Last activity: Phase 06.9 close. Correctif mdx 5→6 (downgrade injustifié corrigé) + turbo env complété. Compteurs 29/32.
+Précédent: 06.9 montée Next 15.5 (#238), 06.19 branchement géocodage (#236), 06.12 solveur heuristique TS (#235).
 
 Progress: [██████████] 100%
 
@@ -198,10 +198,10 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-06-05T05:30:00.000Z
-Stopped at: Phase 06.9 livrée localement (Next.js 15.5 + async APIs complètes, ADR-011). PR à ouvrir + à attendre merge avant sync STATE final. 28/32 phases livrées. Prochaine phase à trancher après merge (09 / 10).
+Last session: 2026-06-05T05:45:00.000Z
+Stopped at: Phase 06.9 close (Next 15.5 + correctif mdx, PR #238 + #239). 29/32 phases livrées. Prochaine phase à trancher (09 / 10).
 Resume file: None
-Next command suggested: après merge PR 06.9 → `/gsd-sync-state` puis `/gsd-discuss-phase <phase choisie>`
+Next command suggested: `/gsd-discuss-phase <phase choisie>`
 
 ## Ingest Runs
 
