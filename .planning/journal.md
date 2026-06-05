@@ -1,5 +1,45 @@
 # Journal — phases livrées
 
+## 2026-06-05 — Phase 06.21 livrée localement (tests RLS — couverture 13→24 tables)
+
+Phase 06.21 « Tests RLS — couverture complète » cadrée + exécutée. **Deuxième amélioration technique pré-prod RETEX 2026-06-04**. Infra pgTAP déjà en place (CI `supabase test db`, version épinglée 2.98.2 dans `.github/workflows/ci.yml`) — seule la couverture manquait. 24 tables avec RLS, 13 couvertes avant, **11 trous comblés ici**.
+
+**Tables couvertes (11) par sensibilité** :
+
+*Critique — santé / traçabilité patient (3)* :
+- `ride_events_rls.sql` — événements/traçabilité des courses (10 vérifs)
+- `ride_recurrences_rls.sql` — séries de transport patient (10 vérifs)
+- `ride_recurrence_exceptions_rls.sql` — exceptions de séries (8 vérifs)
+
+*Important — RGPD / légal / métier (6)* :
+- `cgu_acceptance_rls.sql` — isolation par `profile_id` (PAS par org) (7 vérifs)
+- `cookie_consent_log_rls.sql` — `service_role` ONLY (4 vérifs)
+- `legal_request_attempts_rls.sql` — `service_role` ONLY (3 vérifs)
+- `tariff_grids_rls.sql` — versionnement strict DEC-057 (8 vérifs)
+- `sms_messages_rls.sql` — SELECT same_org, écriture service_role (5 vérifs)
+- `sms_templates_rls.sql` — référentiel partagé, UPDATE dirigeant (6 vérifs)
+
+*Mineur — référentiels (2)* :
+- `pois_metier_rls.sql` — CRUD régulateur/dirigeant (7 vérifs)
+- `holidays_974_rls.sql` — référentiel public 974 (4 vérifs)
+
+**Méthode** :
+- Gabarit `rides_rls.sql` (Phase 2 Plan 02-02) réutilisé : fixtures Org Alpha `1111…` / Bravo `2222…`, rôles fixés (alpha-dirigeant `aaaa…`, alpha-régulateur `cccc…`, bravo-régulateur `dddd…`, alpha-chauffeur `ffff…`).
+- Lecture des policies de CHAQUE table AVANT écriture du test (D-02 : comportement réel, pas générique copié).
+- Vérifs standard couvrant les rôles attendus : RLS activée (+ forcée si posée), isolation cross-tenant, WITH CHECK, isolation par rôle, anon refusé.
+
+**Aucune policy modifiée (D-04 strict)** :
+- 3 observations `force row level security` non posé tracées en commentaire dans les tests (`ride_events`, `tariff_grids`, `sms_messages`). Pas des trous : rôle `authenticated` ne contourne pas RLS. Choix conservé.
+- Aucun trou de sécurité réel détecté — toutes les policies font ce qu'elles disent.
+
+**Validation** :
+- `supabase test db` validé en CI (CLI Supabase non dispo localement, mais infra CI épinglée 2.98.2 existe déjà).
+- 11 nouveaux fichiers de test (rangés en critique → important → mineur).
+- 0 policy modifiée, 0 migration BDD.
+- Couverture RLS : **13 → 24 tables** sur 24 tables avec RLS.
+
+**Pas d'ADR** : activation d'un choix de qualité acté (DEC-002 / DEC-013 renforcés). DEC-098 LOCKED.
+
 ## 2026-06-05 — Phase 06.20 livrée localement (observabilité Sentry, zéro PII santé)
 
 Phase 06.20 « Observabilité Sentry » cadrée + exécutée. **Première amélioration technique pré-prod RETEX 2026-06-04**. Sentry est dans la stack figée DEC-003 mais n'avait jamais été installé : 33 `console.error` partaient dans le vide en prod, debug à l'aveugle. Activation sans nouvel ADR (choix déjà acté).
