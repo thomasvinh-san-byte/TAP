@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.9 close (Next 15.5 + correctif mdx 5→6, PR #238 + #239). 2026-06-05"
-last_updated: "2026-06-05T05:45:00.000Z"
-last_activity: Phase 06.9 close. Correctif fix/06.9-mdx-downgrade (#239) : retour `next-mdx-remote` 6.0.0 (downgrade injustifié corrigé — version 5.0.0 vulnérable RCE pour rien, 6.x n'a jamais exigé React 19, peerDep `>=16`, devDep `react: ^18.2.0`). `pnpm.overrides` épinglent React 18.3.1 (dédup hoisting). `<MDXRemote>` rendu dans les pages (pas dans le helper, évite cross-bundle RSC). `turbo.json` globalEnv complété (POSTGRES_URL, APP_NIR_SEARCH_KEY, etc.). `force-dynamic` conservé sur `/legal/*` (bug Next 15 + SSG + mdx persiste indépendamment de la version). Build vert, 101/101 tests verts.
+stopped_at: "Phase 10.0 livrée localement (prototype géoloc, capture événementielle, données fictives) — PR à ouvrir"
+last_updated: "2026-06-05T06:30:00.000Z"
+last_activity: Phase 10.0 « Prototype géoloc » cadrée + exécutée. Capture événementielle aux pointages (start/end/no-show) — pas de suivi temps réel continu (barrière PWA, RETEX). Cockpit = dernière position + âge « vu il y a X min », jamais « live ». Composants : table `driver_positions` + RLS + rétention 90j câblée, helper serveur `recordDriverPosition` gardé par flag `GEOLOC_ENABLED` (pré-HDS = OFF), helper client `captureCurrentPosition` non bloquant, schémas zod partagés, 3 routes étendues, composant Map MapLibre+PMTiles avec fallback OSM, hook `useDriverPositions` Realtime, panneau `DriverPositionsPanel` cockpit, banner consentement chauffeur, seed démo 3 positions statiques. ADR-012 (MapLibre+PMTiles). DEC-096 LOCKED. Build vert, 107/107 tests verts. 1 migration BDD.
 progress:
-  total_phases: 32
+  total_phases: 33
   completed_phases: 29
-  total_plans: 82
-  completed_plans: 82
-  percent: 91
+  total_plans: 83
+  completed_plans: 83
+  percent: 88
 ---
 
 # Project State
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** 29/32 phases livrées. Phase 06.9 close (Next 15.5 + fix mdx). Bloc moderne. Restent décisions business : 09 (HDS), 10 (géoloc).
+**Current focus:** Phase 10.0 livrée localement (prototype géoloc, données fictives). 29/33 phases livrées (10.0 à merger). Socle géoloc câblé derrière flag pré-HDS. Restantes : 09 (HDS), 10 (bascule réelle post-HDS).
 
 ## Current Position
 
@@ -30,12 +30,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.9 close (2026-06-05) — Next 15.5 + correctif mdx (#239), PR #238 + #239.
-Phase next: à trancher par le dirigeant. Candidates ouvertes (2) : 09 (HDS, verrou 1er client payant), 10 (géoloc temps réel + réévaluer OSRM, post-HDS). Phase 07 (mobile natif) abandonnée DEC-092.
-Status: 29/32 phases livrées. Stack moderne, async APIs alignées Next 16+, mdx sain (6.0.0, plus de RCE), `pnpm.overrides` dédup React. Restent décisions business (HDS) / techniques (géoloc).
+Phase: 10.0 livrée localement (2026-06-05) — Prototype géoloc terrain + UI/UX cockpit, données fictives, pré-HDS. PR à ouvrir.
+Phase next: à trancher après merge. Candidates ouvertes : 09 (HDS, verrou 1er client payant + bascule réelle géoloc via flag), 10 (géoloc opérationnelle complète post-HDS).
+Status: 29/33 phases livrées. Socle géoloc câblé : capture événementielle, Realtime, carte cockpit honnête (« vu il y a X min »), banner consentement chauffeur. Aucune vraie position persistée (flag pré-HDS).
 Blockers: aucun
-Last activity: Phase 06.9 close. Correctif mdx 5→6 (downgrade injustifié corrigé) + turbo env complété. Compteurs 29/32.
-Précédent: 06.9 montée Next 15.5 (#238), 06.19 branchement géocodage (#236), 06.12 solveur heuristique TS (#235).
+Last activity: Phase 10.0 cadrée + exécutée. ADR-012 + DEC-096 LOCKED. 107/107 tests verts, build vert.
+Précédent: 06.9 montée Next 15.5 (#238 + #239), 06.19 branchement géocodage (#236), 06.12 solveur heuristique TS (#235).
 
 Progress: [██████████] 100%
 
@@ -151,6 +151,8 @@ DEC-094 (2026-06-04, Phase 06.19) — Géocodage branché sur récurrences (`Add
 
 DEC-095 (2026-06-05, Phase 06.9) — Next.js 14.2 → 15.5 + migration async complète des Request APIs. React 18 conservé (R19 différé, ADR-007). `createClient` Supabase serveur passe **async** (84 sites consommateurs migrés `await createClient()`), 0 cast `UnsafeUnwrapped*` (interdits). `lib/geocoding/ban.ts` : `fetch(url, { cache: 'no-store' })` explicite (D-04). `typedRoutes` activé (stable 15.5). Rewrite `/api/solver` mort purgé (orphelin Phase 06.12, ADR-010). `next-mdx-remote` downgradé 6→5 + bascule `compileMDX` → `<MDXRemote>` + `force-dynamic` sur `/legal/*` (incident SSG résolu). ESLint au build conservé désactivé (nettoyage CI séparé, D-08). ADR-011 acte la décision et complète ADR-007.
 
+DEC-096 (2026-06-05, Phase 10.0) — Prototype géoloc sur données fictives, pré-HDS. **Capture événementielle aux pointages** (pas de suivi continu — barrière PWA réelle, RETEX devs : la capture s'arrête dès qu'une app tierce passe en premier plan). **Cockpit = dernière position connue + âge (« vu il y a X min »), JAMAIS faux « live »**. Aucune position simulée animée en démo (positions statiques uniquement). MapLibre + PMTiles fond statique + fallback OSM raster (ADR-012). Table `driver_positions` + RLS + rétention 90j câblée mais pg_cron non activé. Flag `GEOLOC_ENABLED` : pré-HDS = OFF en prod, seules les `source='demo'` du seed persistent. Réversible : la bascule réelle (`GEOLOC_ENABLED=true` + activation pg_cron) se fera en Phase 09 (HDS). Helper client `captureCurrentPosition` non bloquant (8s timeout, accuracy ≤ 100 m, refus permission = pointage OK sans position). Banner consentement chauffeur sur `/conduite`.
+
 ### NFR (Non-Functional Requirements transverses)
 
 6 NFR ajoutés en REQUIREMENTS.md (run ingest 2026-05-12) :
@@ -198,10 +200,10 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-06-05T05:45:00.000Z
-Stopped at: Phase 06.9 close (Next 15.5 + correctif mdx, PR #238 + #239). 29/32 phases livrées. Prochaine phase à trancher (09 / 10).
+Last session: 2026-06-05T06:30:00.000Z
+Stopped at: Phase 10.0 livrée localement (prototype géoloc, données fictives, pré-HDS). PR à ouvrir + à attendre merge avant sync STATE final. 29/33 phases livrées (30/33 après merge). Prochaine phase à trancher : 09 (HDS) / 10 (géoloc post-HDS).
 Resume file: None
-Next command suggested: `/gsd-discuss-phase <phase choisie>`
+Next command suggested: après merge PR 10.0 → `/gsd-sync-state` puis `/gsd-discuss-phase <phase choisie>`
 
 ## Ingest Runs
 

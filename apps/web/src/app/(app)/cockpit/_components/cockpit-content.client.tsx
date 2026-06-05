@@ -7,8 +7,10 @@ import { Button } from '@/components/ui/button';
 import { useCockpitAlerts } from '../_lib/use-cockpit-alerts';
 import { useCockpitRides } from '../_lib/use-cockpit-rides';
 import type { CockpitAlert, CockpitRide } from '../_lib/types';
+import type { DriverPosition } from '../_lib/use-driver-positions';
 import { AlertsPanel } from './alerts-panel.client';
 import { CoursesTable } from './courses-table.client';
+import { DriverPositionsPanel } from './driver-positions-panel.client';
 import { NoShowAlertModal } from './no-show-alert-modal.client';
 import { RealtimeStatusBadge } from './realtime-status-badge.client';
 
@@ -18,9 +20,13 @@ const NOSHOW_DISMISSED_KEY = 'cockpit:noshow-dismissed';
 export function CockpitContent({
   initialRides,
   initialAlerts,
+  initialPositions,
+  driverLabels,
 }: {
   initialRides: CockpitRide[];
   initialAlerts: CockpitAlert[];
+  initialPositions: DriverPosition[];
+  driverLabels: Record<string, string>;
 }): JSX.Element {
   const { rides, status, newRideIds } = useCockpitRides(initialRides);
   const { alerts } = useCockpitAlerts(initialAlerts);
@@ -102,6 +108,7 @@ export function CockpitContent({
           </div>
         </header>
         <CoursesTable rides={rides} newRideIds={newRideIds} />
+        <DriverPositionsPanel initial={initialPositions} driverLabels={driverLabels} />
       </section>
       <aside className="lg:border-border w-full shrink-0 lg:w-80 lg:border-l lg:pl-24">
         <AlertsPanel alerts={alerts} />
