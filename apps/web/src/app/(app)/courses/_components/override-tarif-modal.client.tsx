@@ -147,7 +147,7 @@ export function OverrideTarifModal({
               aria-describedby="new-tarif-help"
               className="font-mono tabular-nums"
             />
-            <p id="new-tarif-help" className="text-muted-foreground text-xs">
+            <p id="new-tarif-help" className="text-muted-foreground text-sm">
               Valeur strictement positive, max 999,99 €.
             </p>
           </div>
@@ -168,7 +168,7 @@ export function OverrideTarifModal({
               placeholder="Ex : détour imposé par travaux Boulevard Vauban, +6 km estimés."
               className={cn(!motifValid && motif.length > 0 && 'border-destructive')}
             />
-            <p id="motif-help" className="text-muted-foreground text-xs">
+            <p id="motif-help" className="text-muted-foreground text-sm">
               {MOTIF_MIN} caractères minimum. ({motifTrimmed.length}/{MOTIF_MAX})
             </p>
           </div>

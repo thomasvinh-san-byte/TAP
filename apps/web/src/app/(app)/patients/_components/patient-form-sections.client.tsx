@@ -32,7 +32,7 @@ export function IdentitySection({ dv }: { dv: PatientFormDefaults }) {
             className="capitalize"
             aria-describedby="nom-help"
           />
-          <p id="nom-help" className="text-muted-foreground text-xs">
+          <p id="nom-help" className="text-muted-foreground text-sm">
             Lettres, accents, tirets et apostrophes autorisés.
           </p>
         </div>

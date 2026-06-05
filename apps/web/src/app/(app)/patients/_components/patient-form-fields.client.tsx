@@ -113,7 +113,7 @@ export function BirthDateField({
           aria-hidden
         />
       </div>
-      <p id={`${id}-help`} className="text-muted-foreground text-xs">
+      <p id={`${id}-help`} className="text-muted-foreground text-sm">
         Format attendu : JJ/MM/AAAA.
       </p>
       <input type="hidden" name={name} value={iso} />
@@ -197,12 +197,12 @@ export function NirField({ defaultValue }: NirFieldProps): JSX.Element {
           {indicator === 'invalid' && <X className="text-destructive h-16 w-16" />}
         </span>
       </div>
-      <p id="nir-help" className="text-muted-foreground text-xs">
+      <p id="nir-help" className="text-muted-foreground text-sm">
         {isNirChecksumStrict
           ? '15 chiffres + clé INSEE valide. Exemple : 1 76 05 25 974 001 69.'
           : '15 chiffres : sexe + année + mois + département + commune + ordre + clé. Exemple : 1 76 05 25 974 001 12.'}
       </p>
-      <p className="text-muted-foreground text-xs">
+      <p className="text-muted-foreground text-sm">
         Le NIR peut être laissé vide. Si renseigné, il sera chiffré et stocké conformément RGPD. Si
         le chiffrement échoue, vous pouvez créer le patient sans NIR et le compléter plus tard.
       </p>
@@ -265,7 +265,7 @@ export function TelField({ defaultValue, required }: TelFieldProps): JSX.Element
           Le numéro doit commencer par 0262, 0263, 0692 ou 0693 (10 chiffres).
         </p>
       ) : (
-        <p id="telephone-help" className="text-muted-foreground text-xs">
+        <p id="telephone-help" className="text-muted-foreground text-sm">
           Fixe ou mobile Réunion : 0262, 0263, 0692, 0693.
         </p>
       )}
@@ -329,7 +329,7 @@ export function CityPostalCodeField({
             className="rounded-l-none tabular-nums"
           />
         </div>
-        <p className="text-muted-foreground text-xs">974 + 2 chiffres (ex : 97400).</p>
+        <p className="text-muted-foreground text-sm">974 + 2 chiffres (ex : 97400).</p>
         <input type="hidden" name="code_postal" value={cp} />
       </div>
       <div className="space-y-8">
@@ -342,7 +342,7 @@ export function CityPostalCodeField({
           placeholder="Sélectionnez une commune"
           triggerClassName="h-48 w-full"
         />
-        <p className="text-muted-foreground text-xs">24 communes Réunion.</p>
+        <p className="text-muted-foreground text-sm">24 communes Réunion.</p>
         <input type="hidden" name="ville" value={ville} />
       </div>
     </div>

@@ -90,15 +90,15 @@ export default async function PatientPage(props: PageProps) {
           Identité administrative
         </h2>
         {p.has_nir && <PatientNirDisplay patientId={p.id} maskedNir={maskNir(p.nir_last4)} />}
-        <p className="text-sm">Né(e) le {p.date_naissance}</p>
+        <p className="text-base">Né(e) le {p.date_naissance}</p>
       </section>
 
       <section className="space-y-12">
         <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
           Coordonnées
         </h2>
-        {p.telephone && <p className="tabular-nums">{p.telephone}</p>}
-        <p>
+        {p.telephone && <p className="text-base tabular-nums">{p.telephone}</p>}
+        <p className="text-base">
           {p.adresse_ligne1}
           {p.adresse_ligne2 ? `, ${p.adresse_ligne2}` : ''}
           <br />
@@ -112,10 +112,10 @@ export default async function PatientPage(props: PageProps) {
         <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
           Préférences
         </h2>
-        <p>
+        <p className="text-base">
           Canal : <strong>{p.canal_contact_prefere}</strong>
         </p>
-        <p>
+        <p className="text-base">
           Consentement SMS :{' '}
           {p.consentement_sms
             ? `oui (${new Date(p.consentement_sms_at!).toLocaleDateString('fr-FR')})`

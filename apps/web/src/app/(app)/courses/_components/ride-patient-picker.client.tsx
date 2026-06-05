@@ -89,7 +89,7 @@ export function PatientPickerField({ selectedLabel, onSelect, error }: Props): J
       <PatientSearch value={query} onChange={setQuery} />
 
       {dq.length === 1 && (
-        <p className="text-muted-foreground text-xs">
+        <p className="text-muted-foreground text-sm">
           Tapez au moins 2 caractères pour rechercher.
         </p>
       )}
@@ -124,7 +124,7 @@ export function PatientPickerField({ selectedLabel, onSelect, error }: Props): J
       )}
 
       {dq.length >= 2 && !results.isPending && results.data && results.data.length === 0 && (
-        <p className="text-muted-foreground text-xs">Aucun patient ne correspond à « {dq} ».</p>
+        <p className="text-muted-foreground text-sm">Aucun patient ne correspond à « {dq} ».</p>
       )}
 
       {error && (

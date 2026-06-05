@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { PageHeader } from '@/components/page-header';
 import { PatientForm } from '../../_components/patient-form.client';
 import { PatientFormConstraints } from '../../_components/patient-form-constraints.client';
 import { updatePatientAction } from '../../actions';
@@ -45,9 +46,7 @@ export default async function EditPatientPage(props: PageProps) {
 
   return (
     <div className="space-y-32">
-      <h1 className="text-2xl font-semibold tracking-tight">
-        Modifier — {p.nom} {p.prenom}
-      </h1>
+      <PageHeader title={`Modifier — ${p.nom} ${p.prenom}`} />
       <PatientForm
         action={action}
         defaultValues={{
