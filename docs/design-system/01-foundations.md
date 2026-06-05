@@ -1,5 +1,9 @@
 # Design system TAP — Foundations
 
+> **Lire d'abord : [`00-direction.md`](./00-direction.md)** — le pourquoi du
+> design (personnalité, couleur signature, ton, structure). Ce document-ci
+> documente le COMMENT (tokens et conventions visuelles).
+>
 > Phase 06.13 — `2026-06-03`. Document de doctrine et de conventions
 > visuelles. **Documente l'existant**, ne décrit pas un objectif futur.
 > Toutes les valeurs sont traçables dans
