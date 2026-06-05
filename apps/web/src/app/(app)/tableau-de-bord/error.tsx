@@ -1,26 +1,26 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
+import { SegmentError } from '@/components/error/segment-error.client';
 
 /**
- * Frontière d'erreur du tableau de bord (Phase 06.8) — message sobre si une
- * agrégation échoue de façon catastrophique, sans stack trace (CLAUDE.md § 6).
+ * Frontière d'erreur du tableau de bord (Phase 06.8, upgrade 06.22).
+ * Utilise le gabarit commun `<SegmentError>` qui capture l'erreur dans
+ * Sentry et affiche la stack en dev uniquement.
  */
 export default function TableauDeBordError({
+  error,
   reset,
 }: {
-  error: Error;
+  error: Error & { digest?: string };
   reset: () => void;
 }): JSX.Element {
   return (
-    <div className="space-y-12 rounded-lg border border-dashed p-48 text-center">
-      <p className="text-foreground font-medium">
-        Le tableau de bord est momentanément indisponible.
-      </p>
-      <p className="text-muted-foreground mx-auto max-w-md text-sm">
-        Réessayez dans un instant. Si le problème persiste, contactez le support.
-      </p>
-      <Button onClick={reset}>Réessayer</Button>
-    </div>
+    <SegmentError
+      error={error}
+      reset={reset}
+      segment="app.tableau-de-bord"
+      title="Le tableau de bord est momentanément indisponible"
+      description="Réessayez dans un instant. Si le problème persiste, contactez le support."
+    />
   );
 }

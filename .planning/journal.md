@@ -1,5 +1,39 @@
 # Journal — phases livrées
 
+## 2026-06-05 — Phase 06.22 livrée localement (error boundaries par segment)
+
+Phase 06.22 « Error boundaries par segment » cadrée + exécutée. **Troisième et dernière amélioration technique pré-prod priorité haute (RETEX 2026-06-04)**. Le bloc priorité haute pré-prod est désormais complet (Sentry + tests RLS + error boundaries).
+
+Avant cette phase : 1 seul `error.tsx` segmenté (tableau-de-bord) + `global-error.tsx` root (06.20). Crash sur cockpit/conduite/admin/public/auth → boundary root (UI brutale) ou écran blanc. Avec Sentry installé (06.20), les boundaries existantes ne remontaient PAS l'erreur — corrigé.
+
+**Composants livrés** :
+
+- `apps/web/src/components/error/segment-error.client.tsx` — gabarit commun. Capture `Sentry.captureException(error, { tags: { segment } })` au mount. UI dégradée `role="alert"` + `aria-live="assertive"` + `autoFocus` sur le bouton Réessayer. Stack visible UNIQUEMENT en dev via `<details>` (jamais en prod). Tokens 06.14 (0 hex). 0 dépendance lourde (pas d'icône Lucide — robustesse si chunk manquant). 5 tests Vitest.
+
+- 5 nouveaux fichiers `error.tsx` aux 5 segments majeurs :
+  - `(app)/error.tsx` — régulation
+  - `(admin)/error.tsx` — administration
+  - `(auth)/error.tsx` — connexion (ne bloque pas la reconnexion)
+  - `(public)/error.tsx` — pages légales / publiques
+  - `(driver)/error.tsx` — PWA chauffeur générique
+
+- 2 boundaries sous-segments critiques :
+  - **`(driver)/conduite/error.tsx`** — terrain offline. Message rassure : « Vos pointages sont sauvegardés sur l'appareil et seront synchronisés au retour du réseau. Aucun pointage n'est perdu. » Bouton Réessayer = `reset()` Next 15 (re-render local, **0 dépendance réseau**), fonctionne offline.
+  - **`(app)/cockpit/error.tsx`** — régulatrice 8h/j. Message : « Vos courses et alertes ne sont pas perdues. Réessayez pour rouvrir le cockpit ; la régulation reprendra le contexte courant. »
+
+- Upgrade `(app)/tableau-de-bord/error.tsx` vers le gabarit commun (capture Sentry **ajoutée** — manquait avant 06.22).
+
+**Couverture finale** : 8 fichiers boundary (root + 5 segments + 2 sous-segments + 1 conservé upgraded).
+
+**Validation** :
+- `pnpm typecheck` propre
+- `pnpm build` vert (28 pages, Serwist SW vert)
+- `pnpm test` **118/118 verts** (+5 nouveaux : segment-error.test.tsx)
+- `pnpm lint` clean (10 warnings préexistants hors périmètre)
+- 0 migration BDD
+
+**Pas d'ADR** : activation pattern Next 15 standard. DEC-099 LOCKED.
+
 ## 2026-06-05 — Phase 06.21 livrée localement (tests RLS — couverture 13→24 tables)
 
 Phase 06.21 « Tests RLS — couverture complète » cadrée + exécutée. **Deuxième amélioration technique pré-prod RETEX 2026-06-04**. Infra pgTAP déjà en place (CI `supabase test db`, version épinglée 2.98.2 dans `.github/workflows/ci.yml`) — seule la couverture manquait. 24 tables avec RLS, 13 couvertes avant, **11 trous comblés ici**.
