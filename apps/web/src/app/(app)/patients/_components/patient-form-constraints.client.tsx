@@ -66,7 +66,9 @@ export function PatientFormConstraints({ patientId, initial }: Props) {
 
   return (
     <section className="space-y-12">
-      <h2 className="text-muted-foreground text-sm font-semibold uppercase">Contraintes</h2>
+      <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+        Contraintes
+      </h2>
       <ul className="flex flex-wrap gap-8" aria-label="Contraintes actuelles">
         {items.length === 0 && (
           <li className="text-muted-foreground text-sm">Aucune contrainte.</li>

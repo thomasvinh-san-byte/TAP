@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/page-header';
 import { maskNir } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/server';
 import type { RideRecurrence } from '@/types/recurrence';
@@ -72,20 +73,20 @@ export default async function PatientPage(props: PageProps) {
 
   return (
     <div className="space-y-24">
-      <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {p.nom} {p.prenom}
-        </h1>
-        <Button asChild variant="outline">
-          <Link href={`/patients/${p.id}/edit`}>
-            <Pencil className="mr-8 h-16 w-16" aria-hidden />
-            Modifier
-          </Link>
-        </Button>
-      </header>
+      <PageHeader
+        title={`${p.nom} ${p.prenom}`}
+        actions={
+          <Button asChild variant="outline">
+            <Link href={`/patients/${p.id}/edit`}>
+              <Pencil className="mr-8 h-16 w-16" aria-hidden />
+              Modifier
+            </Link>
+          </Button>
+        }
+      />
 
       <section className="space-y-12">
-        <h2 className="text-muted-foreground text-sm font-semibold uppercase">
+        <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
           Identité administrative
         </h2>
         {p.has_nir && <PatientNirDisplay patientId={p.id} maskedNir={maskNir(p.nir_last4)} />}
@@ -93,7 +94,9 @@ export default async function PatientPage(props: PageProps) {
       </section>
 
       <section className="space-y-12">
-        <h2 className="text-muted-foreground text-sm font-semibold uppercase">Coordonnées</h2>
+        <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+          Coordonnées
+        </h2>
         {p.telephone && <p className="tabular-nums">{p.telephone}</p>}
         <p>
           {p.adresse_ligne1}
@@ -106,7 +109,9 @@ export default async function PatientPage(props: PageProps) {
       <RecurrencesSection patientId={p.id} recurrences={recurrences} futureCounts={futureCounts} />
 
       <section className="space-y-8">
-        <h2 className="text-muted-foreground text-sm font-semibold uppercase">Préférences</h2>
+        <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+          Préférences
+        </h2>
         <p>
           Canal : <strong>{p.canal_contact_prefere}</strong>
         </p>

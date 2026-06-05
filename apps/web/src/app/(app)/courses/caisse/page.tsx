@@ -1,4 +1,5 @@
 import { requireAdminOrRegulateurPage } from '@/lib/auth/require-admin-or-regulateur-page';
+import { PageHeader } from '@/components/page-header';
 import { listActiveDriversAction } from '../actions';
 import {
   listRidesEncaissees,
@@ -62,12 +63,10 @@ export default async function CaissePage(props: PageProps) {
 
   return (
     <div className="max-w-[1280px] space-y-24">
-      <header className="space-y-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Caisse</h1>
-        <p className="text-muted-foreground text-sm">
-          Encaissements de la journée. Total et détail par course.
-        </p>
-      </header>
+      <PageHeader
+        title="Caisse"
+        description="Encaissements de la journée. Total et détail par course."
+      />
       <CaisseToolbar date={date} drivers={drivers} filters={filters} />
       <CaisseSummary totals={totals} />
       <CaisseTable rows={rows} sort={sort} dir={dir} date={date} />

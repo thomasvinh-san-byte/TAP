@@ -17,7 +17,9 @@ export function PatientFormNote({ defaultValue = '', maxLength = 500 }: Props) {
   const [value, setValue] = useState(defaultValue);
   return (
     <section className="space-y-12">
-      <h2 className="text-muted-foreground text-sm font-semibold uppercase">Note opérationnelle</h2>
+      <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+        Note opérationnelle
+      </h2>
       <div className="space-y-8">
         <Label htmlFor="notes_operationnelles">
           Note opérationnelle (codes d&apos;accès, particularités)

@@ -1,5 +1,66 @@
 # Journal — phases livrées
 
+## 2026-06-05 — Phase 06.24 livrée localement (incarnation Régulation lot 1 : PageHeader + hiérarchie typo)
+
+Phase 06.24 « Incarnation Régulation lot 1 » cadrée + exécutée. **Premier lot d'incarnation de la direction artistique DEC-101** sur la famille Régulation. Pose la GRAMMAIRE fondatrice : hiérarchie typographique exprimée + en-tête unifié sur tous les écrans cœur métier. Sans cette grammaire, le reste se poserait sur du sable.
+
+### D-01 — PageHeader unifié sur 6 écrans (app)
+
+| Écran | Migration |
+|---|---|
+| `cockpit/_components/cockpit-content.client.tsx` | `<header>` manuel → `<PageHeader title="Ma journée" description=… actions={<><Button>Optimiser la journée</Button><RealtimeStatusBadge/></>}>` |
+| `courses/page.tsx` | `<PageHeader title="Courses" description={Cmd+K} actions={<HeaderNewRideButton />}>` |
+| `courses/caisse/page.tsx` | `<PageHeader title="Caisse" description="Encaissements de la journée…">` |
+| `patients/page.tsx` | `<PageHeader title="Patients" actions={<><HeaderNewRideButton /><Button>Nouveau patient</Button></>}>` |
+| `patients/[id]/page.tsx` | `<PageHeader title={\`${p.nom} ${p.prenom}\`} actions={<Button>Modifier</Button>}>` |
+| `tableau-de-bord/page.tsx` | `<PageHeader title="Tableau de bord" description={période}>` |
+
+**Préservation EXACTE** : titres humains, descriptions, actions (boutons + badges). Aucun changement de wording. Replacement 1:1 du `<h1 className="text-2xl font-semibold tracking-tight">` manuel — mêmes classes finales sur le h1 grâce au composant.
+
+### D-02 — Hiérarchie typographique exprimée
+
+Standardisation du pattern « kicker » (étiquette de section) sur `text-xs font-semibold uppercase tracking-wide` :
+
+- **6 fichiers patients** harmonisés (était `text-sm font-semibold uppercase` sans `tracking-wide`) : `patient-form-note`, `patient-drawer-sections`, `patient-form-constraints`, `patient-form-sections`, `recurrences-section`, `patients/[id]/page.tsx`.
+- **Cockpit `alerts-panel`** aligné `text-sm` → `text-xs` pour cohérence.
+- **Titres de panneaux** (`text-base font-semibold` pour « Carte des chauffeurs », « Patient absent » modale) **conservés** — représentent un niveau intermédiaire légitime.
+
+**Gradation visible obtenue** :
+
+| Niveau | Pattern | Usage |
+|---|---|---|
+| Titre page | `text-2xl font-semibold tracking-tight` | PageHeader (1× / page) |
+| Titre panneau | `text-base font-semibold` | « Carte des chauffeurs », « Patient absent » |
+| Kicker section | `text-xs font-semibold uppercase tracking-wide` | « Alertes », « Identité administrative »… |
+| Body lecture | `text-sm` ou `text-base` | descriptions, paragraphes |
+| Légende / méta | `text-xs` | compteurs, dates, montants tabular-nums |
+
+C'est le **CONTRASTE par propriété** (taille + graisse + uppercase + tracking) plutôt que par seule taille qui répare la sensation « plate ». Pattern shadcn/Linear standard, cohérent avec la direction DEC-101 §5bis levier 2.
+
+### D-03 — Discipline de périmètre
+
+Pas de couleur (terracotta = lot 3), pas de skeleton/empty (lot 4), pas de refactor courses (lot 5), pas de rangement (lot 6). Lot 1 = typo + en-tête UNIQUEMENT.
+
+### Validation
+
+- `pnpm typecheck` propre
+- `pnpm build` vert (28 pages)
+- `pnpm test` **129/129 verts** (aucun test cassé)
+- `pnpm lint` clean (10 warnings préexistants hors périmètre)
+- 0 `<h1 className="text-2xl">` manuel restant sur les 6 écrans cibles
+- 6 fichiers (app) importent `PageHeader`
+- 0 migration BDD, 0 changement de wording, 0 nouvelle dépendance
+
+**Pas d'ADR** : activation d'un composant existant + pattern shadcn. DEC-102 LOCKED.
+
+### Hors scope V1
+
+- `patients/new/page.tsx` — formulaire création (hors liste)
+- `patients/[id]/edit/page.tsx` — formulaire édition (hors liste)
+- `cockpit/optimisation/optimization-shell.client.tsx` — sous-écran (hors liste)
+
+À traiter dans un lot ultérieur si pertinent.
+
 ## 2026-06-05 — Gel de la direction artistique (DEC-101)
 
 Direction artistique TAP gelée comme **document fondateur du design-system** : `docs/design-system/00-direction.md`. Le design-system documentait jusqu'ici le COMMENT (tokens, data-tables, page-header) sans le POURQUOI — ce manque est comblé. Le document gouverne toutes les décisions UI futures et l'incarnation famille par famille à venir.

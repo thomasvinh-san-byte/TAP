@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/page-header';
 import { useCockpitAlerts } from '../_lib/use-cockpit-alerts';
 import { useCockpitRides } from '../_lib/use-cockpit-rides';
 import type { CockpitAlert, CockpitRide } from '../_lib/types';
@@ -84,29 +85,31 @@ export function CockpitContent({
   return (
     <div className="flex flex-col gap-16 lg:flex-row lg:items-stretch lg:gap-24">
       <section className="min-w-0 flex-1 space-y-16">
-        <header className="flex items-center justify-between gap-16">
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Ma journée</h1>
-            <p className="text-muted-foreground text-sm">
+        <PageHeader
+          title="Ma journée"
+          description={
+            <>
               {rides.length} course{rides.length > 1 ? 's' : ''} planifiée
               {rides.length > 1 ? 's' : ''} aujourd&apos;hui
-            </p>
-          </div>
-          <div className="flex items-center gap-8">
-            <Button
-              asChild
-              variant="default"
-              className="min-h-[44px]"
-              data-testid="optimize-day-btn"
-            >
-              <Link href={`/cockpit/optimisation?date=${new Date().toISOString().slice(0, 10)}`}>
-                <Sparkles className="mr-8 h-16 w-16" aria-hidden />
-                Optimiser la journée
-              </Link>
-            </Button>
-            <RealtimeStatusBadge status={status} />
-          </div>
-        </header>
+            </>
+          }
+          actions={
+            <>
+              <Button
+                asChild
+                variant="default"
+                className="min-h-[44px]"
+                data-testid="optimize-day-btn"
+              >
+                <Link href={`/cockpit/optimisation?date=${new Date().toISOString().slice(0, 10)}`}>
+                  <Sparkles className="mr-8 h-16 w-16" aria-hidden />
+                  Optimiser la journée
+                </Link>
+              </Button>
+              <RealtimeStatusBadge status={status} />
+            </>
+          }
+        />
         <CoursesTable rides={rides} newRideIds={newRideIds} />
         <DriverPositionsPanel initial={initialPositions} driverLabels={driverLabels} />
       </section>
