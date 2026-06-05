@@ -20,7 +20,7 @@
 // @supabase/supabase-js (ADR-001 : apps/* dépendent uniquement de packages/*).
 import type { createClient as createServerClient } from '@/lib/supabase/server';
 
-type SupabaseClientLike = ReturnType<typeof createServerClient>;
+type SupabaseClientLike = Awaited<ReturnType<typeof createServerClient>>;
 
 export interface EncryptResponse {
   /** Ciphertext base64 : `iv (12) || cipher || tag (16)`. */

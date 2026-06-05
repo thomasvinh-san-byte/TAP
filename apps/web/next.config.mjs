@@ -20,38 +20,22 @@ const withSerwist = withSerwistInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  experimental: {
-    typedRoutes: false,
-  },
+  // D-07 Phase 06.9 : `typedRoutes` est stable en Next 15.5 et a quitté
+  // `experimental`. Active la génération de types de routes ; si friction
+  // de build sur des href dynamiques non typés, repasser à false.
+  typedRoutes: true,
   transpilePackages: ['@tap/database', '@tap/shared'],
-  // Le lint est assuré par le job CI dédié (`eslint`, flat config ESLint 9 —
-  // D1). Next 14 ne supporte pas la flat config à la compilation : on
-  // désactive le lint intégré au build pour éviter un faux échec Vercel.
+  // D-08 Phase 06.9 : Next 15 supporte la flat config ESLint 9, mais on
+  // garde `ignoreDuringBuilds: true` pour ne pas faire échouer Vercel sur
+  // des warnings hors périmètre. Le lint reste assuré par le job CI dédié
+  // (`pnpm lint`). Réactivation ciblée laissée à une phase nettoyage CI.
   eslint: {
     ignoreDuringBuilds: true,
   },
-  /**
-   * Rewrite `/api/solver/*` vers la fonction Python FastAPI.
-   *
-   * En production / preview : pas de rewrite Next.js — c'est le routing
-   * Vercel legacy `routes` (cf. `apps/web/vercel.json` Wave 1 dernière
-   * chance 2026-06-01, ADR-009) qui aiguille `/api/solver/(.*)` vers la
-   * fonction Python `py/solver/index.py` AVANT que Next.js voie la
-   * requête.
-   *
-   * En développement : proxy vers FastAPI local sur le port 8000 si lancé
-   * en parallèle (`uvicorn` côté `apps/web/py/solver/`). Conservé car
-   * Vercel routes ne s'applique pas en dev.
-   */
-  async rewrites() {
-    if (process.env.NODE_ENV !== 'development') return [];
-    return [
-      {
-        source: '/api/solver/:path*',
-        destination: 'http://127.0.0.1:8000/api/solver/:path*',
-      },
-    ];
-  },
+  // D-06 Phase 06.9 : le rewrite `/api/solver/*` → FastAPI port 8000 est
+  // supprimé. Le microservice Python a été retiré en Phase 06.12 (ADR-010)
+  // au profit de l'heuristique TS native `solveLocal`. Plus aucun caller
+  // ne route vers `/api/solver`.
 };
 
 export default withSerwist(nextConfig);

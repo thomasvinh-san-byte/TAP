@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { loadLegalDoc } from '../_lib/load-legal';
 
-export const dynamic = 'force-static';
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(): Promise<Metadata> {
   const { frontmatter } = await loadLegalDoc('confidentialite');

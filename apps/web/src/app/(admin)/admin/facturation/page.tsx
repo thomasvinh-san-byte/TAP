@@ -18,11 +18,10 @@ function defaultMois(): string {
   return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
 }
 
-export default async function FacturationPage({
-  searchParams,
-}: {
-  searchParams: { mois?: string; chauffeur?: string };
+export default async function FacturationPage(props: {
+  searchParams: Promise<{ mois?: string; chauffeur?: string }>;
 }): Promise<JSX.Element> {
+  const searchParams = await props.searchParams;
   await requireDirigeantPage();
 
   const mois = /^\d{4}-\d{2}$/.test(searchParams.mois ?? '')

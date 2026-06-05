@@ -35,7 +35,7 @@ export async function addPatientConstraintAction(
   const guard = await requireAdminOrRegulateur();
   if (!guard) return { error: 'Action réservée au régulateur.' };
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -76,7 +76,7 @@ export async function removePatientConstraintAction(
   const guard = await requireAdminOrRegulateur();
   if (!guard) return { error: 'Action réservée au régulateur.' };
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error, data } = await supabase
     .from('patient_constraint')
     .delete()

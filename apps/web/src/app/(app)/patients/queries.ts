@@ -51,7 +51,7 @@ export async function searchPatients(
   // Garde côté serveur : recherche < 2 chars retourne vide (D-10).
   if (trimmed.length > 0 && trimmed.length < 2) return [];
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const wantArchived = scope === 'archived';
   let items: PatientListItem[];
 
@@ -88,7 +88,7 @@ export async function searchPatients(
  * RLS filtre déjà par organization_id.
  */
 async function hydratePatientRideAggregates(
-  supabase: ReturnType<typeof createClient>,
+  supabase: Awaited<ReturnType<typeof createClient>>,
   items: PatientListItem[],
 ): Promise<void> {
   const ids = items.map((p) => p.id);
@@ -188,7 +188,7 @@ export async function getPatientRideDefaults(
   transport_mode: Database['public']['Enums']['ride_transport_mode'];
   urgency: Database['public']['Enums']['ride_urgency'];
 } | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('rides')
     .select('transport_mode, urgency')
@@ -208,7 +208,7 @@ export async function getPatientRideDefaults(
 }
 
 export async function getPatientById(id: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('patients_safe')
     .select(

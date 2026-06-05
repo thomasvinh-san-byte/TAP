@@ -35,7 +35,7 @@ export async function overrideRideTarifAction(
   const ctx = await requireAdminOrRegulateur();
   if (!ctx) return { error: 'Action réservée au régulateur ou dirigeant.' };
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // 1. Lire l'ancien tarif pour l'audit metadata
   const beforeRes = await supabase

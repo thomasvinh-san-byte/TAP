@@ -34,7 +34,7 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${url.origin}/accept-invite?error=invalid_link`);
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { error } = await supabase.auth.verifyOtp({
     token_hash,

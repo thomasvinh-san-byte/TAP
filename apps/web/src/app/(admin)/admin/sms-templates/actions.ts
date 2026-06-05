@@ -54,7 +54,7 @@ export async function saveTemplateAction(formData: FormData): Promise<SmsTemplat
     return { error: parsed.error.errors[0]?.message ?? 'Saisie invalide.' };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const upRes = await supabase
     .from('sms_templates')
@@ -105,7 +105,7 @@ export async function testSendSmsAction(formData: FormData): Promise<SmsTemplate
     return { error: parsed.error.errors[0]?.message ?? 'Saisie invalide.' };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const tplRes = await supabase
     .from('sms_templates')
     .select('body')

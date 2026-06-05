@@ -1,7 +1,7 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import matter from 'gray-matter';
-import { compileMDX } from 'next-mdx-remote/rsc';
+import { MDXRemote } from 'next-mdx-remote/rsc';
 import { LastUpdated } from '../_components/last-updated';
 
 /**
@@ -36,10 +36,16 @@ export async function loadLegalDoc(slug: LegalSlug) {
     version: toIsoDate(data.version),
     effective_at: toIsoDate(data.effective_at),
   };
-  const { content: rendered } = await compileMDX({
-    source: content,
-    components: { LastUpdated },
-    options: { parseFrontmatter: false },
-  });
+  // Next 15 + next-mdx-remote@5 : `compileMDX` retourne un objet sérialisé qui
+  // bute sur le « React Element from older version » au moment du SSG. On
+  // utilise directement le composant `MDXRemote` (RSC) qui rend lui-même,
+  // sans double-sérialisation entre étapes — pattern recommandé doc 06.9.
+  const rendered = (
+    <MDXRemote
+      source={content}
+      components={{ LastUpdated }}
+      options={{ parseFrontmatter: false }}
+    />
+  );
   return { frontmatter, rendered };
 }

@@ -17,7 +17,7 @@ export const metadata = { title: 'Pré-remplir le registre' };
 export default async function RegistrePrefillPage() {
   await requireDirigeantPage();
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { count } = await supabase
     .from('data_processing_register')
     .select('id', { count: 'exact', head: true });

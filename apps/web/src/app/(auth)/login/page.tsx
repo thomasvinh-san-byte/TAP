@@ -5,7 +5,8 @@ export const metadata = {
   title: 'Connexion',
 };
 
-export default function LoginPage({ searchParams }: { searchParams: { next?: string } }) {
+export default async function LoginPage(props: { searchParams: Promise<{ next?: string }> }) {
+  const searchParams = await props.searchParams;
   return (
     <AuthShell title="Connexion">
       <LoginFormShell next={searchParams.next} />

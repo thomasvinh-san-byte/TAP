@@ -10,7 +10,7 @@ import { createClient } from '@/lib/supabase/server';
  * Lecture server-side uniquement (Server Component / Server Action).
  */
 export async function getActiveTariffGrid(): Promise<TariffGrid | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const today = new Date().toISOString().slice(0, 10);
   const res = await supabase
     .from('tariff_grids' as never)
@@ -27,7 +27,7 @@ export async function getActiveTariffGrid(): Promise<TariffGrid | null> {
 
 /** Jours fériés 974 (YYYY-MM-DD) pour la majoration pricing (DEC-059). */
 export async function getHolidays974(): Promise<string[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const res = await supabase.from('holidays_974' as never).select('date');
   if (res.error || !res.data) return [];
   return (res.data as { date: string }[]).map((r) => r.date);

@@ -34,7 +34,7 @@ export async function archivePatientAction(patientId: string): Promise<PatientAr
   const ctx = await requireAdminOrRegulateur();
   if (!ctx) return { error: 'Action réservée au régulateur ou dirigeant.' };
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Lire l'état actuel pour audit metadata
   const before = await supabase
@@ -94,7 +94,7 @@ export async function unarchivePatientAction(patientId: string): Promise<Patient
   const ctx = await requireDirigeant();
   if (!ctx) return { error: 'Réactivation réservée au dirigeant.' };
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const before = await supabase
     .from('patients')

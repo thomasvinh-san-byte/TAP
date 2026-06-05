@@ -135,7 +135,12 @@ export async function geocodeBanSearch(
   url.searchParams.set('lat', String(BAN_REUNION_LAT));
   url.searchParams.set('lon', String(BAN_REUNION_LON));
 
-  const res = await fetch(url.toString());
+  // Géocodage = pas de cache, fraîcheur voulue (résultats serveur identiques
+  // à la frappe utilisateur). Next 15 ne met plus rien en cache par défaut,
+  // mais on rend l'intention EXPLICITE (D-04 Phase 06.9) pour clarifier le
+  // contrat côté serveur (où ce module est aussi appelé par les Server
+  // Actions et le filet géocodage 06.19).
+  const res = await fetch(url.toString(), { cache: 'no-store' });
   if (!res.ok) {
     throw new Error(`Géoplateforme unavailable (HTTP ${res.status})`);
   }

@@ -186,7 +186,7 @@ export function sortRulesByCriticity(rules: SlaRule[]): SlaRule[] {
 
 // ---- Wrapper Supabase (server-only via appelant) ---------------------------
 
-type Supabase = ReturnType<typeof createClient>;
+type Supabase = Awaited<ReturnType<typeof createClient>>;
 
 async function fetchBreachData(supabase: Supabase): Promise<BreachRow[]> {
   const { data, error } = await supabase

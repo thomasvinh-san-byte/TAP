@@ -66,7 +66,7 @@ export async function createPatientAction(
     return { error: parsed.error.errors[0]?.message ?? 'Saisie invalide.' };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const data = parsed.data;
 
   const {
@@ -169,7 +169,7 @@ export async function updatePatientAction(
   if (!parsed.success) {
     return { error: parsed.error.errors[0]?.message ?? 'Saisie invalide.' };
   }
-  const supabase = createClient();
+  const supabase = await createClient();
   const data = parsed.data;
 
   const {
@@ -239,7 +239,7 @@ export async function updatePatientAction(
 export async function decryptNirAction(
   patientId: string,
 ): Promise<{ nir: string } | { error: string }> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const rawRes = await supabase
     .from('patients')
     .select('nir_encrypted')

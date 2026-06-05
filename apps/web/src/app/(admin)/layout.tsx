@@ -26,7 +26,7 @@ import { Providers } from '@/app/(app)/providers.client';
  * Redirige vers /login si non auth, vers / si rôle ni dirigeant ni régulateur.
  */
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

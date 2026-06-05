@@ -70,7 +70,7 @@ export async function rescheduleRideAction(formData: FormData): Promise<CockpitA
     return { error: parsed.error.errors[0]?.message ?? 'Saisie invalide.' };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const origRes = await supabase
     .from('rides')
@@ -141,7 +141,7 @@ export async function cancelRideForNoShowAction(rideId: string): Promise<Cockpit
     return { error: parsed.error.errors[0]?.message ?? 'Identifiant invalide.' };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const upRes = await supabase
     .from('rides')
     .update({

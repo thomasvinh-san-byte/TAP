@@ -13,7 +13,7 @@ export const dynamic = 'force-dynamic';
  */
 export default async function VehiculesPage() {
   await requireDirigeantPage();
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: vehicles, error: vehiclesError } = await supabase
     .from('vehicles' as never)
     .select(

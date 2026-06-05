@@ -12,7 +12,7 @@ export const metadata = { title: 'Contact DPO' };
  */
 export default async function DpoPage() {
   await requireDirigeantPage();
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

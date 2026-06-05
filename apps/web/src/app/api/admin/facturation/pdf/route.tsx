@@ -38,7 +38,7 @@ export async function GET(request: Request): Promise<Response> {
     return new Response('Paramètre « mois » invalide.', { status: 400 });
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

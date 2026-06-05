@@ -18,7 +18,7 @@ export interface TariffGridRow extends TariffGrid {
 
 export default async function TarifsPage(): Promise<JSX.Element> {
   await requireDirigeantPage();
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('tariff_grids')
     .select(

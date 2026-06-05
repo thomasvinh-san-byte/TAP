@@ -12,7 +12,7 @@ export const metadata = { title: 'Violations de données' };
  */
 export default async function BreachesPage() {
   await requireDirigeantPage();
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('data_breach_incident')
     .select(

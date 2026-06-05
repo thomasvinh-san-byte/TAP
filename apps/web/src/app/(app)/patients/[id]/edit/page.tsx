@@ -5,7 +5,7 @@ import { updatePatientAction } from '../../actions';
 import { getPatientById } from '../../queries';
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 /**
@@ -14,7 +14,8 @@ interface PageProps {
  * bound à l'id ; les contraintes sont éditées hors `<form>` via Server
  * Actions atomiques (B-2).
  */
-export default async function EditPatientPage({ params }: PageProps) {
+export default async function EditPatientPage(props: PageProps) {
+  const params = await props.params;
   let patient: Awaited<ReturnType<typeof getPatientById>>;
   try {
     patient = await getPatientById(params.id);

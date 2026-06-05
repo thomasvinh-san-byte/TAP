@@ -48,7 +48,7 @@ export async function listRidesEnriched(
     offset?: number;
   } = {},
 ): Promise<RideRowEnriched[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const limit = Math.min(Math.max(params.limit ?? 50, 1), 200);
   const offset = Math.max(params.offset ?? 0, 0);
   let q = supabase
@@ -106,7 +106,7 @@ export async function listRidesEnriched(
 }
 
 export async function getRideByIdEnriched(rideId: string): Promise<RideRowEnriched | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('rides')
     .select(RIDE_COLUMNS)
@@ -151,7 +151,7 @@ export type RideAuditEntry = {
 };
 
 export async function getRideAuditLog(rideId: string): Promise<RideAuditEntry[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('audit_logs')
     .select('id, created_at, action, actor_id, actor_role, metadata')
@@ -166,7 +166,7 @@ export async function getRideAuditLog(rideId: string): Promise<RideAuditEntry[]>
 }
 
 export async function listActiveDrivers(): Promise<DriverMin[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('drivers' as never)
     .select('id, nom_affichage, type_permis')
@@ -181,7 +181,7 @@ export async function listActiveDrivers(): Promise<DriverMin[]> {
 }
 
 export async function listActiveVehicles(): Promise<VehicleMin[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('vehicles' as never)
     .select('id, immatriculation, marque, modele, type')

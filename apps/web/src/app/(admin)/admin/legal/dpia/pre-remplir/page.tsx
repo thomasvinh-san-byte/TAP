@@ -14,7 +14,7 @@ export const metadata = { title: 'Créer une trame DPIA' };
 export default async function DpiaPrefillPage() {
   await requireDirigeantPage();
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { count } = await supabase.from('dpia_record').select('id', { count: 'exact', head: true });
 
   if ((count ?? 0) > 0) {

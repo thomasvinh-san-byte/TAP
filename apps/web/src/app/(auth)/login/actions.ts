@@ -41,7 +41,7 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
     return { error: parsed.error.errors[0]?.message ?? 'Saisie invalide' };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({
     email: parsed.data.email,
     password: parsed.data.password,

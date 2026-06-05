@@ -12,7 +12,7 @@ export const metadata = { title: 'DPA sous-traitants' };
  */
 export default async function DpaPage() {
   await requireDirigeantPage();
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('dpa_record')
     .select('id, subprocessor_name, subprocessor_role, dpa_version, signed_at, expires_at')

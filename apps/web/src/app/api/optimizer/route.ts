@@ -51,7 +51,7 @@ type VehicleRowForOptim = VehicleRow & {
 };
 
 async function readRidesForDate(
-  supabase: ReturnType<typeof createClient>,
+  supabase: Awaited<ReturnType<typeof createClient>>,
   date: string,
 ): Promise<RideRowForOptim[]> {
   const { data, error } = await supabase
@@ -74,7 +74,7 @@ async function readRidesForDate(
 }
 
 async function readActiveVehicles(
-  supabase: ReturnType<typeof createClient>,
+  supabase: Awaited<ReturnType<typeof createClient>>,
 ): Promise<VehicleRowForOptim[]> {
   const { data, error } = await supabase
     .from('vehicles')
@@ -148,7 +148,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const { date } = bodyParse.data;
 
   // 2. Auth : utilisateur connecté.
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
