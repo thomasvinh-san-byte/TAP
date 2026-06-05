@@ -24,7 +24,7 @@ export function HeaderNewRideButton(): JSX.Element {
   return (
     <Button
       type="button"
-      variant="default"
+      variant="accent"
       onClick={() => dispatch({ type: 'OPEN_NEW' })}
       aria-label="Nouvelle course (Cmd/Ctrl+Shift+K)"
       className="w-full shrink-0 gap-8 md:w-auto"

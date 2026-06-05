@@ -21,7 +21,7 @@ export function NewRideForPatientButton({ patientId }: { patientId: string }): J
   return (
     <Button
       type="button"
-      variant="default"
+      variant="accent"
       onClick={() => dispatch({ type: 'OPEN_NEW', patientId })}
       className="w-full justify-center gap-8"
     >

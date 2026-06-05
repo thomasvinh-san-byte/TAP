@@ -109,7 +109,9 @@ export function AdjustSheet({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Abandonner les modifications
           </Button>
-          <Button onClick={handleConfirm}>Valider l&apos;ajustement</Button>
+          <Button variant="accent" onClick={handleConfirm}>
+            Valider l&apos;ajustement
+          </Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>

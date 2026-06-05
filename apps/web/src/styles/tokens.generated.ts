@@ -24,7 +24,7 @@ export const tokensLight = {
     },
     action: {
       primary: '#07409d',
-      accent: '#e65d33',
+      accent: '#d1451a',
       focusRing: '#07409d',
     },
     feedback: {
@@ -52,13 +52,13 @@ export const tokensDark = {
       primary: '#f1f5f9',
       muted: '#94a3b8',
       onAction: '#0f1729',
-      onAccent: '#0b111e',
+      onAccent: '#ffffff',
       onDanger: '#ffffff',
       onPopover: '#f1f5f9',
     },
     action: {
       primary: '#3c83f6',
-      accent: '#e96f49',
+      accent: '#d1451a',
       focusRing: '#3c83f6',
     },
     feedback: {

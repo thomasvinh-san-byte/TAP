@@ -76,7 +76,9 @@ export function OptimizationShell({ initialRides, date }: Props): JSX.Element {
           <p className="text-muted-foreground text-sm">
             Cliquez sur « Lancer le calcul » pour analyser les courses de cette journée.
           </p>
-          <Button onClick={() => void launch()}>Lancer le calcul</Button>
+          <Button variant="accent" onClick={() => void launch()}>
+            Lancer le calcul
+          </Button>
         </div>
       )}
 

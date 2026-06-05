@@ -37,6 +37,7 @@ Liste GROUPÉE par domaine. Détail complet de chaque phase conservé dans la se
 - [x] **Modernisation stack** (1 phase) — `06.9` Next.js 14.2 → 15.5 (async APIs complètes, `typedRoutes` stable, MapLibre/PMTiles préparés).
 - [x] **Géoloc prototype** (1 phase) — `10.0` prototype géoloc terrain + UI/UX cockpit (MapLibre + PMTiles, capture événementielle, données fictives, flag `GEOLOC_ENABLED` OFF en pré-HDS, banner consentement chauffeur).
 - [x] **Incarnation Régulation lot 1** (1 phase) — `06.24` (livré #248 + reprise 2026-06-05) PageHeader unifié sur **9 écrans (app)** — 0 h1 manuel restant — + hiérarchie typographique travaillée par TAILLE en plus de la graisse/casse (`text-base` 8→**15** +88 %, `text-xs` 87→**73** -16 % sur le corps de texte). Convention titre-de-section harmonisée (`text-xs font-semibold uppercase tracking-wide` partout). Tables denses préservées. Premier lot d'incarnation de DEC-101.
+- [x] **Incarnation Régulation lot 2** (1 phase) — `06.25` (livré 2026-06-05) couleur signature terracotta activée sur les **5 CTA moments-clés** du cœur métier (Nouvelle course, Créer course patient, Lancer le calcul, Valider l'ajustement, Marquer encaissé). Token accent corrigé `hsl(14 78% 55%)` → **`hsl(14 78% 46%)`** jour ET nuit pour passer WCAG AA texte normal sur blanc (contraste 4.61:1 jour / 6.33:1 nuit). Variant Button « accent » exposé via cva. Secondaire reste neutre/bleu : rare = fort (DEC-101 §3). DEC-104 LOCKED.
 
 ### ⏸️ Abandonné
 
