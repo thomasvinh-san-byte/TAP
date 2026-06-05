@@ -14,7 +14,8 @@ export const dynamic = 'force-dynamic';
  * Les courses passées sont conservées 5 ans (CSS L114-19) — l'utilisateur
  * en est explicitement informé avant et après confirmation.
  */
-export default function ErasurePage({ params }: { params: { token: string } }) {
+export default async function ErasurePage(props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
   return (
     <div className="space-y-24">
       <header>

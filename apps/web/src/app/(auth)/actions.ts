@@ -14,7 +14,7 @@ import { createClient } from '@/lib/supabase/server';
  *   layout (app)/(driver)).
  */
 export async function signOutAction(): Promise<never> {
-  const supabase = createClient();
+  const supabase = await createClient();
   await supabase.auth.signOut();
   revalidatePath('/', 'layout');
   redirect('/login');

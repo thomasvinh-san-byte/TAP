@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.19 close (géocodage récurrences + filet serveur, PR #236). Chaîne géocodage→solveLocal complète. 2026-06-04"
-last_updated: "2026-06-05T00:10:00.000Z"
-last_activity: Phase 06.19 « Branchement géocodage » mergée (PR #236) : récurrences géocodées (picker template + propagation occurrences), filet serveur BAN, backfill étendu, message exclusion. La chaîne géocodage → solveLocal est complète : l'optimisation voit enfin le volume récurrent. STATE synchronisé.
+stopped_at: "Phase 06.9 livrée localement (Next.js 14.2 → 15.5, async APIs complètes, ADR-011) — PR à ouvrir"
+last_updated: "2026-06-05T05:30:00.000Z"
+last_activity: Phase 06.9 « Modernisation Next.js 15.5 » cadrée + exécutée. Codemod async-request-api (17 fichiers, 0 erreur) + 84 sites `createClient()` Supabase serveur passés `await createClient()` (signature async, 0 `UnsafeUnwrapped*` cast). `typedRoutes` stable activé. Rewrite `/api/solver` mort purgé. `next-mdx-remote` 6→5 + bascule `<MDXRemote>` + `force-dynamic /legal/*` (incident SSG résolu). React 18 conservé. ESLint au build conservé désactivé. ADR-011 + DEC-095 LOCKED. Build vert, 101/101 tests verts, typecheck propre.
 progress:
   total_phases: 32
   completed_phases: 28
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** 28/32 phases livrées. Boucle régulation/optimisation complète : géocodage → solveLocal opérationnel sur volume réel. Prochaine phase à trancher : 06.9, 09, 10.
+**Current focus:** Phase 06.9 livrée localement (Next.js 15.5 + async APIs complètes). 28/32 phases livrées (06.9 PR à ouvrir). Candidates ouvertes restantes (2 après merge) : 09 (HDS), 10 (géoloc temps réel).
 
 ## Current Position
 
@@ -30,12 +30,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.19 close (2026-06-04) — Branchement géocodage récurrences + filet serveur, PR #236. Chaîne géocodage→optimisation complète.
-Phase next: à trancher par le dirigeant. Candidates ouvertes (3) : 06.9 (Next.js 15, autonome), 09 (HDS, verrou 1er client payant), 10 (géoloc temps réel + réévaluer OSRM, post-HDS).
-Status: 28/32 phases livrées. Bloc optimisation/adressage bouclé. Restent des décisions de fond (technique 06.9, business 09/10).
+Phase: 06.9 livrée localement (2026-06-05) — Next.js 14.2 → 15.5 + migration async complète, PR à ouvrir.
+Phase next: à trancher après merge 06.9. Candidates ouvertes (2) : 09 (HDS, verrou 1er client payant), 10 (géoloc temps réel + réévaluer OSRM, post-HDS).
+Status: 28/32 phases livrées. Stack moderne, async APIs alignées sur la trajectoire Next 16+. Reste 2 phases : décisions business (HDS) / techniques (géoloc).
 Blockers: aucun
-Last activity: Sync STATE après merge PR #236. Phase 06.19 cochée livrée, compteurs à 28/32 phases.
-Précédent: 06.12 solveur heuristique TS + suppression OR-Tools (#235), 06.19 branchement géocodage (#236).
+Last activity: Phase 06.9 cadrée + exécutée (Next 15.5, async APIs, typedRoutes, purge rewrite mort, incident MDX résolu). ADR-011 + DEC-095 LOCKED.
+Précédent: 06.19 branchement géocodage (#236), 06.12 solveur heuristique TS + suppression OR-Tools (#235).
 
 Progress: [██████████] 100%
 
@@ -149,6 +149,8 @@ DEC-093 (2026-06-04, Phase 06.12) — Solveur d'optimisation réimplémenté en 
 
 DEC-094 (2026-06-04, Phase 06.19) — Géocodage branché sur récurrences (`AddressOrPOIPicker` dans les 2 modales create + edit, persistance template `ride_recurrences`, propagation aux occurrences générées) + filet serveur idempotent + non bloquant `geocodeBanSearch` (helper partagé `lib/geocoding/geocode-safety-net.ts`) sur `createRideAction` et `create/updateRecurrenceAction`. Backfill `/admin/maintenance` étendu : pass templates + pass occurrences futures (cohérent cascade DEC-048). Alimente `solveLocal` (06.12) sur le segment dialyse (cas le plus mutualisable). Colonnes coords déjà présentes dans `ride_recurrences` (migration 20260519000001) → **0 migration BDD ajoutée**. OSRM toujours hors périmètre (DEC-056).
 
+DEC-095 (2026-06-05, Phase 06.9) — Next.js 14.2 → 15.5 + migration async complète des Request APIs. React 18 conservé (R19 différé, ADR-007). `createClient` Supabase serveur passe **async** (84 sites consommateurs migrés `await createClient()`), 0 cast `UnsafeUnwrapped*` (interdits). `lib/geocoding/ban.ts` : `fetch(url, { cache: 'no-store' })` explicite (D-04). `typedRoutes` activé (stable 15.5). Rewrite `/api/solver` mort purgé (orphelin Phase 06.12, ADR-010). `next-mdx-remote` downgradé 6→5 + bascule `compileMDX` → `<MDXRemote>` + `force-dynamic` sur `/legal/*` (incident SSG résolu). ESLint au build conservé désactivé (nettoyage CI séparé, D-08). ADR-011 acte la décision et complète ADR-007.
+
 ### NFR (Non-Functional Requirements transverses)
 
 6 NFR ajoutés en REQUIREMENTS.md (run ingest 2026-05-12) :
@@ -196,10 +198,10 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-06-05T00:10:00.000Z
-Stopped at: Phase 06.19 close (géocodage récurrences, PR #236). Chaîne géocodage→solveLocal validée. Prochaine phase à trancher (06.9 / 09 / 10).
+Last session: 2026-06-05T05:30:00.000Z
+Stopped at: Phase 06.9 livrée localement (Next.js 15.5 + async APIs complètes, ADR-011). PR à ouvrir + à attendre merge avant sync STATE final. 28/32 phases livrées. Prochaine phase à trancher après merge (09 / 10).
 Resume file: None
-Next command suggested: `/gsd-discuss-phase <phase choisie>`
+Next command suggested: après merge PR 06.9 → `/gsd-sync-state` puis `/gsd-discuss-phase <phase choisie>`
 
 ## Ingest Runs
 

@@ -16,7 +16,7 @@ export async function acceptCguAction(version: string): Promise<ActionState> {
     return { error: 'Version CGU invalide.' };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

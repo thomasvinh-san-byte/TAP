@@ -40,7 +40,7 @@ export async function loginAsDemoAction(
   });
   if (!parsed.success) return { error: 'Données démo invalides.' };
 
-  const supabase = createClient();
+  const supabase = await createClient();
   await supabase.auth.signOut();
   const { error } = await supabase.auth.signInWithPassword({
     email: parsed.data.email,

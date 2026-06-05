@@ -80,7 +80,7 @@ export async function backfillRideGeocodingAction(): Promise<BackfillResult> {
       error: 'Action réservée au dirigeant.',
     };
   }
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const target = await supabase
     .from('rides')
@@ -256,7 +256,7 @@ export async function recomputeTarifsAction(): Promise<RecomputeTarifsResult> {
   }
   const holidays974 = new Set(await getHolidays974());
 
-  const supabase = createClient();
+  const supabase = await createClient();
   // Cible : courses tarifées auto, NON encaissées (garde-fous DEC-060).
   // Les courses tarif_source = 'manuel' ne sont jamais sélectionnées.
   const target = await supabase

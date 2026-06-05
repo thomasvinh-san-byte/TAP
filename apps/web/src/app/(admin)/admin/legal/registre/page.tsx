@@ -18,7 +18,7 @@ export const metadata = { title: 'Registre des traitements' };
  */
 export default async function RegistrePage() {
   await requireDirigeantPage();
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('data_processing_register')
     .select('id, purpose, legal_basis, retention_period_days, international_transfer, created_at')

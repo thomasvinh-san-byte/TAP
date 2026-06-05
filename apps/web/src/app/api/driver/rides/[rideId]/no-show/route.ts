@@ -41,8 +41,9 @@ interface NoShowResponseBody {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { rideId: string } },
+  props: { params: Promise<{ rideId: string }> },
 ): Promise<NextResponse> {
+  const params = await props.params;
   const rideIdParse = rideIdSchema.safeParse(params.rideId);
   if (!rideIdParse.success) {
     return NextResponse.json({ error: 'Identifiant course invalide.' }, { status: 400 });

@@ -61,7 +61,7 @@ interface RawRow {
 export async function listRidesEncaissees(
   filters: CaisseFilters,
 ): Promise<{ rows: CaisseRow[]; totals: CaisseTotals }> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const dateStart = new Date(`${filters.date}T00:00:00.000Z`).toISOString();
   const dateEnd = new Date(`${filters.date}T23:59:59.999Z`).toISOString();
 

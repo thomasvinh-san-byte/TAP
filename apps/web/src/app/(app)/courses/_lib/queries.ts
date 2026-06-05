@@ -86,7 +86,7 @@ export async function listRides(
     urgency?: RideUrgency;
   } = {},
 ): Promise<RideRow[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   let q = supabase
     .from('rides')
     .select(RIDE_COLUMNS)
@@ -107,7 +107,7 @@ export async function listRides(
  * Tri `updated_at desc`, limit 20 (CDC v2 § 5.8 — file d'attente raisonnable).
  */
 export async function listDrafts(): Promise<RideDraftRow[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('ride_draft')
     .select('id, organization_id, author_id, patient_id, payload, created_at, updated_at')
@@ -142,7 +142,7 @@ export {
  * sans CTE — la dédup JS sur 20 lignes est triviale et garde la query simple).
  */
 export async function listRecentPickupAddresses(patientId: string): Promise<string[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('rides')
     .select('pickup_address, created_at')

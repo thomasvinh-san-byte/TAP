@@ -41,7 +41,7 @@ export async function createDpaRecordAction(
     return { error: parsed.error.errors[0]?.message ?? 'Saisie invalide.' };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -96,7 +96,7 @@ export async function prefillDpaRecordsAction(entries: DpaPrefillInput[]): Promi
 
   if (entries.length === 0) return { error: 'Aucune fiche à insérer.' };
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

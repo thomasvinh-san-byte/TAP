@@ -61,7 +61,7 @@ export async function createDpiaAction(
   const parsed = parseDpiaForm(formData);
   if (!parsed.success) return { error: parsed.error };
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -111,7 +111,7 @@ export async function updateDpiaAction(
   const parsed = parseDpiaForm(formData);
   if (!parsed.success) return { error: parsed.error };
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -177,7 +177,7 @@ export async function prefillDpiaRecordAction(input: DpiaPrefillInput): Promise<
     return { error: parsed.error.errors[0]?.message ?? 'Saisie invalide.' };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

@@ -10,14 +10,15 @@ import { PatientNirDisplay } from '../_components/patient-nir-display.client';
 import { RecurrencesSection } from './_components/recurrences-section.client';
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 /**
  * Page complète fiche patient (PAT-03). Identique au drawer mais en page
  * pleine largeur, avec bouton « Modifier » → `/patients/[id]/edit`.
  */
-export default async function PatientPage({ params }: PageProps) {
+export default async function PatientPage(props: PageProps) {
+  const params = await props.params;
   let patient: Awaited<ReturnType<typeof getPatientById>>;
   try {
     patient = await getPatientById(params.id);
@@ -44,7 +45,7 @@ export default async function PatientPage({ params }: PageProps) {
 
   // Récurrences actives (Phase 05 Wave 3) + counts rides futures non démarrées
   // pour la cascade DEC-048 dans le modal édition.
-  const supabase = createClient();
+  const supabase = await createClient();
   const recurrencesRes = await supabase
     .from('ride_recurrences' as never)
     .select('*')

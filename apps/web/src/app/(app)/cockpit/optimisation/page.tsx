@@ -12,12 +12,11 @@ type Ride = {
   dropoff_address?: string;
 };
 
-export default async function OptimisationPage({
-  searchParams,
-}: {
-  searchParams: { date?: string };
+export default async function OptimisationPage(props: {
+  searchParams: Promise<{ date?: string }>;
 }): Promise<JSX.Element> {
-  const supabase = createClient();
+  const searchParams = await props.searchParams;
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

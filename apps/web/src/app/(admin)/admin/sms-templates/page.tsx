@@ -22,7 +22,7 @@ const TEMPLATE_LABELS: Record<string, string> = {
 
 export default async function SmsTemplatesPage(): Promise<JSX.Element> {
   await requireDirigeantPage();
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('sms_templates')
     .select('key, body, updated_at')

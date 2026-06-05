@@ -73,7 +73,7 @@ export interface DashboardData {
   smsFailed24h: number;
 }
 
-type Supabase = ReturnType<typeof createClient>;
+type Supabase = Awaited<ReturnType<typeof createClient>>;
 
 function currentMonth(): string {
   const now = new Date();
@@ -237,7 +237,7 @@ async function getConformite(supabase: Supabase): Promise<DashboardConformite> {
 
 /** Agrégat complet du tableau de bord — appelé par le Server Component. */
 export async function getDashboardData(): Promise<DashboardData> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const mois = currentMonth();
   const { start: moisStart, end: moisEnd } = monthBounds(mois);
   const moisPrec = previousMonth(mois);

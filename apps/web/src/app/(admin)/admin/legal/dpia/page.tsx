@@ -11,7 +11,7 @@ export const metadata = { title: "Analyse d'impact DPIA — TAP Admin" };
  */
 export default async function DpiaPage() {
   await requireDirigeantPage();
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .from('dpia_record')
     .select('id, title, status, residual_risk_level, reviewed_at, next_review_at')

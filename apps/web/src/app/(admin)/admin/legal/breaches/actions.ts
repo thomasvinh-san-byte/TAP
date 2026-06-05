@@ -48,7 +48,7 @@ export async function createBreachAction(
     return { error: parsed.error.errors[0]?.message ?? 'Saisie invalide.' };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -95,7 +95,7 @@ export async function closeBreachAction(id: string): Promise<ActionState> {
   const guard = await requireDirigeant();
   if (!guard) return { error: 'Action réservée au dirigeant.' };
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

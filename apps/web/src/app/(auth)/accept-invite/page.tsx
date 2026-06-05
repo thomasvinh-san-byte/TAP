@@ -26,11 +26,10 @@ export const metadata = {
 };
 export const dynamic = 'force-dynamic';
 
-export default async function AcceptInvitePage({
-  searchParams,
-}: {
-  searchParams: { error?: string };
+export default async function AcceptInvitePage(props: {
+  searchParams: Promise<{ error?: string }>;
 }) {
+  const searchParams = await props.searchParams;
   // Erreur transmise par Route Handler (token invalide ou expiré)
   if (searchParams.error === 'expired' || searchParams.error === 'invalid_link') {
     return (
@@ -46,7 +45,7 @@ export default async function AcceptInvitePage({
     );
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

@@ -34,7 +34,8 @@ interface StartRideResponseBody {
   [key: string]: unknown;
 }
 
-export async function POST(req: NextRequest, { params }: { params: { rideId: string } }) {
+export async function POST(req: NextRequest, props: { params: Promise<{ rideId: string }> }) {
+  const params = await props.params;
   const rideIdParse = rideIdSchema.safeParse(params.rideId);
   if (!rideIdParse.success) {
     return NextResponse.json({ error: 'Identifiant course invalide.' }, { status: 400 });

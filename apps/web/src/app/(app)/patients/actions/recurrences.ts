@@ -104,7 +104,9 @@ function pickFormData(formData: FormData, keys: string[]): Record<string, unknow
   return obj;
 }
 
-async function fetchHolidays(supabase: ReturnType<typeof createClient>): Promise<Set<string>> {
+async function fetchHolidays(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+): Promise<Set<string>> {
   const result = await supabase.from('holidays_974' as never).select('date');
   if (result.error || !result.data) return new Set();
   const rows = result.data as { date: string }[];
@@ -124,7 +126,7 @@ export async function createRecurrenceAction(formData: FormData): Promise<Recurr
   }
   const input = parsed.data;
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // DEC-094 Phase 06.19 : filet serveur — géocode si le picker n'a pas
   // remonté de coords (saisie libre, formulaire seeded, etc.).
@@ -223,7 +225,7 @@ export async function createRecurrenceAction(formData: FormData): Promise<Recurr
 }
 
 async function regenerateOccurrencesFor(
-  supabase: ReturnType<typeof createClient>,
+  supabase: Awaited<ReturnType<typeof createClient>>,
   recurrenceId: string,
   ctx: AuthContext,
   input: z.infer<typeof baseSchema>,
@@ -274,7 +276,7 @@ export async function updateRecurrenceAction(formData: FormData): Promise<Recurr
   }
   const { id, ...input } = parsed.data;
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // DEC-094 Phase 06.19 : filet serveur pour l'UPDATE aussi.
   const [pickupCoords, dropoffCoords] = await Promise.all([
@@ -362,7 +364,7 @@ export async function cancelRecurrenceAction(recurrenceId: string): Promise<Recu
   const ctx = await requireAdminOrRegulateur();
   if (!ctx) return { error: 'Accès réservé aux régulateurs et dirigeants.' };
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const before = await supabase
     .from('ride_recurrences' as never)

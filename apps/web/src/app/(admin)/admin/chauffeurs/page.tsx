@@ -16,12 +16,9 @@ export const dynamic = 'force-dynamic';
  * RLS Postgres garantit le filtrage `organization_id`. Les guards rôle
  * sont posés en `(admin)/layout.tsx` (dirigeant ou régulateur).
  */
-export default async function ChauffeursPage({
-  searchParams,
-}: {
-  searchParams?: { vue?: string };
-}) {
-  const supabase = createClient();
+export default async function ChauffeursPage(props: { searchParams?: Promise<{ vue?: string }> }) {
+  const searchParams = await props.searchParams;
+  const supabase = await createClient();
   const ctx = await getAuthContext();
   const role = ctx?.role ?? 'regulateur';
 

@@ -391,9 +391,13 @@ export async function unarchiveDriverAction(
  * Résout l'origine de la requête courante (header `origin` Next.js, fallback
  * env `NEXT_PUBLIC_APP_URL`). Utilisé pour construire le `redirectTo` du
  * magic link Supabase.
+ *
+ * Phase 06.9 (Next.js 15) : `headers()` est async — async function, sans
+ * cast `UnsafeUnwrappedHeaders` (D-02).
  */
-function resolveOrigin(): string {
-  const origin = headers().get('origin');
+async function resolveOrigin(): Promise<string> {
+  const h = await headers();
+  const origin = h.get('origin');
   if (origin) return origin;
   const envUrl = process.env.NEXT_PUBLIC_APP_URL;
   if (envUrl) return envUrl;
@@ -480,7 +484,7 @@ export async function inviteDriverAction(
   }
 
   // 5. Magic link invitation (Supabase Auth admin)
-  const origin = resolveOrigin();
+  const origin = await resolveOrigin();
   const { error: inviteErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
     data: {
       role: 'chauffeur',
@@ -576,7 +580,7 @@ export async function resendInvitationAction(invitationId: string): Promise<Acti
 
   // 3. Re-call Supabase Auth invite (regen token magic link)
   const supabaseAdmin = createAdminClient();
-  const origin = resolveOrigin();
+  const origin = await resolveOrigin();
   const { error: resendErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(inv.email, {
     redirectTo: `${origin}/accept-invite/verify`,
   });

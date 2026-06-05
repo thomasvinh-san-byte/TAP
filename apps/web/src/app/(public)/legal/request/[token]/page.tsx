@@ -18,7 +18,8 @@ export const runtime = 'nodejs';
  * générique en français est affiché — jamais de stack trace ni de
  * détail technique (mitigation T-1.5-19, CLAUDE.md § 1).
  */
-export default async function RequestTokenPage({ params }: { params: { token: string } }) {
+export default async function RequestTokenPage(props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
   try {
     await checkRateLimit(params.token);
     const claims = await verifyRequestToken(params.token);

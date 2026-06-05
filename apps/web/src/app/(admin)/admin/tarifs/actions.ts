@@ -61,7 +61,7 @@ export async function saveTariffGridAction(formData: FormData): Promise<TariffGr
     return { error: parsed.error.errors[0]?.message ?? 'Saisie invalide.' };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const insertRes = await supabase
     .from('tariff_grids')
     .insert({

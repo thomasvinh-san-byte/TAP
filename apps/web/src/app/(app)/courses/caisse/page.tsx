@@ -14,13 +14,13 @@ import { CaisseToolbar } from './_components/caisse-toolbar.client';
 export const metadata = { title: 'Caisse' };
 
 interface PageProps {
-  searchParams: {
+  searchParams: Promise<{
     date?: string;
     driver_id?: string;
     payment_method?: string;
     sort?: string;
     dir?: string;
-  };
+  }>;
 }
 
 const VALID_SORTS: CaisseSortColumn[] = ['date', 'tarif'];
@@ -31,7 +31,8 @@ function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-export default async function CaissePage({ searchParams }: PageProps) {
+export default async function CaissePage(props: PageProps) {
+  const searchParams = await props.searchParams;
   await requireAdminOrRegulateurPage();
   const date = /^\d{4}-\d{2}-\d{2}$/.test(searchParams.date ?? '')
     ? (searchParams.date as string)

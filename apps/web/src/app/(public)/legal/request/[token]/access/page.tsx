@@ -14,7 +14,8 @@ export const dynamic = 'force-dynamic';
  * traitée), un message générique en français est rendu — jamais de
  * stack trace ni de détail technique (CLAUDE.md § 1, T-1.5-19).
  */
-export default async function AccessPage({ params }: { params: { token: string } }) {
+export default async function AccessPage(props: { params: Promise<{ token: string }> }) {
+  const params = await props.params;
   const result = await fulfillAccessAction(params.token);
   if (result.error) {
     return (

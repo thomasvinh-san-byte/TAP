@@ -55,7 +55,7 @@ export async function createDataProcessingRegisterAction(
     return { error: parsed.error.errors[0]?.message ?? 'Saisie invalide.' };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -115,7 +115,7 @@ export async function prefillDataProcessingRegisterAction(
 
   if (entries.length === 0) return { error: 'Aucune entrée à insérer.' };
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

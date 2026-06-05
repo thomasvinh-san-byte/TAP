@@ -49,7 +49,7 @@ export async function acceptInvitationAction(
   _prev: AcceptState,
   formData: FormData,
 ): Promise<AcceptState> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // 0. Session active (créée par /accept-invite GET via verifyOtp — PLAN-4 §4.3)
   const {

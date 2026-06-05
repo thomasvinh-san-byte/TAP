@@ -1,5 +1,50 @@
 # Journal — phases livrées
 
+## 2026-06-05 — Phase 06.9 livrée localement (Next.js 14.2 → 15.5, migration async complète)
+
+Phase 06.9 « Modernisation Next.js 15.5 » cadrée + exécutée dans une seule PR. Phase technique autonome, migration codemod-first, reprise manuelle ciblée.
+
+**Versions** :
+- `next` : `^14.2.35` → `^15.5.0` (résolution 15.5.19).
+- `next-mdx-remote` : `6.0.0` → `5.0.0` (6.x bundle React 19, incompatible avec React 18 + Next 15 SSG).
+- React 18 conservé (`^18.3.1`), `@types/react` 18 inchangés.
+- `packages/database` peerDep `next` : `^14.2.35` → `^15.5.0`.
+
+**Migration async** (codemod + manuel) :
+- `@next/codemod@canary next-async-request-api .` → 17 fichiers transformés, 0 erreur, 0 `@next-codemod-error` marker.
+- Pages serveur dynamiques (`params`/`searchParams`) : 10 fichiers → `Promise<...>` + `await`. Inclut `generateMetadata` de `/conduite/[rideId]`.
+- Routes API `[rideId]` : 4 fichiers (`end`, `start`, `no-show`, twilio webhook) → `await params`.
+- `cookies()` : `lib/supabase/server.ts:createClient` rendue **async**. Pas de cast `UnsafeUnwrappedCookies` (D-02 interdit).
+- **84 sites consommateurs** `const supabase = createClient()` → `await createClient()` (sed automatisé sur 54 fichiers).
+- 8 sites `ReturnType<typeof createClient>` rebrandés `Awaited<ReturnType<typeof createClient>>`.
+- `headers()` : `admin/chauffeurs/actions.ts:resolveOrigin` rendue `async function`, 2 callers `await resolveOrigin()`.
+
+**Modifs ciblées** :
+- `lib/geocoding/ban.ts` : `fetch(url, { cache: 'no-store' })` explicite + commentaire « géocodage = pas de cache, fraîcheur voulue » (D-04). Le `fetch` BAN n'était caché par défaut qu'en Next 14, on rend l'intention explicite vs la rupture du cache `fetch()` Next 15.
+- `next.config.mjs` : `typedRoutes: true` au TOP-LEVEL (stable 15.5, a quitté `experimental`).
+- `next.config.mjs` : suppression du `async rewrites()` `/api/solver/*` → FastAPI port 8000 (orphelin Phase 06.12, ADR-010 — plus aucun caller).
+- `next.config.mjs` : `eslint.ignoreDuringBuilds: true` conservé (D-08, nettoyage CI séparé).
+
+**Incident MDX résolu** :
+- Symptôme : prerender `/legal/cgu`, `/legal/cgv` cassait sur « A React Element from an older version of React was rendered ». Cause : `next-mdx-remote@6.0.0` bundle React 19 vs runtime React 18.
+- Fix : downgrade 6 → 5 + bascule `compileMDX` (double-sérialisation problématique sous SSG) → `<MDXRemote>` (rendu direct RSC). Rename `_lib/load-legal.ts` → `.tsx` pour le JSX.
+- Compromis : `export const dynamic = 'force-dynamic'` sur les 5 pages `/legal/*`. Pages servies à la demande, latence négligeable. SSG laissé pour V2 quand React 19 + ADR-007 sera tranché.
+
+**Validation** :
+- `pnpm typecheck` propre
+- `pnpm build` vert (28 pages, middleware 88.7 kB, Serwist SW vert)
+- `pnpm lint` clean (9 warnings préexistants hors périmètre)
+- `pnpm test` 101/101 verts (aucune régression sur les tests Vitest existants)
+- `grep -rn next-codemod-error apps/web/src` = 0 (validation D-03)
+- `grep 'UnsafeUnwrapped' apps/web/src` = 2 occurrences uniquement dans des commentaires expliquant qu'on N'utilise PAS ces casts (D-02)
+- `node -e "console.log(require('./apps/web/node_modules/next/package.json').version)"` → `15.5.19`
+- 0 migration BDD
+
+**Documentation** :
+- ADR-011 « Next.js 15.5 + Request APIs async » créé, complète ADR-007 (stratégie versions stack).
+- DEC-095 LOCKED dans STATE.md.
+- CONTEXT.md Phase 06.9 dans `.planning/phases/06.9-nextjs-15/`.
+
 ## 2026-06-04 (suite) — Phase 06.19 livrée localement (branchement géocodage récurrences + filet serveur)
 
 Phase 06.19 « Branchement géocodage (récurrences + filet serveur) » cadrée + exécutée dans une seule PR. Comble le trou applicatif qui privait `solveLocal` (06.12, livré le même jour) des courses récurrentes — segment **dialyse** = transport le plus mutualisable, donc le plus coûteux à rater.

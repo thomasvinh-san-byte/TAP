@@ -37,7 +37,7 @@ export type ActionState = {
  * gating de rôle applicatif (la sécurité repose sur RLS Postgres).
  */
 export async function getAuthContext() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

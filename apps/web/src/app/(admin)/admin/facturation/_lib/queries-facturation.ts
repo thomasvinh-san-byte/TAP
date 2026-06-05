@@ -68,7 +68,7 @@ export async function getCoursesFacturables(
   mois: string,
   chauffeurId?: string,
 ): Promise<CourseFacturable[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { start, end } = monthBounds(mois);
   const base = supabase
     .from('rides')
@@ -112,7 +112,7 @@ export async function getCountCoursesSansTarif(
   mois: string,
   chauffeurId?: string,
 ): Promise<number> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { start, end } = monthBounds(mois);
   let q = supabase
     .from('rides')
@@ -130,7 +130,7 @@ export async function getCountCoursesSansTarif(
 
 /** Liste des chauffeurs pour le sélecteur de périmètre. */
 export async function getChauffeursForSelector(): Promise<ChauffeurOption[]> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const res = await supabase
     .from('drivers')
     .select('id, nom_affichage')

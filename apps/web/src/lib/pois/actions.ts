@@ -42,7 +42,7 @@ interface PoiMetierRow {
 
 export async function listPoisMetierAction(): Promise<PoiMetierMin[]> {
   const { createClient } = await import('@/lib/supabase/server');
-  const supabase = createClient();
+  const supabase = await createClient();
   const res = await supabase
     .from('pois_metier' as never)
     .select(

@@ -19,7 +19,7 @@ import { createClient } from '@/lib/supabase/server';
  */
 
 export type AuthContext = {
-  supabase: ReturnType<typeof createClient>;
+  supabase: Awaited<ReturnType<typeof createClient>>;
   userId: string;
   organizationId: string;
   role: UserRole;
@@ -37,7 +37,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
   // L'import explicite évite que `next/headers` soit eagerly tree-shaké
   // dans des contextes RSC où cookies() doit être appelé.
   void _cookies;
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
