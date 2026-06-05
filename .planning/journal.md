@@ -1,5 +1,50 @@
 # Journal — phases livrées
 
+## 2026-06-05 — Phase 06.26 livrée localement (incarnation Régulation lot 3 : skeletons + finition empty states)
+
+Troisième lot d'incarnation DEC-101 sur la famille Régulation. Surtout des **skeletons de chargement** (le vrai gap UI) — finition mineure des empty states (déjà largement bons).
+
+### Constat (audit recadre le besoin)
+
+- Empty states : les 4 listes majeures (cockpit, courses, patients, caisse) ont déjà un `EmptyState` accueillant. PAS un chantier.
+- **Skeletons : 5 écrans à fetch SANS `loading.tsx`** → page figée/blanche au chargement (`cockpit`, `courses`, `courses/caisse`, `patients`, `patients/[id]`). Seuls `optimisation` et `tableau-de-bord` en avaient un.
+
+### D-01 — 5 `loading.tsx` épousant le layout réel
+
+Chaque skeleton REFLÈTE la structure de sa page (pas un spinner générique) — c'est ce qui produit la perception de vitesse.
+
+| Écran | Structure skeleton |
+|---|---|
+| `cockpit/loading.tsx` | 2 colonnes : section gauche (en-tête + actions, table 6 lignes, panneau positions) + aside droite (panneau alertes 4 entrées). |
+| `courses/loading.tsx` | En-tête + CTA, 4 chips filtres, table 8 lignes. |
+| `courses/caisse/loading.tsx` | En-tête, 4 contrôles toolbar, 4 cards résumé, table 6 lignes. |
+| `patients/loading.tsx` | En-tête + 2 CTA, recherche, 8 lignes avatar + ligne. |
+| `patients/[id]/loading.tsx` | En-tête (nom + Modifier), 4 sections (kicker + 2 lignes). |
+
+Vérification : **7/7 écrans à fetch régulation** ont désormais un `loading.tsx`. Le shimmer du composant `Skeleton` (`animate-pulse`) est capé par la règle globale `globals.css:30-37` (`prefers-reduced-motion: reduce` → animation-duration 0.01ms) — RGAA OK.
+
+### D-02 — Finition empty states (mineur)
+
+Harmonisation du **TON** (français humain, oriente quand une action existe) — sans sur-ingénier.
+
+| Fichier | Avant | Après |
+|---|---|---|
+| `courses/_components/rides-list.client.tsx` | « Aucune course planifiée pour cette date. » | « Rien de prévu pour cette date. Créez une course pour démarrer la journée. » |
+| `courses/caisse/_components/caisse-table.client.tsx` | titre « Aucune course à encaisser » + « Toutes les courses encaissables ont été traitées. » | titre **« Caisse à jour »** + « Toutes les courses encaissables ont été traitées pour cette date. » |
+
+**Préservés** : cockpit empty (pas d'action — remplissage realtime, §4), patients empty (déjà oriente), micro-vides fiche patient (`<p>` simples — sous-sections, pas écrans vides).
+
+### Validation
+
+- `pnpm typecheck` propre
+- `pnpm test` **129/129 verts**
+- `pnpm build` vert (28 pages)
+- `pnpm lint` clean (10 warnings préexistants hors périmètre)
+- 7/7 `loading.tsx` présents sur les écrans à fetch régulation
+- 0 hex ajouté, 0 nouvelle dépendance, 0 migration BDD
+
+**Pas d'ADR** : activation d'un composant existant + pattern Next.js standard. DEC-105 LOCKED.
+
 ## 2026-06-05 — Phase 06.25 livrée localement (incarnation Régulation lot 2 : terracotta moments-clés WCAG AA)
 
 Deuxième lot d'incarnation de la direction artistique DEC-101 sur la famille Régulation. Active la **couleur signature terracotta** sur les CTA des moments-clés. Rare = fort.

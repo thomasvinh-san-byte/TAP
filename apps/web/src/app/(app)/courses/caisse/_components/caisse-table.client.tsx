@@ -120,8 +120,8 @@ export function CaisseTable({ rows, sort, dir, date }: Props): JSX.Element {
     return (
       <EmptyState
         icon={Wallet}
-        title="Aucune course à encaisser"
-        description="Toutes les courses encaissables ont été traitées."
+        title="Caisse à jour"
+        description="Toutes les courses encaissables ont été traitées pour cette date."
       />
     );
   }
