@@ -1,5 +1,34 @@
 # Journal — phases livrées
 
+## 2026-06-05 — Gel de la direction artistique (DEC-101)
+
+Direction artistique TAP gelée comme **document fondateur du design-system** : `docs/design-system/00-direction.md`. Le design-system documentait jusqu'ici le COMMENT (tokens, data-tables, page-header) sans le POURQUOI — ce manque est comblé. Le document gouverne toutes les décisions UI futures et l'incarnation famille par famille à venir.
+
+**Validé en discuss 2026-06-05** :
+- **Personnalité** : sobre / confiant / situé. Outil de métier sobre et dense, à la rigueur institutionnelle, réchauffé d'une touche réunionnaise discrète.
+- **Couleur signature** : bleu institutionnel dominant (`hsl(217 92% 32%)`, gardé « dans la famille » du Département **sans calage pixel**) + terracotta accent du moment-clé (`hsl(14 78% 55%)`) + crème chaud (`hsl(45 100% 98%)`) sur PWA chauffeur + sémantiques (succès / alerte / erreur).
+- **Règle d'or** : « une couleur fait le travail ». Terracotta = couleur du moment-clé, JAMAIS décoratif. Cap **near-monochrome + une couleur signature rare**, gravé **60-30-10** + échelle neutre 6-10 paliers.
+- **Le near-monochrome ≠ absence de structure.** Quand la couleur ne hiérarchise plus, la STRUCTURE doit tout porter. 5 leviers, sans couleur : espacement = relation (Gestalt), **hiérarchie typographique** (taille + graisse — faiblesse n°1 de TAP), alignement et grille (8px), profondeur subtile (ombres douces), frontières avec parcimonie. S'applique à TOUT (écrans, composants, navigation, code).
+- **Structure inter-écrans (architecture de l'information)** : URL reflète la hiérarchie, une famille = un domaine cohérent, nav par rôle, profondeur ≤ 2-3 niveaux pour les tâches fréquentes, nommage = vocabulaire métier. Incohérences relevées (Caisse niveau/URL, argent à 2 endroits, Chauffeurs inter-familles) à arbitrer EN CONTEXTE pendant l'incarnation de la famille concernée.
+- **Grammaire d'animation** sourcée Material/NN-g : desktop 150-200 ms, ease-out référence `cubic-bezier(0.0, 0.0, 0.2, 1)` pour apparition/feedback, ease-in-out pour navigation, ≤ 2 effets distincts par écran, `prefers-reduced-motion` respecté.
+- **Boussole d'inspiration** : Linear (densité) tempéré Frappe « Espresso » (anti-distraction métier).
+
+**Faiblesses tracées à résoudre** (chantiers d'incarnation) :
+1. Hiérarchie typo écrasée (305 `text-sm` / 133 `text-xs`).
+2. `PageHeader` absent du cœur métier (cockpit / courses / patients / tableau-de-bord) — 16 fichiers admin uniquement.
+3. `loading.tsx` (2/25), empty states (12), skeletons (11) inégaux.
+4. Raccourcis clavier localisés (modales seulement).
+5. Couleur signature dormante (terracotta 2 usages, tint crème invisible).
+6. Grille de page hétérogène.
+
+**Méthode d'incarnation** : famille par famille, ordre métier (Régulation d'abord, plus fort ROI), friction log déduit du code par l'audit + enrichi des retours dirigeant. Geler ensuite dans tokens et composants (terracotta = variant « action-clé » de Button, en-tête = composant imposé).
+
+**Document complémentaire livré** : `docs/design-system/08-horizon-open-source.md` (comparatif Frappe / Twenty / Cal.com / Fleetbase / Linear + cadrage chromatique chiffré RETEX 2026 : 60-30-10, palette fonctionnelle, navy = autorité, orange = accent pas primaire, neutre chaud 2026).
+
+**Lien ajouté** en tête de `docs/design-system/01-foundations.md` : « Lire d'abord : 00-direction.md — le pourquoi du design. »
+
+**Pas d'ADR** (document de direction artistique, pas d'architecture technique). DEC-101 LOCKED dans `PROJECT.md`.
+
 ## 2026-06-05 — Phase 06.23 livrée localement (audit DEC-041 + tests métier — bloc pré-prod COMPLET)
 
 Phase 06.23 « Durcissement couche données » cadrée + exécutée. **Clôt la dette DEC-041 reportée Phase 06** et ferme les angles morts mesurés des modules métier critiques. Avec cette PR, le **bloc améliorations pré-prod RETEX 2026-06-04 est COMPLET** (5/5) :
