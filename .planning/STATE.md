@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.21 livrée localement (tests RLS — couverture 13→24 tables). Deuxième amélioration RETEX 2026-06-04 livrée. PR à ouvrir."
-last_updated: "2026-06-05T08:30:00.000Z"
-last_activity: Phase 06.21 « Tests RLS — couverture complète » cadrée + exécutée. Couverture RLS étendue de 13 à 24 tables (11 trous comblés) : 3 critiques (ride_events / ride_recurrences / ride_recurrence_exceptions) + 6 RGPD/métier (cgu_acceptance, cookie_consent_log, legal_request_attempts, tariff_grids, sms_messages, sms_templates) + 2 référentiels (pois_metier, holidays_974). Gabarit rides_rls.sql réutilisé. 0 policy modifiée (D-04). DEC-098 LOCKED. PR à ouvrir.
+stopped_at: "Phase 06.22 livrée localement (error boundaries par segment). Troisième amélioration RETEX livrée — bloc priorité haute pré-prod complet. PR à ouvrir."
+last_updated: "2026-06-05T09:50:00.000Z"
+last_activity: Phase 06.22 « Error boundaries par segment » cadrée + exécutée. Couverture étendue à 5 segments majeurs + 2 sous-segments critiques (cockpit, conduite). Gabarit commun <SegmentError> avec capture Sentry au mount, role="alert", autoFocus, stack en dev seulement (jamais en prod). Conduite offline soignée (bouton Réessayer = reset local, 0 dépendance réseau). Upgrade tableau-de-bord. 5 tests Vitest. DEC-099 LOCKED. PR à ouvrir.
 progress:
-  total_phases: 35
-  completed_phases: 31
-  total_plans: 86
-  completed_plans: 86
+  total_phases: 36
+  completed_phases: 32
+  total_plans: 87
+  completed_plans: 87
   percent: 89
 ---
 
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.21 livrée localement (tests RLS 13→24 — deuxième amélioration RETEX). 31/35 phases livrées (06.21 PR à ouvrir). Restantes : 3 améliorations RETEX (error boundaries, audit DEC-041 complet, tests unit étendus), 09 HDS, 10 géoloc réelle.
+**Current focus:** Phase 06.22 livrée localement (error boundaries — troisième amélioration RETEX). **Bloc priorité haute pré-prod complet** (Sentry + tests RLS + error boundaries). 32/36 phases livrées. Restantes : 2 améliorations RETEX moyennes (audit DEC-041 complet, tests unit étendus), 09 HDS, 10 géoloc réelle.
 
 ## Current Position
 
@@ -30,12 +30,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.21 livrée localement (2026-06-05) — Tests RLS couverture 13→24 tables, PR à ouvrir.
-Phase next: 3 améliorations RETEX restantes (error boundaries par segment, audit complet DEC-041, tests unit étendus) + Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 31/35 phases livrées. Deux premières améliorations RETEX livrées (Sentry + tests RLS) — terrain pré-prod renforcé.
+Phase: 06.22 livrée localement (2026-06-05) — Error boundaries par segment, PR à ouvrir.
+Phase next: 2 améliorations RETEX moyennes restantes (audit complet DEC-041, tests unit étendus) + Phase 09 HDS + Phase 10 géoloc réelle.
+Status: 32/36 phases livrées. **Bloc priorité haute pré-prod complet** (Sentry + tests RLS + error boundaries). Reste de la dette : moyennes / business.
 Blockers: aucun
-Last activity: Phase 06.21 cadrée + exécutée (11 fichiers de test RLS, 0 policy modifiée). DEC-098 LOCKED. PR à ouvrir.
-Précédent: 06.20 Sentry (#243), 10.0 prototype géoloc (#240).
+Last activity: Phase 06.22 cadrée + exécutée (gabarit SegmentError + 7 nouveaux error.tsx + upgrade tableau-de-bord + 5 tests). DEC-099 LOCKED. PR à ouvrir.
+Précédent: 06.21 tests RLS (#244), 06.20 Sentry (#243).
 
 Progress: [██████████] 100%
 
@@ -151,6 +151,8 @@ DEC-094 (2026-06-04, Phase 06.19) — Géocodage branché sur récurrences (`Add
 
 DEC-095 (2026-06-05, Phase 06.9) — Next.js 14.2 → 15.5 + migration async complète des Request APIs. React 18 conservé (R19 différé, ADR-007). `createClient` Supabase serveur passe **async** (84 sites consommateurs migrés `await createClient()`), 0 cast `UnsafeUnwrapped*` (interdits). `lib/geocoding/ban.ts` : `fetch(url, { cache: 'no-store' })` explicite (D-04). `typedRoutes` activé (stable 15.5). Rewrite `/api/solver` mort purgé (orphelin Phase 06.12, ADR-010). `next-mdx-remote` downgradé 6→5 + bascule `compileMDX` → `<MDXRemote>` + `force-dynamic` sur `/legal/*` (incident SSG résolu). ESLint au build conservé désactivé (nettoyage CI séparé, D-08). ADR-011 acte la décision et complète ADR-007.
 
+DEC-099 (2026-06-05, Phase 06.22) — Error boundaries par segment. 5 segments majeurs (`(app)`, `(admin)`, `(auth)`, `(public)`, `(driver)`) + 2 sous-segments critiques (`(app)/cockpit`, `(driver)/conduite`) couverts par un gabarit commun `<SegmentError>` (`components/error/segment-error.client.tsx`) qui : capture l'erreur dans Sentry au mount avec tag `segment`, affiche une UI dégradée `role="alert"` + `aria-live="assertive"` + `autoFocus` sur le bouton Réessayer, montre la stack UNIQUEMENT en dev via `<details>` (jamais en prod — CLAUDE.md §6). Bouton Réessayer = `reset()` Next 15 (re-render local, **0 dépendance réseau** — fonctionne offline côté PWA chauffeur). Message `/conduite` rassure sur la file offline (sync engine 04.9 — pointages sauvegardés sur l'appareil). Upgrade `tableau-de-bord/error.tsx` vers le gabarit (capture Sentry ajoutée). 5 tests Vitest. Pas d'ADR (activation pattern Next 15).
+
 DEC-098 (2026-06-05, Phase 06.21) — Couverture tests RLS étendue de **13 à 24 tables** (les 11 trous comblés). 11 fichiers de test pgTAP ajoutés (`ride_events`, `ride_recurrences`, `ride_recurrence_exceptions`, `cgu_acceptance`, `cookie_consent_log`, `legal_request_attempts`, `tariff_grids`, `sms_messages`, `sms_templates`, `pois_metier`, `holidays_974`). Gabarit `rides_rls.sql` réutilisé (fixtures Org Alpha/Bravo + rôles dirigeant/régulateur/chauffeur). Vérifs : RLS activée, cross-tenant strict, WITH CHECK, isolation par rôle, anon refusé. **0 policy modifiée** (D-04 « détection ≠ correction »). 3 observations `force row level security` non posé tracées en commentaire (`ride_events`, `tariff_grids`, `sms_messages`) — pas des trous de sécurité (rôle `authenticated` ne contourne pas RLS). Renforce DEC-002 / DEC-013. Pas d'ADR (activation d'un choix de qualité acté).
 
 DEC-097 (2026-06-05, Phase 06.20) — Observabilité Sentry activée (stack figée DEC-003). **Zéro PII santé** : `sendDefaultPii: false` sur les 3 runtimes (client/server/edge), scrubbing `beforeSend` partagé (`lib/sentry/scrub.ts`) retire NIR / nom / prénom / adresses / téléphone / email / date_naissance / tokens / cookies / `Authorization` headers ; query strings URL retirées ; user → id auth seul. **Session Replay OFF** (laissé en commentaire avec `maskAllText: true` + `blockAllMedia: true` si réactivé). `onRequestError = Sentry.captureRequestError` pour capter RSC + Server Actions Next 15. `global-error.tsx` root. Init **no-op si DSN absent** (dev local fonctionne). `captureException` ajouté dans `api/optimizer/route.ts` + `lib/geoloc/record-position.ts`. `pnpm.overrides` étendu de `next: 15.5.19` pour dédup Sentry/opentelemetry. **Pas de nouvel ADR** (activation d'un choix acté DEC-003 stack figée).
@@ -204,10 +206,10 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-06-05T08:30:00.000Z
-Stopped at: Phase 06.21 livrée localement (tests RLS 13→24). 31/35 phases livrées. PR à ouvrir.
+Last session: 2026-06-05T09:50:00.000Z
+Stopped at: Phase 06.22 livrée localement (error boundaries — bloc priorité haute pré-prod complet). 32/36 phases livrées. PR à ouvrir.
 Resume file: None
-Next command suggested: après merge PR 06.21 → enchaîner sur la prochaine amélioration RETEX (error boundaries par segment / audit DEC-041 complet / tests unit étendus).
+Next command suggested: après merge PR 06.22 → améliorations moyennes (audit DEC-041 complet / tests unit étendus) ou décision business (Phase 09 HDS).
 
 ## Ingest Runs
 
