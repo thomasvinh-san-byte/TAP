@@ -187,7 +187,7 @@ export function RidesList(): JSX.Element {
         <EmptyState
           icon={Calendar}
           title="Aucune course aujourd'hui"
-          description="Aucune course planifiée pour cette date."
+          description="Rien de prévu pour cette date. Créez une course pour démarrer la journée."
           action={{
             onClick: () => orchestrator.dispatch({ type: 'OPEN_NEW' }),
             label: 'Nouvelle course',
