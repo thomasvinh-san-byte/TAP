@@ -76,7 +76,9 @@ export function RecurrencesSection({
   return (
     <section className="space-y-12">
       <header className="flex items-center justify-between">
-        <h2 className="text-muted-foreground text-sm font-semibold uppercase">Récurrences</h2>
+        <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+          Récurrences
+        </h2>
         <Button size="sm" onClick={() => setCreateOpen(true)}>
           <Plus aria-hidden className="mr-8 h-16 w-16" />
           Nouvelle récurrence

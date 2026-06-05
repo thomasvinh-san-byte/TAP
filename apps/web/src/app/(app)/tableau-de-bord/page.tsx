@@ -1,6 +1,7 @@
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
+import { PageHeader } from '@/components/page-header';
 import { getDashboardData } from './_lib/queries-dashboard';
 import { deltaPercent, deltaPoints } from './_lib/delta';
 import { KpiCard, type KpiState } from './_components/kpi-card';
@@ -114,12 +115,10 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
 
   return (
     <div className="space-y-24">
-      <header className="space-y-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Tableau de bord</h1>
-        <p className="text-muted-foreground text-sm">
-          Vue d&apos;ensemble de votre activité · {periode}
-        </p>
-      </header>
+      <PageHeader
+        title="Tableau de bord"
+        description={<>Vue d&apos;ensemble de votre activité · {periode}</>}
+      />
 
       <section className="space-y-12" aria-labelledby="bloc-action">
         <h2 id="bloc-action" className="text-muted-foreground text-sm font-semibold uppercase">

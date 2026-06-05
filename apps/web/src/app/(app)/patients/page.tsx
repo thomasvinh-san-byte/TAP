@@ -4,6 +4,7 @@ import { HydrationBoundary, dehydrate, QueryClient } from '@tanstack/react-query
 import { searchPatients } from './queries';
 import { PatientsList } from './_components/patients-list.client';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/page-header';
 import { HeaderNewRideButton } from '../courses/_components/header-new-ride-button.client';
 
 export const metadata = { title: 'Patients' };
@@ -25,18 +26,20 @@ export default async function PatientsPage() {
 
   return (
     <div className="space-y-24">
-      <header className="flex flex-col gap-16 md:flex-row md:items-center md:justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Patients</h1>
-        <div className="flex flex-col gap-12 md:flex-row md:items-center">
-          <HeaderNewRideButton />
-          <Button asChild variant="default">
-            <Link href="/patients/new">
-              <Plus className="mr-8 h-16 w-16" aria-hidden />
-              Nouveau patient
-            </Link>
-          </Button>
-        </div>
-      </header>
+      <PageHeader
+        title="Patients"
+        actions={
+          <>
+            <HeaderNewRideButton />
+            <Button asChild variant="default">
+              <Link href="/patients/new">
+                <Plus className="mr-8 h-16 w-16" aria-hidden />
+                Nouveau patient
+              </Link>
+            </Button>
+          </>
+        }
+      />
       <HydrationBoundary state={dehydrate(queryClient)}>
         <PatientsList />
       </HydrationBoundary>

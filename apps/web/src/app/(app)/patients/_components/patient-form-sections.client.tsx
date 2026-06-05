@@ -17,7 +17,9 @@ export type { PatientFormDefaults };
 export function IdentitySection({ dv }: { dv: PatientFormDefaults }) {
   return (
     <section className="space-y-12">
-      <h2 className="text-muted-foreground text-sm font-semibold uppercase">Identité</h2>
+      <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+        Identité
+      </h2>
       <div className="grid grid-cols-2 gap-12">
         <div className="space-y-8">
           <Label htmlFor="nom">Nom</Label>
@@ -72,7 +74,9 @@ export function CoordinatesSection({ dv }: { dv: PatientFormDefaults }) {
 
   return (
     <section className="space-y-12">
-      <h2 className="text-muted-foreground text-sm font-semibold uppercase">Coordonnées</h2>
+      <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+        Coordonnées
+      </h2>
       <TelField defaultValue={dv.telephone} />
       <PatientAddressField
         defaultValue={dv.adresse_ligne1}
@@ -98,7 +102,9 @@ export function CoordinatesSection({ dv }: { dv: PatientFormDefaults }) {
 export function PreferencesSection({ dv }: { dv: PatientFormDefaults }) {
   return (
     <section className="space-y-12">
-      <h2 className="text-muted-foreground text-sm font-semibold uppercase">Préférences</h2>
+      <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+        Préférences
+      </h2>
       <div className="space-y-8">
         <Label htmlFor="canal_contact_prefere">Canal préféré</Label>
         <select

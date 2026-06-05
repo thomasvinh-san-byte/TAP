@@ -7,7 +7,7 @@ export function AlertsPanel({ alerts }: { alerts: CockpitAlert[] }): JSX.Element
   return (
     <div className="flex h-full flex-col">
       <header className="mb-12 flex items-center justify-between">
-        <h2 className="text-muted-foreground text-sm font-semibold uppercase tracking-wide">
+        <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
           Alertes
         </h2>
         {alerts.length > 0 && (
