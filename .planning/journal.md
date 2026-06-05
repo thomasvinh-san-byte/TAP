@@ -1,5 +1,29 @@
 # Journal — phases livrées
 
+## 2026-06-05 — Phase 06.9 close (correctif mdx 5→6 + turbo env)
+
+Correctif post-merge PR #238 sur la Phase 06.9. Le downgrade `next-mdx-remote` 6.0.0 → 5.0.0 effectué en PR #238 était **injustifié sur le diagnostic** : la version 6.x ne requiert PAS React 19 (peerDep `react: ">=16"`, devDep `react: ^18.2.0`), et la 5.0.0 est signalée vulnérable RCE par Vercel. La version 6.0.0 est saine, récente (2026-02), et c'est celle qui était en place avant 06.9.
+
+**Correctif appliqué** :
+- `apps/web/package.json` : `next-mdx-remote: "5.0.0"` → `"^6.0.0"`.
+- `package.json` racine : ajout `pnpm.overrides` épinglant `react: 18.3.1`, `react-dom: 18.3.1`, `@types/react: 18.3.5`, `@types/react-dom: 18.3.0` (dédup hoisting pnpm).
+- `apps/web/src/app/(public)/legal/_lib/load-legal.tsx` → renommé `.ts`, `<MDXRemote>` retiré du helper (cross-bundle React Element entre frontière de module = source du bug SSG). Helper renvoie `{ frontmatter, source }`.
+- 5 pages `/legal/{cgu,cgv,confidentialite,cookies,dpo}/page.tsx` : `<MDXRemote source={source} components={legalMdxComponents} />` rendu directement dans le Server Component de la page (pattern recommandé Next 15 + next-mdx-remote@6).
+- `turbo.json` `globalEnv` complété : `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_CGU_VERSION`, `NEXT_PUBLIC_SHOW_DEMO_CREDENTIALS`, `POSTGRES_URL`, `POSTGRES_URL_NON_POOLING`, `APP_NIR_SEARCH_KEY`, `CRON_APP_TOKEN`, `TWILIO_AUTH_TOKEN` (vérifiés via `grep -rohE 'process\.env\.[A-Z_]+' apps/web/src`). Fiabilise le cache turbo + supprime un warning build.
+
+**Bug SSG résiduel** : même avec mdx@6 + overrides React, le SSG `force-static` sur `/legal/*` crash sur `ReactCurrentOwner` (API React 17 supprimée en 18+ — bug Next 15 + SSG + next-mdx-remote). Non lié à la version mdx. Compromis documenté : `force-dynamic` conservé sur les 5 pages legal (latence négligeable pour pages rarement consultées). SSG laissé pour V2.
+
+**Note dirigeant (hors repo)** : supprimer `OPTIMIZER_USE_MOCK` dans Vercel → Project Settings → Environment Variables (résidu post-06.12, plus aucun caller depuis ADR-010).
+
+**Validation** :
+- `node -e "console.log(require('./apps/web/package.json').dependencies['next-mdx-remote'])"` → `^6.0.0`
+- `pnpm audit --audit-level high | grep -i mdx` → 0
+- `grep 'OPTIMIZER_USE_MOCK' apps/web/src turbo.json` → 0
+- typecheck propre, build vert (28 pages, Serwist SW vert)
+- `pnpm test` 101/101 verts (aucune régression)
+- `pnpm lint` clean (9 warnings préexistants hors périmètre)
+- 0 migration BDD, 0 nouvelle dépendance npm
+
 ## 2026-06-05 — Phase 06.9 livrée localement (Next.js 14.2 → 15.5, migration async complète)
 
 Phase 06.9 « Modernisation Next.js 15.5 » cadrée + exécutée dans une seule PR. Phase technique autonome, migration codemod-first, reprise manuelle ciblée.
