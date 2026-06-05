@@ -33,15 +33,20 @@ export async function acceptCguAction(version: string): Promise<ActionState> {
 
   if (insertError) return { error: 'Acceptation impossible.' };
 
-  const { error: updateError } = await supabase
+  // DEC-041 row count check (profile_id = auth.uid() = ligne propre user).
+  const upd = await supabase
     .from('profiles')
     .update({
       cgu_version_accepted: version,
       cgu_accepted_at: now,
     } as never)
-    .eq('id', user.id);
+    .eq('id', user.id)
+    .select('id');
 
-  if (updateError) return { error: 'Mise à jour profil impossible.' };
+  if (upd.error) return { error: 'Mise à jour profil impossible.' };
+  if (!upd.data || (upd.data as unknown[]).length === 0) {
+    return { error: 'Mise à jour refusée — droits insuffisants ou profil absent.' };
+  }
 
   revalidatePath('/admin/legal');
   return { success: true };

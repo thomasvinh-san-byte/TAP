@@ -91,10 +91,16 @@ export async function createDataRequestAction(
     type: inserted.request_type,
   });
 
-  await supabase
+  // DEC-041 row count check (cet UPDATE suit un INSERT par le même user :
+  // la ligne existe, mais on garde le contrôle pour défendre RLS).
+  const tokenUpd = await supabase
     .from('patient_data_request')
     .update({ request_token: token } as never)
-    .eq('id', inserted.id);
+    .eq('id', inserted.id)
+    .select('id');
+  if (tokenUpd.error || !tokenUpd.data || (tokenUpd.data as unknown[]).length === 0) {
+    return { error: 'Génération du jeton refusée — droits insuffisants.' };
+  }
 
   // TODO Phase 8 — envoyer email avec lien https://app/legal/request/${token}
   revalidatePath('/admin/legal/requests');
@@ -116,7 +122,8 @@ export async function updateRequestStatusAction(
   } = await supabase.auth.getUser();
   if (!user) return { error: 'Session expirée.' };
 
-  const { error } = await supabase
+  // DEC-041 row count check.
+  const upd = await supabase
     .from('patient_data_request')
     .update({
       status,
@@ -124,9 +131,13 @@ export async function updateRequestStatusAction(
       response_at: new Date().toISOString(),
       response_by: user.id,
     } as never)
-    .eq('id', id);
+    .eq('id', id)
+    .select('id');
 
-  if (error) return { error: 'Mise à jour impossible.' };
+  if (upd.error) return { error: 'Mise à jour impossible.' };
+  if (!upd.data || (upd.data as unknown[]).length === 0) {
+    return { error: 'Mise à jour refusée — droits insuffisants ou requête absente.' };
+  }
   revalidatePath('/admin/legal/requests');
   return { success: true };
 }

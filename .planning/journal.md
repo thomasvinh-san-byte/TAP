@@ -1,5 +1,70 @@
 # Journal — phases livrées
 
+## 2026-06-05 — Phase 06.23 livrée localement (audit DEC-041 + tests métier — bloc pré-prod COMPLET)
+
+Phase 06.23 « Durcissement couche données » cadrée + exécutée. **Clôt la dette DEC-041 reportée Phase 06** et ferme les angles morts mesurés des modules métier critiques. Avec cette PR, le **bloc améliorations pré-prod RETEX 2026-06-04 est COMPLET** (5/5) :
+
+| # | Phase | Statut |
+|---|---|---|
+| 1 | 06.20 Sentry observabilité | ✅ #243 |
+| 2 | 06.21 Tests RLS couverture 13→24 | ✅ #244 |
+| 3 | 06.22 Error boundaries par segment | ✅ #245 |
+| 4 | 06.23 Audit DEC-041 + tests métier | ✅ **cette PR** |
+
+### Volet A — Audit complet DEC-041 (24 SA)
+
+11 vrais trous comblés sur 24 Server Actions à mutations :
+
+| Action | Avant | Après |
+|---|---|---|
+| `(auth)/accept-invite` UPDATE driver_invitations | ❌ | ✅ |
+| `(auth)/accept-invite` UPDATE drivers | ❌ | ✅ |
+| `(app)/courses/assignment::assign` | ❌ | ✅ |
+| `(app)/courses/assignment::assignVehicle` | ❌ | ✅ |
+| `(app)/courses/assignment::unassign` | ❌ | ✅ |
+| `(app)/courses/payment` | ❌ | ✅ |
+| `(admin)/admin/legal/dpia::update` | ❌ | ✅ |
+| `(admin)/admin/legal/breaches::close` | ❌ | ✅ |
+| `(admin)/admin/legal/dpo::save` | ❌ | ✅ |
+| `(admin)/admin/legal/requests::token` | ❌ | ✅ |
+| `(admin)/admin/legal/requests::updateStatus` | ❌ | ✅ |
+| `(admin)/admin/legal/_actions/cgu-accept` | ❌ | ✅ |
+| `(admin)/admin/sms-templates::update` | ✅ déjà | ✅ |
+
+Plus 2 N/A documentés :
+- `setup/actions` : `url.searchParams.delete` = string ops, pas de mutation BDD.
+- `(public)/legal/request/[token]` : `createAdminClient` = service_role bypass RLS légitime (portail patient).
+
+Pattern : `.select('id')` + `if (!data || data.length === 0) return { error: '… refusée — droits insuffisants ou … absente.' }`. Comportement métier inchangé (D-A2).
+
+### Volet B — Tests ciblés angles morts métier
+
+`pnpm exec vitest run --coverage` → identification des branches non couvertes. 3 fichiers de tests / 11 nouveaux tests CIBLÉS (pas de gonflage cosmétique) :
+
+- **`solve-local.edge-cases.test.ts`** (4 tests) : 1 course seule (preFilterRides early return), extension n=3 quand `places_assises ≥ 3`, extension bloquée si capacity dépassée, course TPMR rejetée pendant extension sur véhicule taxi.
+- **`geocode-safety-net.edge-cases.test.ts`** (2 tests) : coords sans citycode → null normalisé, BAN citycode vide string → null.
+- **`scrub.edge-cases.test.ts`** (5 tests) : tableau d'objets sensibles, `request.query_string` filtré, `request.data` scrubbé récursif, récursion bornée à 6 niveaux sans crash, primitives non-string préservées.
+
+### Couverture branches
+
+| Module | Avant | Après | Δ |
+|---|---|---|---|
+| `@tap/pricing` | 100 % | 100 % | maintien |
+| `@tap/recurrence` | 100 % | 100 % | maintien |
+| `lib/optimizer/solve-local.ts` | 90.74 % | **92.42 %** | +1.68 pp |
+| `lib/geocoding/geocode-safety-net.ts` | 84.61 % | **100 %** | +15.39 pp |
+| `lib/sentry/scrub.ts` | 61.29 % | **77.14 %** | +15.85 pp |
+
+### Validation
+
+- `pnpm typecheck` propre
+- `pnpm build` vert (28 pages, Serwist SW vert)
+- `pnpm test` **129/129 verts** (+11 nouveaux : 4 solve-local + 2 geocode-safety-net + 5 scrub)
+- `pnpm lint` clean (10 warnings préexistants hors périmètre)
+- 0 migration BDD, 0 policy modifiée, 1 nouvelle devDep (`@vitest/coverage-v8`)
+
+**Pas d'ADR** : complétude de patterns/qualité actés (DEC-041 + DEC-013). DEC-100 LOCKED.
+
 ## 2026-06-05 — Phase 06.22 livrée localement (error boundaries par segment)
 
 Phase 06.22 « Error boundaries par segment » cadrée + exécutée. **Troisième et dernière amélioration technique pré-prod priorité haute (RETEX 2026-06-04)**. Le bloc priorité haute pré-prod est désormais complet (Sentry + tests RLS + error boundaries).
