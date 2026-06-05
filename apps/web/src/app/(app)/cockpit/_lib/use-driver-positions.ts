@@ -76,16 +76,18 @@ export function useDriverPositions(initial: DriverPosition[]): UseDriverPosition
  * Renvoie un libellé court d'âge (« vu il y a Xmin », « vu il y a 1h12 »).
  * Au-delà de 24 h on tombe sur la date courte.
  */
+const NBSP = '\u00A0';
+
 export function formatPositionAge(capturedAt: string, now: Date = new Date()): string {
   const diffMs = now.getTime() - new Date(capturedAt).getTime();
   const minutes = Math.max(0, Math.floor(diffMs / 60_000));
   if (minutes < 1) return 'vu à l’instant';
-  if (minutes < 60) return `vu il y a ${minutes} min`;
+  if (minutes < 60) return `vu il y a ${minutes}${NBSP}min`;
   const hours = Math.floor(minutes / 60);
   const rem = minutes % 60;
-  if (hours < 24) return `vu il y a ${hours} h${rem.toString().padStart(2, '0')}`;
+  if (hours < 24) return `vu il y a ${hours}${NBSP}h${rem.toString().padStart(2, '0')}`;
   const days = Math.floor(hours / 24);
-  return `vu il y a ${days} j`;
+  return `vu il y a ${days}${NBSP}j`;
 }
 
 /** Plage de couleur : moins de 5min = primary, sinon muted. */

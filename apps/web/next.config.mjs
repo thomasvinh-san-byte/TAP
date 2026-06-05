@@ -1,3 +1,4 @@
+import { withSentryConfig } from '@sentry/nextjs';
 import withSerwistInit from '@serwist/next';
 
 /**
@@ -38,4 +39,26 @@ const nextConfig = {
   // ne route vers `/api/solver`.
 };
 
-export default withSerwist(nextConfig);
+// Phase 06.20 (DEC-097) : Sentry composé EXTÉRIEUREMENT à Serwist.
+// withSentryConfig wrappe la config Next.js finale (Serwist appliqué
+// d'abord côté webpack pour le SW PWA). Source maps uploadées en CI
+// uniquement (silent=!CI évite le bruit local).
+//
+// Données de santé : zéro PII (sendDefaultPii false côté init,
+// scrubbing `beforeSend`). Cf. sentry.server.config.ts / instrumentation-client.ts.
+export default withSentryConfig(withSerwist(nextConfig), {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  // Silencieux en local, verbeux en CI.
+  silent: !process.env.CI,
+  // Ne pas faire échouer le build Vercel si l'upload des source maps
+  // bute (DSN manquant en preview démo, etc.).
+  errorHandler: (err) => {
+    console.warn('[sentry] source map upload warning:', err?.message ?? err);
+  },
+  // Source maps uploadées seulement si auth token présent.
+  disableLogger: true,
+  widenClientFileUpload: true,
+  tunnelRoute: '/monitoring',
+  hideSourceMaps: true,
+});

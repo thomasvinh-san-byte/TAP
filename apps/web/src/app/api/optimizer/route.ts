@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import * as Sentry from '@sentry/nextjs';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { getAuthContext } from '@/lib/auth/get-auth-context';
@@ -201,6 +202,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const proposal = solveResponseToProposal(response, rides.length, excluded);
     return NextResponse.json(enrichProposal(proposal, rides, vehicles), { status: 200 });
   } catch (err) {
+    Sentry.captureException(err, { tags: { route: 'optimizer' } });
     console.error('[optimizer] erreur solveLocal:', err);
     return NextResponse.json(
       {
