@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 10.0 close (prototype géoloc, PR #240). Terrain géoloc prêt, bascule réelle = flag post-HDS. 2026-06-04"
-last_updated: "2026-06-05T06:45:00.000Z"
-last_activity: Phase 10.0 « Prototype géoloc » mergée (PR #240) : MapLibre+PMTiles, capture événementielle non bloquante, cockpit carte avec « vu il y a X min » (pas de faux live), données démo statiques, flag GEOLOC_ENABLED OFF (0 vraie position pré-HDS). Terrain géoloc prêt. STATE synchronisé.
+stopped_at: "Phase 06.20 livrée localement (observabilité Sentry, zéro PII santé). Première amélioration RETEX 2026-06-04 livrée. PR à ouvrir."
+last_updated: "2026-06-05T07:55:00.000Z"
+last_activity: Phase 06.20 « Observabilité Sentry » cadrée + exécutée. `@sentry/nextjs` 8.55 activé sur 3 runtimes + `onRequestError` Next 15 + `global-error.tsx` root. Zéro PII santé (sendDefaultPii false, scrubbing beforeSend NIR/nom/adresse/tokens/cookies, Replay OFF). captureException dans optimizer + geoloc. turbo.json globalEnv complété. .env.example documenté. Dev sans DSN no-op. DEC-097 LOCKED. 113/113 tests verts (+6 scrub).
 progress:
-  total_phases: 33
+  total_phases: 34
   completed_phases: 30
-  total_plans: 84
-  completed_plans: 84
-  percent: 91
+  total_plans: 85
+  completed_plans: 85
+  percent: 88
 ---
 
 # Project State
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** 30/33 phases livrées. Terrain géoloc prototypé (carte cockpit, capture événementielle, données fictives). Restent 2 phases business : 09 (HDS), 10 (géoloc réelle post-HDS).
+**Current focus:** Phase 06.20 livrée localement (Sentry — première amélioration RETEX). 30/34 phases livrées (06.20 PR à ouvrir). Restantes : 4 améliorations RETEX (tests RLS, error boundaries, audit DEC-041, tests unit étendus), 09 HDS, 10 géoloc réelle.
 
 ## Current Position
 
@@ -30,12 +30,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 10.0 close (2026-06-04) — Prototype géoloc terrain + UI/UX, PR #240. Bascule réelle = flag GEOLOC_ENABLED post-HDS.
-Phase next: à trancher par le dirigeant. 2 candidates business : 09 (Migration HDS — verrou 1er client payant ; débloque aussi la géoloc réelle 10), 10 (Géoloc opérationnelle réelle — activation flag + RGPD effectif, post-HDS). Décision de production commerciale.
-Status: 30/33 phases livrées (91%). Produit bêta complet + prototype géoloc montrable. La suite est conditionnée au business (HDS = passage production).
+Phase: 06.20 livrée localement (2026-06-05) — Observabilité Sentry, zéro PII santé, PR à ouvrir.
+Phase next: 4 améliorations RETEX restantes (tests RLS pgTAP, error boundaries par segment, audit complet DEC-041, tests unit étendus) + Phase 09 HDS + Phase 10 géoloc réelle.
+Status: 30/34 phases livrées. Première amélioration RETEX (Sentry) livrée — durcit le terrain pré-prod sans toucher au métier.
 Blockers: aucun
-Last activity: Sync STATE après merge PR #240. Phase 10.0 cochée livrée, compteurs à 30/33 phases (91%).
-Précédent: 06.9 Next.js 15.5 (#238/#239), 10.0 prototype géoloc (#240).
+Last activity: Phase 06.20 cadrée + exécutée (Sentry 3 runtimes, scrubbing PII, onRequestError, global-error). DEC-097 LOCKED. PR à ouvrir.
+Précédent: 10.0 prototype géoloc (#240), 06.9 Next.js 15.5 (#238/#239).
 
 Progress: [██████████] 100%
 
@@ -151,6 +151,8 @@ DEC-094 (2026-06-04, Phase 06.19) — Géocodage branché sur récurrences (`Add
 
 DEC-095 (2026-06-05, Phase 06.9) — Next.js 14.2 → 15.5 + migration async complète des Request APIs. React 18 conservé (R19 différé, ADR-007). `createClient` Supabase serveur passe **async** (84 sites consommateurs migrés `await createClient()`), 0 cast `UnsafeUnwrapped*` (interdits). `lib/geocoding/ban.ts` : `fetch(url, { cache: 'no-store' })` explicite (D-04). `typedRoutes` activé (stable 15.5). Rewrite `/api/solver` mort purgé (orphelin Phase 06.12, ADR-010). `next-mdx-remote` downgradé 6→5 + bascule `compileMDX` → `<MDXRemote>` + `force-dynamic` sur `/legal/*` (incident SSG résolu). ESLint au build conservé désactivé (nettoyage CI séparé, D-08). ADR-011 acte la décision et complète ADR-007.
 
+DEC-097 (2026-06-05, Phase 06.20) — Observabilité Sentry activée (stack figée DEC-003). **Zéro PII santé** : `sendDefaultPii: false` sur les 3 runtimes (client/server/edge), scrubbing `beforeSend` partagé (`lib/sentry/scrub.ts`) retire NIR / nom / prénom / adresses / téléphone / email / date_naissance / tokens / cookies / `Authorization` headers ; query strings URL retirées ; user → id auth seul. **Session Replay OFF** (laissé en commentaire avec `maskAllText: true` + `blockAllMedia: true` si réactivé). `onRequestError = Sentry.captureRequestError` pour capter RSC + Server Actions Next 15. `global-error.tsx` root. Init **no-op si DSN absent** (dev local fonctionne). `captureException` ajouté dans `api/optimizer/route.ts` + `lib/geoloc/record-position.ts`. `pnpm.overrides` étendu de `next: 15.5.19` pour dédup Sentry/opentelemetry. **Pas de nouvel ADR** (activation d'un choix acté DEC-003 stack figée).
+
 DEC-096 (2026-06-05, Phase 10.0) — Prototype géoloc sur données fictives, pré-HDS. **Capture événementielle aux pointages** (pas de suivi continu — barrière PWA réelle, RETEX devs : la capture s'arrête dès qu'une app tierce passe en premier plan). **Cockpit = dernière position connue + âge (« vu il y a X min »), JAMAIS faux « live »**. Aucune position simulée animée en démo (positions statiques uniquement). MapLibre + PMTiles fond statique + fallback OSM raster (ADR-012). Table `driver_positions` + RLS + rétention 90j câblée mais pg_cron non activé. Flag `GEOLOC_ENABLED` : pré-HDS = OFF en prod, seules les `source='demo'` du seed persistent. Réversible : la bascule réelle (`GEOLOC_ENABLED=true` + activation pg_cron) se fera en Phase 09 (HDS). Helper client `captureCurrentPosition` non bloquant (8s timeout, accuracy ≤ 100 m, refus permission = pointage OK sans position). Banner consentement chauffeur sur `/conduite`.
 
 ### NFR (Non-Functional Requirements transverses)
@@ -200,10 +202,10 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-06-05T06:45:00.000Z
-Stopped at: Phase 10.0 close (prototype géoloc, PR #240). 30/33 phases. Restent 09 (HDS) et 10 (géoloc réelle), toutes deux business. Le prototype géoloc est un atout démo avant décision HDS.
+Last session: 2026-06-05T07:55:00.000Z
+Stopped at: Phase 06.20 livrée localement (Sentry, première amélioration RETEX). 30/34 phases livrées. PR à ouvrir.
 Resume file: None
-Next command suggested: décision business HDS (Phase 09) ou pause produit / démo design partners.
+Next command suggested: après merge PR 06.20 → enchaîner sur la prochaine amélioration RETEX (tests RLS pgTAP / error boundaries / audit DEC-041 / tests unit étendus).
 
 ## Ingest Runs
 

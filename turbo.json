@@ -13,7 +13,16 @@
     "POSTGRES_URL_NON_POOLING",
     "APP_NIR_SEARCH_KEY",
     "CRON_APP_TOKEN",
-    "TWILIO_AUTH_TOKEN"
+    "TWILIO_AUTH_TOKEN",
+    "NEXT_PUBLIC_SENTRY_DSN",
+    "SENTRY_DSN",
+    "SENTRY_AUTH_TOKEN",
+    "SENTRY_ORG",
+    "SENTRY_PROJECT",
+    "VERCEL_ENV",
+    "NEXT_PUBLIC_VERCEL_ENV",
+    "CI",
+    "GEOLOC_ENABLED"
   ],
   "tasks": {
     "build": {

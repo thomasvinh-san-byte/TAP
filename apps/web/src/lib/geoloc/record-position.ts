@@ -1,4 +1,5 @@
 import 'server-only';
+import * as Sentry from '@sentry/nextjs';
 import type { createClient } from '@/lib/supabase/server';
 import { POSITION_MAX_ACCURACY_M, type DriverPositionInput } from '@tap/shared';
 
@@ -44,6 +45,7 @@ export async function recordDriverPosition(opts: {
   } as never);
 
   if (error) {
+    Sentry.captureException(error, { tags: { module: 'geoloc' } });
     console.error('[geoloc] recordDriverPosition error:', error.message);
   }
 }

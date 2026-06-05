@@ -1,5 +1,38 @@
 # Journal — phases livrées
 
+## 2026-06-05 — Phase 06.20 livrée localement (observabilité Sentry, zéro PII santé)
+
+Phase 06.20 « Observabilité Sentry » cadrée + exécutée. **Première amélioration technique pré-prod RETEX 2026-06-04**. Sentry est dans la stack figée DEC-003 mais n'avait jamais été installé : 33 `console.error` partaient dans le vide en prod, debug à l'aveugle. Activation sans nouvel ADR (choix déjà acté).
+
+**CONTRAINTE CRITIQUE — données de santé** : Sentry ne reçoit JAMAIS de PII patient.
+
+**Composants livrés** :
+
+- `apps/web/package.json` : `@sentry/nextjs` `^8.42.0` (résolu 8.55.2).
+- `apps/web/next.config.mjs` : `export default withSentryConfig(withSerwist(nextConfig), { … })`. `errorHandler` non bloquant si upload source maps bute. `tunnelRoute: '/monitoring'` (anti-adblock). `hideSourceMaps: true`.
+- `apps/web/instrumentation-client.ts` : `Sentry.init` client. **`sendDefaultPii: false`**. `enabled` que en prod. `tracesSampleRate` 1.0 preview / 0.1 prod. Replay OFF (laissé en commentaire avec `maskAllText: true` + `blockAllMedia: true` si réactivé). `onRouterTransitionStart = Sentry.captureRouterTransitionStart`. `beforeBreadcrumb` retire les query strings URL fetch/xhr.
+- `apps/web/sentry.server.config.ts` : init Node runtime, scrubbing.
+- `apps/web/sentry.edge.config.ts` : init Edge runtime, scrubbing.
+- `apps/web/instrumentation.ts` : `register()` qui import server/edge selon `NEXT_RUNTIME`. **`export const onRequestError = Sentry.captureRequestError`** (capte RSC + Server Actions Next 15 — sans ça, warning build + erreurs serveur perdues).
+- `apps/web/src/lib/sentry/scrub.ts` : helper partagé `sentryBeforeSend`. Retire les clés sensibles (NIR / nom / prénom / adresses / téléphone / email / date_naissance / tokens / password) récursivement (depth 6) dans extras / contexts / tags / breadcrumbs. Headers `Cookie` / `Authorization` / `X-Supabase-Auth` masqués. Query strings URL retirées. User → `id` auth seul. **6 tests Vitest**.
+- `apps/web/src/app/global-error.tsx` : Client Component obligatoire Next 15. Définit son propre `<html>/<body>`. `Sentry.captureException(error)` dans `useEffect`. UI dégradée (texte + lien retour accueil), pas d'écran blanc.
+- `api/optimizer/route.ts` + `lib/geoloc/record-position.ts` : `Sentry.captureException` ajouté dans les catch existants AVANT le retour d'erreur (ne change pas le comportement métier).
+- `turbo.json` `globalEnv` étendu : `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `VERCEL_ENV`, `NEXT_PUBLIC_VERCEL_ENV`, `CI`, `GEOLOC_ENABLED` (oubli Phase 10.0).
+- `.env.example` : section Sentry documentée (dev sans DSN fonctionne) + `GEOLOC_ENABLED`.
+- `package.json` racine : `pnpm.overrides` étendu de `next: 15.5.19` pour dédup les types entre la variante `+@opentelemetry/api` (pulled par Sentry) et la variante de base. Résout l'erreur TS de double Next 15.
+
+**Correctif lint hérité 10.0** : `use-driver-positions.ts` avait des NBSP littéraux U+00A0 dans les template literals (typographie française devant unités). Remplacés par une constante `const NBSP = ' '` + `${NBSP}` dans les templates pour passer `no-irregular-whitespace`.
+
+**Validation** :
+- `pnpm typecheck` propre (après ajout `next: 15.5.19` dans overrides pour dédup)
+- `pnpm build` vert (28 pages, middleware 93.8 kB, Serwist SW vert, Sentry tunnel `/monitoring`)
+- `pnpm lint` clean (10 warnings préexistants hors périmètre)
+- `pnpm test` **113/113 verts** (+6 nouveaux : scrub.test.ts)
+- 0 migration BDD
+- 1 nouvelle dépendance (`@sentry/nextjs`) — déjà dans stack figée DEC-003, **pas de nouvel ADR**
+
+**Note dirigeant (hors repo)** : configurer côté Vercel Project Settings → Environment Variables : `NEXT_PUBLIC_SENTRY_DSN` (public), `SENTRY_AUTH_TOKEN` + `SENTRY_ORG` + `SENTRY_PROJECT` (CI / source maps). Aucune intervention en local : dev sans DSN no-op.
+
 ## 2026-06-05 — Phase 10.0 livrée localement (prototype géoloc terrain + UI/UX, données fictives)
 
 Phase 10.0 « Prototype géoloc » cadrée + exécutée dans une seule PR. Prépare le socle géoloc (fonctionnel + UI/UX cockpit + flow chauffeur) sur données FICTIVES, pré-HDS. Aucune vraie position persistée tant que `GEOLOC_ENABLED ≠ 'true'`.
