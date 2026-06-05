@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 10.0 livrée localement (prototype géoloc, capture événementielle, données fictives) — PR à ouvrir"
-last_updated: "2026-06-05T06:30:00.000Z"
-last_activity: Phase 10.0 « Prototype géoloc » cadrée + exécutée. Capture événementielle aux pointages (start/end/no-show) — pas de suivi temps réel continu (barrière PWA, RETEX). Cockpit = dernière position + âge « vu il y a X min », jamais « live ». Composants : table `driver_positions` + RLS + rétention 90j câblée, helper serveur `recordDriverPosition` gardé par flag `GEOLOC_ENABLED` (pré-HDS = OFF), helper client `captureCurrentPosition` non bloquant, schémas zod partagés, 3 routes étendues, composant Map MapLibre+PMTiles avec fallback OSM, hook `useDriverPositions` Realtime, panneau `DriverPositionsPanel` cockpit, banner consentement chauffeur, seed démo 3 positions statiques. ADR-012 (MapLibre+PMTiles). DEC-096 LOCKED. Build vert, 107/107 tests verts. 1 migration BDD.
+stopped_at: "Phase 10.0 close (prototype géoloc, PR #240). Terrain géoloc prêt, bascule réelle = flag post-HDS. 2026-06-04"
+last_updated: "2026-06-05T06:45:00.000Z"
+last_activity: Phase 10.0 « Prototype géoloc » mergée (PR #240) : MapLibre+PMTiles, capture événementielle non bloquante, cockpit carte avec « vu il y a X min » (pas de faux live), données démo statiques, flag GEOLOC_ENABLED OFF (0 vraie position pré-HDS). Terrain géoloc prêt. STATE synchronisé.
 progress:
   total_phases: 33
-  completed_phases: 29
-  total_plans: 83
-  completed_plans: 83
-  percent: 88
+  completed_phases: 30
+  total_plans: 84
+  completed_plans: 84
+  percent: 91
 ---
 
 # Project State
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 10.0 livrée localement (prototype géoloc, données fictives). 29/33 phases livrées (10.0 à merger). Socle géoloc câblé derrière flag pré-HDS. Restantes : 09 (HDS), 10 (bascule réelle post-HDS).
+**Current focus:** 30/33 phases livrées. Terrain géoloc prototypé (carte cockpit, capture événementielle, données fictives). Restent 2 phases business : 09 (HDS), 10 (géoloc réelle post-HDS).
 
 ## Current Position
 
@@ -30,12 +30,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 10.0 livrée localement (2026-06-05) — Prototype géoloc terrain + UI/UX cockpit, données fictives, pré-HDS. PR à ouvrir.
-Phase next: à trancher après merge. Candidates ouvertes : 09 (HDS, verrou 1er client payant + bascule réelle géoloc via flag), 10 (géoloc opérationnelle complète post-HDS).
-Status: 29/33 phases livrées. Socle géoloc câblé : capture événementielle, Realtime, carte cockpit honnête (« vu il y a X min »), banner consentement chauffeur. Aucune vraie position persistée (flag pré-HDS).
+Phase: 10.0 close (2026-06-04) — Prototype géoloc terrain + UI/UX, PR #240. Bascule réelle = flag GEOLOC_ENABLED post-HDS.
+Phase next: à trancher par le dirigeant. 2 candidates business : 09 (Migration HDS — verrou 1er client payant ; débloque aussi la géoloc réelle 10), 10 (Géoloc opérationnelle réelle — activation flag + RGPD effectif, post-HDS). Décision de production commerciale.
+Status: 30/33 phases livrées (91%). Produit bêta complet + prototype géoloc montrable. La suite est conditionnée au business (HDS = passage production).
 Blockers: aucun
-Last activity: Phase 10.0 cadrée + exécutée. ADR-012 + DEC-096 LOCKED. 107/107 tests verts, build vert.
-Précédent: 06.9 montée Next 15.5 (#238 + #239), 06.19 branchement géocodage (#236), 06.12 solveur heuristique TS (#235).
+Last activity: Sync STATE après merge PR #240. Phase 10.0 cochée livrée, compteurs à 30/33 phases (91%).
+Précédent: 06.9 Next.js 15.5 (#238/#239), 10.0 prototype géoloc (#240).
 
 Progress: [██████████] 100%
 
@@ -200,10 +200,10 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-06-05T06:30:00.000Z
-Stopped at: Phase 10.0 livrée localement (prototype géoloc, données fictives, pré-HDS). PR à ouvrir + à attendre merge avant sync STATE final. 29/33 phases livrées (30/33 après merge). Prochaine phase à trancher : 09 (HDS) / 10 (géoloc post-HDS).
+Last session: 2026-06-05T06:45:00.000Z
+Stopped at: Phase 10.0 close (prototype géoloc, PR #240). 30/33 phases. Restent 09 (HDS) et 10 (géoloc réelle), toutes deux business. Le prototype géoloc est un atout démo avant décision HDS.
 Resume file: None
-Next command suggested: après merge PR 10.0 → `/gsd-sync-state` puis `/gsd-discuss-phase <phase choisie>`
+Next command suggested: décision business HDS (Phase 09) ou pause produit / démo design partners.
 
 ## Ingest Runs
 
