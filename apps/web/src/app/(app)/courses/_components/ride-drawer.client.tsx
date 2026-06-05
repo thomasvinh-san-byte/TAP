@@ -267,7 +267,12 @@ export function RideDrawer({ rideId, open, onOpenChange, onRequestAssign }: Prop
                 <div className="flex items-center justify-between gap-12">
                   <PaymentBadge status={ride.payment_status} amountEur={ride.tarif_amount_eur} />
                   {ride.payment_status === 'a_encaisser' && (
-                    <Button type="button" size="sm" onClick={() => setPayOpen(true)}>
+                    <Button
+                      type="button"
+                      variant="accent"
+                      size="sm"
+                      onClick={() => setPayOpen(true)}
+                    >
                       Marquer encaissé
                     </Button>
                   )}

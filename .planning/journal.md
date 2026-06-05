@@ -1,5 +1,59 @@
 # Journal — phases livrées
 
+## 2026-06-05 — Phase 06.25 livrée localement (incarnation Régulation lot 2 : terracotta moments-clés WCAG AA)
+
+Deuxième lot d'incarnation de la direction artistique DEC-101 sur la famille Régulation. Active la **couleur signature terracotta** sur les CTA des moments-clés. Rare = fort.
+
+### Découverte contraste (cadrage obligatoire)
+
+Le token accent initial `hsl(14 78% 55%)` + texte blanc = **3.53:1 → ÉCHEC WCAG AA texte normal (4.5:1 requis)**. Inutilisable tel quel sur un bouton — a11y non négociable, santé/RGAA. Calcul : assombrir à L=46% pour atteindre AA en jour ET en nuit.
+
+### D-01 — Token accent corrigé jour ET nuit
+
+| Token | Avant | Après | Contraste vs blanc |
+|---|---|---|---|
+| `color.action.accent` (light) | `hsl(14 78% 55%)` | **`hsl(14 78% 46%)`** | 4.61:1 ✓ AA |
+| `color.action.accent` (dark) | `hsl(14 78% 60%)` | **`hsl(14 78% 46%)`** | 6.33:1 ✓ AA |
+| `color.text.onAccent` (dark) | `hsl(222 47% 8%)` | **`hsl(0 0% 100%)`** | (basculé pour suivre l'accent assombri) |
+
+RGB final : rgb(209, 69, 26) — terracotta « terre cuite » plus profond, plus sobre qu'un orange vif. Régénération via `pnpm tokens:build`.
+
+### D-02 — Variant Button « accent »
+
+Dans `components/ui/button.tsx` (cva), entre `default` et `destructive` :
+
+```ts
+accent: 'bg-accent text-accent-foreground hover:bg-accent/90',
+```
+
+Pattern identique au `default`/`destructive`. Le variant `default` (bleu) reste le variant courant.
+
+### D-03 — 5 CTA accentués (liste fermée)
+
+| Fichier | CTA | Acte métier |
+|---|---|---|
+| `courses/_components/header-new-ride-button.client.tsx` | « Nouvelle course » | **créer** |
+| `patients/_components/new-ride-for-patient-button.client.tsx` | « Créer une course pour ce patient » | **créer** |
+| `cockpit/optimisation/_components/optimization-shell.client.tsx` | « Lancer le calcul » | **lancer** |
+| `cockpit/optimisation/_components/adjust-sheet.client.tsx` | « Valider l'ajustement » | **valider** |
+| `courses/_components/ride-drawer.client.tsx` | « Marquer encaissé » | **encaisser** |
+
+Règle de discipline DEC-101 §3 : un moment-clé = une action qui fait AVANCER le travail. Restent neutres : Annuler, Fermer, Modifier, Exporter, Assigner, Archiver, Confirmer-dialogue, liens, badges sémantiques, DialogTitle.
+
+**Vérification** : `grep -rn 'variant="accent"' apps/web/src/app/(app)` → exactement 5 occurrences, pas de débordement. Max 1 bouton accent par écran (validé manuellement).
+
+### Validation
+
+- `pnpm typecheck` propre
+- `pnpm test` **129/129 verts**
+- `pnpm build` vert
+- `pnpm lint` clean (10 warnings préexistants hors périmètre)
+- Contraste vérifié par calcul Node : 4.61:1 jour, 6.33:1 nuit, blanc sur terracotta
+- 0 hex en dur, passage exclusif par token accent
+- DEC-101 §3 respectée (60-30-10, signature rare = forte)
+
+**Pas d'ADR** : correction de token + ajout de variant cva (pattern shadcn standard). Aucun choix structurel nouveau. DEC-104 LOCKED.
+
 ## 2026-06-05 — Phase 06.24 reprise livrée localement (en-tête complet + hiérarchie typo travaillée)
 
 Reprise du lot 1 d'incarnation Régulation après audit post-merge #248 : l'en-tête avait été unifié sur 6 écrans mais **3 écrans cœur métier avaient été oubliés**, et la hiérarchie typo n'avait quasi pas bougé (`text-base` 8, `text-xs` monté de 72→87). Cette PR finit le travail.

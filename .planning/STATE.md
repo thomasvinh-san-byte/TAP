@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.24 reprise livrée localement (3 écrans oubliés + vraie hiérarchie typo). 0 h1 manuel restant. PR à ouvrir."
-last_updated: "2026-06-05T12:00:00.000Z"
-last_activity: Phase 06.24 reprise cadrée + exécutée. PageHeader étendu aux 3 écrans oubliés (patients/new, patients/[id]/edit, cockpit/optimisation) → en-tête unifié sur TOUTE la régulation (0 h1 manuel restant, 9 fichiers importent PageHeader). Hiérarchie typo travaillée par TAILLE : text-base 8→15 (+88%), text-xs 87→73 (-16%) sur le corps de texte. Help text de formulaire, descriptions de panneau, empty states promus de xs/sm vers sm/base. Convention titre-de-section harmonisée. Tables denses préservées. DEC-103 LOCKED. PR à ouvrir.
+stopped_at: "Phase 06.25 livrée localement (lot 2 incarnation — terracotta moments-clés, WCAG AA jour+nuit). PR à ouvrir."
+last_updated: "2026-06-05T13:00:00.000Z"
+last_activity: Phase 06.25 cadrée + exécutée. Couleur signature terracotta activée sur 5 CTA moments-clés. Token accent corrigé hsl(14 78% 55%) → hsl(14 78% 46%) jour ET nuit pour passer WCAG AA texte normal sur blanc (contraste 4.61:1 jour / 6.33:1 nuit, vérifié par calcul). onAccent nuit basculé de dark à blanc (3.02:1 → 6.33:1). Variant Button « accent » ajouté (pattern cva shadcn). 5 occurrences variant="accent" dans (app) : Nouvelle course, Créer course patient, Lancer le calcul, Valider l'ajustement, Marquer encaissé. Rare = fort ; secondaire reste neutre/bleu. DEC-104 LOCKED. PR à ouvrir.
 progress:
   total_phases: 38
   completed_phases: 34
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.24 reprise livrée localement (3 écrans oubliés + vraie hiérarchie typo). Premier lot DEC-101 désormais propre (0 h1 manuel, text-base +88 %). 34/38 phases livrées. Restantes : lots d'incarnation à suivre (couleur lot 3, skeletons lot 4, refactor lot 5, rangement lot 6) + 09 HDS + 10 géoloc réelle.
+**Current focus:** Phase 06.25 livrée localement (lot 2 incarnation — terracotta moments-clés). Couleur signature DEC-101 §3 activée, WCAG AA respecté jour+nuit, 5 CTA accentués. 34/38 phases livrées. Restantes : lots d'incarnation à suivre (skeletons lot 4, refactor lot 5, rangement lot 6) + 09 HDS + 10 géoloc réelle.
 
 ## Current Position
 
@@ -30,12 +30,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.24 reprise livrée localement (2026-06-05) — 3 écrans oubliés migrés + vraie hiérarchie typo travaillée, PR à ouvrir.
-Phase next: lots d'incarnation Régulation à suivre (couleur signature terracotta lot 3, skeletons/empty-states lot 4, refactor cohérence lot 5, rangement arbitré en contexte lot 6) + Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 34/38 phases livrées. Premier lot d'incarnation DEC-101 désormais COMPLET et propre (0 h1 manuel sur app, text-base +88 %, text-xs -16 %).
+Phase: 06.25 livrée localement (2026-06-05) — lot 2 incarnation Régulation, terracotta moments-clés WCAG AA, PR à ouvrir.
+Phase next: lots d'incarnation Régulation à suivre (skeletons/empty-states lot 4, refactor cohérence lot 5, rangement arbitré en contexte lot 6) + Phase 09 HDS + Phase 10 géoloc réelle.
+Status: 34/38 phases livrées. Lot 1 (typo + en-tête) + lot 2 (couleur signature) du programme d'incarnation DEC-101 désormais LIVRÉS sur la famille Régulation.
 Blockers: aucun
-Last activity: Phase 06.24 reprise — 3 PageHeader + promotion ciblée corps de texte vers sm/base + harmonisation kicker. DEC-103 LOCKED. PR à ouvrir.
-Précédent: 06.24 lot 1 initial (#248), DEC-101 gel direction (#247), 06.23 audit DEC-041 (#246).
+Last activity: Phase 06.25 — token accent corrigé hsl(14 78% 46%) jour+nuit (AA 4.61:1 / 6.33:1), variant Button « accent », 5 CTA accentués (Nouvelle course, Créer course patient, Lancer le calcul, Valider l'ajustement, Marquer encaissé). DEC-104 LOCKED. PR à ouvrir.
+Précédent: 06.24 reprise (#249), 06.24 lot 1 initial (#248), DEC-101 gel direction (#247).
 
 Progress: [██████████] 100%
 
