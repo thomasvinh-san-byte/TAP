@@ -38,11 +38,11 @@ export function ExcludedRidesSection({
     >
       <div className="flex items-center gap-8">
         <Info className="h-16 w-16 shrink-0 text-amber-700" aria-hidden />
-        <h2 className="text-sm font-semibold text-amber-800">
+        <h2 className="text-base font-semibold text-amber-800">
           Courses non incluses dans le calcul
         </h2>
       </div>
-      <p className="text-muted-foreground mt-8 text-xs">
+      <p className="text-muted-foreground mt-8 text-sm">
         Ces courses n&apos;ont pas été prises en compte : adresse sans coordonnées géographiques.
         Elles doivent être affectées manuellement.
       </p>

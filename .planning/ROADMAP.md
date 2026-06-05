@@ -36,7 +36,7 @@ Liste GROUPÉE par domaine. Détail complet de chaque phase conservé dans la se
 - [x] **Géocodage** (1 phase) — `06.19` branchement géocodage récurrences + filet serveur BAN (alimente solveLocal sur le segment dialyse).
 - [x] **Modernisation stack** (1 phase) — `06.9` Next.js 14.2 → 15.5 (async APIs complètes, `typedRoutes` stable, MapLibre/PMTiles préparés).
 - [x] **Géoloc prototype** (1 phase) — `10.0` prototype géoloc terrain + UI/UX cockpit (MapLibre + PMTiles, capture événementielle, données fictives, flag `GEOLOC_ENABLED` OFF en pré-HDS, banner consentement chauffeur).
-- [x] **Incarnation Régulation lot 1** (1 phase) — `06.24` PageHeader unifié sur 6 écrans (app) + hiérarchie typographique exprimée (gradation titre page / titre panneau / kicker section uppercase tracking-wide / body / légende, fin du tout-en-text-sm). Premier lot d'incarnation de DEC-101.
+- [x] **Incarnation Régulation lot 1** (1 phase) — `06.24` (livré #248 + reprise 2026-06-05) PageHeader unifié sur **9 écrans (app)** — 0 h1 manuel restant — + hiérarchie typographique travaillée par TAILLE en plus de la graisse/casse (`text-base` 8→**15** +88 %, `text-xs` 87→**73** -16 % sur le corps de texte). Convention titre-de-section harmonisée (`text-xs font-semibold uppercase tracking-wide` partout). Tables denses préservées. Premier lot d'incarnation de DEC-101.
 
 ### ⏸️ Abandonné
 

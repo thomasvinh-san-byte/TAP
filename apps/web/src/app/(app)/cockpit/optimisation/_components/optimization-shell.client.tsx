@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { PageHeader } from '@/components/page-header';
 import { ComparativeView } from './comparative-view';
 import { ApplyConfirmationDialog } from './apply-confirmation-dialog.client';
 import { useOptimization } from '../_lib/use-optimization.client';
@@ -45,31 +46,30 @@ export function OptimizationShell({ initialRides, date }: Props): JSX.Element {
 
   return (
     <div className="space-y-24">
-      <header className="flex items-center justify-between gap-16">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Optimisation du{' '}
-          {new Date(date + 'T00:00:00').toLocaleDateString('fr-FR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-          })}
-        </h1>
-        <div className="flex items-center gap-8">
-          {state.status === 'result' && (
-            <Button
-              variant="outline"
-              onClick={() => void launch()}
-              title="Recalculer en partant des courses actuelles. Les ajustements en cours seront perdus."
-              data-testid="recalculate-btn"
-            >
-              ↻ Re-calculer
+      <PageHeader
+        title={`Optimisation du ${new Date(date + 'T00:00:00').toLocaleDateString('fr-FR', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        })}`}
+        actions={
+          <>
+            {state.status === 'result' && (
+              <Button
+                variant="outline"
+                onClick={() => void launch()}
+                title="Recalculer en partant des courses actuelles. Les ajustements en cours seront perdus."
+                data-testid="recalculate-btn"
+              >
+                ↻ Re-calculer
+              </Button>
+            )}
+            <Button asChild variant="ghost">
+              <Link href="/cockpit">Fermer</Link>
             </Button>
-          )}
-          <Button asChild variant="ghost">
-            <Link href="/cockpit">Fermer</Link>
-          </Button>
-        </div>
-      </header>
+          </>
+        }
+      />
 
       {state.status === 'idle' && (
         <div className="flex flex-col items-center gap-16 py-48">
@@ -114,7 +114,7 @@ export function OptimizationShell({ initialRides, date }: Props): JSX.Element {
                 06.19 : géocodage automatique au moment de la création, backfill rétroactif
                 disponible).
               </p>
-              <Link href="/admin/maintenance" className="text-primary text-xs underline">
+              <Link href="/admin/maintenance" className="text-primary text-sm underline">
                 Lancer le backfill géocodage
               </Link>
             </>

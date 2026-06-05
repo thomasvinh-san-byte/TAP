@@ -189,7 +189,7 @@ export function AddressPickerField({
       </div>
 
       {value.trim().length > 0 && value.trim().length < MIN_QUERY_LENGTH && (
-        <p className="text-muted-foreground text-xs">
+        <p className="text-muted-foreground text-sm">
           Tapez au moins {MIN_QUERY_LENGTH} caractères pour rechercher.
         </p>
       )}
@@ -228,7 +228,7 @@ export function AddressPickerField({
         !results.isPending &&
         !results.isError &&
         suggestions.length === 0 && (
-          <p className="text-muted-foreground text-xs">
+          <p className="text-muted-foreground text-sm">
             Aucune adresse 974 ne correspond à « {value.trim()} ». La saisie libre est conservée.
           </p>
         )}

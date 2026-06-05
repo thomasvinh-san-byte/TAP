@@ -1,5 +1,57 @@
 # Journal — phases livrées
 
+## 2026-06-05 — Phase 06.24 reprise livrée localement (en-tête complet + hiérarchie typo travaillée)
+
+Reprise du lot 1 d'incarnation Régulation après audit post-merge #248 : l'en-tête avait été unifié sur 6 écrans mais **3 écrans cœur métier avaient été oubliés**, et la hiérarchie typo n'avait quasi pas bougé (`text-base` 8, `text-xs` monté de 72→87). Cette PR finit le travail.
+
+### D-01 — PageHeader sur les 3 écrans oubliés
+
+| Écran | Migration |
+|---|---|
+| `patients/new/page.tsx` | `<h1>Nouveau patient</h1>` → `<PageHeader title="Nouveau patient" />` |
+| `patients/[id]/edit/page.tsx` | `<h1>Modifier — {nom} {prenom}</h1>` → `<PageHeader title={…} />` |
+| `cockpit/optimisation/optimization-shell.client.tsx` | `<header>` manuel (titre dynamique + boutons « ↻ Re-calculer » + « Fermer ») → `<PageHeader title=… actions={…}>` |
+
+**0 `<h1>` manuel `text-2xl` restant dans `(app)`. 9 fichiers importent `PageHeader` (6 → 9).**
+
+### D-02 — Hiérarchie typo : décision CONSCIENTE
+
+Promotion ciblée des **textes de lecture courante** `text-xs` → `text-sm`/`text-base` :
+
+- **Fiche patient `[id]/page.tsx`** : « Né(e) le », téléphone, adresse, préférences → `text-base`.
+- **Help text de formulaires** (corps de lecture) : `patient-form-fields` (5×), `patient-form-sections` (1×), `override-tarif-modal` (2×), `ride-patient-picker` (2×), `address-picker-field` (2×) → `text-sm`.
+- **Descriptions de panneaux** : `driver-positions-panel` (description `text-xs` → `text-sm` ; empty state `text-sm` → `text-base`).
+- **Lien CTA** : `optimization-shell` lien `/admin/maintenance` `text-xs` → `text-sm`.
+- **Titre de panneau** : `excluded-rides-section` `text-sm` → `text-base` (aligné autres titres).
+
+**Tables denses NON touchées** (cockpit courses-table, caisse) — densité régulatrice assumée (DEC-101 §5bis).
+
+### D-03 — Convention kicker harmonisée
+
+`tableau-de-bord` (2 titres) passés de `text-sm font-semibold uppercase` → `text-xs font-semibold uppercase tracking-wide` (pattern majoritaire Linear/Stripe). La famille Régulation a maintenant **UNE seule convention** de kicker.
+
+### Résultats mesurables (avant → après reprise)
+
+| Classe | Avant (post-#248) | Après | Δ |
+|---|---|---|---|
+| `text-2xl` | 7 | **4** | -3 (h1 manuels remplacés) |
+| `text-base` | 8 | **15** | **+88 %** ← vrai texte de lecture promu |
+| `text-sm` | 115 | 126 | +9 (ex-xs montés) |
+| `text-xs` | 87 | **73** | **-16 %** ← corps de texte mal employé en xs réduit |
+
+**Gradation de taille désormais visible** entre corps de lecture (`text-base`/`text-sm`) et légende (`text-xs`), pas seulement par graisse/casse.
+
+### Validation
+
+- `pnpm typecheck` propre
+- `pnpm test` **129/129 verts**
+- `pnpm build` vert
+- 0 changement de wording, 0 migration BDD, 0 nouvelle dépendance
+- DEC-101 §5bis respectée (CONTRASTE par propriété taille + graisse + uppercase + tracking)
+- Tables denses préservées (densité assumée, direction §5bis)
+
+**Pas d'ADR** : activation et complétude de pattern (DEC-101 §5bis levier 2). Aucun choix structurel nouveau. DEC-103 LOCKED.
+
 ## 2026-06-05 — Phase 06.24 livrée localement (incarnation Régulation lot 1 : PageHeader + hiérarchie typo)
 
 Phase 06.24 « Incarnation Régulation lot 1 » cadrée + exécutée. **Premier lot d'incarnation de la direction artistique DEC-101** sur la famille Régulation. Pose la GRAMMAIRE fondatrice : hiérarchie typographique exprimée + en-tête unifié sur tous les écrans cœur métier. Sans cette grammaire, le reste se poserait sur du sable.

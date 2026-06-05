@@ -70,7 +70,7 @@ export function DriverPositionsPanel({ initial, driverLabels }: Props): JSX.Elem
         )}
       </header>
 
-      <p className="text-muted-foreground text-xs">
+      <p className="text-muted-foreground text-sm">
         Dernière position connue à chaque pointage. Pas de suivi continu. Le marqueur indique
         l&apos;âge de la donnée — il ne reflète pas une position « en direct ».
       </p>
@@ -81,7 +81,7 @@ export function DriverPositionsPanel({ initial, driverLabels }: Props): JSX.Elem
 
       {/* Liste textuelle — accessibilité clavier + lecteur d'écran. */}
       {positions.length === 0 ? (
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground text-base">
           Aucune position connue. Les positions apparaissent au prochain pointage chauffeur.
         </p>
       ) : (

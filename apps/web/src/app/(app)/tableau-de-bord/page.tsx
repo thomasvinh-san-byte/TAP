@@ -121,7 +121,10 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
       />
 
       <section className="space-y-12" aria-labelledby="bloc-action">
-        <h2 id="bloc-action" className="text-muted-foreground text-sm font-semibold uppercase">
+        <h2
+          id="bloc-action"
+          className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
+        >
           À traiter
         </h2>
         <div className="grid gap-16 sm:grid-cols-2">
@@ -144,7 +147,10 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
       <SlaBadgesCard rules={data.slaRules} />
 
       <section className="space-y-12" aria-labelledby="bloc-sante">
-        <h2 id="bloc-sante" className="text-muted-foreground text-sm font-semibold uppercase">
+        <h2
+          id="bloc-sante"
+          className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
+        >
           Activité
         </h2>
         <div className="grid gap-16 sm:grid-cols-2 lg:grid-cols-4">
