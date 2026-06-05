@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.19 livrée localement (géocodage récurrences + filet serveur, alimente solveLocal) — PR à ouvrir"
-last_updated: "2026-06-04T23:55:00.000Z"
-last_activity: Phase 06.19 « Branchement géocodage (récurrences + filet serveur) » cadrée + exécutée. Comble le trou applicatif qui privait `solveLocal` (06.12) des courses récurrentes — dialyse = transport le plus mutualisable. AddressOrPOIPicker dans les 2 modales de récurrence (create + edit), schéma Zod étendu 6 champs coords, persistance template, propagation aux occurrences (helper extrait `lib/recurrence/build-rides-payload.ts`). Filet serveur idempotent + non bloquant `lib/geocoding/geocode-safety-net.ts` consommé par createRideAction + create/updateRecurrenceAction. Backfill étendu aux templates + occurrences futures (3 passes). Message exclusion reformulé + lien `/admin/maintenance`. DEC-094 LOCKED. 0 migration BDD (colonnes déjà existantes), 0 dépendance npm. 101 tests web verts (+11 nouveaux : 6 geocode-safety-net + 5 build-rides-payload).
+stopped_at: "Phase 06.19 close (géocodage récurrences + filet serveur, PR #236). Chaîne géocodage→solveLocal complète. 2026-06-04"
+last_updated: "2026-06-05T00:10:00.000Z"
+last_activity: Phase 06.19 « Branchement géocodage » mergée (PR #236) : récurrences géocodées (picker template + propagation occurrences), filet serveur BAN, backfill étendu, message exclusion. La chaîne géocodage → solveLocal est complète : l'optimisation voit enfin le volume récurrent. STATE synchronisé.
 progress:
   total_phases: 32
-  completed_phases: 27
-  total_plans: 80
-  completed_plans: 80
-  percent: 84
+  completed_phases: 28
+  total_plans: 82
+  completed_plans: 82
+  percent: 88
 ---
 
 # Project State
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.19 livrée localement — géocodage branché sur récurrences + filet serveur, alimente solveLocal (06.12) sur le segment dialyse (cas le plus mutualisable). 27/32 phases livrées (06.19 PR à ouvrir). Candidates ouvertes (4) : 06.9 (Next.js 15), 06.19 (en cours), 09 (HDS), 10 (géoloc).
+**Current focus:** 28/32 phases livrées. Boucle régulation/optimisation complète : géocodage → solveLocal opérationnel sur volume réel. Prochaine phase à trancher : 06.9, 09, 10.
 
 ## Current Position
 
@@ -30,12 +30,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.19 livrée localement (2026-06-04) — Géocodage récurrences + filet serveur, alimente solveLocal. PR à ouvrir.
-Phase next: à trancher par le dirigeant. Candidates ouvertes (3 après merge 06.19) : 06.9 (Next.js 15, autonome), 09 (HDS, verrou 1er client payant), 10 (géoloc temps réel, post-HDS). Phase 07 (mobile natif) abandonnée DEC-092.
-Status: 27/32 phases livrées. 06.19 dénoue le verrou de l'optimisation sur les courses récurrentes (dialyse = mutualisation maximale). 101 tests web verts (+11 nouveaux).
+Phase: 06.19 close (2026-06-04) — Branchement géocodage récurrences + filet serveur, PR #236. Chaîne géocodage→optimisation complète.
+Phase next: à trancher par le dirigeant. Candidates ouvertes (3) : 06.9 (Next.js 15, autonome), 09 (HDS, verrou 1er client payant), 10 (géoloc temps réel + réévaluer OSRM, post-HDS).
+Status: 28/32 phases livrées. Bloc optimisation/adressage bouclé. Restent des décisions de fond (technique 06.9, business 09/10).
 Blockers: aucun
-Last activity: Phase 06.19 cadrée + exécutée (AddressOrPOIPicker dans les 2 modales récurrence + persistance template + propagation occurrences + filet serveur BAN + backfill étendu). DEC-094 LOCKED. PR à ouvrir.
-Précédent: Phase 06.12 solveur heuristique TS natif (#235), audit planning (06.11 + 06.18 cochées + abandon 07 DEC-092 + total_phases 31), 06.18 page login (#233).
+Last activity: Sync STATE après merge PR #236. Phase 06.19 cochée livrée, compteurs à 28/32 phases.
+Précédent: 06.12 solveur heuristique TS + suppression OR-Tools (#235), 06.19 branchement géocodage (#236).
 
 Progress: [██████████] 100%
 
@@ -196,10 +196,10 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 
 ## Session Continuity
 
-Last session: 2026-06-04T23:55:00.000Z
-Stopped at: Phase 06.19 livrée localement (géocodage récurrences + filet serveur, alimente solveLocal). PR à ouvrir + à attendre merge avant sync STATE final. 27/32 phases livrées (28/32 après merge). Prochaine phase à trancher après merge (06.9 / 09 / 10).
+Last session: 2026-06-05T00:10:00.000Z
+Stopped at: Phase 06.19 close (géocodage récurrences, PR #236). Chaîne géocodage→solveLocal validée. Prochaine phase à trancher (06.9 / 09 / 10).
 Resume file: None
-Next command suggested: après merge PR 06.19 → `/gsd-sync-state` puis `/gsd-discuss-phase <phase choisie>`
+Next command suggested: `/gsd-discuss-phase <phase choisie>`
 
 ## Ingest Runs
 
