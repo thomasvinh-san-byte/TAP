@@ -7,6 +7,7 @@ import { deltaPercent, deltaPoints } from './_lib/delta';
 import { KpiCard, type KpiState } from './_components/kpi-card';
 import { ComplianceCard } from './_components/compliance-card';
 import { SlaBadgesCard } from './_components/sla-badges-card';
+import { ExportStatsButton } from './_components/export-stats-button.client';
 import { getComplianceAlerts } from '../../(admin)/admin/conformite/_lib/get-compliance-alerts';
 import { ComplianceAlertsPanel } from '../../(admin)/admin/conformite/_components/compliance-alerts-panel.client';
 
@@ -121,6 +122,7 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
       <PageHeader
         title="Tableau de bord"
         description={<>Vue d&apos;ensemble de votre activité · {periode}</>}
+        actions={<ExportStatsButton />}
       />
 
       <section className="space-y-12" aria-labelledby="bloc-action">

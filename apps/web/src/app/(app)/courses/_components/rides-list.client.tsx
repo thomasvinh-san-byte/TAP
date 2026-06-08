@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ArrowRight, Calendar, Plus } from 'lucide-react';
 import { listRidesEnrichedAction } from '../actions';
 import type { RideRowEnriched, RideStatus, RideTransportMode } from '../_lib/queries';
+import { ExportCsvButton } from './export-csv-button.client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -172,6 +173,11 @@ export function RidesList(): JSX.Element {
           }}
           items={[...MODE_FILTERS]}
           triggerClassName="min-w-[180px]"
+        />
+        <ExportCsvButton
+          dateFilter={dateFilter}
+          statusFilter={statusFilter}
+          modeFilter={modeFilter}
         />
       </div>
 

@@ -1,5 +1,64 @@
 # Journal — phases livrées
 
+## 2026-06-08 — Phase 06.37 livrée localement (exports §5.23 partiel : courses CSV + stats CSV + PDF récap chauffeur)
+
+Comble une partie du creux CdC §5.23 avec les **briques déjà en place** : zéro dépendance, zéro achat. Lot d'ajout sur existant, faible risque.
+
+**NB renumérotation** : le prompt cadrait Phase 06.36 / DEC-115, mais ces numéros avaient été utilisés par l'incarnation header (livrée 06.36 #262). Renumérotation Phase 06.37 / DEC-116 pour éviter la collision.
+
+### Pourquoi
+
+CdC §5.23 demande : export comptable CSV, export statistique CSV, export PDF par chauffeur/période. Tout est faisable AVEC L'EXISTANT :
+- `lib/csv.ts` + pattern `exportCaisseCsvAction`.
+- `lib/pdf/pdf-template.tsx` + pattern route `/api/admin/facturation/pdf`.
+
+**HORS périmètre, repoussés (registre)** : Lomaco (format externe inconnu) ; FEC normé (à délibérer).
+
+### D-01 — Export CSV des courses
+
+`actions/export-rides.ts` :
+- Zod `{ from, to, driverId?, status?, transportMode? }` + refine `from ≤ to`.
+- Guard `requireAdminOrRegulateur`.
+- Query RLS scoppée + hydratation labels patient/chauffeur (pas de FK polymorphe).
+- Colonnes : Date RDV, Patient, Départ, Destination, Mode transport, Statut, Chauffeur, Tarif (€).
+- Filename : `courses_AAAA-MM-JJ_AAAA-MM-JJ.csv`.
+
+UI : `<ExportCsvButton>` (variant outline, pas terracotta — exporter ≠ moment-clé) dans la toolbar `RidesList`. Période par défaut : 30 derniers jours si pas de filtre date, sinon jour entier.
+
+### D-02 — Export statistique CSV
+
+`tableau-de-bord/_lib/export-stats.ts` :
+- Guard `requireDirigeant`.
+- **Réutilise `getDashboardData()`** — 0 duplication d'agrégat.
+- Sections : Volume, Incidents, Chauffeurs, CA + comparatif N-1 (mois précédent).
+- Filename : `stats_AAAA-MM.csv`.
+
+UI : `<ExportStatsButton>` dans le slot `actions` du PageHeader tableau de bord.
+
+### D-03 — Export PDF récap chauffeur / période
+
+Route `app/api/admin/chauffeurs/recap/pdf/route.tsx` :
+- `runtime nodejs` + `renderToStream` (pattern facturation).
+- Params `?driver=<uuid>&from=YYYY-MM-DD&to=YYYY-MM-DD`.
+- Guard rôle dirigeant + **audit log AVANT** le rendu (`chauffeur.recap.exported_pdf`).
+- Réutilise `PdfDocument` + `PdfSection` + `pdfStyles` (charte commune facturation).
+- Sections : Résumé (count + count terminées + total €) + Détail tableau (date/patient/trajet/statut/tarif).
+
+UI : `<RecapPdfButton>` dans `DriverRowActions` (visible **dirigeant uniquement**) — dialog mini-form from/to → ouvre la route dans un nouvel onglet.
+
+### Validation
+
+- `pnpm typecheck` propre
+- `pnpm test` **129/129 verts**
+- `pnpm build` vert
+- `pnpm lint` clean
+- 0 migration BDD, 0 nouvelle dépendance, 0 régression
+- Guards rôle + RLS Postgres préservés ✓
+- RGPD minimisation : pas de données médicales (notes opérationnelles, NIR) dans les exports ✓
+- Pas de terracotta sur les exports (boutons outline normaux) ✓
+
+**DEC-116 LOCKED**. Pas d'ADR (réutilisation de patterns existants).
+
 ## 2026-06-08 — Phase 06.36 livrée localement (incarnation header / navigation principale)
 
 Incarnation du header global (app + admin). **Angle mort des lots 06.24 → 06.32** comblé : la direction §3 prévoit explicitement que la navigation porte l'identité, mais le header restait générique. « Moderne » ≠ « coloré » — on ajoute hiérarchie + présence + signature, pas de la couleur.
