@@ -68,6 +68,27 @@ export async function listActiveVehiclesAction() {
 }
 
 /**
+ * Phase 06.35 DEC-114 : pour le modal d'assignation, retourne le mode
+ * de blocage org + la lookup conformité des chauffeurs/véhicules
+ * actifs. Une seule round-trip serveur côté client.
+ */
+export async function getAssignmentComplianceContextAction() {
+  const { getComplianceBlockingMode, getEntityComplianceLookup } =
+    await import('../../../(admin)/admin/conformite/_lib/compliance-planning');
+  const { listActiveDrivers, listActiveVehicles } = await import('../_lib/queries');
+  const [drivers, vehicles, mode] = await Promise.all([
+    listActiveDrivers(),
+    listActiveVehicles(),
+    getComplianceBlockingMode(),
+  ]);
+  const lookup = await getEntityComplianceLookup(
+    drivers.map((d) => d.id),
+    vehicles.map((v) => v.id),
+  );
+  return { mode, lookup };
+}
+
+/**
  * Grille tarifaire active + jours fériés 974 pour le calcul pricing
  * côté client (Phase 05.5 — `computeCgssShortTrip` prend la grille en
  * paramètre, DEC-057). Consommé par RideDrawer via useQuery.

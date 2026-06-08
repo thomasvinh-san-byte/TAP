@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.34 livrée localement (Conformité lot 2 — alertes in-app cockpit + dashboard). PR à ouvrir."
-last_updated: "2026-06-08T10:00:00.000Z"
-last_activity: Phase 06.34 cadrée + exécutée. Lot 2 du module Conformité CdC §5.21. Cadrage : Q1 IN-APP uniquement (email/push infra repoussée), Q2 DÉRIVÉ (statut/alerte calculés à la volée, pas de stockage), pas de cron. T1 : helper pur selectComplianceAlerts + countComplianceAlerts dans @tap/shared (9 tests Vitest verts) avec filtre (soon ≤90j + expired) et tri par urgence (expired du plus passé en haut, puis soon ascendant). T1bis : query serveur getComplianceAlerts (server-only) qui hydrate labels entité (driver/vehicle/organization) sur la base RLS same_org. T2 : <ComplianceAlertsPanel> variant=panel dans aside cockpit (sous AlertsPanel, gap 24, limit 4). T3 : <ComplianceAlertsPanel> variant=card dans grid 2 colonnes dashboard à côté du ComplianceCard RGPD (distinct, limit 5). Source partagée cockpit + dashboard. Statut texte + icône (WCAG 1.4.1), pas couleur seule, pas terracotta. 0 migration, 0 cron, 0 dépendance, 0 régression. DEC-113 LOCKED. PR à ouvrir.
+stopped_at: "Phase 06.35 livrée localement (Conformité lot 3 — contrôle planification souple/paramétrable). Module §5.21 COMPLET. PR à ouvrir."
+last_updated: "2026-06-08T12:00:00.000Z"
+last_activity: Phase 06.35 cadrée + exécutée. Lot 3 final du module Conformité CdC §5.21. Cadrage : Q4 souple-par-défaut, Q5 optimiseur inclus, Q6 granularité globale. T1 : migration compliance_blocking_mode sur organizations (warn défaut / block, CHECK). T2 : helper entityComplianceState + isPlanningBlocking dans @tap/shared (8 tests Vitest verts). T3 : assign-modal — getAssignmentComplianceContextAction (round-trip unique), badge « Non conforme » (icône+texte WCAG 1.4.1), mode warn (warn-toast+submit OK), mode block (ligne disabled + submit refusé client + revérif serveur dans assignRideAction). T4 : route optimizer — getComplianceBlockingMode + getEntityComplianceLookup ; warn=tous au solveur + signalement complianceWarnings ; block=véhicules non-conformes filtrés + complianceWarnings.blocked=true. UI optimization-shell affiche panneau ComplianceOptimizerWarnings. Extension OptimizationProposal.complianceWarnings (rétro-compat). T5 : BlockingModeControl SegmentedControl dans /admin/conformite + updateComplianceBlockingModeAction (DEC-041). Defense in depth : mode block revérifié serveur. Module Conformité §5.21 COMPLET (lots 1+2+3). DEC-114 LOCKED. PR à ouvrir.
 progress:
   total_phases: 38
   completed_phases: 34
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.34 livrée localement (Conformité CdC §5.21 lot 2 — alertes in-app). Cockpit + dashboard affichent les échéances soon/expired triées par urgence. Lot 3 (blocage planification) à venir. 34/38 phases livrées. Restantes : 09 HDS + 10 géoloc réelle ; lot 3 conformité.
+**Current focus:** Phase 06.35 livrée localement (Conformité CdC §5.21 lot 3 — contrôle planification). Module Conformité COMPLET. 34/38 phases livrées. Restantes : 09 HDS + 10 géoloc réelle.
 
 ## Current Position
 
@@ -30,12 +30,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.34 livrée localement (2026-06-08) — Conformité lot 2 (alertes in-app cockpit + dashboard, dérivées). PR à ouvrir.
-Phase next: lot 3 Conformité (blocage planification) ; Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 34/38 phases livrées. Programme d'incarnation complet + module Conformité lots 1 (fondation) et 2 (alertes in-app) LIVRÉS.
+Phase: 06.35 livrée localement (2026-06-08) — Conformité lot 3 (contrôle planification souple/paramétrable). Module §5.21 COMPLET. PR à ouvrir.
+Phase next: Phase 09 HDS + Phase 10 géoloc réelle.
+Status: 34/38 phases livrées. Programme d'incarnation complet + module Conformité §5.21 COMPLET (lots 1+2+3) LIVRÉS.
 Blockers: aucun
-Last activity: Phase 06.34 — helper pur selectComplianceAlerts/countComplianceAlerts (9 tests Vitest), query serveur partagée getComplianceAlerts (server-only, RLS same_org), <ComplianceAlertsPanel> variants panel/card dans cockpit + dashboard. 0 stockage, 0 cron, 0 dépendance. DEC-113 LOCKED. PR à ouvrir.
-Précédent: 06.33 Conformité lot 1 fondation (#259), 06.32 incarnation Auth+Public (#258), 06.31 SegmentedControl (#257).
+Last activity: Phase 06.35 — migration compliance_blocking_mode (org colonne, warn/block), helper entityComplianceState @tap/shared (8 tests), assign-modal warn/block + revérif serveur (defense in depth), optimiseur warn/block via complianceWarnings (extension OptimizationProposal rétro-compat), BlockingModeControl dirigeant. Module COMPLET. DEC-114 LOCKED. PR à ouvrir.
+Précédent: 06.34 Conformité lot 2 alertes in-app (#260), 06.33 Conformité lot 1 fondation (#259), 06.32 incarnation Auth+Public (#258).
 
 Progress: [██████████] 100%
 

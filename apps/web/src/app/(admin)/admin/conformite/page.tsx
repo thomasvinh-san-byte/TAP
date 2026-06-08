@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 import { ComplianceBadge } from '@/components/ui/compliance-badge';
 import { ComplianceFieldset } from './_components/compliance-fieldset.client';
+import { BlockingModeControl } from './_components/blocking-mode-control.client';
+import { getComplianceBlockingMode } from './_lib/compliance-planning';
 
 export const metadata = { title: 'Conformité réglementaire' };
 export const dynamic = 'force-dynamic';
@@ -31,6 +33,7 @@ interface RawRow {
 export default async function ConformitePage() {
   await requireDirigeantPage();
   const supabase = await createClient();
+  const blockingMode = await getComplianceBlockingMode();
 
   const itemsRes = await supabase
     .from('compliance_items' as never)
@@ -97,6 +100,8 @@ export default async function ConformitePage() {
         <SummaryCard tone="text-warning" label="Proches de l’échéance" value={counts.soon} />
         <SummaryCard tone="text-muted-foreground" label="Total suivies" value={counts.total} />
       </div>
+
+      <BlockingModeControl initialMode={blockingMode} />
 
       <section className="space-y-16">
         <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">

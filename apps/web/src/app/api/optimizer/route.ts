@@ -12,6 +12,11 @@ import {
   type RideAttributes,
 } from '@tap/optimizer-client';
 import { solveLocal } from '@/lib/optimizer/solve-local';
+import { isPlanningBlocking } from '@tap/shared';
+import {
+  getComplianceBlockingMode,
+  getEntityComplianceLookup,
+} from '../../(admin)/admin/conformite/_lib/compliance-planning';
 
 /**
  * POST /api/optimizer
@@ -169,8 +174,33 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     readActiveVehicles(supabase),
   ]);
 
+  // 4bis. Phase 06.35 DEC-114 : contrôle conformité véhicules.
+  //   - mode 'warn'  : tous les véhicules vont au solveur ; les non
+  //     conformes sont signalés à l'UI via `complianceWarnings`.
+  //   - mode 'block' : les véhicules non conformes sont retirés du
+  //     pool envoyé au solveur ET signalés (blocked=true).
+  const complianceMode = await getComplianceBlockingMode();
+  const vehicleLookup = await getEntityComplianceLookup(
+    [],
+    vehicles.map((v) => v.id),
+  );
+  const complianceWarnings = vehicles
+    .filter((v) => {
+      const st = vehicleLookup.byVehicleId[v.id];
+      return st && isPlanningBlocking(st);
+    })
+    .map((v) => ({
+      vehicle_id: v.id,
+      label: `${v.immatriculation ?? v.id.slice(0, 8)} · ${v.type}`,
+      blocked: complianceMode === 'block',
+    }));
+  const vehiclesForSolver =
+    complianceMode === 'block'
+      ? vehicles.filter((v) => !complianceWarnings.find((w) => w.vehicle_id === v.id))
+      : vehicles;
+
   // 5. Transformation en payload solveur dé-identifié.
-  const { payload, excluded } = ridesToSolveRequest(rides, vehicles, {
+  const { payload, excluded } = ridesToSolveRequest(rides, vehiclesForSolver, {
     date,
     depot: DEPOT_DEFAULT,
     correctionFactor: CORRECTION_FACTOR_DEFAULT,
@@ -191,7 +221,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       rides.length,
       excluded,
     );
-    return NextResponse.json(enrichProposal(emptyProposal, rides, vehicles), { status: 200 });
+    return NextResponse.json(
+      { ...enrichProposal(emptyProposal, rides, vehicles), complianceWarnings },
+      { status: 200 },
+    );
   }
 
   // 7. Appel synchrone au solveur heuristique TS native (Phase 06.12, ADR-010).
@@ -200,7 +233,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     const response = solveLocal(payload);
     const proposal = solveResponseToProposal(response, rides.length, excluded);
-    return NextResponse.json(enrichProposal(proposal, rides, vehicles), { status: 200 });
+    return NextResponse.json(
+      { ...enrichProposal(proposal, rides, vehicles), complianceWarnings },
+      { status: 200 },
+    );
   } catch (err) {
     Sentry.captureException(err, { tags: { route: 'optimizer' } });
     console.error('[optimizer] erreur solveLocal:', err);

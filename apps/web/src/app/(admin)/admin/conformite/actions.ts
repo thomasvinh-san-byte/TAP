@@ -18,6 +18,34 @@ import { complianceItemUpsertSchema, type ComplianceEntityType } from '@tap/shar
 import { requireAdminOrRegulateur } from '@/lib/auth/require-admin-or-regulateur';
 import { requireDirigeant } from '@/lib/auth/require-dirigeant';
 
+const blockingModeSchema = z.enum(['warn', 'block']);
+
+/**
+ * Met à jour le réglage organisation `compliance_blocking_mode`
+ * (Phase 06.35 DEC-114). Réservé dirigeant ; DEC-041 row-count check.
+ */
+export async function updateComplianceBlockingModeAction(raw: unknown): Promise<ActionState> {
+  const ctx = await requireDirigeant();
+  if (!ctx) return { error: 'Action réservée au dirigeant.' };
+
+  const parsed = blockingModeSchema.safeParse(raw);
+  if (!parsed.success) return { error: 'Valeur invalide.' };
+
+  const { data, error } = await ctx.supabase
+    .from('organizations' as never)
+    .update({ compliance_blocking_mode: parsed.data } as never)
+    .eq('id', ctx.organizationId)
+    .select('id');
+
+  if (error) return { error: 'Mise à jour impossible.' };
+  if (!data || data.length === 0) {
+    return { error: 'Mise à jour refusée : droits insuffisants.' };
+  }
+  revalidatePath('/admin/conformite');
+  revalidatePath('/cockpit');
+  return { success: true, id: ctx.organizationId };
+}
+
 export type ActionState = {
   success?: boolean;
   id?: string;

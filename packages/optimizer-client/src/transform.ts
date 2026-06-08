@@ -66,6 +66,20 @@ export type OptimizationProposal = {
    * Optionnel — UI omet silencieusement les badges si absent.
    */
   rideAttributes?: Record<string, RideAttributes>;
+  /**
+   * Conformité réglementaire (Phase 06.35 lot 3, DEC-114) : véhicules
+   * non conformes (au moins une échéance expirée) identifiés à
+   * l'optimisation. `blocked=true` → exclus du pool envoyé au solveur
+   * (mode org `block`) ; `blocked=false` → conservés mais signalés à
+   * l'UI (mode org `warn`).
+   * Construit côté Route Handler. Optionnel — UI omet silencieusement
+   * le panneau si absent.
+   */
+  complianceWarnings?: Array<{
+    vehicle_id: string;
+    label: string;
+    blocked: boolean;
+  }>;
 };
 
 /** Attributs métier d'une course exposés à l'UI pour les badges (Wave 2 Phase 06.11). */
