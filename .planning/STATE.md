@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.37 livrée localement (exports §5.23 partiel : courses CSV + stats CSV + PDF récap chauffeur). PR à ouvrir."
-last_updated: "2026-06-08T16:00:00.000Z"
-last_activity: Phase 06.37 cadrée + exécutée. Exports CdC §5.23 (partiel) avec briques existantes — 0 dépendance. NB renumérotation : prompt cadrait 06.36/DEC-115 mais ces n° avaient été utilisés par l'incarnation header (livrée 06.36 #262), donc 06.37/DEC-116. D-01 : exportRidesCsvAction (pattern caisse) avec zod (from/to/driverId?/status?/transportMode?), guard requireAdminOrRegulateur, query RLS scoppée + hydratation labels patient/chauffeur, colonnes claires (date, patient, départ, dest, mode, statut, chauffeur, tarif). ExportCsvButton dans rides-list toolbar. D-02 : exportStatsCsvAction (réutilise getDashboardData — 0 duplication agrégat), sections volume/incidents/chauffeurs/CA + comparatif N-1, guard requireDirigeant. ExportStatsButton dans PageHeader actions tableau de bord. D-03 : route /api/admin/chauffeurs/recap/pdf (runtime nodejs, renderToStream, guard dirigeant, audit log AVANT rendu) + RecapChauffeurPdf (PdfDocument/PdfSection/pdfStyles charte commune). RecapPdfButton dans DriverRowActions (dirigeant uniquement, dialog mini-form from/to). Lomaco (format externe) et FEC normé (à délibérer) RESTENT repoussés (registre). 0 migration BDD, 0 dépendance, 0 régression. DEC-116 LOCKED. PR à ouvrir.
+stopped_at: "Phase 06.38 livrée localement (header — regroupement nav dirigeant Flotte/Gestion). PR à ouvrir."
+last_updated: "2026-06-08T18:00:00.000Z"
+last_activity: Phase 06.38 cadrée + exécutée. Désencombrement du header dirigeant (passé de 5 à 11 entrées plates, > seuil secteur 5-7). Pas de sidebar (repoussée si besoin persiste). D-01 : dirigeant = 5 liens primaires (Tableau de bord, Cockpit, Patients, Courses, Caisse) + 3 menus déroulants (Flotte ▾ : Chauffeurs/Véhicules/Conformité/Maintenance ; Gestion ▾ : Tarifs/Facturation ; Légal ▾ inchangé). D-02 : régulateur conservé à 5 entrées plates (sous le seuil, son flux quotidien reste 1 clic). D-03 : <NavGroupMenu> générique créé (pattern LegalNavMenu généralisé, signature bleue active DEC-115 — soulignement 3px + text-primary cohérents). LegalNavMenu réécrit pour suivre exactement le même style + items lus depuis LEGAL_NAV_GROUP (nav-config source unique). Items du menu marqués aria-current quand actifs. D-04 : nav-config restructuré (NavGroup, RoleNav, navForRole). tabsForRole conservé en rétro-compat. D-05 : pas de sidebar, pas de changement d'URL, pas header chauffeur PWA. WCAG/RGAA : DropdownMenu shadcn (clavier OK), aria-current sur trigger + item. 0 migration BDD, 0 dépendance, 0 régression. DEC-117 LOCKED. PR à ouvrir.
 progress:
   total_phases: 38
   completed_phases: 34
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.37 livrée localement (exports §5.23 partiel — courses CSV + stats CSV + PDF récap chauffeur). Lomaco + FEC restent au registre. 34/38 phases livrées. Restantes : 09 HDS + 10 géoloc réelle.
+**Current focus:** Phase 06.38 livrée localement (header — regroupement nav dirigeant Flotte/Gestion). 5 primaires + 3 menus au lieu de 11 plats. Régulateur inchangé. 34/38 phases livrées. Restantes : 09 HDS + 10 géoloc réelle.
 
 ## Current Position
 
@@ -30,12 +30,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.37 livrée localement (2026-06-08) — exports §5.23 partiel (courses CSV + stats CSV + PDF récap chauffeur). PR à ouvrir.
-Phase next: Phase 09 HDS + Phase 10 géoloc réelle ; Lomaco + FEC à délibérer (registre).
-Status: 34/38 phases livrées. Programme d'incarnation complet + module Conformité §5.21 COMPLET + exports §5.23 partiel LIVRÉS.
+Phase: 06.38 livrée localement (2026-06-08) — header regroupement nav dirigeant. PR à ouvrir.
+Phase next: Phase 09 HDS + Phase 10 géoloc réelle ; sidebar repoussée si besoin persiste.
+Status: 34/38 phases livrées. Programme d'incarnation complet + Conformité §5.21 COMPLET + exports §5.23 partiel + header regroupé LIVRÉS.
 Blockers: aucun
-Last activity: Phase 06.37 — exportRidesCsvAction (pattern caisse, period+filters), exportStatsCsvAction (réutilise getDashboardData, 0 duplication agrégat), route /api/admin/chauffeurs/recap/pdf (pdf-template). UI : ExportCsvButton dans rides-list toolbar, ExportStatsButton dans tableau-de-bord PageHeader, RecapPdfButton dans DriverRowActions (dirigeant). Lomaco + FEC restent repoussés. 0 dépendance. DEC-116 LOCKED. PR à ouvrir.
-Précédent: 06.36 incarnation header (#262), 06.35 Conformité lot 3 (#261), 06.34 Conformité lot 2 (#260).
+Last activity: Phase 06.38 — dirigeant passé de 11 entrées plates à 5 primaires + 3 menus (Flotte/Gestion/Légal). NavGroupMenu générique (pattern LegalNavMenu généralisé). nav-config restructuré (NavGroup/RoleNav/navForRole). Régulateur inchangé (5 entrées sous le seuil). Signature bleue active DEC-115 préservée même dans les menus (aria-current sur trigger + item). 0 URL changée. DEC-117 LOCKED. PR à ouvrir.
+Précédent: 06.37 exports §5.23 (#263), 06.36 incarnation header (#262), 06.35 Conformité lot 3 (#261).
 
 Progress: [██████████] 100%
 

@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { tabsForRole } from '@/lib/nav-config';
+import { navForRole } from '@/lib/nav-config';
 import { NavTabs } from '@/components/nav-tabs.client';
+import { NavGroupMenu } from '@/components/nav-group-menu.client';
 import { LegalNavMenu } from '@/components/legal-nav-menu.client';
 import { UserMenu } from '@/components/user-menu';
 
@@ -22,6 +23,10 @@ import { UserMenu } from '@/components/user-menu';
  *   - **Séparation** : `border-b` + `shadow-sm` pour détacher le header
  *     du contenu sans lourdeur (sticky + backdrop-blur conservés).
  *
+ * Phase 06.38 (DEC-117) : regroupement de la nav dirigeant via
+ * `<NavGroupMenu />` (Flotte ▾, Gestion ▾) pour rester sous le seuil
+ * secteur 5-7. Régulateur (5 entrées) conservé à plat.
+ *
  * Header PWA chauffeur **hors périmètre** — grammaire dédiée (DEC-014).
  */
 interface Props {
@@ -31,7 +36,7 @@ interface Props {
 }
 
 export function AppHeader({ role, extras }: Props): JSX.Element {
-  const tabs = tabsForRole(role);
+  const nav = navForRole(role);
   const isDirigeant = role === 'dirigeant';
 
   return (
@@ -50,7 +55,10 @@ export function AppHeader({ role, extras }: Props): JSX.Element {
           <span className="text-muted-foreground text-sm">Régulation</span>
         </Link>
         <div className="flex h-full items-center gap-32">
-          <NavTabs tabs={tabs} />
+          <NavTabs tabs={nav.primary} />
+          {nav.groups.map((group) => (
+            <NavGroupMenu key={group.label} group={group} />
+          ))}
           {isDirigeant && <LegalNavMenu />}
         </div>
         <div className="flex items-center gap-16">

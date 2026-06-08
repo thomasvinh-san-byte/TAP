@@ -1,5 +1,70 @@
 # Journal — phases livrées
 
+## 2026-06-08 — Phase 06.38 livrée localement (header — regroupement nav dirigeant Flotte/Gestion)
+
+Désencombrement du header dirigeant. Recherche secteur : top-bar 5-7 max ; TAP dirigeant était à **11 entrées plates**. Décision : regroupement en menus déroulants (pas sidebar — repoussée si besoin persiste). Faible risque, sur existant.
+
+### D-01 — Regroupement nav dirigeant
+
+| Avant (11 liens à plat) | Après (5 primaires + 3 menus) |
+|---|---|
+| Tableau de bord, Cockpit, Patients, Courses, Caisse, Chauffeurs, Véhicules, Tarifs, Facturation, Conformité, Maintenance, + Légal ▾ | **Primaires** : Tableau de bord, Cockpit, Patients, Courses, Caisse |
+| | **Flotte ▾** : Chauffeurs, Véhicules, Conformité, Maintenance |
+| | **Gestion ▾** : Tarifs, Facturation |
+| | **Légal ▾** : 6 entrées RGPD inchangées |
+
+Hiérarchie métier : flux quotidien (primaires) / moyens (Flotte) / financier (Gestion) / RGPD (Légal).
+
+### D-02 — Régulateur préservé
+
+Régulateur conservé à **5 entrées plates** (Cockpit, Patients, Courses, Caisse, Chauffeurs) — sous le seuil, son flux quotidien reste 1 clic. Pas de menu Flotte/Gestion pour lui.
+
+### D-03 — `<NavGroupMenu>` générique
+
+`components/nav-group-menu.client.tsx` — pattern `LegalNavMenu` généralisé. Prend une prop `group: NavGroup` et rend un `DropdownMenu` shadcn stylé comme un onglet de la top-bar. **Signature bleue active DEC-115 préservée même dans un menu** :
+- Déclencheur `text-primary font-medium` + soulignement `bg-primary` **3px pleine opacité** quand un item du groupe est actif.
+- Items du menu marqués `aria-current="page"` + `text-primary font-medium` quand actifs.
+
+`LegalNavMenu` réécrit pour suivre exactement le même style (2px→3px, `text-foreground`→`text-primary` actif), tout en conservant son entrée additionnelle « Vue d'ensemble » + séparateur. Items lus depuis `LEGAL_NAV_GROUP` (nav-config source unique).
+
+### D-04 — `nav-config` source unique
+
+Restructuration :
+
+```ts
+export interface NavGroup {
+  label: string;
+  activePrefixes: string[];
+  items: NavTab[];
+}
+
+export interface RoleNav {
+  primary: NavTab[];
+  groups: NavGroup[];
+}
+
+export function navForRole(role: string): RoleNav;
+```
+
+`tabsForRole(role)` conservé en rétro-compat (renvoie `primary` seul). `AppHeader` consomme `navForRole(role)` et boucle sur `groups` → `<NavGroupMenu group={...} />`.
+
+### D-05 — Périmètre
+
+- **Pas de sidebar** (repoussée si besoin persiste après usage).
+- **Pas de changement d'URL** : les 11 routes restent inchangées.
+- **Pas le header chauffeur PWA** (grammaire dédiée DEC-014).
+
+### Validation
+
+- `pnpm typecheck` propre
+- `pnpm test` **129/129 verts**
+- `pnpm build` vert
+- `pnpm lint` clean
+- WCAG/RGAA : `DropdownMenu` shadcn (clavier OK : Espace, Entrée, flèches, Échap) ; `aria-current` posé sur trigger ET item actif
+- 0 migration BDD, 0 nouvelle dépendance, 0 régression
+
+**Pas d'ADR** : généralisation de pattern existant (`LegalNavMenu` → `NavGroupMenu`). DEC-117 LOCKED.
+
 ## 2026-06-08 — Phase 06.37 livrée localement (exports §5.23 partiel : courses CSV + stats CSV + PDF récap chauffeur)
 
 Comble une partie du creux CdC §5.23 avec les **briques déjà en place** : zéro dépendance, zéro achat. Lot d'ajout sur existant, faible risque.

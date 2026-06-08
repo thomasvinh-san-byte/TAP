@@ -7,27 +7,34 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { LEGAL_NAV_GROUP } from '@/lib/nav-config';
+import type { NavGroup } from '@/lib/nav-config';
 
 /**
- * Sous-menu « Légal » de la navigation admin — regroupe les 6 pages RGPD
- * (dirigeant uniquement) pour ne pas surcharger la barre d'onglets.
+ * <NavGroupMenu> — menu déroulant générique pour la nav principale
+ * (Phase 06.38, DEC-117).
  *
- * Phase 06.38 (DEC-117) : aligné sur le style générique
- * `<NavGroupMenu />` (signature bleue active DEC-115, soulignement 3px),
- * mais conserve son entrée additionnelle « Vue d'ensemble » + séparateur,
- * d'où la non-réutilisation directe.
+ * Généralisé du pattern `LegalNavMenu` (Phase 1.5) pour permettre
+ * d'autres regroupements (Flotte ▾, Gestion ▾) sans duplication.
  *
- * Items et préfixes actifs lus depuis `LEGAL_NAV_GROUP` (`nav-config`) —
- * source unique.
+ * Déclencheur stylé comme un onglet `NavTabs` : signature bleue active
+ * (DEC-115, direction §3) — `text-primary font-medium` + soulignement
+ * `bg-primary` 3px pleine opacité quand un item du groupe est actif.
+ *
+ * A11y : `DropdownMenu` shadcn gère la navigation clavier (ouverture
+ * Espace/Entrée, navigation flèches, fermeture Échap) et l'aria. Trigger
+ * porte `aria-current="page"` quand le groupe est actif.
  */
-export function LegalNavMenu(): JSX.Element {
+
+interface Props {
+  group: NavGroup;
+}
+
+export function NavGroupMenu({ group }: Props): JSX.Element {
   const pathname = usePathname() ?? '';
-  const active = LEGAL_NAV_GROUP.activePrefixes.some(
+  const active = group.activePrefixes.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
 
@@ -43,7 +50,7 @@ export function LegalNavMenu(): JSX.Element {
             active ? 'text-primary font-medium' : 'text-muted-foreground hover:text-foreground',
           )}
         >
-          <span>{LEGAL_NAV_GROUP.label}</span>
+          <span>{group.label}</span>
           <ChevronDown className="h-12 w-12" aria-hidden />
           <span
             aria-hidden
@@ -55,22 +62,16 @@ export function LegalNavMenu(): JSX.Element {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" sideOffset={8} className="w-[240px]">
-        <DropdownMenuItem asChild>
-          <Link href="/admin/legal" className="w-full">
-            Vue d&apos;ensemble
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        {LEGAL_NAV_GROUP.items.map((link) => {
-          const itemActive = pathname === link.href || pathname.startsWith(`${link.href}/`);
+        {group.items.map((item) => {
+          const itemActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
-            <DropdownMenuItem key={link.href} asChild>
+            <DropdownMenuItem key={item.href} asChild>
               <Link
-                href={link.href}
+                href={item.href}
                 aria-current={itemActive ? 'page' : undefined}
                 className={cn('w-full', itemActive && 'text-primary font-medium')}
               >
-                {link.label}
+                {item.label}
               </Link>
             </DropdownMenuItem>
           );
