@@ -23,6 +23,7 @@ import { RideAuditTimeline } from './ride-audit-timeline';
 import { RidePaymentPopover } from './ride-payment-popover.client';
 import { CancelRideModal } from './cancel-ride-modal.client';
 import { useRideOrchestrator } from './ride-orchestrator-context.client';
+import { RideChat } from '@/components/messaging/ride-chat.client';
 
 interface Props {
   rideId: string | null;
@@ -283,6 +284,10 @@ export function RideDrawer({ rideId, open, onOpenChange, onRequestAssign }: Prop
                 </div>
               </section>
             )}
+
+            <section>
+              <RideChat rideId={ride.id} />
+            </section>
 
             <section className="space-y-12">
               <SectionTitle>Historique</SectionTitle>
