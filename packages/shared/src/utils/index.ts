@@ -6,3 +6,4 @@ export * from './format-date-fr';
 export * from './driver-vehicle-compat';
 export * from './nir-checksum';
 export * from './compliance-status';
+export * from './compliance-alerts';

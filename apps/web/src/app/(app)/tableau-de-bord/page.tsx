@@ -7,6 +7,8 @@ import { deltaPercent, deltaPoints } from './_lib/delta';
 import { KpiCard, type KpiState } from './_components/kpi-card';
 import { ComplianceCard } from './_components/compliance-card';
 import { SlaBadgesCard } from './_components/sla-badges-card';
+import { getComplianceAlerts } from '../../(admin)/admin/conformite/_lib/get-compliance-alerts';
+import { ComplianceAlertsPanel } from '../../(admin)/admin/conformite/_components/compliance-alerts-panel.client';
 
 export const metadata = { title: 'Tableau de bord' };
 export const dynamic = 'force-dynamic';
@@ -56,6 +58,7 @@ function previousMonthOf(ym: string): string {
 export default async function TableauDeBordPage(): Promise<JSX.Element> {
   await requireDirigeantPage();
   const data = await getDashboardData();
+  const complianceAlerts = await getComplianceAlerts();
 
   const periode = new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
 
@@ -217,7 +220,10 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
         </div>
       </section>
 
-      <ComplianceCard conformite={data.conformite} />
+      <div className="grid gap-16 lg:grid-cols-2">
+        <ComplianceCard conformite={data.conformite} />
+        <ComplianceAlertsPanel alerts={complianceAlerts} variant="card" limit={5} />
+      </div>
     </div>
   );
 }
