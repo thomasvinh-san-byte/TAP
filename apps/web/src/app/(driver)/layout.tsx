@@ -4,6 +4,7 @@ import { getAuthContext } from '@/lib/auth/get-auth-context';
 import { UserMenu } from '@/components/user-menu';
 import { SWRegister } from './_components/sw-register.client';
 import { ConnectionStatusBadge } from './_components/connection-status-badge.client';
+import { HighContrastToggle } from './_components/high-contrast-toggle.client';
 import { WarningBannerInactivity } from './_components/warning-banner-inactivity.client';
 import { InstallPwaBanner } from './_components/install-pwa-banner.client';
 
@@ -45,6 +46,7 @@ export default async function DriverLayout({ children }: { children: React.React
           </Link>
           <div className="flex items-center gap-12">
             <ConnectionStatusBadge />
+            <HighContrastToggle />
             <UserMenu />
           </div>
         </div>

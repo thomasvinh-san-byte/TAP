@@ -1,5 +1,54 @@
 # Journal — phases livrées
 
+## 2026-06-05 — Phase 06.28 livrée localement (incarnation Chauffeur — terrain)
+
+Incarnation de la direction DEC-101 sur la famille Chauffeur (driver). Déclinaison « grande et lisible » de l'âme (DEC-014), pas la densité du cockpit. Lot ciblé : l'écran chauffeur est DÉJÀ le mieux pensé de l'app (cibles 56px, 1 action/écran, tint crème, offline) — on comble 3 écarts précis sans rien casser.
+
+### D-01 — Terracotta sur le moment-clé chauffeur
+
+`ride-actions.client.tsx` : bouton « Démarrer la course » (status `assignee`) passé en `variant="accent"`. C'est le moment-clé d'engagement du chauffeur (cohérence lot 2 DEC-104 : créer/démarrer/valider).
+
+**NE PAS touché** :
+- « Clôturer la course » reste en `bg-warning` orange — état de FIN distinct, sémantique d'attention/vigilance, pas un moment-clé d'avancement.
+- Badges `success` / neutre inchangés.
+
+Contraste terracotta `hsl(14 78% 46%)` + blanc = 4.61:1 ✓ AA, déjà validé lot 2.
+
+### D-02 — En-tête harmonisé
+
+`/conduite/page.tsx` :
+- `<h1>` + `<header>` manuels → migrés vers **`<PageHeader>`** avec slot `actions` portant le compteur de courses. Cohérence grammaire avec cockpit + lot 1.
+- Empty state « Aucune course planifiée » harmonisé : titre `text-lg` → **`text-2xl font-semibold tracking-tight`** ; libellé « **Pas de course pour l'instant** » + « Vos prochaines courses apparaîtront ici dès qu'elles vous seront assignées. » (description passée à `text-base` — terrain = grande lecture, DEC-101 §6).
+
+### D-03 — Mode contraste élevé (DEC-014, le vrai manque terrain)
+
+Implémentation socle complète :
+
+1. **Hook `useHighContrast`** (`lib/use-high-contrast.client.ts`) — patterné sur `useTheme` : lit/persiste `localStorage['driver-contrast']`, applique `data-driver-contrast="high"` sur `<html>`, **auto-active si l'OS signale `prefers-contrast: more`** au premier mount.
+2. **`<HighContrastToggle>`** — icône Contrast Lucide, posée dans le header driver entre `ConnectionStatusBadge` et `UserMenu` (cible 40px, `aria-pressed`, label parlant).
+3. **CSS overrides dans `globals.css`** sous `[data-driver-contrast='high']` et `@media (prefers-contrast: more)` :
+   - `--border` `214 32% 91%` → **`214 50% 45%`** (gris bleuté tranché, en clair)
+   - `--input` aligné sur border
+   - `--muted-foreground` `215 16% 47%` → **`215 30% 25%`** (texte secondaire plus foncé)
+   - Variantes dark (border 75%, muted 85%)
+4. **0 hex en dur** — uniquement overrides de CSS vars HSL.
+
+Le `--foreground` n'est pas touché (déjà très foncé/clair selon thème).
+
+### Validation
+
+- `pnpm typecheck` propre
+- `pnpm test` **129/129 verts**
+- `pnpm build` vert
+- `pnpm lint` clean (10 warnings préexistants hors périmètre)
+- Cibles tactiles ≥ 56px **préservées** (le bouton Démarrer garde `h-14 w-full text-base font-semibold`)
+- Offline-first non régressé (enqueue Dexie, captureCurrentPosition inchangés)
+- Tint crème driver intact (`hsl(var(--driver-surface))`)
+- DEC-014 respectée, DEC-101 §6 respectée
+- 0 hex ajouté, 0 nouvelle dépendance, 0 migration BDD
+
+**Pas d'ADR** : activation et déclinaison de patterns existants (variant accent, PageHeader, hook useTheme-like). DEC-108 LOCKED.
+
 ## 2026-06-05 — Lot 5 (rangement) — audit + décision DEC-107 (PAS de refactor, planning-only)
 
 **Cinquième et dernier lot du programme d'incarnation Régulation DEC-101.** Conclusion d'audit : le rangement est déjà sain en pratique ; déplacer les URLs coûterait cher pour zéro gain utilisateur. Ce lot ACTE cette décision, il ne refactore rien.
