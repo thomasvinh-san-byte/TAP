@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,21 +10,17 @@ import { cn } from '@/lib/utils';
 /**
  * <Combobox> — combobox éditable accessible (Phase 06.17 D-04).
  *
- * Pattern W3C ARIA Authoring Practices Guide (APG) « Editable combobox
- * with list autocomplete » :
- * - `role="combobox"` sur l'input, `aria-expanded`, `aria-controls`,
- *   `aria-autocomplete="list"`, `aria-activedescendant`.
- * - Listbox `role="listbox"`, options `role="option"` avec `aria-selected`.
- * - Clavier : flèches haut/bas, Enter, Échap, Tab pour fermer.
- * - Filtrage flou côté client (normalisation accents, includes case-insensitive).
- * - Saisie libre autorisée par défaut (`allowFreeText`) — valeur hors liste OK.
+ * Pattern W3C ARIA APG « Editable combobox with list autocomplete » : ARIA
+ * combobox/listbox/option, clavier flèches/Enter/Échap/Tab, filtrage flou
+ * (accents insensibles), saisie libre par défaut (`allowFreeText`).
  *
- * Stack figée DEC-003 : pas de Radix Popover (absent), pas de cmdk.
- * Dropdown construit par positionnement absolu, encapsulé dans le wrapper
- * du champ (z-index ≥ 50). Aucune nouvelle dépendance npm.
- *
- * Doctrine du hint identique à `<Field>` (D-02) — l'helper text est
- * persistant, lié par `aria-describedby`.
+ * Stack figée DEC-003 (pas de Radix Popover/cmdk/floating-ui) : la listbox est
+ * rendue DÉTACHÉE au `document.body` via `createPortal` (react-dom, 0 install),
+ * en `position: fixed` ancrée au rect du champ (recalcul scroll/resize, flip
+ * haut/bas). Le portail échappe au clipping/overflow et aux stacking contexts
+ * des ancêtres (Phase 06.42, DEC-121) : la liste ne se superpose plus et passe
+ * au-dessus des dialogs (address-picker dans le modal course). `onPointerDown`
+ * stoppé pour ne pas fermer le Dialog Radix. Hint lié par `aria-describedby`.
  */
 
 export interface ComboboxProps {
@@ -31,7 +28,6 @@ export interface ComboboxProps {
   /** Nom du champ pour la soumission de formulaire (FormData). */
   name?: string;
   label: string;
-  /** Liste d'options proposées (libre de filtrer côté composant). */
   options: readonly string[];
   /** Valeur contrôlée. */
   value: string;
@@ -39,16 +35,21 @@ export interface ComboboxProps {
   onChange: (value: string) => void;
   /** Helper text persistant sous l'input. */
   hint?: React.ReactNode;
-  /** Message d'erreur sous le champ. */
   error?: string;
-  /** Placeholder court (exemple de valeur). */
   placeholder?: string;
   /** Si `true` (défaut), accepte toute saisie libre. Si `false`, force une option. */
   allowFreeText?: boolean;
-  /** Désactive le composant. */
   disabled?: boolean;
   /** Autofocus à l'ouverture. */
   autoFocus?: boolean;
+}
+
+interface ListboxPosition {
+  left: number;
+  width: number;
+  anchor: number; // `top` si vers le bas, `bottom` si flip vers le haut
+  flipUp: boolean;
+  maxHeight: number;
 }
 
 function normalize(s: string): string {
@@ -84,20 +85,63 @@ export function Combobox({
 
   const inputRef = React.useRef<HTMLInputElement>(null);
   const wrapperRef = React.useRef<HTMLDivElement>(null);
+  const listboxRef = React.useRef<HTMLUListElement>(null);
+
+  const [mounted, setMounted] = React.useState(false);
+  const [position, setPosition] = React.useState<ListboxPosition | null>(null);
 
   const filtered = React.useMemo(() => filterOptions(options, value), [options, value]);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   React.useEffect(() => {
     setActiveIndex(-1);
   }, [value]);
 
-  // Ferme au clic dehors.
+  // Position fixed ancrée au champ (recalcul ouverture/scroll/resize) ; flip haut/bas.
+  const computePosition = React.useCallback(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const gap = 4;
+    const desired = 240;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const flipUp = spaceBelow < desired && spaceAbove > spaceBelow;
+    setPosition({
+      left: rect.left,
+      width: rect.width,
+      flipUp,
+      anchor: flipUp ? window.innerHeight - rect.top + gap : rect.bottom + gap,
+      maxHeight: Math.max(120, Math.min(desired, (flipUp ? spaceAbove : spaceBelow) - gap - 8)),
+    });
+  }, []);
+
+  React.useEffect(() => {
+    if (!open) {
+      setPosition(null);
+      return;
+    }
+    computePosition();
+    const onScrollResize = (): void => computePosition();
+    window.addEventListener('scroll', onScrollResize, true);
+    window.addEventListener('resize', onScrollResize);
+    return () => {
+      window.removeEventListener('scroll', onScrollResize, true);
+      window.removeEventListener('resize', onScrollResize);
+    };
+  }, [open, computePosition, filtered.length]);
+
+  // Ferme au clic dehors (la listbox portalisée est hors du wrapper → on l'ignore aussi).
   React.useEffect(() => {
     if (!open) return;
     function onClick(e: MouseEvent): void {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
+      const target = e.target as Node;
+      if (wrapperRef.current?.contains(target)) return;
+      if (listboxRef.current?.contains(target)) return;
+      setOpen(false);
     }
     document.addEventListener('mousedown', onClick);
     return () => document.removeEventListener('mousedown', onClick);
@@ -193,40 +237,53 @@ export function Combobox({
           />
         </button>
 
-        {open && filtered.length > 0 ? (
-          <ul
-            id={listboxId}
-            role="listbox"
-            className="border-border bg-popover text-popover-foreground absolute z-50 mt-4 max-h-[240px] w-full overflow-auto rounded-md border shadow-md"
-          >
-            {filtered.map((opt, i) => {
-              const optionId = `${id}-opt-${i}`;
-              const selected = opt === value;
-              const active = i === activeIndex;
-              return (
-                <li
-                  key={opt}
-                  id={optionId}
-                  role="option"
-                  aria-selected={selected}
-                  onMouseDown={(e) => {
-                    // mousedown plutôt que click pour devancer le blur
-                    e.preventDefault();
-                    commit(opt);
-                  }}
-                  onMouseEnter={() => setActiveIndex(i)}
-                  className={cn(
-                    'cursor-pointer px-12 py-8 text-sm',
-                    active && 'bg-muted',
-                    selected && 'font-semibold',
-                  )}
-                >
-                  {opt}
-                </li>
-              );
-            })}
-          </ul>
-        ) : null}
+        {open && mounted && filtered.length > 0 && position
+          ? createPortal(
+              <ul
+                ref={listboxRef}
+                id={listboxId}
+                role="listbox"
+                // Stoppe la propagation : le DismissableLayer Radix ne ferme pas le Dialog.
+                onPointerDown={(e) => e.stopPropagation()}
+                style={{
+                  position: 'fixed',
+                  left: position.left,
+                  width: position.width,
+                  maxHeight: position.maxHeight,
+                  ...(position.flipUp ? { bottom: position.anchor } : { top: position.anchor }),
+                }}
+                className="border-border bg-popover text-popover-foreground z-[60] overflow-auto rounded-md border shadow-md"
+              >
+                {filtered.map((opt, i) => {
+                  const optionId = `${id}-opt-${i}`;
+                  const selected = opt === value;
+                  const active = i === activeIndex;
+                  return (
+                    <li
+                      key={opt}
+                      id={optionId}
+                      role="option"
+                      aria-selected={selected}
+                      onMouseDown={(e) => {
+                        // mousedown plutôt que click pour devancer le blur
+                        e.preventDefault();
+                        commit(opt);
+                      }}
+                      onMouseEnter={() => setActiveIndex(i)}
+                      className={cn(
+                        'cursor-pointer px-12 py-8 text-sm',
+                        active && 'bg-muted',
+                        selected && 'font-semibold',
+                      )}
+                    >
+                      {opt}
+                    </li>
+                  );
+                })}
+              </ul>,
+              document.body,
+            )
+          : null}
       </div>
       {hint && !error ? (
         <p id={hintId} className="text-muted-foreground text-xs">
