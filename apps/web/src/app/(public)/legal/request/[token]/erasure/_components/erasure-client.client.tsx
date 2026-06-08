@@ -26,7 +26,7 @@ export function ErasureClient({ token }: Props) {
     return (
       <div className="space-y-16">
         <h2 className="text-xl font-semibold tracking-tight">Effacement effectué</h2>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground text-base">
           Vos données identifiantes ont été anonymisées de manière irréversible. Conformément à la
           durée légale CGSS (5 ans, CSS L114-19), les courses passées sont conservées sans lien
           identitaire pour des raisons comptables. En cas de désaccord, vous pouvez saisir la
@@ -67,7 +67,7 @@ export function ErasureClient({ token }: Props) {
   return (
     <div className="border-destructive/40 bg-destructive/5 space-y-16 rounded-md border p-24">
       <h2 className="text-xl font-semibold tracking-tight">Confirmer l&apos;anonymisation</h2>
-      <p className="text-muted-foreground text-sm">
+      <p className="text-muted-foreground text-base">
         L&apos;effacement de vos données identifiantes est irréversible. Cette action ne peut pas
         être annulée. Vos courses passées resteront conservées sous forme anonymisée pour respecter
         la durée légale CGSS de 5 ans (CSS L114-19).
@@ -75,7 +75,7 @@ export function ErasureClient({ token }: Props) {
       <div className="flex gap-12">
         <Button
           type="button"
-          variant="destructive"
+          variant="accent"
           className="h-48"
           disabled={pending}
           onClick={onConfirm}

@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.31 livrée localement (SegmentedControl + SegmentedNav, remplace toggle daté dupliqué). PR à ouvrir."
-last_updated: "2026-06-05T20:00:00.000Z"
-last_activity: Phase 06.31 cadrée + exécutée. Création composant SegmentedControl (button, state local) + SegmentedNav (Link, navigation URL) dans components/ui/segmented-control.tsx (126 LOC < 150). Style sobre Linear/iOS : conteneur bg-muted rounded-lg p-4 gap-4 (pas de bordure), actif bg-background + font-medium + shadow-sm, inactif text-muted-foreground + hover, transition-all 150ms, focus ring ring-offset-muted. 0 hex en dur, tokens only. Accessibilité role=tablist/tab + aria-selected préservée. 3 duplications remplacées : patients-list (state local Actifs/Archivés), drivers-list (Link URL Actifs/Archivés), assign-modal (boolean Compatibles/Afficher tous mappé en string). Comportement strictement INCHANGÉ, 129/129 tests sans modification. Doc design-system 09-segmented-control.md ajoutée. DEC-110bis LOCKED. PR à ouvrir.
+stopped_at: "Phase 06.32 livrée localement (incarnation Auth + Public léger). PR à ouvrir."
+last_updated: "2026-06-05T21:00:00.000Z"
+last_activity: Phase 06.32 cadrée + exécutée. Incarnation Auth + Public — LÉGÈRE (grammaires dédiées appropriées préservées). D-01 : 3 terracotta moments-clés (Se connecter, Activer mon compte, Confirmer l'anonymisation RGPD — justifié car ACTE ATTENDU du patient, pas vigilance subie ; contexte d'avertissement préservé). D-02 : lisibilité prose RGPD patient promue text-sm → text-base (public non-technique) sur identity-form, erasure, access pages. D-03 : AuthShell + pages légales MDX inchangés (grammaires dédiées). Annexe : audit animation conclut système déjà conforme (tokens motion + reduced-motion global) ; Skeleton durci avec motion-reduce:animate-none local (auto-doc, redondance volontaire). DEC-111 LOCKED. PR à ouvrir.
 progress:
   total_phases: 38
   completed_phases: 34
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.31 livrée localement (composant SegmentedControl + SegmentedNav). Toggle daté Actifs/Archivés (3 duplications) factorisé en composant sobre Linear/iOS. 34/38 phases livrées. Restantes : 09 HDS + 10 géoloc réelle.
+**Current focus:** Phase 06.32 livrée localement (incarnation Auth + Public — lot léger). 3 terracotta moments-clés + lisibilité prose RGPD patient promue. AuthShell et MDX inchangés. Audit animation : conforme. 34/38 phases livrées. Restantes : 09 HDS + 10 géoloc réelle.
 
 ## Current Position
 
@@ -30,12 +30,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.31 livrée localement (2026-06-05) — SegmentedControl + SegmentedNav, remplace toggle daté dupliqué. PR à ouvrir.
+Phase: 06.32 livrée localement (2026-06-05) — incarnation Auth + Public (léger). PR à ouvrir.
 Phase next: Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 34/38 phases livrées. Programme d'incarnation : Régulation (5 lots) + Chauffeur + Admin + typo française + SegmentedControl LIVRÉS.
+Status: 34/38 phases livrées. Programme d'incarnation : Régulation (5 lots) + Chauffeur + Admin + Auth/Public + typo française + SegmentedControl LIVRÉS.
 Blockers: aucun
-Last activity: Phase 06.31 — composant SegmentedControl + SegmentedNav (126 LOC) avec style sobre Linear/iOS ; 3 duplications éliminées (patients, drivers, assign-modal) ; comportement inchangé ; doc design-system 09-segmented-control.md ajoutée. DEC-110bis LOCKED. PR à ouvrir.
-Précédent: 06.30 incarnation Admin (#256), 06.29 typo cadratins (#255), 06.28 incarnation Chauffeur (#254).
+Last activity: Phase 06.32 — 3 terracotta moments-clés (Se connecter, Activer mon compte, Confirmer l'anonymisation RGPD) ; lisibilité prose RGPD patient promue text-base ; AuthShell/MDX inchangés ; Skeleton motion-reduce:animate-none local. DEC-111 LOCKED. PR à ouvrir.
+Précédent: 06.31 SegmentedControl (#257), 06.30 incarnation Admin (#256), 06.29 typo cadratins (#255).
 
 Progress: [██████████] 100%
 
