@@ -44,6 +44,7 @@ import { DriverForm } from './driver-form.client';
 import { ArchiveDriverModal } from './archive-driver-modal.client';
 import { DeactivateConfirmDialog } from './deactivate-confirm-dialog.client';
 import { UnarchiveConfirmDialog } from './unarchive-confirm-dialog.client';
+import { RecapPdfButton } from './recap-pdf-button.client';
 
 type Role = 'dirigeant' | 'regulateur';
 type Vue = 'actifs' | 'archives';
@@ -551,6 +552,7 @@ function DriverRowActions({
 
   return (
     <div className="flex shrink-0 items-center gap-8">
+      {isDirigeant && <RecapPdfButton driverId={driver.id} driverLabel={driver.nom_affichage} />}
       {status !== 'active' &&
         (status === 'none' ? (
           <Button

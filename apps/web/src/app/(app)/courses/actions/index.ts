@@ -37,3 +37,5 @@ export {
   getActiveTariffGridAction,
   getAssignmentComplianceContextAction,
 } from './list';
+export { exportRidesCsvAction } from './export-rides';
+export type { ExportRidesInput, ExportRidesResult } from './export-rides';
