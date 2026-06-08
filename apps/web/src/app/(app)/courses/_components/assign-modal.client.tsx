@@ -34,6 +34,9 @@ function normalize(s: string): string {
 /**
  * Modal d'assignation chauffeur + véhicule (Phase 3 / 03-D).
  *
+ * Pattern modale (DEC-106 §5bis) : `Dialog` centré — action focalisée,
+ * l'assignation engage la régulatrice sur un choix.
+ *
  * - Liste drivers actifs + recherche fuzzy locale (drivers ≤ 50, suffisant
  *   pour la Passe 1)
  * - Filtre permis ↔ véhicule (DEC-038) : si un véhicule est sélectionné,
@@ -365,6 +368,7 @@ export function AssignModal({ rideId, open, onOpenChange }: Props): JSX.Element 
           </Button>
           <Button
             type="button"
+            variant="accent"
             onClick={() => void submit()}
             disabled={!selectedDriverId || pending}
           >

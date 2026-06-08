@@ -4,7 +4,7 @@ import { useCallback, useTransition } from 'react';
 import { toast } from 'sonner';
 import { rideExpressInputSchema } from '@tap/shared';
 import { createRideAction, updateRideAction } from '../actions';
-import type { TransportMode, Urgency } from './ride-express-form-fields.client';
+import type { TransportMode, Urgency } from './ride-fields';
 
 /**
  * Submit du modal saisie express — extrait pour respecter CLAUDE.md § 11.

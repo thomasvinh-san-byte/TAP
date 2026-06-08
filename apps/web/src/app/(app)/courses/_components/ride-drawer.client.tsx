@@ -34,6 +34,10 @@ interface Props {
 /**
  * Drawer course (Phase 3 / 03-D — référence Plain/Linear activity).
  *
+ * Pattern modale (DEC-106 §5bis) : `Sheet` latéral — consultation
+ * contextuelle d'une course (à droite, n'efface pas la liste). Distinct
+ * du `Dialog` centré utilisé pour la création focalisée.
+ *
  * Sections empilées : header → trajet → mode/urgence → assignation →
  * exécution → paiement → historique. Server Actions appelées pour mutate
  * (unassign + paiement). useQuery + invalidate sur succès → recharge la

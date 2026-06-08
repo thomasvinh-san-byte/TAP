@@ -21,6 +21,10 @@ import { overrideRideTarifAction } from '../actions';
 /**
  * OverrideTarifModal — Surface B UI-SPEC Phase 04.7.
  *
+ * Pattern modale (DEC-106 §5bis) : `Sheet` latéral droit — ajustement
+ * contextuel d'une course existante (consultation/correction), distinct
+ * de la création focalisée (qui passe par Dialog centré).
+ *
  * Sheet latéral droit (UI-PATTERNS « Sheet édition ») permettant à
  * dirigeant + régulateur (DEC-029 esprit, A-02 reco b) de forcer le tarif
  * d'une course terminée avec motif obligatoire + trace audit_logs.

@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.26 livrée localement (lot 3 incarnation — skeletons + finition empty states). 5 loading.tsx ajoutés. PR à ouvrir."
-last_updated: "2026-06-05T14:00:00.000Z"
-last_activity: Phase 06.26 cadrée + exécutée. 5 loading.tsx créés (cockpit, courses, courses/caisse, patients, patients/[id]) épousant le layout réel de chaque page (perception de vitesse, fin du flash blanc). Tous les 7 écrans à fetch de régulation ont désormais un état de chargement. 2 empty states harmonisés (ton plus humain, oriente vers CTA) : courses + caisse. Cockpit empty state préservé sans action (remplissage realtime, direction §4). prefers-reduced-motion couvert par la règle globale globals.css. DEC-105 LOCKED. PR à ouvrir.
+stopped_at: "Phase 06.27 livrée localement (lot 4 incarnation — refactor ride-fields + cohérence modales). 493 l. scindées en 5 modules ≤ 175. PR à ouvrir."
+last_updated: "2026-06-05T15:00:00.000Z"
+last_activity: Phase 06.27 cadrée + exécutée. Refactor structurel ride-express-form-fields (493 l. > CON-008) scindé en 5 modules sous courses/_components/ride-fields/ (types, datetime-helpers, masked-inputs, datetime-fields, field-groups + barrel index). Tous ≤ 175 l., API publique préservée, 2 consommateurs mis à jour. Revue cohérence modales courses : Dialog (focalisé) vs Sheet (contextuel) documenté en 1 ligne sur chaque modale ; terracotta posé sur "Créer la course" (ride-express-modal) + "Assigner" (assign-modal) — cohérence lot 2. 7 variant="accent" dans (app), 1 par contexte. Comportement INCHANGÉ — 129/129 tests passent sans modification. DEC-106 LOCKED. PR à ouvrir.
 progress:
   total_phases: 38
   completed_phases: 34
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.26 livrée localement (lot 3 incarnation — skeletons + finition empty states). Perception de vitesse posée sur les 5 écrans à fetch régulation, plus de page blanche. 34/38 phases livrées. Restantes : lots d'incarnation à suivre (refactor cohérence lot 5, rangement lot 6) + 09 HDS + 10 géoloc réelle.
+**Current focus:** Phase 06.27 livrée localement (lot 4 incarnation — refactor ride-fields + cohérence modales). Structure code = structure visuelle (DEC-101 §5bis) : 493 l. découpées proprement, comportement strictement préservé. 34/38 phases livrées. Restantes : lot d'incarnation à suivre (rangement lot 5) + 09 HDS + 10 géoloc réelle.
 
 ## Current Position
 
@@ -30,12 +30,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.26 livrée localement (2026-06-05) — lot 3 incarnation Régulation, skeletons + finition empty states, PR à ouvrir.
-Phase next: lots d'incarnation Régulation à suivre (refactor cohérence lot 5, rangement arbitré en contexte lot 6) + Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 34/38 phases livrées. Lots 1 (typo + en-tête), 2 (couleur signature) et 3 (skeletons) du programme d'incarnation DEC-101 LIVRÉS sur la famille Régulation.
+Phase: 06.27 livrée localement (2026-06-05) — lot 4 incarnation Régulation, refactor ride-fields + cohérence modales, PR à ouvrir.
+Phase next: lot d'incarnation Régulation à suivre (rangement arbitré en contexte lot 5) + Phase 09 HDS + Phase 10 géoloc réelle.
+Status: 34/38 phases livrées. Lots 1 (typo + en-tête), 2 (couleur signature), 3 (skeletons) et 4 (refactor + cohérence modales) du programme d'incarnation DEC-101 LIVRÉS sur la famille Régulation.
 Blockers: aucun
-Last activity: Phase 06.26 — 5 loading.tsx ajoutés (cockpit, courses, caisse, patients, fiche patient) épousant le layout réel ; 2 empty states ton harmonisé (courses + caisse) ; cockpit empty laissé sans action (remplissage realtime). DEC-105 LOCKED. PR à ouvrir.
-Précédent: 06.25 lot 2 terracotta (#250), 06.24 reprise (#249), 06.24 lot 1 initial (#248).
+Last activity: Phase 06.27 — ride-express-form-fields (493 l.) scindé en 5 modules ride-fields/ ≤ 175 l., API préservée ; Dialog vs Sheet documenté sur 4 modales ; terracotta posé sur "Créer la course" + "Assigner" (cohérence lot 2). Comportement inchangé. DEC-106 LOCKED. PR à ouvrir.
+Précédent: 06.26 lot 3 skeletons (#251), 06.25 lot 2 terracotta (#250), 06.24 reprise (#249).
 
 Progress: [██████████] 100%
 
