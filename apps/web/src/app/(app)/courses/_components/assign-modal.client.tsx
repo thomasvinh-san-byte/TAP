@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertTriangle, CarTaxiFront, Search } from 'lucide-react';
+import { AlertCircle, AlertTriangle, CarTaxiFront, Search } from 'lucide-react';
 import { isCompatible } from '@tap/shared';
 import {
   Dialog,
@@ -19,7 +19,13 @@ import { InitialsAvatar } from '@/components/ui/initials-avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { cn } from '@/lib/utils';
-import { assignRideAction, listActiveDriversAction, listActiveVehiclesAction } from '../actions';
+import {
+  assignRideAction,
+  getAssignmentComplianceContextAction,
+  listActiveDriversAction,
+  listActiveVehiclesAction,
+} from '../actions';
+import { isPlanningBlocking, type EntityComplianceState } from '@tap/shared';
 import type { DriverMin, VehicleMin } from '../_lib/queries';
 
 interface Props {
@@ -78,6 +84,19 @@ export function AssignModal({ rideId, open, onOpenChange }: Props): JSX.Element 
     enabled: open,
     staleTime: 60_000,
   });
+  // Phase 06.35 DEC-114 : contexte conformité (mode org + lookup
+  // entités). Une seule round-trip serveur côté client.
+  const complianceQuery = useQuery({
+    queryKey: ['assignment-compliance'],
+    queryFn: () => getAssignmentComplianceContextAction(),
+    enabled: open,
+    staleTime: 60_000,
+  });
+  const complianceMode = complianceQuery.data?.mode ?? 'warn';
+  const driverComplianceById: Record<string, EntityComplianceState> =
+    complianceQuery.data?.lookup.byDriverId ?? {};
+  const vehicleComplianceById: Record<string, EntityComplianceState> =
+    complianceQuery.data?.lookup.byVehicleId ?? {};
 
   const drivers = (driversQuery.data ?? []) as DriverMin[];
   const vehicles = (vehiclesQuery.data ?? []) as VehicleMin[];
@@ -119,8 +138,22 @@ export function AssignModal({ rideId, open, onOpenChange }: Props): JSX.Element 
     selectedVehicle !== null &&
     !isCompatible({ driver: selectedDriver, vehicle: selectedVehicle });
 
+  // Phase 06.35 DEC-114 : flags conformité sélection courante.
+  const selectedDriverState = selectedDriverId ? driverComplianceById[selectedDriverId] : null;
+  const selectedVehicleState = selectedVehicleId ? vehicleComplianceById[selectedVehicleId] : null;
+  const driverBlocking = selectedDriverState ? isPlanningBlocking(selectedDriverState) : false;
+  const vehicleBlocking = selectedVehicleState ? isPlanningBlocking(selectedVehicleState) : false;
+  const hasComplianceIssue = driverBlocking || vehicleBlocking;
+  const blockedByCompliance = complianceMode === 'block' && hasComplianceIssue;
+
   const submit = React.useCallback(async () => {
     if (!rideId || !selectedDriverId) return;
+    // Mode 'block' : refuser côté client (l'action serveur revérifie de
+    // toute façon, defense in depth).
+    if (blockedByCompliance) {
+      toast.error('Assignation refusée : entité non conforme. Régularisez dans /admin/conformite.');
+      return;
+    }
     setPending(true);
     const res = await assignRideAction({
       rideId,
@@ -132,14 +165,29 @@ export function AssignModal({ rideId, open, onOpenChange }: Props): JSX.Element 
       toast.error(res.error);
       return;
     }
-    toast.success('Course affectée.');
+    // Mode 'warn' avec non-conformité : confirmer succès tout en
+    // signalant la responsabilité régulatrice.
+    if (complianceMode === 'warn' && hasComplianceIssue) {
+      toast.warning('Assignation effectuée sous votre responsabilité (entité non conforme).');
+    } else {
+      toast.success('Course affectée.');
+    }
     await Promise.all([
       qc.invalidateQueries({ queryKey: ['rides'] }),
       qc.invalidateQueries({ queryKey: ['ride', rideId] }),
       qc.invalidateQueries({ queryKey: ['ride-audit', rideId] }),
     ]);
     onOpenChange(false);
-  }, [qc, onOpenChange, rideId, selectedDriverId, selectedVehicleId]);
+  }, [
+    qc,
+    onOpenChange,
+    rideId,
+    selectedDriverId,
+    selectedVehicleId,
+    blockedByCompliance,
+    complianceMode,
+    hasComplianceIssue,
+  ]);
 
   const onKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
@@ -219,21 +267,41 @@ export function AssignModal({ rideId, open, onOpenChange }: Props): JSX.Element 
               <ul role="listbox" aria-label="Chauffeurs disponibles">
                 {filteredDrivers.map((d) => {
                   const active = d.id === selectedDriverId;
+                  const driverState = driverComplianceById[d.id];
+                  const driverNonConforme = driverState ? isPlanningBlocking(driverState) : false;
+                  const blockedRow = complianceMode === 'block' && driverNonConforme;
                   return (
                     <li key={d.id}>
                       <button
                         type="button"
                         role="option"
                         aria-selected={active}
-                        onClick={() => setSelectedDriverId(d.id)}
+                        onClick={() => !blockedRow && setSelectedDriverId(d.id)}
+                        disabled={blockedRow}
+                        aria-disabled={blockedRow}
+                        title={
+                          blockedRow
+                            ? 'Chauffeur non conforme : assignation bloquée par le réglage organisation.'
+                            : undefined
+                        }
                         className={cn(
                           'flex w-full items-center gap-12 px-12 py-8 text-left transition-colors duration-150',
                           'hover:bg-muted/50 focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset',
                           active && 'bg-primary/10',
+                          blockedRow && 'cursor-not-allowed opacity-60',
                         )}
                       >
                         <InitialsAvatar name={d.nom_affichage} role="chauffeur" size={24} />
                         <span className="min-w-0 flex-1 truncate text-sm">{d.nom_affichage}</span>
+                        {driverNonConforme && (
+                          <span
+                            className="text-destructive inline-flex items-center gap-4 text-xs"
+                            aria-label="Non conforme"
+                          >
+                            <AlertCircle className="h-12 w-12 shrink-0" aria-hidden />
+                            <span>Non conforme</span>
+                          </span>
+                        )}
                         {selectedVehicle ? (
                           <span
                             className={cn(
@@ -276,6 +344,41 @@ export function AssignModal({ rideId, open, onOpenChange }: Props): JSX.Element 
                 Ce chauffeur n'a pas le permis requis pour ce véhicule. Confirmez en connaissance de
                 cause.
               </p>
+            </div>
+          )}
+
+          {hasComplianceIssue && (
+            <div
+              role="alert"
+              aria-live="polite"
+              className={cn(
+                'flex items-start gap-12 rounded-md border px-16 py-12',
+                blockedByCompliance
+                  ? 'bg-destructive/10 border-destructive/30'
+                  : 'bg-warning/10 border-warning/30',
+              )}
+            >
+              <AlertCircle
+                className={cn(
+                  'mt-2 h-16 w-16 shrink-0',
+                  blockedByCompliance ? 'text-destructive' : 'text-warning',
+                )}
+                aria-hidden
+              />
+              <div className="space-y-4 text-sm">
+                <p className="text-foreground font-medium">
+                  {blockedByCompliance
+                    ? 'Assignation bloquée : entité non conforme.'
+                    : 'Entité non conforme — assignation sous votre responsabilité.'}
+                </p>
+                <p className="text-muted-foreground">
+                  {driverBlocking && 'Le chauffeur a au moins une échéance expirée. '}
+                  {vehicleBlocking && 'Le véhicule a au moins une échéance expirée. '}
+                  {blockedByCompliance
+                    ? 'Régularisez la situation dans /admin/conformite avant d’assigner.'
+                    : 'Le dirigeant a choisi le mode « avertir » : vous pouvez valider, l’action sera tracée.'}
+                </p>
+              </div>
             </div>
           )}
 
@@ -346,7 +449,7 @@ export function AssignModal({ rideId, open, onOpenChange }: Props): JSX.Element 
             type="button"
             variant="accent"
             onClick={() => void submit()}
-            disabled={!selectedDriverId || pending}
+            disabled={!selectedDriverId || pending || blockedByCompliance}
           >
             Assigner
           </Button>

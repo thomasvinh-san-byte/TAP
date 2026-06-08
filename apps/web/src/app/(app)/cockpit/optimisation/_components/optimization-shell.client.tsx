@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { AlertCircle, AlertTriangle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/page-header';
+import { cn } from '@/lib/utils';
 import { ComparativeView } from './comparative-view';
 import { ApplyConfirmationDialog } from './apply-confirmation-dialog.client';
 import { useOptimization } from '../_lib/use-optimization.client';
@@ -143,6 +145,9 @@ export function OptimizationShell({ initialRides, date }: Props): JSX.Element {
 
       {state.status === 'result' && (
         <>
+          {state.proposal.complianceWarnings && state.proposal.complianceWarnings.length > 0 && (
+            <ComplianceOptimizerWarnings warnings={state.proposal.complianceWarnings} />
+          )}
           <ComparativeView
             proposal={state.proposal}
             currentRides={initialRides}
@@ -175,5 +180,45 @@ export function OptimizationShell({ initialRides, date }: Props): JSX.Element {
         </>
       )}
     </div>
+  );
+}
+
+type ComplianceWarning = NonNullable<
+  import('@tap/optimizer-client').OptimizationProposal['complianceWarnings']
+>[number];
+
+function ComplianceOptimizerWarnings({ warnings }: { warnings: ComplianceWarning[] }): JSX.Element {
+  const blocked = warnings.filter((w) => w.blocked);
+  const isBlockMode = blocked.length > 0;
+  return (
+    <section
+      role="alert"
+      aria-live="polite"
+      className={cn(
+        'flex items-start gap-12 rounded-md border px-16 py-12',
+        isBlockMode ? 'bg-destructive/10 border-destructive/30' : 'bg-warning/10 border-warning/30',
+      )}
+    >
+      {isBlockMode ? (
+        <AlertCircle className="text-destructive mt-2 h-16 w-16 shrink-0" aria-hidden />
+      ) : (
+        <AlertTriangle className="text-warning mt-2 h-16 w-16 shrink-0" aria-hidden />
+      )}
+      <div className="space-y-4 text-sm">
+        <p className="text-foreground font-medium">
+          {isBlockMode
+            ? `${warnings.length} véhicule${warnings.length > 1 ? 's' : ''} non conforme${warnings.length > 1 ? 's' : ''} exclu${warnings.length > 1 ? 's' : ''} de l’optimisation`
+            : `${warnings.length} véhicule${warnings.length > 1 ? 's' : ''} non conforme${warnings.length > 1 ? 's' : ''} utilisé${warnings.length > 1 ? 's' : ''} sous votre responsabilité`}
+        </p>
+        <ul className="text-muted-foreground list-disc pl-16">
+          {warnings.map((w) => (
+            <li key={w.vehicle_id}>{w.label}</li>
+          ))}
+        </ul>
+        <Link href="/admin/conformite" className="text-primary inline-flex text-xs hover:underline">
+          Gérer les échéances
+        </Link>
+      </div>
+    </section>
   );
 }

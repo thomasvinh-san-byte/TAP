@@ -35,4 +35,5 @@ export {
   listActiveDriversAction,
   listActiveVehiclesAction,
   getActiveTariffGridAction,
+  getAssignmentComplianceContextAction,
 } from './list';

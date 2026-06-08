@@ -1,5 +1,66 @@
 # Journal — phases livrées
 
+## 2026-06-08 — Phase 06.35 livrée localement (Conformité lot 3 : contrôle planification — module COMPLET)
+
+Troisième et **dernier** lot du module Conformité (CdC §5.21). Construit le contrôle conformité à la planification : avertissement souple par défaut, blocage dur paramétrable, appliqué à l'assignation manuelle ET à l'optimiseur.
+
+### Cadrage validé
+
+- **Q4 SOUPLE par défaut, paramétrable vers DUR** : Souple = avertissement (régulatrice garde la main, sa responsabilité). Dur = assignation empêchée. RETEX secteur/FOSS : visibilité prime sur verrou. Défaut = souple.
+- **Q5 OPTIMISEUR INCLUS** : contrôle manuel ET auto (sinon contournement).
+- **Q6 Granularité GLOBALE** : réglage org unique. Pas de raffinement par type d'échéance V1.
+
+### D-01 — Migration légère
+
+`20260608000002_compliance_blocking_mode.sql` : ajout colonne `compliance_blocking_mode text not null default 'warn' check (in 'warn','block')` sur `organizations`. Pas de table settings (Q6 global = 1 colonne suffit).
+
+### D-02 — Helper niveau entité
+
+`packages/shared/src/utils/entity-compliance-state.ts` :
+- `entityComplianceState(items, today?)` → `{ hasExpired, hasSoon, worstStatus }`.
+- `isPlanningBlocking(state)` → `boolean` (critère = au moins une échéance expirée).
+- **8 tests Vitest verts**.
+
+### D-03 — Assign-modal
+
+- `getAssignmentComplianceContextAction` (round-trip unique : mode + lookup) via useQuery.
+- Badge **« Non conforme »** (icône `AlertCircle` + texte, WCAG 1.4.1) sur chauffeurs avec ≥1 échéance expirée.
+- **Mode `warn`** : ligne sélectionnable + panneau d'avertissement « Entité non conforme — assignation sous votre responsabilité » + toast `warning` au succès.
+- **Mode `block`** : ligne **désactivée** (`disabled`, `aria-disabled`, opacité 60) + submit refusé client + **revérif serveur dans `assignRideAction`** (defense in depth).
+
+### D-04 — Optimiseur
+
+`POST /api/optimizer` :
+- Lit `compliance_blocking_mode` + lookup véhicules.
+- Mode `warn` : tous au solveur + signalement via `proposal.complianceWarnings`.
+- Mode `block` : véhicules non conformes filtrés du pool envoyé au solveur + `complianceWarnings.blocked=true`.
+- UI `optimization-shell` affiche `<ComplianceOptimizerWarnings>` (panneau dédié, icône + texte + lien `/admin/conformite`).
+- Extension `OptimizationProposal.complianceWarnings?` (`@tap/optimizer-client`) — rétro-compatible.
+
+### D-06 — Réglage UI dirigeant
+
+`<BlockingModeControl>` SegmentedControl Avertir/Bloquer dans `/admin/conformite` (réservé dirigeant) + `updateComplianceBlockingModeAction` (DEC-041 row-count check). Texte explicatif sobre.
+
+### Validation
+
+- `pnpm typecheck` propre
+- `pnpm test` **129/129 web + 114/114 shared verts** (8 nouveaux tests entity-compliance-state)
+- `pnpm build` vert
+- `pnpm lint` clean
+- 1 migration BDD (colonne org), 0 cron, 0 dépendance
+- Defense in depth : mode block revérifié serveur ✓
+- WCAG 1.4.1 : non-conformité = icône + texte ✓
+
+### Module Conformité §5.21 COMPLET
+
+| Lot | Phase | Statut |
+|---|---|---|
+| 1 — Fondation (modèle + saisie + statut + badges) | 06.33 | ✅ #259 |
+| 2 — Alertes in-app (cockpit + dashboard) | 06.34 | ✅ #260 |
+| 3 — Contrôle planification souple/paramétrable | 06.35 | ✅ cette PR |
+
+**DEC-114 LOCKED**. Pas d'ADR séparé (colonne simple, cohérent ADR-013).
+
 ## 2026-06-08 — Phase 06.34 livrée localement (Conformité lot 2 : alertes in-app cockpit + dashboard)
 
 Deuxième lot du module Conformité (CdC §5.21). Construit les alertes d'échéance **IN-APP** dérivées. Suit le cadrage GSD validé (discuss clos avec le dirigeant).

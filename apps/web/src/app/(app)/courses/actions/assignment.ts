@@ -18,6 +18,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { getAuthContext as getAuthContextWithRole } from '@/lib/auth/get-auth-context';
+import { checkAssignmentCompliance } from '../../../(admin)/admin/conformite/_lib/compliance-planning';
 import { REGULATEUR_OR_DIRIGEANT, type ActionState } from './_shared';
 
 const assignRideInputSchema = z.object({
@@ -50,6 +51,17 @@ export async function assignRideAction(
     return {
       error: "Cette course n'est plus assignable (statut : " + currentRow.status + ').',
     };
+  }
+
+  // Phase 06.35 DEC-114 : revérif conformité serveur (defense in depth).
+  // Mode 'warn' = toujours accepté ; mode 'block' = refus si entité non
+  // conforme. Le client peut sauter sa propre vérif en mode 'warn'.
+  const complianceCheck = await checkAssignmentCompliance(
+    parsed.data.driverId,
+    parsed.data.vehicleId ?? null,
+  );
+  if (!complianceCheck.allowed) {
+    return { error: complianceCheck.reason };
   }
 
   const update = {
