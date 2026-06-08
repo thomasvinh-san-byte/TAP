@@ -3,16 +3,24 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.39 livrée localement (SegmentedControl — densité resserrée). PR à ouvrir."
-last_updated: "2026-06-08T19:30:00.000Z"
-last_activity: Phase 06.39 cadrée + exécutée. SegmentedControl trop haut sur écrans denses (patients/chauffeurs), détonnait vs le champ de recherche voisin. Cause : segment py-6 → la clé 6 hors scale custom → fallback Tailwind 24px → hauteur ~76px (≈2× l'Input h-10 de 40px). D-01 : py-6 → py-4 (4px) → hauteur ~36px (h-9), alignée sur la barre de filtres ; conteneur p-4/gap-4/rounded-lg conservés ; actif bg-background + font-medium + shadow-sm CONSERVÉS (fond plein actif = bon pattern a11y, surtout dark — ne PAS le retirer). D-02 : alignement vérifié vs PatientSearch (Input h-10) dans la rangée flex items-center. D-03 : périmètre densité uniquement, pas d'API/logique/couleur ; composant partagé → 3 usages (patients, chauffeurs, assign-modal) + blocking-mode-control. typecheck/lint/build OK, 129/129 tests verts. Contraste ≥4.5:1 jour+nuit conservé, prefers-reduced-motion inchangé. 0 migration, 0 dépendance, 0 régression. DEC-118 LOCKED. PR à ouvrir.
-last_activity_prev: Phase 06.38 cadrée + exécutée. Désencombrement du header dirigeant (passé de 5 à 11 entrées plates, > seuil secteur 5-7). Pas de sidebar (repoussée si besoin persiste). D-01 : dirigeant = 5 liens primaires (Tableau de bord, Cockpit, Patients, Courses, Caisse) + 3 menus déroulants (Flotte ▾ : Chauffeurs/Véhicules/Conformité/Maintenance ; Gestion ▾ : Tarifs/Facturation ; Légal ▾ inchangé). D-02 : régulateur conservé à 5 entrées plates (sous le seuil, son flux quotidien reste 1 clic). D-03 : <NavGroupMenu> générique créé (pattern LegalNavMenu généralisé, signature bleue active DEC-115 — soulignement 3px + text-primary cohérents). LegalNavMenu réécrit pour suivre exactement le même style + items lus depuis LEGAL_NAV_GROUP (nav-config source unique). Items du menu marqués aria-current quand actifs. D-04 : nav-config restructuré (NavGroup, RoleNav, navForRole). tabsForRole conservé en rétro-compat. D-05 : pas de sidebar, pas de changement d'URL, pas header chauffeur PWA. WCAG/RGAA : DropdownMenu shadcn (clavier OK), aria-current sur trigger + item. 0 migration BDD, 0 dépendance, 0 régression. DEC-117 LOCKED. PR à ouvrir.
+stopped_at: "Phase 06.40 livrée localement (hygiène .planning + resync tracking + docs de référence). PR à ouvrir."
+last_updated: "2026-06-08T21:00:00.000Z"
+last_activity: Phase 06.40 (hygiène projet planning/docs-only). git rm de ~224 fichiers de processus consommé sous .planning/phases/ (PLAN/CONTEXT/SUMMARY/DISCUSSION-LOG/UI-SPEC/RESEARCH/UAT/VERIFICATION/STEPS des phases déjà livrées + mergées) — git garde l'historique, pas d'archivage parallèle. PRÉSERVÉ : 10.0-prototype-geoloc/ (seul fichier restant sous phases/). 3 deferred-items fusionnés dans le registre AVANT suppression (dette ESLint v10 flat config + test SIRET Luhn Carrefour). STATE recompté (compteur faux 34/38 corrigé → 50 livrées). Registre DEC de PROJECT.md réconcilié avec ROADMAP (DEC-118 + manquants ajoutés). 6 docs de référence durables créés/relocalisés (registre-travaux-repousses + elements-disponibles à la racine ; cadrage+journal conformité sous modules/conformite/ ; cadrage exports sous modules/exports/ ; recherche UI sous research/). 0 code applicatif, 0 migration. DEC-119 LOCKED.
+last_activity_prev: Phase 06.39 — SegmentedControl densité resserrée (py-6→py-4, ~36px aligné sur Input h-10). Fond plein actif + font-medium + shadow-sm CONSERVÉS. 3 usages + blocking-mode-control. 129/129 tests verts. DEC-118 LOCKED.
+# Comptage des phases (recompté 2026-06-08, D-02) : la roadmap est vivante, le
+# dénominateur fixe historique « 38 » est obsolète. completed_phases = identifiants
+# de phase numérotés marqués [x] dans ROADMAP — socle produit+technique (30) + phases
+# individuelles livrées ensuite (06.20-06.23 pré-prod + 06.24-06.39
+# incarnation/conformité/header/exports/densité, hors lot-5 = décision sans numéro) = 50.
+# Restantes réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07 abandonnée
+# (DEC-092) hors compte. Dernière phase livrée : 06.39. Dernier DEC : 118 (06.39 ;
+# 119 = ce lot d'hygiène). Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 38
-  completed_phases: 34
+  total_phases: 52
+  completed_phases: 50
   total_plans: 89
   completed_plans: 89
-  percent: 89
+  percent: 96
 ---
 
 # Project State
@@ -22,7 +30,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.38 livrée localement (header — regroupement nav dirigeant Flotte/Gestion). 5 primaires + 3 menus au lieu de 11 plats. Régulateur inchangé. 34/38 phases livrées. Restantes : 09 HDS + 10 géoloc réelle.
+**Current focus:** Phase 06.40 livrée localement (hygiène .planning : ~224 fichiers de processus consommé supprimés, STATE recompté, registre DEC réconcilié, 6 docs de référence durables). 50 phases livrées (recompté — cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle.
 
 ## Current Position
 
@@ -31,12 +39,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.39 livrée localement (2026-06-08) — SegmentedControl densité resserrée (py-6→py-4, ~36px aligné sur Input h-10). PR à ouvrir.
+Phase: 06.40 livrée localement (2026-06-08) — hygiène .planning (nettoyage processus consommé + resync STATE + réconciliation registre DEC + 6 docs de référence). PR à ouvrir.
 Phase next: Phase 09 HDS + Phase 10 géoloc réelle ; sidebar repoussée si besoin persiste.
-Status: 34/38 phases livrées. Programme d'incarnation complet + Conformité §5.21 COMPLET + exports §5.23 partiel + header regroupé + densité SegmentedControl LIVRÉS.
+Status: 50 phases livrées (recompté D-02). Programme d'incarnation complet + Conformité §5.21 COMPLET + exports §5.23 partiel + header regroupé + densité SegmentedControl LIVRÉS. .planning/ assaini (seul 10.0-prototype-geoloc conservé sous phases/).
 Blockers: aucun
-Last activity: Phase 06.39 — SegmentedControl resserré (py-6 retombait sur 24px Tailwind par défaut → ~76px ; py-4 → ~36px h-9 aligné sur l'Input h-10). Fond plein actif + font-medium + shadow-sm CONSERVÉS (anti-pattern de retirer le fond). Composant partagé → 3 usages + blocking-mode-control. 129/129 tests verts, jour+nuit OK, contraste ≥4.5:1. DEC-118 LOCKED. PR à ouvrir.
-Précédent: 06.38 header regroupement nav (DEC-117), 06.37 exports §5.23 (#263), 06.36 incarnation header (#262).
+Last activity: Phase 06.40 — git rm ~224 fichiers de processus consommé sous .planning/phases/ (git garde l'historique) ; 10.0-prototype-geoloc préservé ; deferred-items fusionnés au registre (ESLint v10 + SIRET Luhn) ; STATE recompté (34/38 faux → 50) ; registre DEC PROJECT.md réconcilié (jusqu'à 118) ; 6 docs de référence durables créés/relocalisés. 0 code, 0 migration. DEC-119 LOCKED. PR à ouvrir.
+Précédent: 06.39 densité SegmentedControl (DEC-118, #265), 06.38 header regroupement nav (DEC-117), 06.37 exports §5.23 (#263).
 
 Progress: [██████████] 100%
 
@@ -212,7 +220,7 @@ Skill `tap-neutralite` installée + cablée dans agent_skills.* (6 agent-types) 
 ## Session Continuity
 
 Last session: 2026-06-05T11:15:00.000Z
-Stopped at: Phase 06.24 livrée localement — premier lot d'incarnation DEC-101 (PageHeader + hiérarchie typo). 34/38 phases livrées. PR à ouvrir.
+Stopped at: Phase 06.40 livrée localement — hygiène .planning + resync tracking + 6 docs de référence. 50 phases livrées (recompté). PR à ouvrir.
 Resume file: None
 Next command suggested: après merge PR 06.24 → lot 3 incarnation (terracotta sur moments-clés) ou poursuite autres lots (skeletons/empty-states, refactor cohérence, rangement contextualisé) ou décision business Phase 09 HDS.
 
