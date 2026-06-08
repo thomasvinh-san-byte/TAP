@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   Plus,
@@ -18,6 +17,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState as SharedEmptyState } from '@/components/ui/empty-state';
+import { SegmentedNav } from '@/components/ui/segmented-control';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
 import { DataTable, type DataTableColumn } from '@/components/data-table';
 import {
@@ -457,38 +457,14 @@ export function DriversList({ initialDrivers, currentRole, vue }: Props): JSX.El
 
 function ViewToggle({ currentVue }: { currentVue: Vue }) {
   return (
-    <div
-      role="tablist"
-      aria-label="Filtre chauffeurs"
-      className="border-border bg-muted/40 inline-flex rounded-md border p-2"
-    >
-      <Link
-        href="/admin/chauffeurs?vue=actifs"
-        role="tab"
-        aria-selected={currentVue === 'actifs'}
-        className={
-          'rounded-sm px-12 py-6 text-sm transition-colors ' +
-          (currentVue === 'actifs'
-            ? 'bg-background text-foreground shadow-sm'
-            : 'text-muted-foreground hover:text-foreground')
-        }
-      >
-        Actifs
-      </Link>
-      <Link
-        href="/admin/chauffeurs?vue=archives"
-        role="tab"
-        aria-selected={currentVue === 'archives'}
-        className={
-          'rounded-sm px-12 py-6 text-sm transition-colors ' +
-          (currentVue === 'archives'
-            ? 'bg-background text-foreground shadow-sm'
-            : 'text-muted-foreground hover:text-foreground')
-        }
-      >
-        Archivés
-      </Link>
-    </div>
+    <SegmentedNav<Vue>
+      ariaLabel="Filtre chauffeurs"
+      value={currentVue}
+      options={[
+        { value: 'actifs', label: 'Actifs', href: '/admin/chauffeurs?vue=actifs' },
+        { value: 'archives', label: 'Archivés', href: '/admin/chauffeurs?vue=archives' },
+      ]}
+    />
   );
 }
 
