@@ -143,6 +143,17 @@ EXTERNE (donnée/spec à obtenir d'un tiers).
 ---
 
 ## 5. Dette technique notée (pas un report fonctionnel, à surveiller)
+- **ESLint v10 flat config cassé (pré-existant, depuis Phase 04)** : ESLint 10.1.0 impose
+  le flat config ; le repo a encore des `.eslintrc.*` (V8) → `pnpm lint` rouge par défaut
+  (`@tap/shared`, `@tap/database` : config introuvable ; `apps/web` : `next lint` interactif).
+  `pnpm typecheck` reste vert. Déblocage : 🔍 PR dédiée `chore(tooling): migrate ESLint flat
+  config + Next lint setup`. (Issu de phases/04 deferred-items, fusionné 2026-06-08.)
+- **Test SIRET Luhn échoue sur fixture Carrefour (pré-existant, depuis Phase 01/01.5)** :
+  `siretSchema.parse('40483304800010')` échoue le contrôle Luhn dans
+  `packages/shared/src/validators/common.ts`. Cause probable : mauvais SIRET de test OU bug
+  `verifyLuhn`. Déblocage : 🔍 valider l'algo contre 5+ SIRET réels publics avant de toucher
+  au schema ; correctif `fix(shared): SIRET Luhn check` (≤1h). (Issu de phases/01 + 01.5
+  deferred-items, fusionné 2026-06-08.)
 - Audit complet Server Actions row count check (DEC-041) : généralisé en conformité, à confirmer partout.
 - Imports cross-domaine profonds vers `_lib/compliance-planning` (lot 3 conformité) : à déplacer en lib neutre si retouché.
 - 4 fichiers courses > 300 lignes (address-picker, assign-modal, rides-list, ride-drawer) : hors limite CON-008, non urgents.
@@ -160,4 +171,3 @@ EXTERNE (donnée/spec à obtenir d'un tiers).
 | Email transactionnel (1.2) | 💳🔍 | Choisir provider quand l'email devient nécessaire |
 | Téléphonie CTI (2.4) | 💳 | Service téléphonie pour identification appelant (V1.5) |
 | Natif mobile (3.10) | 🗳 | Business case sur retour PWA |
-
