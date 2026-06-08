@@ -1,4 +1,5 @@
 import { Calendar } from 'lucide-react';
+import { PageHeader } from '@/components/page-header';
 import { listMyRidesUpcoming, type RideForDriverWithBucket } from './_lib/queries';
 import { RideCard } from './_components/ride-card.client';
 import { ActivationToast } from './_components/activation-toast.client';
@@ -27,9 +28,11 @@ export default async function ConduitePage() {
         <ActivationToast />
         <div className="flex flex-col items-center gap-12 py-48 text-center">
           <Calendar className="text-muted-foreground h-48 w-48" aria-hidden strokeWidth={1.5} />
-          <h1 className="text-lg font-semibold">Aucune course planifiée</h1>
-          <p className="text-muted-foreground max-w-[320px] text-sm">
-            Les courses à venir s&apos;afficheront ici.
+          <h1 className="text-2xl font-semibold tracking-tight">
+            Pas de course pour l&apos;instant
+          </h1>
+          <p className="text-muted-foreground max-w-[320px] text-base">
+            Vos prochaines courses apparaîtront ici dès qu&apos;elles vous seront assignées.
           </p>
         </div>
       </>
@@ -44,12 +47,14 @@ export default async function ConduitePage() {
       <ActivationToast />
       <div className="space-y-24">
         <GeolocConsentBanner />
-        <header className="flex items-baseline justify-between">
-          <h1 className="text-2xl font-semibold tracking-tight">Ma journée</h1>
-          <span className="text-muted-foreground text-sm tabular-nums">
-            {rides.length} course{rides.length > 1 ? 's' : ''}
-          </span>
-        </header>
+        <PageHeader
+          title="Ma journée"
+          actions={
+            <span className="text-muted-foreground text-sm tabular-nums">
+              {rides.length} course{rides.length > 1 ? 's' : ''}
+            </span>
+          }
+        />
 
         {today.length > 0 && <RideCluster label="Aujourd'hui" rides={today} />}
         {tomorrow.length > 0 && <RideCluster label="Demain" rides={tomorrow} />}

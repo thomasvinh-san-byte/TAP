@@ -153,6 +153,7 @@ export function RideActions({ rideId, status, endedAt, variant = 'inline' }: Pro
     <div className={stickyCls}>
       <Button
         type="button"
+        variant="accent"
         onClick={onStart}
         disabled={pending || hasPendingSync}
         className="h-14 w-full text-base font-semibold"

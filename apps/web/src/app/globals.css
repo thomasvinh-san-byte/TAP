@@ -35,6 +35,42 @@
       transition-duration: 0.01ms !important;
     }
   }
+
+  /* Phase 06.28 / DEC-108 — Mode contraste élevé chauffeur (DEC-014).
+   * Renforce bordures et texte secondaire pour lisibilité plein soleil.
+   * Activé par toggle utilisateur (data-driver-contrast="high" posé via
+   * `use-high-contrast.client.ts`) OU automatiquement quand l'OS signale
+   * `prefers-contrast: more`. Tokens sémantiques uniquement, 0 hex.
+   *
+   * Stratégie : on touche border + muted-foreground + input (le texte
+   * principal --foreground est déjà très foncé en clair / très clair en
+   * sombre, donc rien à gagner). Tranches plus marquées suffisent à
+   * faire la différence dehors. */
+  [data-driver-contrast='high'] {
+    --border: 214 50% 45%;
+    --input: 214 50% 45%;
+    --muted-foreground: 215 30% 25%;
+  }
+
+  [data-theme='dark'][data-driver-contrast='high'] {
+    --border: 214 50% 75%;
+    --input: 214 50% 75%;
+    --muted-foreground: 215 30% 85%;
+  }
+
+  @media (prefers-contrast: more) {
+    :root {
+      --border: 214 50% 45%;
+      --input: 214 50% 45%;
+      --muted-foreground: 215 30% 25%;
+    }
+
+    [data-theme='dark'] {
+      --border: 214 50% 75%;
+      --input: 214 50% 75%;
+      --muted-foreground: 215 30% 85%;
+    }
+  }
 }
 
 @layer utilities {

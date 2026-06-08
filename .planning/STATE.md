@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Lot 5 (rangement) — audit + DEC-107 LOCKED, PR planning-only à ouvrir. Programme d'incarnation Régulation DEC-101 désormais COMPLET (5/5)."
-last_updated: "2026-06-05T16:00:00.000Z"
-last_activity: Lot 5 rangement Régulation — décision actée (PAS de refactor). Audit conclut que le rangement est sain en pratique (nav unifiée par rôle, surlignage correct via plus-long-préfixe, accès régulateur à /admin/chauffeurs légitime). Coût d'un déplacement d'URL (25+ refs + redirections + habitudes) > bénéfice (cosmétique). DEC-107 LOCKED inscrite dans PROJECT.md, journal mis à jour, ROADMAP item rangement coché, 1 ligne de commentaire ajoutée à nav-config.ts pour tracer la décision. Programme d'incarnation Régulation DEC-101 désormais COMPLET (5/5 lots). PR planning-only à ouvrir.
+stopped_at: "Phase 06.28 livrée localement (incarnation Chauffeur — terracotta moment-clé + contraste élevé terrain). PR à ouvrir."
+last_updated: "2026-06-05T17:00:00.000Z"
+last_activity: Phase 06.28 cadrée + exécutée. Incarnation famille Chauffeur (driver) — déclinaison « grande et lisible » de DEC-101 sur le terrain. D-01 : terracotta sur "Démarrer la course" (variant=accent, cohérence lot 2 ; "Clôturer" reste bg-warning = sémantique d'attention de fin). D-02 : en-tête /conduite migré vers PageHeader ; empty state accueillant (« Pas de course pour l'instant », titre text-2xl, description text-base). D-03 : mode contraste élevé (DEC-014) implémenté — hook useHighContrast + HighContrastToggle dans header driver + CSS overrides via [data-driver-contrast="high"] et @media (prefers-contrast: more) auto-detect ; persistance localStorage. 0 hex en dur, cibles 56px préservées, tint crème intact, offline non régressé. DEC-108 LOCKED. PR à ouvrir.
 progress:
   total_phases: 38
   completed_phases: 34
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Lot 5 (rangement Régulation) audité — DEC-107 LOCKED, pas de refactor (coût > bénéfice). **Programme d'incarnation Régulation DEC-101 désormais COMPLET (5/5 lots).** 34/38 phases livrées. Restantes : 09 HDS + 10 géoloc réelle ; incarnation des autres familles (Caisse, PWA chauffeur, B2B, Admin) à planifier après design partner.
+**Current focus:** Phase 06.28 livrée localement (incarnation Chauffeur — terrain). Famille driver « grande et lisible » alignée sur DEC-101 : terracotta moment-clé, en-tête harmonisé, mode contraste élevé DEC-014. 34/38 phases livrées. Restantes : 09 HDS + 10 géoloc réelle ; incarnation des autres familles (Caisse intégrée régulation, B2B, Admin) à planifier après design partner.
 
 ## Current Position
 
@@ -30,12 +30,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: Lot 5 rangement Régulation — audit + DEC-107 LOCKED (planning-only, pas de refactor). Programme d'incarnation Régulation COMPLET (5/5).
-Phase next: Phase 09 HDS + Phase 10 géoloc réelle ; incarnation des autres familles (Caisse, PWA chauffeur, B2B, Admin) à planifier.
-Status: 34/38 phases livrées. Programme d'incarnation Régulation DEC-101 désormais COMPLET (lots 1-5).
+Phase: 06.28 livrée localement (2026-06-05) — incarnation Chauffeur (driver) sur le terrain. PR à ouvrir.
+Phase next: Phase 09 HDS + Phase 10 géoloc réelle ; incarnation des autres familles à planifier.
+Status: 34/38 phases livrées. Famille Régulation (5 lots) + famille Chauffeur (1 phase) du programme d'incarnation DEC-101 LIVRÉS.
 Blockers: aucun
-Last activity: Lot 5 rangement — audit conclut que le rangement est sain ; coût d'un déplacement d'URL > bénéfice ; question close. DEC-107 LOCKED, 1 ligne de commentaire ajoutée à nav-config.ts pour tracer la décision. PR planning-only à ouvrir.
-Précédent: 06.27 lot 4 refactor + modales (#252), 06.26 lot 3 skeletons (#251), 06.25 lot 2 terracotta (#250).
+Last activity: Phase 06.28 — Démarrer la course en terracotta (cohérence lot 2) ; en-tête conduite via PageHeader + empty state accueillant ; mode contraste élevé DEC-014 (toggle persistant + prefers-contrast auto-detect, CSS vars uniquement). Cibles 56px, offline, tint crème préservés. DEC-108 LOCKED. PR à ouvrir.
+Précédent: lot 5 rangement Régulation décision (#253), 06.27 lot 4 refactor modales (#252), 06.26 lot 3 skeletons (#251).
 
 Progress: [██████████] 100%
 
