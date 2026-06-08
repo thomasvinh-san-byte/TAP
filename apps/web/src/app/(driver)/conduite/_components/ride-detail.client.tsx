@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { formatRelativeFr, formatTimeFr } from '@/lib/dates-fr';
 import type { RideForDriverList } from '../_lib/queries';
 import { RideActions } from './ride-actions.client';
+import { RideChat } from '@/components/messaging/ride-chat.client';
 
 const STATUS_BAR: Record<string, string> = {
   assignee: 'bg-muted',
@@ -133,6 +134,10 @@ export function RideDetail({ ride }: Props): JSX.Element {
           )}
         </div>
       </article>
+
+      <section className="border-border bg-background rounded-lg border px-16 py-16 shadow-sm">
+        <RideChat rideId={ride.id} className="max-h-[280px] min-h-[140px]" />
+      </section>
 
       <RideActions rideId={ride.id} status={ride.status} endedAt={ride.ended_at} variant="sticky" />
     </div>
