@@ -118,7 +118,7 @@ export async function startRideAction(rideId: string): Promise<ActionState> {
   if (error) return { error: 'Démarrage course impossible.' };
   if (!updated || updated.length === 0) {
     return {
-      error: 'Course non modifiée — vérifiez que vous êtes bien le chauffeur assigné.',
+      error: 'Course non modifiée : vérifiez que vous êtes bien le chauffeur assigné.',
     };
   }
 
@@ -209,7 +209,7 @@ export async function endRideAction(
   if (error) return { error: 'Clôture course impossible.' };
   if (!updated || updated.length === 0) {
     return {
-      error: 'Course non modifiée — vérifiez que vous êtes bien le chauffeur assigné.',
+      error: 'Course non modifiée : vérifiez que vous êtes bien le chauffeur assigné.',
     };
   }
 

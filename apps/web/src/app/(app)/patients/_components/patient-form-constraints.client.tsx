@@ -77,7 +77,7 @@ export function PatientFormConstraints({ patientId, initial }: Props) {
           <li key={c.id}>
             <Badge variant="outline" className="gap-8">
               {CONSTRAINT_TYPES.find((t) => t.value === c.type)?.label ?? c.type}
-              {c.note ? ` — ${c.note}` : ''}
+              {c.note ? ` : ${c.note}` : ''}
               <button
                 type="button"
                 onClick={() => handleRemove(c.id)}

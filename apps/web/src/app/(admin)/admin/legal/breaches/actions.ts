@@ -113,7 +113,7 @@ export async function closeBreachAction(id: string): Promise<ActionState> {
 
   if (upd.error) return { error: 'Fermeture impossible.' };
   if (!upd.data || (upd.data as unknown[]).length === 0) {
-    return { error: 'Fermeture refusée — droits insuffisants ou incident absent.' };
+    return { error: 'Fermeture refusée : droits insuffisants ou incident absent.' };
   }
   revalidatePath('/admin/legal/breaches');
   return { success: true };

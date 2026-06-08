@@ -58,7 +58,7 @@ export function RegistreList({ entries }: { entries: Entry[] }) {
         <EmptyState
           icon={BookOpen}
           title="Registre vide"
-          description="Pré-remplissez votre registre RGPD avec les traitements détectés automatiquement — à relire et adapter."
+          description="Pré-remplissez votre registre RGPD avec les traitements détectés automatiquement : à relire et adapter."
           action={{
             href: '/admin/legal/registre/pre-remplir',
             label: 'Pré-remplir',

@@ -45,7 +45,7 @@ export async function acceptCguAction(version: string): Promise<ActionState> {
 
   if (upd.error) return { error: 'Mise à jour profil impossible.' };
   if (!upd.data || (upd.data as unknown[]).length === 0) {
-    return { error: 'Mise à jour refusée — droits insuffisants ou profil absent.' };
+    return { error: 'Mise à jour refusée : droits insuffisants ou profil absent.' };
   }
 
   revalidatePath('/admin/legal');

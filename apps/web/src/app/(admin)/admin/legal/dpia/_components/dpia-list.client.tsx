@@ -87,7 +87,7 @@ export function DpiaList({ entries }: { entries: Entry[] }) {
             <p className="text-foreground mt-16 font-medium">Aucune analyse d&apos;impact.</p>
             <p className="text-muted-foreground mx-auto mt-8 max-w-md text-sm">
               TAP peut créer une trame d&apos;analyse d&apos;impact pour le transport de données de
-              santé — la structure, à compléter par vos soins.
+              santé : la structure, à compléter par vos soins.
             </p>
             <Button asChild className="mt-24">
               <Link href="/admin/legal/dpia/pre-remplir">Créer une trame DPIA</Link>

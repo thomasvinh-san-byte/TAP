@@ -47,7 +47,7 @@ export function DriverPositionsPanel({ initial, driverLabels }: Props): JSX.Elem
     id: p.id,
     lat: p.lat,
     lng: p.lng,
-    label: `${driverLabels[p.driver_id] ?? 'Chauffeur'} — ${formatPositionAge(p.captured_at, now)}`,
+    label: `${driverLabels[p.driver_id] ?? 'Chauffeur'} · ${formatPositionAge(p.captured_at, now)}`,
     tone: positionTone(p.captured_at, now),
   }));
 
@@ -72,7 +72,7 @@ export function DriverPositionsPanel({ initial, driverLabels }: Props): JSX.Elem
 
       <p className="text-muted-foreground text-sm">
         Dernière position connue à chaque pointage. Pas de suivi continu. Le marqueur indique
-        l&apos;âge de la donnée — il ne reflète pas une position « en direct ».
+        l&apos;âge de la donnée : il ne reflète pas une position « en direct ».
       </p>
 
       <div className="h-[320px] w-full">

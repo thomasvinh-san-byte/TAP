@@ -10,7 +10,7 @@ import { CookieBanner } from '@/components/cookie-banner.client';
  * présents systématiquement.
  */
 export const metadata: Metadata = {
-  title: { default: 'TAP Régulation', template: '%s — TAP Régulation' },
+  title: { default: 'TAP Régulation', template: '%s · TAP Régulation' },
 };
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {

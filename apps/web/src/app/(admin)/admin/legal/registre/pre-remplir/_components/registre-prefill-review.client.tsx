@@ -89,7 +89,7 @@ export function RegistrePrefillReview({
       </div>
 
       <p className="text-muted-foreground text-sm">
-        {entries.length} entrées proposées — décochez celles à ne pas insérer.
+        {entries.length} entrées proposées : décochez celles à ne pas insérer.
       </p>
 
       <div className="space-y-16">

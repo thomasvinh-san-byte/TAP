@@ -9,7 +9,7 @@
  */
 
 export const DPIA_PREFILL_TRAME = {
-  title: "Analyse d'impact relative à la protection des données — transport de données de santé",
+  title: "Analyse d'impact relative à la protection des données : transport de données de santé",
   scope:
     'Traitement des données de santé des patients dans le cadre du transport sanitaire conventionné (mobilité réduite, dialyse, TPMR) : recueil, planification, exécution et traçabilité des courses.',
 };

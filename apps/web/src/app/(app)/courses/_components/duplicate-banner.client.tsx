@@ -33,7 +33,7 @@ export function DuplicateBanner(props: DuplicateBannerProps): JSX.Element | null
       <ul className="space-y-4 text-sm text-amber-900/80 dark:text-amber-100/80">
         {props.duplicates.slice(0, 3).map((d) => (
           <li key={d.id}>
-            {formatHourFR(d.scheduled_at)} — {STATUS_LABELS_FR[d.status] ?? d.status}
+            {formatHourFR(d.scheduled_at)} · {STATUS_LABELS_FR[d.status] ?? d.status}
           </li>
         ))}
       </ul>

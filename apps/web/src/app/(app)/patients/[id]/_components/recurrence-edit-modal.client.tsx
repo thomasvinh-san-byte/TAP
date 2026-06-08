@@ -301,7 +301,7 @@ export function RecurrenceEditModal({
             <DialogDescription>
               {futureCount > 0
                 ? `${futureCount} occurrence(s) non démarrée(s) seront supprimées et regénérées.`
-                : 'Aucune occurrence future à régénérer — seule la récurrence sera mise à jour.'}
+                : 'Aucune occurrence future à régénérer : seule la récurrence sera mise à jour.'}
             </DialogDescription>
           </DialogHeader>
           <p className="text-muted-foreground text-xs">

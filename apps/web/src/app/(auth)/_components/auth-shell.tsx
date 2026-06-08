@@ -47,11 +47,11 @@ export function AuthShell({ children, title, footerHint, rightSlot }: AuthShellP
             priority
           />
           <p className="text-muted-foreground max-w-[440px] text-base leading-[1.5]">
-            Régulation, optimisation, pilotage TAP/CGSS — 974
+            Régulation, optimisation, pilotage TAP/CGSS · 974
           </p>
         </div>
         <footer className="text-muted-foreground text-xs">
-          SaaS de régulation TAP — Réunion 974
+          SaaS de régulation TAP · Réunion 974
         </footer>
       </aside>
 

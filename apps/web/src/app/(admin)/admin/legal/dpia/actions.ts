@@ -141,7 +141,7 @@ export async function updateDpiaAction(
 
   if (upd.error) return { error: 'Modification impossible.' };
   if (!upd.data || (upd.data as unknown[]).length === 0) {
-    return { error: 'Modification refusée — droits insuffisants ou DPIA absente.' };
+    return { error: 'Modification refusée : droits insuffisants ou DPIA absente.' };
   }
   revalidatePath('/admin/legal/dpia');
   return { success: true };

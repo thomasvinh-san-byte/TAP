@@ -51,7 +51,7 @@ export function GeolocConsentBanner(): JSX.Element | null {
         <p className="text-muted-foreground mt-4 text-xs leading-[1.4]">
           Aux pointages (démarrage, clôture, patient absent), votre position est captée et liée à la
           course. Service uniquement. Conservée 90 jours max. Vous pouvez refuser la permission GPS
-          — le pointage fonctionne quand même.
+          : le pointage fonctionne quand même.
         </p>
       </div>
       <button

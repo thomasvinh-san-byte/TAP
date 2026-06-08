@@ -1,5 +1,59 @@
 # Journal — phases livrées
 
+## 2026-06-05 — Phase 06.29 livrée localement (typo française : chasse aux cadratins UI)
+
+Lot transversal de finition typographique. Le tiret cadratin (—) était utilisé comme incise en prose d'UI (~280 occurrences brutes, ~50 réellement visibles après filtre) — pas la ponctuation française idiomatique. Corrigé en typo française correcte selon le **sens** de chaque phrase.
+
+### Pourquoi
+
+Tic d'écriture généralisé. En français, l'incise « X — précision » se rend par deux-points, parenthèses, virgule ou point, pas par le cadratin anglo-saxon. Cohérence avec direction §4 (ton français humain).
+
+### Périmètre — TROIS cas distingués
+
+- **A. CORRIGÉ** : incises en prose d'UI visible (descriptions, labels, titres, messages, toasts, placeholders).
+- **B. PRÉSERVÉ** : `'—'` cadratin seul = séparateur « valeur absente » (`return '—'`, `{value || '—'}`). 20 occurrences vérifiées intactes.
+- **C. IGNORÉ** : commentaires (`//`, `/* */`, JSDoc, JSX `{/* */}`) + descriptions de tests. Hors périmètre, diff propre.
+
+### D-01 — Choix de ponctuation selon le SENS
+
+- **Deux-points** quand le second membre explicite/précise le premier (cas le plus fréquent). Ex : « Distance non disponible — forfait... » → « Distance non disponible : forfait... »
+- **Point** quand deux idées autonomes. Ex : « ...nouvelle version datée — l'historique est conservé. » → « ...nouvelle version datée. L'historique est conservé. »
+- **Virgule** pour apposition courte. Ex : « Né(e) le X — homme » → « Né(e) le X, homme »
+- **Parenthèses** pour aparté. Ex : « Plan proposé — affiché en premier sur petit écran » → « Plan proposé (affiché en premier sur petit écran) »
+- **Point médian `·`** pour titres/labels-séparateurs (non-prose). Ex : `'TAP Réunion — Régulation'` → `'TAP Réunion · Régulation'` ; tab titles, vehicle labels, ride pickers.
+
+### Familles touchées
+
+| Famille | Corrections |
+|---|---|
+| `(driver)` | 4 fichiers : toasts « sync au retour réseau » ; consentement géoloc ; `install-pwa-banner` debug ; `geoloc-consent-banner` |
+| `(app)` patients | 4 fichiers : `PageHeader title="Modifier — Nom"` ; constraints `${type} — ${note}` ; recurrence preview ; recurrence-edit-modal |
+| `(app)` cockpit | 3 fichiers : `aria-label="Patient absent — décision"` ; driver positions « Chauffeur — vu... » → `·` ; comparative/excluded-rides optimisation |
+| `(app)` courses | 3 fichiers : duplicate-banner ; pricing-breakdown ; address-or-poi-picker |
+| `(admin)` legal | 8 fichiers : PageHeader descriptions RGPD ; DPIA title ; DPA prefill ; breaches/requests/registre |
+| `(admin)` facturation/tarifs | 4 fichiers : PDF entêtes (`·`) ; descriptions ; tariff sheet |
+| `(admin)` sms-templates | 2 fichiers : `— vide —` → `(vide)` |
+| `(auth)` | 1 fichier : `auth-shell` (« TAP — Réunion 974 » → `·`) |
+| Layout racine + `(public)` | 2 fichiers : tab titles `· TAP Régulation` |
+| `components/` | 2 fichiers : `demo-credentials` ; `user-menu` aria-label |
+| optimizer route + content libs | 3 fichiers : `rideLabels` séparateur ; `vehiclesLabels` ; DPIA/registre prefill content |
+| Server Actions errors | 15+ fichiers : batch sed sûr `« refusé(e) — droits insuffisants »` → `«  : droits insuffisants »` |
+
+### Tests alignés
+
+- `combobox.test.tsx` : `hint="Liste indicative — saisie libre permise."` → `:` (matche le code en parallèle).
+
+### Validation
+
+- `pnpm typecheck` propre
+- `pnpm test` **129/129 verts**
+- `pnpm build` vert
+- `pnpm lint` clean (10 warnings préexistants hors périmètre)
+- 20 séparateurs-vide `'—'` préservés
+- 0 changement de SENS, 0 nouveau wording, 0 migration BDD
+
+**Pas d'ADR** : lot de finition typographique, aucun choix structurel. DEC-109 LOCKED.
+
 ## 2026-06-05 — Phase 06.28 livrée localement (incarnation Chauffeur — terrain)
 
 Incarnation de la direction DEC-101 sur la famille Chauffeur (driver). Déclinaison « grande et lisible » de l'âme (DEC-014), pas la densité du cockpit. Lot ciblé : l'écran chauffeur est DÉJÀ le mieux pensé de l'app (cibles 56px, 1 action/écran, tint crème, offline) — on comble 3 écarts précis sans rien casser.

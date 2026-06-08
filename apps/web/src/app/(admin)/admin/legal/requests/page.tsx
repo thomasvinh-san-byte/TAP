@@ -34,7 +34,7 @@ export default async function RequestsPage() {
     <div className="space-y-24">
       <PageHeader
         title="Demandes RGPD patients"
-        description="Un patient veut consulter ou effacer ses données ? Suivez sa demande ici — vous devez répondre sous 30 jours. (RGPD art. 15-21)"
+        description="Un patient veut consulter ou effacer ses données ? Suivez sa demande ici : vous devez répondre sous 30 jours. (RGPD art. 15-21)"
       />
 
       <RequestsList entries={entries} />

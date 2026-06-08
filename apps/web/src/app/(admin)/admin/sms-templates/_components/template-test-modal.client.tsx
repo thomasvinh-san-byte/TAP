@@ -110,7 +110,7 @@ export function TemplateTestModal({
           <div className="space-y-4">
             <Label>Aperçu envoi</Label>
             <div className="border-border bg-muted/30 rounded-md border border-dashed p-12 text-sm">
-              {rendered || <span className="text-muted-foreground">— vide —</span>}
+              {rendered || <span className="text-muted-foreground">(vide)</span>}
             </div>
           </div>
 

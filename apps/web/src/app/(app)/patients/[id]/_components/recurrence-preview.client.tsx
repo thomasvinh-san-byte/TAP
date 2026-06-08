@@ -98,7 +98,7 @@ export function RecurrencePreview({
             <span aria-hidden className="mr-8">
               ⊘
             </span>
-            {DAY_FORMATTER.format(occ)} — jour férié 974 (sauté)
+            {DAY_FORMATTER.format(occ)} : jour férié 974 (sauté)
           </li>
         ))}
       </ul>

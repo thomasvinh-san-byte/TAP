@@ -71,14 +71,14 @@ export function DpaPrefillCard({
           name="dpa_version"
           label="Version du DPA"
           defaultValue={fiche.dpa_version}
-          hint="Obligatoire — à renseigner (ex : « v2.1 - juin 2024 »)."
+          hint="Obligatoire : à renseigner (ex : « v2.1 - juin 2024 »)."
           maxLength={50}
         />
         <div className="space-y-4">
           <Label htmlFor={fieldId('signed_at')}>Date de signature</Label>
           <DateFieldFr id={fieldId('signed_at')} name="signed_at" defaultValue={fiche.signed_at} />
           <p className="text-muted-foreground text-xs">
-            Obligatoire — à renseigner. TAP décrit la fiche, vous validez le contrat.
+            Obligatoire : à renseigner. TAP décrit la fiche, vous validez le contrat.
           </p>
         </div>
         <div className="space-y-4">

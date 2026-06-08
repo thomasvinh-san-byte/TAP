@@ -48,7 +48,7 @@ export function UserMenu({ prenom, nom, email, role }: UserMenuProps): JSX.Eleme
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          aria-label={`Menu utilisateur — ${fullName}`}
+          aria-label={`Menu utilisateur : ${fullName}`}
           className={cn(
             'inline-flex items-center justify-center rounded-full',
             'transition-[box-shadow,transform] duration-150',

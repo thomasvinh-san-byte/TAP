@@ -129,7 +129,7 @@ export function EndRideModal({ rideId, open, onOpenChange }: Props): JSX.Element
         resource_id: rideId,
         payload,
       });
-      toast.warning('Clôture enregistrée — sync au retour réseau');
+      toast.warning('Clôture enregistrée : sync au retour réseau.');
       onOpenChange(false);
       router.refresh();
     } finally {

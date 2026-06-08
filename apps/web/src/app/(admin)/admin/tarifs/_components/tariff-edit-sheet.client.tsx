@@ -102,8 +102,8 @@ export function TariffEditSheet({
         <SheetHeader>
           <SheetTitle>Nouvelle version de grille</SheetTitle>
           <SheetDescription>
-            La grille actuelle reste inchangée. Une nouvelle version datée est créée —
-            l&apos;historique est conservé.
+            La grille actuelle reste inchangée. Une nouvelle version datée est créée.
+            L&apos;historique est conservé.
           </SheetDescription>
         </SheetHeader>
 

@@ -63,7 +63,7 @@ export async function archivePatientAction(patientId: string): Promise<PatientAr
     .select('id');
   if (updated.error) return { error: 'Archivage impossible.' };
   if (!updated.data || updated.data.length === 0) {
-    return { error: 'Archivage refusé — droits insuffisants.' };
+    return { error: 'Archivage refusé : droits insuffisants.' };
   }
 
   // Trace audit_logs explicite (trigger patients_audit_trigger capte déjà
@@ -121,7 +121,7 @@ export async function unarchivePatientAction(patientId: string): Promise<Patient
     .select('id');
   if (updated.error) return { error: 'Réactivation impossible.' };
   if (!updated.data || updated.data.length === 0) {
-    return { error: 'Réactivation refusée — droits insuffisants.' };
+    return { error: 'Réactivation refusée : droits insuffisants.' };
   }
 
   await supabase.from('audit_logs').insert({

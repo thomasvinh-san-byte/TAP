@@ -74,13 +74,13 @@ export function DpaPrefillReview({ fiches }: { fiches: DpaPrefillFiche[] }): JSX
         <AlertTriangle className="text-muted-foreground h-16 w-16 shrink-0" aria-hidden />
         <p className="text-muted-foreground text-sm">
           Ces fiches décrivent vos sous-traitants techniques. TAP les pré-remplit, mais le contrat
-          (DPA) signé et sa version restent à votre charge — renseignez-les ci-dessous. Vous restez
+          (DPA) signé et sa version restent à votre charge : renseignez-les ci-dessous. Vous restez
           responsable de ces informations. Ceci ne constitue pas un conseil juridique.
         </p>
       </div>
 
       <p className="text-muted-foreground text-sm">
-        {fiches.length} fiches proposées — décochez celles à ne pas insérer.
+        {fiches.length} fiches proposées : décochez celles à ne pas insérer.
       </p>
 
       <div className="space-y-16">

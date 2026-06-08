@@ -152,7 +152,7 @@ export async function cancelRideForNoShowAction(rideId: string): Promise<Cockpit
     .select('id');
   if (upRes.error) return { error: 'Annulation impossible.' };
   if (!upRes.data || (upRes.data as unknown[]).length === 0) {
-    return { error: 'Annulation refusée — droits insuffisants ou course absente.' };
+    return { error: 'Annulation refusée : droits insuffisants ou course absente.' };
   }
 
   await supabase.from('audit_logs').insert({

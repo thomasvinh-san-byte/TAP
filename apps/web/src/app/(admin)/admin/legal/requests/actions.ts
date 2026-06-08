@@ -99,7 +99,7 @@ export async function createDataRequestAction(
     .eq('id', inserted.id)
     .select('id');
   if (tokenUpd.error || !tokenUpd.data || (tokenUpd.data as unknown[]).length === 0) {
-    return { error: 'Génération du jeton refusée — droits insuffisants.' };
+    return { error: 'Génération du jeton refusée : droits insuffisants.' };
   }
 
   // TODO Phase 8 — envoyer email avec lien https://app/legal/request/${token}
@@ -136,7 +136,7 @@ export async function updateRequestStatusAction(
 
   if (upd.error) return { error: 'Mise à jour impossible.' };
   if (!upd.data || (upd.data as unknown[]).length === 0) {
-    return { error: 'Mise à jour refusée — droits insuffisants ou requête absente.' };
+    return { error: 'Mise à jour refusée : droits insuffisants ou requête absente.' };
   }
   revalidatePath('/admin/legal/requests');
   return { success: true };

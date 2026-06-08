@@ -66,7 +66,7 @@ export async function assignRideAction(
     .select('id');
   if (upd.error) return { error: 'Assignation impossible.' };
   if (!upd.data || upd.data.length === 0) {
-    return { error: 'Assignation refusée — droits insuffisants ou course absente.' };
+    return { error: 'Assignation refusée : droits insuffisants ou course absente.' };
   }
 
   revalidatePath('/courses');
@@ -123,7 +123,7 @@ export async function assignVehicleAction(
     .select('id');
   if (upd.error) return { error: 'Affectation du véhicule impossible.' };
   if (!upd.data || upd.data.length === 0) {
-    return { error: 'Affectation refusée — droits insuffisants ou course absente.' };
+    return { error: 'Affectation refusée : droits insuffisants ou course absente.' };
   }
 
   revalidatePath('/courses');
@@ -173,7 +173,7 @@ export async function unassignRideAction(rideId: string): Promise<ActionState> {
     .select('id');
   if (upd.error) return { error: 'Désassignation impossible.' };
   if (!upd.data || upd.data.length === 0) {
-    return { error: 'Désassignation refusée — droits insuffisants ou course absente.' };
+    return { error: 'Désassignation refusée : droits insuffisants ou course absente.' };
   }
 
   revalidatePath('/courses');
