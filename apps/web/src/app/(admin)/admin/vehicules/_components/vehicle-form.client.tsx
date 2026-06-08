@@ -10,6 +10,7 @@ import { Field } from '@/components/form/field';
 import { NumberField } from '@/components/form/number-field';
 import { Combobox } from '@/components/form/combobox.client';
 import { VEHICLE_BRANDS, modelsForBrand } from '@/lib/vehicles/catalog';
+import { ComplianceFieldset } from '../../conformite/_components/compliance-fieldset.client';
 import { type ActionState, createVehicleAction, updateVehicleAction } from '../actions';
 import type { VehicleRow } from '../page';
 
@@ -151,6 +152,8 @@ export function VehicleForm({ initial, onSuccess }: Props): JSX.Element {
       )}
 
       <SubmitButton edit={Boolean(initial)} />
+
+      {initial && <ComplianceFieldset entityType="vehicle" entityId={initial.id} />}
     </form>
   );
 }

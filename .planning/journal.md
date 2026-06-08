@@ -1,5 +1,66 @@
 # Journal — phases livrées
 
+## 2026-06-08 — Phase 06.33 livrée localement (Conformité réglementaire CdC §5.21 lot 1)
+
+Premier lot du module **Conformité réglementaire métier** (CdC §5.21, V1 §2.1 « Suivi des échéances réglementaires »). Pose le socle ; les alertes et le blocage planification sont les lots 2 et 3.
+
+### Pourquoi
+
+Aucun suivi d'échéance n'existait — risque légal réel (exploitation de chauffeurs/véhicules dont les pièces sont périmées). **Distinct du `ComplianceCard` RGPD documentaire** (registre/DPA/DPIA, sous-domaine /admin/legal).
+
+### D-01 — Table dédiée `compliance_items` (ADR-013)
+
+Modèle polymorphe driver/vehicle/organization (8 types CHECK) — choix justifié vs colonnes éparses dans ADR-013 (flexibilité + multi-versions convention CGSS + cron lot 2 simple + RLS uniforme).
+
+- Migration `20260608000001_compliance_items.sql` : table, indexes (alerte + lecture), RLS forcée (SELECT same_org / INSERT/UPDATE dirigeant ; pas de DELETE), trigger audit pattern vehicles.
+- pgTAP `supabase/tests/compliance_items_rls.sql` : **10 cas** (RLS activée/forcée, INSERT org+driver, count visibilité, INSERT régulateur refusé, cross-tenant, anon refusé, CHECK entity_id).
+
+### D-02 — Validators + libellés centralisés (NFR-001)
+
+`packages/shared/src/validators/compliance.ts` :
+- `COMPLIANCE_KINDS` (8 valeurs `as const`).
+- `COMPLIANCE_LABELS` (libellés FR, 1 mapping unique).
+- `COMPLIANCE_KINDS_BY_ENTITY` (sections pré-définies UI).
+- `complianceItemUpsertSchema` zod avec `refine` cohérence entity_type ↔ entity_id.
+
+### D-04 — Helper `complianceStatus` pur
+
+`packages/shared/src/utils/compliance-status.ts` :
+- `complianceStatus(expiresAt, today?)` → `{ status, daysUntilExpiry }` (90/60/30/7 j seuil unique `soon`).
+- `complianceAlertStep` pour le franchissement exact (cron lot 2).
+- **14 tests Vitest verts**.
+
+### D-03 — Saisie dans les écrans existants
+
+- **`<ComplianceFieldset>`** : section « Conformité réglementaire » embarquée dans `driver-form` + `vehicle-form` (mode édition uniquement). Slots pré-définis selon l'entité, save inline par slot (référence + délivrance + échéance + badge).
+- **Server Actions** `actions.ts` : `upsertComplianceItemAction` (DEC-041 row-count check sur UPDATE), `archiveComplianceItemAction`, `listComplianceItemsForEntityAction`.
+- **Page `/admin/conformite`** : vue consolidée 3 sections (Convention CGSS organisation + Chauffeurs + Véhicules) + 3 cards résumé (expirées / proches / total) + tableau filtré par entité.
+- **Entrée nav « Conformité »** ajoutée dans `DIRIGEANT_TABS`.
+
+### D-05 — Badge dans les listes (WCAG 1.4.1)
+
+- **`<ComplianceBadge>`** : icône + texte + jours (« À jour », « Échéance proche (15 j) », « Expirée (il y a 3 j) »), tokens sémantiques `text-success`/`text-warning`/`text-destructive`. **Pas couleur seule** (WCAG 1.4.1).
+- Colonne « Conformité » dans **drivers-list** et **vehicles-list** : prochaine échéance par entité fetchée dans le RSC, passée via prop.
+
+### Lot 1 fini, à venir
+
+✅ Inclus : migration + RLS/pgTAP + helpers + saisie + badges + page conformité.
+
+🟦 **Lot 2** : cron quotidien → alertes cockpit + email (90/60/30/7).
+🟦 **Lot 3** : blocage paramétrable planification (échéance critique expirée).
+🟦 Upload de scan `document_url` : différé (bucket HDS).
+
+### Validation
+
+- `pnpm typecheck` propre
+- `pnpm test` **129/129 web + 97/97 shared verts** (14 nouveaux tests compliance-status)
+- `pnpm build` vert
+- `pnpm lint` clean
+- pgTAP : 10 cas couverts
+- 0 hex en dur, 0 hardcode types (NFR-001), 0 régression existante
+
+**ADR-013 + DEC-112 LOCKED**.
+
 ## 2026-06-05 — Phase 06.32 livrée localement (incarnation Auth + Public — léger)
 
 Incarnation de DEC-101 sur **Auth + Public**. Lot **TRÈS léger** : ces familles ont déjà des grammaires dédiées appropriées (`<AuthShell>` pour auth, prose MDX pour pages légales, parcours patient RGPD). Pas de refonte.

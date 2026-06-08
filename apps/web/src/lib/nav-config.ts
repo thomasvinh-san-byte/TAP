@@ -34,6 +34,7 @@ export const DIRIGEANT_TABS: NavTab[] = [
   { href: '/admin/vehicules', label: 'Véhicules' },
   { href: '/admin/tarifs', label: 'Tarifs' },
   { href: '/admin/facturation', label: 'Facturation' },
+  { href: '/admin/conformite', label: 'Conformité' },
   { href: '/admin/maintenance', label: 'Maintenance' },
 ];
 

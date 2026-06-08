@@ -7,3 +7,4 @@ export * from './driver';
 export * from './driver-position';
 export * from './vehicle';
 export * from './legal';
+export * from './compliance';

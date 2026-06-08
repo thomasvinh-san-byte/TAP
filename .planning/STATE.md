@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.32 livrée localement (incarnation Auth + Public léger). PR à ouvrir."
-last_updated: "2026-06-05T21:00:00.000Z"
-last_activity: Phase 06.32 cadrée + exécutée. Incarnation Auth + Public — LÉGÈRE (grammaires dédiées appropriées préservées). D-01 : 3 terracotta moments-clés (Se connecter, Activer mon compte, Confirmer l'anonymisation RGPD — justifié car ACTE ATTENDU du patient, pas vigilance subie ; contexte d'avertissement préservé). D-02 : lisibilité prose RGPD patient promue text-sm → text-base (public non-technique) sur identity-form, erasure, access pages. D-03 : AuthShell + pages légales MDX inchangés (grammaires dédiées). Annexe : audit animation conclut système déjà conforme (tokens motion + reduced-motion global) ; Skeleton durci avec motion-reduce:animate-none local (auto-doc, redondance volontaire). DEC-111 LOCKED. PR à ouvrir.
+stopped_at: "Phase 06.33 livrée localement (Conformité réglementaire lot 1 — modèle + saisie + statut). PR à ouvrir."
+last_updated: "2026-06-08T08:00:00.000Z"
+last_activity: Phase 06.33 cadrée + exécutée. Premier lot du module Conformité réglementaire CdC §5.21. T1 : migration compliance_items (table polymorphe driver/vehicle/organization, 8 kinds CHECK, multi-tenant RLS forcée + pgTAP 10 cas, trigger audit pattern vehicles). T2 : @tap/shared validators (COMPLIANCE_KINDS, libellés FR, zod schema) + helper complianceStatus pur (90/60/30/7) avec 14 tests Vitest verts. T3 : Server Actions (upsertComplianceItem DEC-041 row-count check, archive, listForEntity) + <ComplianceFieldset> embarqué dans driver-form + vehicle-form (édition uniquement, slots pré-définis selon entité). T4 : page /admin/conformite (liste consolidée + section CGSS organisation) + entrée nav Conformité (DIRIGEANT_TABS). T5 : <ComplianceBadge> (icône + texte + jours, WCAG 1.4.1) dans drivers-list + vehicles-list (colonne Conformité, fetch prochaine échéance par entité dans le RSC). Distinct du ComplianceCard RGPD documentaire. ADR-013 LOCKED (table dédiée vs colonnes éparses). DEC-112 LOCKED. PR à ouvrir.
 progress:
   total_phases: 38
   completed_phases: 34
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.32 livrée localement (incarnation Auth + Public — lot léger). 3 terracotta moments-clés + lisibilité prose RGPD patient promue. AuthShell et MDX inchangés. Audit animation : conforme. 34/38 phases livrées. Restantes : 09 HDS + 10 géoloc réelle.
+**Current focus:** Phase 06.33 livrée localement (Conformité réglementaire CdC §5.21 lot 1 — fondation). Modèle compliance_items + saisie + statut dérivé + badges listes. Alertes (lot 2) et blocage planification (lot 3) à venir. 34/38 phases livrées. Restantes : 09 HDS + 10 géoloc réelle ; lots 2/3 conformité.
 
 ## Current Position
 
@@ -30,12 +30,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.32 livrée localement (2026-06-05) — incarnation Auth + Public (léger). PR à ouvrir.
-Phase next: Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 34/38 phases livrées. Programme d'incarnation : Régulation (5 lots) + Chauffeur + Admin + Auth/Public + typo française + SegmentedControl LIVRÉS.
+Phase: 06.33 livrée localement (2026-06-08) — Conformité réglementaire lot 1 (modèle + saisie + statut + badges). PR à ouvrir.
+Phase next: lot 2 Conformité (cron + alertes cockpit/email) + lot 3 (blocage planification) ; Phase 09 HDS + Phase 10 géoloc réelle.
+Status: 34/38 phases livrées. Programme d'incarnation complet + module Conformité lot 1 fondation LIVRÉ.
 Blockers: aucun
-Last activity: Phase 06.32 — 3 terracotta moments-clés (Se connecter, Activer mon compte, Confirmer l'anonymisation RGPD) ; lisibilité prose RGPD patient promue text-base ; AuthShell/MDX inchangés ; Skeleton motion-reduce:animate-none local. DEC-111 LOCKED. PR à ouvrir.
-Précédent: 06.31 SegmentedControl (#257), 06.30 incarnation Admin (#256), 06.29 typo cadratins (#255).
+Last activity: Phase 06.33 — migration compliance_items (RLS forcée + pgTAP 10 cas + audit trigger), helpers @tap/shared (14 tests Vitest), SA upsert/archive/list, ComplianceFieldset embarqué dans driver-form + vehicle-form, page /admin/conformite + nav entry, ComplianceBadge dans drivers-list + vehicles-list. ADR-013 + DEC-112 LOCKED. PR à ouvrir.
+Précédent: 06.32 incarnation Auth+Public (#258), 06.31 SegmentedControl (#257), 06.30 incarnation Admin (#256).
 
 Progress: [██████████] 100%
 
