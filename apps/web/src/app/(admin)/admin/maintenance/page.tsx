@@ -25,8 +25,8 @@ export default async function MaintenancePage() {
 
       <section className="border-border space-y-12 rounded-md border p-16">
         <div className="space-y-4">
-          <h2 className="text-sm font-semibold">Géocoding rides</h2>
-          <p className="text-muted-foreground text-xs">
+          <h2 className="text-base font-semibold">Géocoding rides</h2>
+          <p className="text-muted-foreground text-sm">
             Re-géocode les courses créées avant la migration géocoding (Phase 04.7). Idempotent : ne
             touche que les rides sans coordonnées. Rate-limit 1 req/s sur l'API BAN gouv.fr.
           </p>
@@ -36,8 +36,8 @@ export default async function MaintenancePage() {
 
       <section className="border-border space-y-12 rounded-md border p-16">
         <div className="space-y-4">
-          <h2 className="text-sm font-semibold">Recalcul des tarifs</h2>
-          <p className="text-muted-foreground text-xs">
+          <h2 className="text-base font-semibold">Recalcul des tarifs</h2>
+          <p className="text-muted-foreground text-sm">
             Recalcule le tarif des courses calculées automatiquement, selon la grille tarifaire
             active. Les tarifs saisis manuellement et les courses déjà encaissées sont préservés.
           </p>

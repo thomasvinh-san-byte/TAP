@@ -81,7 +81,7 @@ export function RegistrePrefillReview({
     <div className="space-y-24">
       <div className="bg-muted flex items-start gap-12 rounded-lg p-16">
         <AlertTriangle className="text-muted-foreground h-16 w-16 shrink-0" aria-hidden />
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground text-base">
           Ces entrées sont des suggestions adaptées au transport sanitaire. Vérifiez et
           personnalisez chacune selon votre activité réelle. Vous restez responsable de leur
           exactitude et de leur mise à jour. Ceci ne constitue pas un conseil juridique.

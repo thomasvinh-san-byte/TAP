@@ -77,7 +77,7 @@ export function DpaPrefillCard({
         <div className="space-y-4">
           <Label htmlFor={fieldId('signed_at')}>Date de signature</Label>
           <DateFieldFr id={fieldId('signed_at')} name="signed_at" defaultValue={fiche.signed_at} />
-          <p className="text-muted-foreground text-xs">
+          <p className="text-muted-foreground text-sm">
             Obligatoire : à renseigner. TAP décrit la fiche, vous validez le contrat.
           </p>
         </div>

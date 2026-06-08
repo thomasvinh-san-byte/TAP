@@ -71,7 +71,12 @@ export function VehiclesList({ initialVehicles }: Props): JSX.Element {
           {initialVehicles.length} véhicule
           {initialVehicles.length > 1 ? 's' : ''}
         </p>
-        <Button type="button" onClick={() => setMode({ kind: 'create' })} className="gap-8">
+        <Button
+          type="button"
+          variant="accent"
+          onClick={() => setMode({ kind: 'create' })}
+          className="gap-8"
+        >
           <Plus className="h-16 w-16" aria-hidden />
           Nouveau véhicule
         </Button>
@@ -212,7 +217,7 @@ function EmptyState({ onCreate }: { onCreate: () => void }) {
       icon={Car}
       title="Aucun véhicule enregistré"
       description="Ajoutez votre flotte pour pouvoir assigner les courses."
-      action={{ onClick: onCreate, label: 'Ajouter un véhicule', icon: Plus }}
+      action={{ onClick: onCreate, label: 'Ajouter un véhicule', icon: Plus, variant: 'accent' }}
     />
   );
 }

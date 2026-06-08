@@ -61,7 +61,7 @@ export function RequestsList({ entries }: { entries: Entry[] }) {
   return (
     <>
       <div className="flex justify-end">
-        <Button onClick={() => setOpen(true)}>
+        <Button variant="accent" onClick={() => setOpen(true)}>
           <Plus className="mr-8 h-16 w-16" aria-hidden />
           Nouvelle demande
         </Button>

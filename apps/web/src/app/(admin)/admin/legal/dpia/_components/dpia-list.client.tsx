@@ -89,7 +89,7 @@ export function DpiaList({ entries }: { entries: Entry[] }) {
               TAP peut créer une trame d&apos;analyse d&apos;impact pour le transport de données de
               santé : la structure, à compléter par vos soins.
             </p>
-            <Button asChild className="mt-24">
+            <Button asChild variant="accent" className="mt-24">
               <Link href="/admin/legal/dpia/pre-remplir">Créer une trame DPIA</Link>
             </Button>
           </div>

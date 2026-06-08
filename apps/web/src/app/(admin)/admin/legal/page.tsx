@@ -110,7 +110,7 @@ export default async function LegalHubPage(): Promise<JSX.Element> {
                   className="text-muted-foreground group-hover:text-foreground h-16 w-16 transition-colors"
                   aria-hidden
                 />
-                <span className="text-foreground text-sm font-semibold">{card.title}</span>
+                <span className="text-foreground text-base font-semibold">{card.title}</span>
               </div>
               <p className="text-muted-foreground text-sm">{card.description}</p>
               <span className="text-muted-foreground mt-auto text-xs">{card.ref}</span>

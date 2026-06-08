@@ -181,7 +181,12 @@ export function DriversList({ initialDrivers, currentRole, vue }: Props): JSX.El
           </p>
         </div>
         {vue === 'actifs' ? (
-          <Button type="button" onClick={() => setMode({ kind: 'create' })} className="gap-8">
+          <Button
+            type="button"
+            variant="accent"
+            onClick={() => setMode({ kind: 'create' })}
+            className="gap-8"
+          >
             <Plus className="h-16 w-16" aria-hidden />
             Nouveau chauffeur
           </Button>
@@ -396,6 +401,7 @@ export function DriversList({ initialDrivers, currentRole, vue }: Props): JSX.El
               </Button>
               <Button
                 type="submit"
+                variant="accent"
                 disabled={isSubmitting || !inviteEmail}
                 aria-busy={isSubmitting}
               >
@@ -634,7 +640,7 @@ function EmptyState({ vue, onCreate }: { vue: Vue; onCreate: () => void }) {
       icon={UserPlus}
       title="Aucun chauffeur enregistré"
       description="Invitez votre premier chauffeur pour commencer à assigner des courses."
-      action={{ onClick: onCreate, label: 'Inviter un chauffeur', icon: Plus }}
+      action={{ onClick: onCreate, label: 'Inviter un chauffeur', icon: Plus, variant: 'accent' }}
     />
   );
 }

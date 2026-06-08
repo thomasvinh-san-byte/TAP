@@ -103,7 +103,7 @@ export function DpaDrawer({ open, onOpenChange }: Props) {
             >
               Annuler
             </Button>
-            <Button type="submit" disabled={pending}>
+            <Button type="submit" variant="accent" disabled={pending}>
               {pending ? 'Enregistrement…' : 'Enregistrer'}
             </Button>
           </div>

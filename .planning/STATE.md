@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.29 livrée localement (typo française : chasse aux cadratins UI). PR à ouvrir."
-last_updated: "2026-06-05T18:00:00.000Z"
-last_activity: Phase 06.29 cadrée + exécutée. Lot transversal de finition typographique : ~50 corrections de tirets cadratins (—) en prose d'UI visible vers la ponctuation française idiomatique (deux-points/point/virgule/parenthèses/point médian selon le sens). Familles touchées : (driver), (app) patients/cockpit/courses, (admin) legal/facturation/tarifs/sms-templates, (auth), components, optimizer route, server actions errors (batch sed pour pattern « X refusé(e) — droits insuffisants » → « : droits insuffisants »). 20 séparateurs-vide '—' préservés (convention valeur absente). Commentaires hors périmètre. 1 test aligné (combobox.test.tsx). DEC-109 LOCKED. PR à ouvrir.
+stopped_at: "Phase 06.30 livrée localement (incarnation Admin — terracotta + skeletons + typo). PR à ouvrir."
+last_updated: "2026-06-05T19:00:00.000Z"
+last_activity: Phase 06.30 cadrée + exécutée. Incarnation famille Admin (16 écrans, DÉJÀ la plus cohérente avec PageHeader partout). D-01 : terracotta sur 13 moments-clés (8 page-level CTAs : Nouveau chauffeur, Inviter EmptyState, Nouveau véhicule, Ajouter EmptyState, Nouveau DPA, Nouvelle entrée registre, Nouvelle demande RGPD, Créer trame DPIA ; 5 submits drawer/sheet : Créer la version tarifs, Enregistrer registre/DPA, Créer requests, Envoyer l'invitation chauffeur). ARCHIVER reste destructive, Modifier/Pré-remplir/Exporter restent neutres. Extension légère EmptyState (variant prop optionnel). D-02 : 6 loading.tsx (chauffeurs, vehicules, tarifs, facturation, legal/registre, legal/requests) épousant le layout réel. D-03 : hiérarchie typo travaillée (text-base 4→10 +150%, text-xs 25→21 -16%, prose légale promue à text-base, titres section maintenance à text-base, cards titres legal à text-base). D-04 : légal cohérent (pas de refonte). DEC-110 LOCKED. PR à ouvrir.
 progress:
   total_phases: 38
   completed_phases: 34
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.29 livrée localement (typo française — chasse aux cadratins UI). Lot transversal de finition typographique : ~50 corrections en prose UI selon le sens, séparateurs-vide préservés. 34/38 phases livrées. Restantes : 09 HDS + 10 géoloc réelle ; incarnation des autres familles à planifier après design partner.
+**Current focus:** Phase 06.30 livrée localement (incarnation Admin — 16 écrans). Terracotta sur 13 moments-clés, 6 loading.tsx, hiérarchie typo travaillée. PageHeader unifié déjà présent, préservé. 34/38 phases livrées. Restantes : 09 HDS + 10 géoloc réelle ; incarnation des autres familles éventuelles (B2B, Caisse intégrée régulation) à planifier après design partner.
 
 ## Current Position
 
@@ -30,12 +30,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.29 livrée localement (2026-06-05) — typo française, chasse aux cadratins UI. PR à ouvrir.
-Phase next: Phase 09 HDS + Phase 10 géoloc réelle ; incarnation des autres familles à planifier.
-Status: 34/38 phases livrées. Programme d'incarnation Régulation (5 lots) + Chauffeur (1 phase) + finition typo française LIVRÉS.
+Phase: 06.30 livrée localement (2026-06-05) — incarnation Admin (16 écrans), terracotta + skeletons + typo. PR à ouvrir.
+Phase next: Phase 09 HDS + Phase 10 géoloc réelle ; incarnations supplémentaires éventuelles à planifier.
+Status: 34/38 phases livrées. Programme d'incarnation : Régulation (5 lots) + Chauffeur (1 phase) + Admin (1 phase) + finition typo française LIVRÉS.
 Blockers: aucun
-Last activity: Phase 06.29 — chasse aux ~50 cadratins en prose UI vers ponctuation FR (deux-points/point/virgule/parenthèses/point médian selon le sens). Familles : driver, app (patients/cockpit/courses), admin (legal/facturation/tarifs/sms-templates), auth, components, optimizer, server actions. 20 séparateurs-vide '—' préservés. DEC-109 LOCKED. PR à ouvrir.
-Précédent: 06.28 incarnation Chauffeur (#254), lot 5 rangement (#253), 06.27 lot 4 refactor modales (#252).
+Last activity: Phase 06.30 — 13 terracotta moments-clés admin (page-level + drawer submits) ; 6 loading.tsx ; text-base 4→10 (+150 %), text-xs 25→21 (-16 %) ; EmptyState étendu avec variant accent optionnel. DEC-110 LOCKED. PR à ouvrir.
+Précédent: 06.29 typo cadratins (#255), 06.28 incarnation Chauffeur (#254), lot 5 rangement (#253).
 
 Progress: [██████████] 100%
 
