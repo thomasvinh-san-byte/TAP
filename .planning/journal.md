@@ -1,5 +1,60 @@
 # Journal — phases livrées
 
+## 2026-06-08 — Phase 06.36 livrée localement (incarnation header / navigation principale)
+
+Incarnation du header global (app + admin). **Angle mort des lots 06.24 → 06.32** comblé : la direction §3 prévoit explicitement que la navigation porte l'identité, mais le header restait générique. « Moderne » ≠ « coloré » — on ajoute hiérarchie + présence + signature, pas de la couleur.
+
+### Pourquoi (cité)
+
+Direction §3 : « Bleu profond = la structure de confiance : navigation active, liens, en-têtes de section, identité. Présent mais sobre. »
+
+État avant : onglet actif `text-foreground` (gris) + soulignement `bg-primary` 2px opacité → invisible au coup d'œil. Logo `text-foreground` neutre. Séparation header/contenu via `border-b` seul, imperceptible.
+
+### D-01 — Onglet actif = signature bleue sobre
+
+| Aspect | Avant | Après |
+|---|---|---|
+| Texte actif | `text-foreground font-medium` | **`text-primary font-medium`** |
+| Soulignement | `h-[2px]` + opacity-0/100 | **`h-[3px] rounded-t-sm`** + opacity-0/100 |
+
+Double signal (couleur + poids + soulignement, WCAG 1.4.1).
+
+### D-02 — Logo « TAP » présence de marque
+
+- « **TAP** » : `text-foreground` → **`text-primary text-base font-semibold tracking-tight`**.
+- « Régulation » : `text-muted-foreground` (inchangé).
+
+Sobre — la marque porte l'identité, l'étiquette reste discrète.
+
+### D-03 — Séparation header / contenu
+
+`shadow-sm` ajouté au header (en plus du `border-b`). Sticky + backdrop-blur conservés.
+
+### D-04 — Cohérence app + admin via factorisation
+
+`components/app-header.tsx` (Server Component) — slot `extras` pour `DraftQueue` côté `(app)` :
+
+- `(app)/layout.tsx` : `<AppHeader role={ctx.role} extras={<DraftQueue />} />`
+- `(admin)/layout.tsx` : `<AppHeader role={role} />`
+
+Les deux layouts passent de ~30 lignes de header dupliqué à 1 ligne. Toute évolution future d'incarnation header se fait à 1 endroit.
+
+### Contraste WCAG vérifié
+
+- `text-primary` (hsl 217 92% 32%) sur blanc : **9.42:1 (AAA)**.
+- `text-primary` nuit (hsl 217 91% 60%) sur fond sombre (hsl 222 47% 8%) : **5.21:1 (AA)**.
+
+### Validation
+
+- `pnpm typecheck` propre
+- `pnpm test` **129/129 verts**
+- `pnpm build` vert
+- `pnpm lint` clean
+- Header chauffeur PWA hors périmètre (grammaire dédiée DEC-014) ✓
+- 0 migration BDD, 0 dépendance, 0 régression ✓
+
+**Pas d'ADR** : activation de pattern (text-primary, shadow-sm) + factorisation rétro-compatible. DEC-115 LOCKED.
+
 ## 2026-06-08 — Phase 06.35 livrée localement (Conformité lot 3 : contrôle planification — module COMPLET)
 
 Troisième et **dernier** lot du module Conformité (CdC §5.21). Construit le contrôle conformité à la planification : avertissement souple par défaut, blocage dur paramétrable, appliqué à l'assignation manuelle ET à l'optimiseur.

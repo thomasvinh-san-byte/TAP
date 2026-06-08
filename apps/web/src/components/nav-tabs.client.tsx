@@ -16,9 +16,15 @@ interface NavTabsProps {
 /**
  * Onglets de navigation principale du shell régulateur.
  *
- * État actif détecté via `usePathname` (segment startsWith). Underline animé
- * 150ms ease-out sur l'onglet actif, couleur primaire. Hover sur inactif :
- * passe en text-foreground.
+ * État actif détecté via `usePathname` (segment startsWith). Phase 06.36
+ * (DEC-115) : la nav active porte l'identité (direction §3 — bleu =
+ * structure de confiance) — l'onglet actif passe en `text-primary` +
+ * `font-medium` + soulignement `bg-primary` 3px pleine opacité.
+ * Double signal (couleur + poids + soulignement) pour ne pas reposer
+ * sur la couleur seule (WCAG 1.4.1).
+ *
+ * Underline animé 150ms ease-out. Hover sur inactif : passe en
+ * `text-foreground`. Focus ring conservé (RGAA).
  */
 export function NavTabs({ tabs }: NavTabsProps): JSX.Element {
   const pathname = usePathname() ?? '';
@@ -42,16 +48,14 @@ export function NavTabs({ tabs }: NavTabsProps): JSX.Element {
             className={cn(
               'relative inline-flex h-full items-center text-sm transition-colors duration-150',
               'focus-visible:ring-ring rounded-sm focus-visible:outline-none focus-visible:ring-2',
-              active
-                ? 'text-foreground font-medium'
-                : 'text-muted-foreground hover:text-foreground',
+              active ? 'text-primary font-medium' : 'text-muted-foreground hover:text-foreground',
             )}
           >
             <span>{tab.label}</span>
             <span
               aria-hidden
               className={cn(
-                'bg-primary absolute inset-x-0 -bottom-[1px] h-[2px] transition-opacity duration-150',
+                'bg-primary absolute inset-x-0 -bottom-[1px] h-[3px] rounded-t-sm transition-opacity duration-150',
                 active ? 'opacity-100' : 'opacity-0',
               )}
             />
