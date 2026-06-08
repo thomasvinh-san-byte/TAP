@@ -7,7 +7,8 @@
  * entre une page (app) et une page (admin)).
  *
  * Les routes ne sont pas déplacées : seule la liste d'onglets est unifiée.
- * Le déplacement physique `/admin/*` → `/` est un refactor reporté.
+ * Le déplacement physique `/admin/*` → `/` est un refactor reporté — décision
+ * actée DEC-107 (lot 5 incarnation Régulation, 2026-06-05) : coût > bénéfice.
  */
 
 export interface NavTab {
