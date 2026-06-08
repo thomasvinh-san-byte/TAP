@@ -3,21 +3,20 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.41 livrée localement (messagerie interne lot 1 — chat texte temps réel à la course). PR à ouvrir."
-last_updated: "2026-06-08T23:00:00.000Z"
-last_activity: Phase 06.41 (messagerie §5.22 lot 1, module fonctionnel neuf, dérivé du cadrage GSD). Chat texte régulateur↔chauffeur RATTACHÉ À UNE COURSE. T1 : migration internal_message (table unique ride_id — la course EST la conversation, évite bug Supabase #1721) + RLS stricte indexée forcée (chauffeur=ses courses via drivers.profile_id ; régul/dirigeant=org ; anti-usurpation sender_profile_id=auth.uid() + sender_role=current_user_role() ; messages immuables, pas d'UPDATE/DELETE) + publication Realtime idempotente + 14 pgTAP. T2 : query server-only getRideMessages + Server Actions getRideMessagesAction/sendRideMessageAction + helper pur groupMessagesByDay (fuseau Indian/Reunion, 8 tests Vitest). T3 : hook useRideMessages (Postgres Changes, channel par course, reconnexion+refetch au resubscribe) + composant RideChat (aria-live, Cmd/Ctrl+Entrée, auto-scroll prefers-reduced-motion, distinction auteur par libellé pas couleur). T4 : greffe ride-drawer (régulateur) + ride-detail (chauffeur). Photo (HDS), push (VAPID), fil général, purge 1 an, email : repoussés. typecheck+lint+build verts, shared 122 tests, web 129 tests. 0 dépendance. DEC-120 LOCKED.
-last_activity_prev: Phase 06.40 (hygiène .planning : ~224 fichiers de processus consommé supprimés, STATE recompté → 50, registre DEC réconcilié, 6 docs de référence). DEC-119 LOCKED.
+stopped_at: "Phase 06.42 livrée localement (fix overlays — combobox portal + dialog scrollable). PR à ouvrir."
+last_updated: "2026-06-09T00:30:00.000Z"
+last_activity: Phase 06.42 (correctif UI bloquant, cause racine, 0 dépendance). 2 bugs overlays de même famille (overlays mal détachés). Bug 1 : dropdown Combobox (Marque véhicule + adresses) se superposait au contenu — un élément absolu n'échappe pas au clipping/stacking d'un ancêtre. Bug 2 : modal Nouvelle course débordait, bouton Créer coupé (pas de max-h/overflow). D-01 Combobox : listbox rendue via createPortal (react-dom, 0 install) au document.body + position fixed ancrée au rect du champ (recalcul scroll capture/resize, flip haut/bas), ARIA/clavier/Échap/clic-dehors préservés (listboxRef ajouté au check), onPointerDown stoppé pour ne pas fermer le Dialog Radix (cas address-picker dans le modal → z-[60] au-dessus du dialog z-50). D-02 DialogContent : max-h-[85dvh] + overflow-y-auto + w-[calc(100%-2rem)] + min-w-0 sur grilles ride-fields (mode/urgence + datetime) → formulaires longs scrollent, bouton atteignable, pas de débordement horizontal. Composants partagés → propage à tous les usages. typecheck+lint+build verts, 8 tests combobox INCHANGÉS verts, 129 web. 0 nouvelle dépendance (DEC-003). DEC-121 LOCKED.
+last_activity_prev: Phase 06.41 (messagerie §5.22 lot 1 — chat texte temps réel à la course ; internal_message + RLS + Realtime + RideChat). DEC-120 LOCKED.
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
-# ensuite (06.20-06.23 pré-prod + 06.24-06.39 incarnation/conformité/header/exports/densité
-# = 50) + 06.41 messagerie lot 1 = 51. (06.40 = lot d'hygiène docs, hors compte feature.)
-# Restantes réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07 abandonnée
-# (DEC-092) hors compte. Dernière phase livrée : 06.41. Dernier DEC : 120 (06.41).
-# Dernier ADR : ADR-013 (06.33).
+# ensuite (06.20-06.23 pré-prod + 06.24-06.39 = 50) + 06.41 messagerie lot 1 + 06.42 fix
+# overlays = 52. (06.40 = lot d'hygiène docs, hors compte feature.) Restantes réelles =
+# Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07 abandonnée (DEC-092) hors compte.
+# Dernière phase livrée : 06.42. Dernier DEC : 121 (06.42). Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 53
-  completed_phases: 51
+  total_phases: 54
+  completed_phases: 52
   total_plans: 89
   completed_plans: 89
   percent: 96
@@ -30,7 +29,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.41 livrée localement (messagerie interne §5.22 lot 1 — chat texte temps réel régulateur↔chauffeur à la course). Premier module §5.22 ouvert. 51 phases livrées (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; messagerie lots photo/push/fil général à venir.
+**Current focus:** Phase 06.42 livrée localement (fix overlays cause-racine : combobox via createPortal + DialogContent scrollable). 52 phases livrées (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; messagerie lots photo/push/fil général à venir.
 
 ## Current Position
 
@@ -39,12 +38,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.41 livrée localement (2026-06-08) — messagerie interne §5.22 lot 1 : chat texte temps réel régulateur↔chauffeur à la course. PR à ouvrir.
+Phase: 06.42 livrée localement (2026-06-09) — fix overlays : combobox via createPortal + DialogContent scrollable. PR à ouvrir.
 Phase next: messagerie lots photo (HDS)/push (VAPID)/fil général ; Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 51 phases livrées. Conformité §5.21 COMPLET + exports §5.23 partiel + messagerie §5.22 lot 1 LIVRÉS. Table internal_message + RLS forcée + 14 pgTAP ; Realtime Postgres Changes ; RideChat (régulateur + chauffeur).
+Status: 52 phases livrées. Correctif UI bloquant : dropdown Combobox ne se superpose plus (portail + position fixed ancrée, passe au-dessus des dialogs) ; modal Nouvelle course scrolle (bouton Créer atteignable). Composants partagés → tous les usages.
 Blockers: aucun
-Last activity: Phase 06.41 — chat texte à la course. internal_message (table unique ride_id, RLS stricte indexée forcée, anti-usurpation, messages immuables, publication Realtime idempotente, 14 pgTAP). getRideMessages (server-only) + getRideMessagesAction/sendRideMessageAction + helper groupMessagesByDay (8 Vitest). Hook useRideMessages (Postgres Changes par course + reconnexion/refetch) + RideChat (aria-live, Cmd/Ctrl+Entrée, prefers-reduced-motion). Greffé ride-drawer + ride-detail. Photo/push/fil général/purge/email repoussés. typecheck+lint+build verts, 122 shared + 129 web. 0 dépendance. DEC-120 LOCKED. PR à ouvrir.
-Précédent: 06.40 hygiène .planning (DEC-119, #266), 06.39 densité SegmentedControl (DEC-118, #265), 06.38 header regroupement nav (DEC-117).
+Last activity: Phase 06.42 — fix overlays cause-racine (recherche : un absolu n'échappe pas au clipping d'un ancêtre → portail). Combobox : listbox via createPortal (react-dom) + position fixed ancrée au trigger (recalcul scroll/resize, flip haut/bas) + z-[60] au-dessus des dialogs + ARIA/clavier/Échap/clic-dehors préservés + onPointerDown stoppé (DismissableLayer Radix). DialogContent : max-h-[85dvh] + overflow-y-auto + w-[calc(100%-2rem)] + min-w-0 grilles ride-fields. 8 tests combobox INCHANGÉS verts, 129 web, build vert. 0 nouvelle dépendance (DEC-003). DEC-121 LOCKED. PR à ouvrir.
+Précédent: 06.41 messagerie lot 1 (DEC-120, #267), 06.40 hygiène .planning (DEC-119, #266), 06.39 densité SegmentedControl (DEC-118, #265).
 
 Progress: [██████████] 100%
 

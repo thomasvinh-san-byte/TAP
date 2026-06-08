@@ -136,7 +136,7 @@ export function DateTimeFields({
           nextMonthAriaLabel="Mois suivant"
           disabled={disabled}
           ariaInvalid={ariaInvalidFlag}
-          wrapperClassName="w-full"
+          wrapperClassName="w-full min-w-0"
           customInput={<DateMaskedInput />}
         />
         <DatePicker
@@ -161,7 +161,7 @@ export function DateTimeFields({
           showPopperArrow={false}
           disabled={disabled}
           ariaInvalid={ariaInvalidFlag}
-          wrapperClassName="w-full"
+          wrapperClassName="w-full min-w-0"
           customInput={<TimeMaskedInput />}
         />
       </div>

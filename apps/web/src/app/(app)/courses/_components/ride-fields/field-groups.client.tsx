@@ -72,7 +72,7 @@ export function ModeUrgencyFields({
 }): JSX.Element {
   return (
     <div className="grid grid-cols-2 gap-16">
-      <div className="space-y-8">
+      <div className="min-w-0 space-y-8">
         <Label htmlFor="mode">Mode de transport</Label>
         <Select
           ariaLabel="Mode de transport"
@@ -82,7 +82,7 @@ export function ModeUrgencyFields({
           triggerClassName="w-full"
         />
       </div>
-      <div className="space-y-8">
+      <div className="min-w-0 space-y-8">
         <Label htmlFor="urgency">Urgence</Label>
         <Select
           ariaLabel="Urgence"
