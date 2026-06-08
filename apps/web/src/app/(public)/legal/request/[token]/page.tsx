@@ -29,7 +29,7 @@ export default async function RequestTokenPage(props: { params: Promise<{ token:
           <h1 className="mb-12 text-2xl font-semibold tracking-tight">
             Vérification d&apos;identité
           </h1>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-base">
             Pour exercer votre droit ({claims.type}) au titre du Règlement Général sur la Protection
             des Données, nous devons vérifier votre identité. Renseignez votre numéro de sécurité
             sociale (NIR), votre nom et votre date de naissance.
@@ -47,8 +47,8 @@ export default async function RequestTokenPage(props: { params: Promise<{ token:
     return (
       <div className="space-y-16">
         <h1 className="mb-12 text-2xl font-semibold tracking-tight">Lien invalide ou expiré</h1>
-        <p className="text-muted-foreground text-sm">{message}</p>
-        <p className="text-sm">
+        <p className="text-muted-foreground text-base">{message}</p>
+        <p className="text-base">
           Pour formuler une nouvelle demande, contactez le service client de votre transporteur.
         </p>
       </div>

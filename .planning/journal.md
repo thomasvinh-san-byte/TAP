@@ -1,5 +1,64 @@
 # Journal — phases livrées
 
+## 2026-06-05 — Phase 06.32 livrée localement (incarnation Auth + Public — léger)
+
+Incarnation de DEC-101 sur **Auth + Public**. Lot **TRÈS léger** : ces familles ont déjà des grammaires dédiées appropriées (`<AuthShell>` pour auth, prose MDX pour pages légales, parcours patient RGPD). Pas de refonte.
+
+### Constat d'audit
+
+- Auth (login, accept-invite) : `<AuthShell>` avec layout 2 colonnes plein écran + theming — grammaire DÉDIÉE appropriée. Déjà traité en 06.18. PageHeader n'a PAS de sens ici.
+- Public/légal MDX (cgu, cgv, confidentialite, cookies, dpo) : documents `prose prose-sm`, titre via frontmatter. Mise en page document appropriée.
+- Parcours RGPD patient (request/[token], /access, /erasure) : écrans publics où un patient exerce ses droits.
+
+### D-01 — Terracotta sur 3 moments-clés (peu nombreux)
+
+| Fichier | CTA | Variante |
+|---|---|---|
+| `(auth)/login/login-form.client.tsx` | « Se connecter » | `variant="accent"` |
+| `(auth)/accept-invite/_components/accept-invite-form.client.tsx` | « Activer mon compte » | `variant="accent"` |
+| `(public)/legal/request/[token]/erasure/_components/erasure-client.client.tsx` | « Confirmer l'anonymisation » | `variant="accent"` (était `destructive`) |
+
+**Justification erasure** : action irréversible MAIS c'est l'**acte attendu** que le patient vient accomplir (exercer son droit RGPD), pas une action de vigilance subie côté admin. Le contexte d'avertissement reste fort (panneau `border-destructive/40 bg-destructive/5`, message explicite d'irréversibilité, conservation 5 ans CGSS expliquée).
+
+**NE PAS toucher** : « Demander l'effacement de mes données » (opener, reste destructive) ; « Vérifier mon identité » (étape préalable) ; « Télécharger JSON » (Exporter neutre) ; Annuler/liens/navigation.
+
+### D-02 — Lisibilité prose RGPD patient (public non-technique)
+
+Promotion ciblée `text-sm` → **`text-base`** sur les paragraphes pédagogiques des parcours patient (esprit direction §6 « grande/lisible » étendu au public non-technique) :
+
+- `request/[token]/page.tsx` : description « Pour exercer votre droit… » + message « Lien invalide ou expiré »
+- `erasure/page.tsx` : description « Conformément à l'article 17… » + section « Conservation légale »
+- `erasure/_components/erasure-client.client.tsx` : « Effacement effectué » + « Confirmer l'anonymisation »
+- `access/page.tsx` : description « Conformément aux articles 15 et 20… » + « En cas de désaccord… »
+
+**Ton inchangé** : zod errors français déjà clairs ; InvitationErrorPanel déjà orienté solution ; page « Lien invalide » oriente vers le service client.
+
+### D-03 — Ne PAS faire
+
+Pas de PageHeader sur auth/légal. Pas de refonte MDX. Pas de skeleton sur pages statiques légales.
+
+### Annexe — Audit animation (système DÉJÀ conforme)
+
+L'audit conclut que le système d'animation est complet et conforme à la direction §5 — pas de lot transversal nécessaire :
+
+- Tokens motion existent (`tokens.json`) + câblés dans `tailwind.config.ts` (DEFAULT 150ms + ease-out de référence).
+- `prefers-reduced-motion` géré GLOBALEMENT (`globals.css:30-37` : `*` → 0.01ms).
+- Durées cohérentes (27× duration-150 ; 200/300/500 sur entrées modales/sheets = légitimes).
+
+**Micro-finition appliquée** : `components/ui/skeleton.tsx` ajout local `motion-reduce:animate-none` à la classe (en complément du global, auto-doc/robustesse hors contexte global). C'est tout.
+
+### Validation
+
+- `pnpm typecheck` propre
+- `pnpm test` **129/129 verts**
+- `pnpm build` vert
+- `pnpm lint` clean
+- `grep 'variant="accent"' (auth) (public)` → **3** (conforme cible « peu nombreux »)
+- WCAG AA (terracotta 4.61:1) ✓
+- 0 hex en dur, 0 nouvelle dépendance, 0 migration BDD
+
+**Pas d'ADR** : activation de pattern (variant accent), promotion de prose, durcissement local rétro-compatible. DEC-111 LOCKED.
+
 ## 2026-06-05 — Phase 06.31 livrée localement (composant SegmentedControl sobre)
 
 Création d'un composant `<SegmentedControl>` propre et factorisation des 3 duplications du toggle « Actifs / Archivés » daté.

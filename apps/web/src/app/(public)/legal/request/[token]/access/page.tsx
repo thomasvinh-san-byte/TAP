@@ -29,14 +29,14 @@ export default async function AccessPage(props: { params: Promise<{ token: strin
     <div className="space-y-24">
       <header>
         <h1 className="mb-12 text-2xl font-semibold tracking-tight">Vos données</h1>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground text-base">
           Conformément aux articles 15 et 20 du Règlement Général sur la Protection des Données,
           vous trouverez ci-dessous l&apos;ensemble des données vous concernant. Vous pouvez les
           télécharger au format JSON portable.
         </p>
       </header>
       <DownloadJsonButton data={result.data} />
-      <p className="text-muted-foreground text-sm">
+      <p className="text-muted-foreground text-base">
         En cas de désaccord sur le contenu de cet export, vous pouvez saisir la Commission Nationale
         de l&apos;Informatique et des Libertés (cnil.fr).
       </p>
