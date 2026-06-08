@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.27 livrée localement (lot 4 incarnation — refactor ride-fields + cohérence modales). 493 l. scindées en 5 modules ≤ 175. PR à ouvrir."
-last_updated: "2026-06-05T15:00:00.000Z"
-last_activity: Phase 06.27 cadrée + exécutée. Refactor structurel ride-express-form-fields (493 l. > CON-008) scindé en 5 modules sous courses/_components/ride-fields/ (types, datetime-helpers, masked-inputs, datetime-fields, field-groups + barrel index). Tous ≤ 175 l., API publique préservée, 2 consommateurs mis à jour. Revue cohérence modales courses : Dialog (focalisé) vs Sheet (contextuel) documenté en 1 ligne sur chaque modale ; terracotta posé sur "Créer la course" (ride-express-modal) + "Assigner" (assign-modal) — cohérence lot 2. 7 variant="accent" dans (app), 1 par contexte. Comportement INCHANGÉ — 129/129 tests passent sans modification. DEC-106 LOCKED. PR à ouvrir.
+stopped_at: "Lot 5 (rangement) — audit + DEC-107 LOCKED, PR planning-only à ouvrir. Programme d'incarnation Régulation DEC-101 désormais COMPLET (5/5)."
+last_updated: "2026-06-05T16:00:00.000Z"
+last_activity: Lot 5 rangement Régulation — décision actée (PAS de refactor). Audit conclut que le rangement est sain en pratique (nav unifiée par rôle, surlignage correct via plus-long-préfixe, accès régulateur à /admin/chauffeurs légitime). Coût d'un déplacement d'URL (25+ refs + redirections + habitudes) > bénéfice (cosmétique). DEC-107 LOCKED inscrite dans PROJECT.md, journal mis à jour, ROADMAP item rangement coché, 1 ligne de commentaire ajoutée à nav-config.ts pour tracer la décision. Programme d'incarnation Régulation DEC-101 désormais COMPLET (5/5 lots). PR planning-only à ouvrir.
 progress:
   total_phases: 38
   completed_phases: 34
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.27 livrée localement (lot 4 incarnation — refactor ride-fields + cohérence modales). Structure code = structure visuelle (DEC-101 §5bis) : 493 l. découpées proprement, comportement strictement préservé. 34/38 phases livrées. Restantes : lot d'incarnation à suivre (rangement lot 5) + 09 HDS + 10 géoloc réelle.
+**Current focus:** Lot 5 (rangement Régulation) audité — DEC-107 LOCKED, pas de refactor (coût > bénéfice). **Programme d'incarnation Régulation DEC-101 désormais COMPLET (5/5 lots).** 34/38 phases livrées. Restantes : 09 HDS + 10 géoloc réelle ; incarnation des autres familles (Caisse, PWA chauffeur, B2B, Admin) à planifier après design partner.
 
 ## Current Position
 
@@ -30,12 +30,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.27 livrée localement (2026-06-05) — lot 4 incarnation Régulation, refactor ride-fields + cohérence modales, PR à ouvrir.
-Phase next: lot d'incarnation Régulation à suivre (rangement arbitré en contexte lot 5) + Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 34/38 phases livrées. Lots 1 (typo + en-tête), 2 (couleur signature), 3 (skeletons) et 4 (refactor + cohérence modales) du programme d'incarnation DEC-101 LIVRÉS sur la famille Régulation.
+Phase: Lot 5 rangement Régulation — audit + DEC-107 LOCKED (planning-only, pas de refactor). Programme d'incarnation Régulation COMPLET (5/5).
+Phase next: Phase 09 HDS + Phase 10 géoloc réelle ; incarnation des autres familles (Caisse, PWA chauffeur, B2B, Admin) à planifier.
+Status: 34/38 phases livrées. Programme d'incarnation Régulation DEC-101 désormais COMPLET (lots 1-5).
 Blockers: aucun
-Last activity: Phase 06.27 — ride-express-form-fields (493 l.) scindé en 5 modules ride-fields/ ≤ 175 l., API préservée ; Dialog vs Sheet documenté sur 4 modales ; terracotta posé sur "Créer la course" + "Assigner" (cohérence lot 2). Comportement inchangé. DEC-106 LOCKED. PR à ouvrir.
-Précédent: 06.26 lot 3 skeletons (#251), 06.25 lot 2 terracotta (#250), 06.24 reprise (#249).
+Last activity: Lot 5 rangement — audit conclut que le rangement est sain ; coût d'un déplacement d'URL > bénéfice ; question close. DEC-107 LOCKED, 1 ligne de commentaire ajoutée à nav-config.ts pour tracer la décision. PR planning-only à ouvrir.
+Précédent: 06.27 lot 4 refactor + modales (#252), 06.26 lot 3 skeletons (#251), 06.25 lot 2 terracotta (#250).
 
 Progress: [██████████] 100%
 

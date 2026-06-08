@@ -1,5 +1,29 @@
 # Journal — phases livrées
 
+## 2026-06-05 — Lot 5 (rangement) — audit + décision DEC-107 (PAS de refactor, planning-only)
+
+**Cinquième et dernier lot du programme d'incarnation Régulation DEC-101.** Conclusion d'audit : le rangement est déjà sain en pratique ; déplacer les URLs coûterait cher pour zéro gain utilisateur. Ce lot ACTE cette décision, il ne refactore rien.
+
+### Constat d'audit (factuel)
+
+Les 3 « incohérences » soupçonnées au friction log se révèlent bénignes après lecture du code :
+
+1. **Caisse (`/courses/caisse`, onglet niveau 1)** : le surlignage de nav n'est PAS buggé — `nav-tabs.client.tsx` utilise déjà la logique « plus long préfixe gagne » (`activeHref`), avec commentaire explicite « évite que Courses reste souligné en même temps que Caisse ». Donc 1 seul onglet actif. Aucune friction réelle. Reste une légère impureté conceptuelle d'URL sans impact.
+2. **Chauffeurs → `/admin/chauffeurs`** : l'accès régulateur est LÉGITIME et géré par les gardes `(admin)/layout.tsx` (dirigeant OU régulateur). Pas une fuite. Le code note déjà « déplacement physique reporté ».
+3. **Nav unifiée et découplage ASSUMÉ** : `nav-config.ts` documente déjà « les routes ne sont pas déplacées ; le déplacement `/admin/*` → `/` est un refactor reporté ».
+
+### Coût mesuré d'un déplacement d'URL
+
+18 refs `/admin/chauffeurs` + 7 refs `/courses/caisse` + redirections + mémoire musculaire cassée → **POUR ZÉRO GAIN utilisateur**. Direction §5ter : « le rangement ne se chamboule pas par goût ; tout changement d'URL = à peser ». **Conclusion : NE PAS refactorer.**
+
+### Action
+
+- `.planning/PROJECT.md` registre DEC : **DEC-107 LOCKED**.
+- ROADMAP : item « rangement » du programme d'incarnation Régulation marqué comme traité par décision.
+- `nav-config.ts` : 1 ligne de commentaire renvoyant à DEC-107 pour tracer que le report est désormais une décision actée, pas un oubli.
+
+**Le programme d'incarnation Régulation DEC-101 est désormais COMPLET** : lot 1 (typo + en-tête), lot 2 (couleur signature), lot 3 (skeletons), lot 4 (refactor + cohérence modales), lot 5 (rangement — décision actée).
+
 ## 2026-06-05 — Phase 06.27 livrée localement (incarnation Régulation lot 4 : refactor ride-fields + cohérence modales)
 
 Quatrième lot d'incarnation DEC-101 sur la famille Régulation (§5bis « un écran bien structuré naît d'un code bien structuré »). Refactor structurel du fichier hors-limite + revue de cohérence des modales courses.
