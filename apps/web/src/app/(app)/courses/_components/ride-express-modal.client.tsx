@@ -25,13 +25,16 @@ import {
   SavingIndicator,
   type TransportMode,
   type Urgency,
-} from './ride-express-form-fields.client';
+} from './ride-fields';
 
 /**
  * RideExpressModal — formulaire saisie express (Phase 2 / Wave 3 ; décompressé
  * Wave 0 phase 03.1 via useRideAutosave + useRideSubmit). Implémente D-03..D-06
  * + DEC-005 : Dialog Radix, PatientSearch, date freeform parsée onBlur,
  * auto-save 5s/onBlur/onClose, submit optimistic + restore snapshot.
+ *
+ * Pattern modale (DEC-106 §5bis) : `Dialog` centré — création focalisée,
+ * l'utilisateur ne consulte rien d'autre pendant la saisie.
  */
 
 type FormState = RideSubmitFormState;
@@ -280,7 +283,7 @@ export function RideExpressModal(props: Props): JSX.Element {
                 Mettre en pause
               </Button>
             )}
-            <Button type="submit" disabled={submit.isPending} tabIndex={8}>
+            <Button type="submit" variant="accent" disabled={submit.isPending} tabIndex={8}>
               {submit.isPending
                 ? isEditMode
                   ? 'Enregistrement…'

@@ -1,5 +1,61 @@
 # Journal — phases livrées
 
+## 2026-06-05 — Phase 06.27 livrée localement (incarnation Régulation lot 4 : refactor ride-fields + cohérence modales)
+
+Quatrième lot d'incarnation DEC-101 sur la famille Régulation (§5bis « un écran bien structuré naît d'un code bien structuré »). Refactor structurel du fichier hors-limite + revue de cohérence des modales courses.
+
+### Pourquoi
+
+- `ride-express-form-fields.client.tsx` = **493 lignes** (> limite CON-008 de 300), 4 responsabilités mélangées.
+- Direction §5bis : structure du code = structure visuelle.
+- Revue légère de cohérence des modales courses.
+
+### D-01 — Découpage de `ride-express-form-fields.client.tsx`
+
+Éclaté en 5 modules sous `courses/_components/ride-fields/` :
+
+| Fichier | LOC | Responsabilité |
+|---|---|---|
+| `types.ts` | 15 | `TransportMode`, `Urgency`, options. |
+| `datetime-helpers.ts` | 79 | Helpers purs date/heure + constantes service. Testable. |
+| `masked-inputs.client.tsx` | 110 | `DateMaskedInput`, `TimeMaskedInput`. |
+| `datetime-fields.client.tsx` | 175 | `DateTimeFields` (react-datepicker). |
+| `field-groups.client.tsx` | 157 | `AddressField`, `ModeUrgencyFields`, `NotesField`, `SavingIndicator`. |
+| `index.ts` | 25 | Barrel préservant l'API publique. |
+
+Tous ≤ 175 LOC. Ancien fichier supprimé. 2 imports consommateurs mis à jour (`ride-express-modal`, `use-ride-submit`). **API publique préservée**, comportement strictement inchangé.
+
+### D-02 — Cohérence modales courses
+
+**Documentation du choix Dialog vs Sheet** en 1 ligne sur chaque modale (pas de refonte) :
+
+| Modale | Pattern | Justification |
+|---|---|---|
+| `ride-express-modal` | Dialog centré | création focalisée |
+| `assign-modal` | Dialog centré | action focalisée (engagement choix) |
+| `override-tarif-modal` | Sheet latéral | ajustement contextuel |
+| `ride-drawer` | Sheet latéral | consultation contextuelle |
+
+**Terracotta sur action « moment-clé »** (cohérence lot 2 DEC-104) :
+- `ride-express-modal` « Créer la course » / « Enregistrer les modifications » → `variant="accent"` (créer = moment-clé fondamental).
+- `assign-modal` « Assigner » → `variant="accent"` (fait avancer le travail régulatrice).
+- `override-tarif-modal` / `ride-payment-popover` « Confirmer » → inchangé (Confirmer-dialogue = neutre, lot 2).
+
+**Footers — primaire à droite** : tous les `DialogFooter`/`SheetFooter` respectent déjà ce placement. Pas d'ajustement nécessaire.
+
+Total `variant="accent"` dans `(app)` : **7** (5 du lot 2 + 2 nouveaux du lot 4) — toujours « max 1 par contexte/modale », rare = fort.
+
+### Validation
+
+- `pnpm typecheck` propre
+- `pnpm test` **129/129 verts** SANS modification des tests (refactor pur)
+- `pnpm build` vert
+- `pnpm lint` clean (10 warnings préexistants hors périmètre)
+- `find courses/_components -name '*.tsx' -exec wc -l` : plus aucun fichier issu du découpage > 300 l.
+- 0 changement de comportement, 0 migration BDD, 0 nouvelle dépendance
+
+**Pas d'ADR** : refactor pur + activation de pattern existant (variant accent posé en lot 2). DEC-106 LOCKED.
+
 ## 2026-06-05 — Phase 06.26 livrée localement (incarnation Régulation lot 3 : skeletons + finition empty states)
 
 Troisième lot d'incarnation DEC-101 sur la famille Régulation. Surtout des **skeletons de chargement** (le vrai gap UI) — finition mineure des empty states (déjà largement bons).
