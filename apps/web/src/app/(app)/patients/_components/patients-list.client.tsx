@@ -12,8 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
+import { SegmentedControl } from '@/components/ui/segmented-control';
 import { DataTable } from '@/components/data-table';
-import { cn } from '@/lib/utils';
 import { daysFromNow, formatShortDateFr, formatTimeFr } from '@/lib/dates-fr';
 
 interface PatientListItem {
@@ -131,40 +131,15 @@ export function PatientsList() {
   return (
     <div className="space-y-16">
       <div className="flex flex-wrap items-center gap-12">
-        <div
-          className="border-border bg-muted/40 inline-flex rounded-md border p-2"
-          role="tablist"
-          aria-label="Filtre archive patients"
-        >
-          <button
-            type="button"
-            role="tab"
-            aria-selected={scope === 'active'}
-            onClick={() => setScope('active')}
-            className={cn(
-              'rounded-sm px-12 py-6 text-sm transition-colors',
-              scope === 'active'
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground',
-            )}
-          >
-            Actifs
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={scope === 'archived'}
-            onClick={() => setScope('archived')}
-            className={cn(
-              'rounded-sm px-12 py-6 text-sm transition-colors',
-              scope === 'archived'
-                ? 'bg-background text-foreground shadow-sm'
-                : 'text-muted-foreground hover:text-foreground',
-            )}
-          >
-            Archivés
-          </button>
-        </div>
+        <SegmentedControl
+          ariaLabel="Filtre archive patients"
+          value={scope}
+          onValueChange={setScope}
+          options={[
+            { value: 'active', label: 'Actifs' },
+            { value: 'archived', label: 'Archivés' },
+          ]}
+        />
         <div className="min-w-[240px] flex-1">
           <PatientSearch value={q} onChange={setQ} />
         </div>

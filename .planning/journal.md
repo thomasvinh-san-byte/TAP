@@ -1,5 +1,67 @@
 # Journal — phases livrées
 
+## 2026-06-05 — Phase 06.31 livrée localement (composant SegmentedControl sobre)
+
+Création d'un composant `<SegmentedControl>` propre et factorisation des 3 duplications du toggle « Actifs / Archivés » daté.
+
+### Constat (pourquoi c'est pas acceptable)
+
+Toggle fait main, **dupliqué dans 3 écrans** (patients-list, drivers-list, assign-modal), classes identiques. Défauts précis :
+- Conteneur `p-2` (2px) trop serré → pastille active colle aux bords.
+- Différenciation portée par une **OMBRE seule** (`bg-background shadow-sm` sur `bg-muted/40`) → aspect « bouton enfoncé » daté.
+- Actif sans poids typo (juste `text-foreground`).
+- Pas de transition de la pastille, pas de focus ring soigné.
+
+### D-01 — `<SegmentedControl>` + `<SegmentedNav>` créés
+
+`components/ui/segmented-control.tsx` (**126 LOC** < limite 150) :
+- **`<SegmentedControl>`** : segments = `<button>`, usage state local.
+- **`<SegmentedNav>`** : segments = `<Link>`, usage navigation URL.
+
+Choix de séparation : 2 composants plutôt qu'un seul avec prop optionnelle `href`. Avantage : types stricts, API plus claire, même 126 LOC restent < 150.
+
+API générique `<T extends string>` :
+
+```ts
+interface SegmentOption<T extends string> { value: T; label: ReactNode; }
+interface SegmentedControlProps<T> { options, value, onValueChange, ariaLabel, className? }
+interface SegmentedNavOption<T extends string> extends SegmentOption<T> { href: LinkProps['href']; }
+```
+
+Cible visuelle (sobre Linear/iOS) :
+- Conteneur `bg-muted rounded-lg p-4 gap-4` (pas de bordure).
+- Actif `bg-background + text-foreground + font-medium + shadow-sm`.
+- Inactif `text-muted-foreground` + hover `bg-background/50`.
+- Transition `transition-all duration-150` (grammaire animation §5).
+- Focus ring `ring-2 ring-ring ring-offset-2 ring-offset-muted`.
+- 0 hex en dur, tokens uniquement (jour+nuit OK).
+
+### D-02 — 3 duplications remplacées
+
+| Fichier | Avant (LOC inline) | Après |
+|---|---|---|
+| `(app)/patients/_components/patients-list.client.tsx` | 30 lignes div + 2 buttons | `<SegmentedControl value={scope} onValueChange={setScope} ... />` |
+| `(admin)/admin/chauffeurs/_components/drivers-list.client.tsx` | `ViewToggle` 36 lignes (Links) | `<SegmentedNav<Vue> ... />` |
+| `(app)/courses/_components/assign-modal.client.tsx` | 35 lignes boolean toggle | `<SegmentedControl<'compat'\|'all'>` avec mapping boolean ↔ string |
+
+**Comportement strictement INCHANGÉ** : mêmes valeurs, même filtrage, même navigation, mêmes aria-labels. Conséquences : `import { cn }` et `import Link` retirés là où non utilisés.
+
+### D-04 — Doc design-system
+
+`docs/design-system/09-segmented-control.md` (5 sections : pourquoi, API, cible visuelle, a11y, quand l'utiliser, usages).
+
+### Validation
+
+- `pnpm typecheck` propre
+- `pnpm test` **129/129 verts SANS modification des tests** (comportement préservé)
+- `pnpm build` vert
+- `pnpm lint` clean
+- `grep 'bg-muted/40 inline-flex rounded-md border p-2'` → **0** (toutes duplications éliminées)
+- `grep 'SegmentedControl|SegmentedNav'` dans `(app)` → **3 usages**
+- 0 hex en dur, 0 nouvelle dépendance, 0 migration BDD
+
+**Pas d'ADR** : lot de finition design system (composant utilitaire). DEC-110bis LOCKED.
+
 ## 2026-06-05 — Phase 06.30 livrée localement (incarnation Admin — terracotta + skeletons + typo)
 
 Incarnation de DEC-101 sur la famille Admin (16 écrans, DÉJÀ la plus cohérente avec PageHeader partout). Lot ciblé : terracotta moments-clés + skeletons + hiérarchie typo.

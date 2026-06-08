@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
 import { Skeleton } from '@/components/ui/skeleton';
+import { SegmentedControl } from '@/components/ui/segmented-control';
 import { cn } from '@/lib/utils';
 import { assignRideAction, listActiveDriversAction, listActiveVehiclesAction } from '../actions';
 import type { DriverMin, VehicleMin } from '../_lib/queries';
@@ -174,40 +175,15 @@ export function AssignModal({ rideId, open, onOpenChange }: Props): JSX.Element 
           </div>
 
           {selectedVehicle && (
-            <div
-              className="border-border bg-muted/40 inline-flex rounded-md border p-2"
-              role="tablist"
-              aria-label="Filtre de compatibilité"
-            >
-              <button
-                type="button"
-                role="tab"
-                aria-selected={showCompatibleOnly}
-                onClick={() => setShowCompatibleOnly(true)}
-                className={cn(
-                  'rounded-sm px-12 py-6 text-sm transition-colors',
-                  showCompatibleOnly
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground',
-                )}
-              >
-                Compatibles
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={!showCompatibleOnly}
-                onClick={() => setShowCompatibleOnly(false)}
-                className={cn(
-                  'rounded-sm px-12 py-6 text-sm transition-colors',
-                  !showCompatibleOnly
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground',
-                )}
-              >
-                Afficher tous
-              </button>
-            </div>
+            <SegmentedControl<'compat' | 'all'>
+              ariaLabel="Filtre de compatibilité"
+              value={showCompatibleOnly ? 'compat' : 'all'}
+              onValueChange={(v) => setShowCompatibleOnly(v === 'compat')}
+              options={[
+                { value: 'compat', label: 'Compatibles' },
+                { value: 'all', label: 'Afficher tous' },
+              ]}
+            />
           )}
 
           <div className="border-border max-h-[280px] overflow-y-auto rounded-md border">
