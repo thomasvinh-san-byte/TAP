@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.35 livrée localement (Conformité lot 3 — contrôle planification souple/paramétrable). Module §5.21 COMPLET. PR à ouvrir."
-last_updated: "2026-06-08T12:00:00.000Z"
-last_activity: Phase 06.35 cadrée + exécutée. Lot 3 final du module Conformité CdC §5.21. Cadrage : Q4 souple-par-défaut, Q5 optimiseur inclus, Q6 granularité globale. T1 : migration compliance_blocking_mode sur organizations (warn défaut / block, CHECK). T2 : helper entityComplianceState + isPlanningBlocking dans @tap/shared (8 tests Vitest verts). T3 : assign-modal — getAssignmentComplianceContextAction (round-trip unique), badge « Non conforme » (icône+texte WCAG 1.4.1), mode warn (warn-toast+submit OK), mode block (ligne disabled + submit refusé client + revérif serveur dans assignRideAction). T4 : route optimizer — getComplianceBlockingMode + getEntityComplianceLookup ; warn=tous au solveur + signalement complianceWarnings ; block=véhicules non-conformes filtrés + complianceWarnings.blocked=true. UI optimization-shell affiche panneau ComplianceOptimizerWarnings. Extension OptimizationProposal.complianceWarnings (rétro-compat). T5 : BlockingModeControl SegmentedControl dans /admin/conformite + updateComplianceBlockingModeAction (DEC-041). Defense in depth : mode block revérifié serveur. Module Conformité §5.21 COMPLET (lots 1+2+3). DEC-114 LOCKED. PR à ouvrir.
+stopped_at: "Phase 06.36 livrée localement (incarnation header / navigation app + admin). PR à ouvrir."
+last_updated: "2026-06-08T14:00:00.000Z"
+last_activity: Phase 06.36 cadrée + exécutée. Incarnation du header / navigation principale — angle mort des lots 06.24→06.32 (direction §3 prévoit explicitement que la nav porte l'identité). D-01 : NavTabs onglet actif text-foreground → text-primary + soulignement 2px → 3px pleine opacité (double signal couleur+poids+soulignement, WCAG 1.4.1). D-02 : logo TAP text-foreground → text-primary text-base font-semibold (présence de marque, « Régulation » muted inchangé). D-03 : shadow-sm ajouté au header (border-b + shadow-sm) pour séparation contenu. D-04 : factorisation components/app-header.tsx (extras slot pour DraftQueue app), 2 layouts (app+admin) passent de ~30 lignes de header dupliqué à 1 ligne. Header chauffeur PWA hors périmètre. Contraste vérifié : text-primary jour 9.42:1 (AAA) / nuit 5.21:1 (AA). 0 migration BDD, 0 dépendance, 0 régression. DEC-115 LOCKED. PR à ouvrir.
 progress:
   total_phases: 38
   completed_phases: 34
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.35 livrée localement (Conformité CdC §5.21 lot 3 — contrôle planification). Module Conformité COMPLET. 34/38 phases livrées. Restantes : 09 HDS + 10 géoloc réelle.
+**Current focus:** Phase 06.36 livrée localement (incarnation header / nav app + admin). Angle mort de l'incarnation comblé. Module Conformité COMPLET. 34/38 phases livrées. Restantes : 09 HDS + 10 géoloc réelle.
 
 ## Current Position
 
@@ -30,12 +30,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.35 livrée localement (2026-06-08) — Conformité lot 3 (contrôle planification souple/paramétrable). Module §5.21 COMPLET. PR à ouvrir.
+Phase: 06.36 livrée localement (2026-06-08) — incarnation header / navigation principale (app + admin). PR à ouvrir.
 Phase next: Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 34/38 phases livrées. Programme d'incarnation complet + module Conformité §5.21 COMPLET (lots 1+2+3) LIVRÉS.
+Status: 34/38 phases livrées. Programme d'incarnation complet (régulation + chauffeur + admin + auth/public + header) + module Conformité §5.21 COMPLET LIVRÉS.
 Blockers: aucun
-Last activity: Phase 06.35 — migration compliance_blocking_mode (org colonne, warn/block), helper entityComplianceState @tap/shared (8 tests), assign-modal warn/block + revérif serveur (defense in depth), optimiseur warn/block via complianceWarnings (extension OptimizationProposal rétro-compat), BlockingModeControl dirigeant. Module COMPLET. DEC-114 LOCKED. PR à ouvrir.
-Précédent: 06.34 Conformité lot 2 alertes in-app (#260), 06.33 Conformité lot 1 fondation (#259), 06.32 incarnation Auth+Public (#258).
+Last activity: Phase 06.36 — onglet actif text-primary + soulignement 3px, logo TAP text-primary (présence de marque), shadow-sm sur header (séparation contenu), factorisation <AppHeader> partagée app+admin (extras slot pour DraftQueue). Contraste jour 9.42:1 (AAA) / nuit 5.21:1 (AA). Header chauffeur PWA hors périmètre. DEC-115 LOCKED. PR à ouvrir.
+Précédent: 06.35 Conformité lot 3 (#261), 06.34 Conformité lot 2 alertes in-app (#260), 06.33 Conformité lot 1 fondation (#259).
 
 Progress: [██████████] 100%
 
