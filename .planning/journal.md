@@ -1,5 +1,88 @@
 # Journal — phases livrées
 
+## 2026-06-05 — Phase 06.30 livrée localement (incarnation Admin — terracotta + skeletons + typo)
+
+Incarnation de DEC-101 sur la famille Admin (16 écrans, DÉJÀ la plus cohérente avec PageHeader partout). Lot ciblé : terracotta moments-clés + skeletons + hiérarchie typo.
+
+### Constat d'audit
+
+**Déjà bon — ne pas casser** : 16 écrans tous en `PageHeader`, sous-domaine légal (8 pages) homogène (même pattern descriptions pédagogiques + actions), 6 écrans avec titres de section.
+
+**Écarts à combler** :
+1. Terracotta : 0 usage dans `(admin)` (comme régulation avant lot 2).
+2. `loading.tsx` : 0 sur 6 écrans qui chargent.
+3. Hiérarchie typo écrasée : 77 `text-sm` / 25 `text-xs` / **4 `text-base`**.
+
+### D-01 — Terracotta sur 13 moments-clés admin
+
+**8 page-level CTAs** :
+- chauffeurs : « Nouveau chauffeur » + EmptyState « Inviter un chauffeur »
+- vehicules : « Nouveau véhicule » + EmptyState « Ajouter un véhicule »
+- legal/dpa : « Nouveau DPA »
+- legal/registre : « Nouvelle entrée » (PageHeader actions)
+- legal/requests : « Nouvelle demande »
+- legal/dpia : « Créer une trame DPIA » (asChild Link)
+
+**5 sheet/drawer submits** :
+- tarifs : « Créer la version » (submit)
+- legal/registre : « Enregistrer » (submit)
+- legal/requests : « Créer » (submit)
+- legal/dpa : « Enregistrer » (submit)
+- chauffeurs : « Envoyer l'invitation » (submit)
+
+**NE PAS** : ARCHIVER reste `destructive`, Modifier/Pré-remplir/Exporter/Annuler restent neutres.
+
+**Extension légère `EmptyState`** : ajout prop optionnelle `variant?: 'default' | 'accent'` sur action (rétro-compatible — `default` conservé partout ailleurs).
+
+### D-02 — 6 `loading.tsx` épousant le layout réel
+
+| Écran | Structure skeleton |
+|---|---|
+| `chauffeurs` | En-tête + CTA, table 8 lignes |
+| `vehicules` | En-tête + CTA, table 6 lignes |
+| `tarifs` | En-tête, card grille active (titre + 5 lignes clé/valeur), historique 3 lignes |
+| `facturation` | En-tête + description, sélecteur mois, section aperçu (totaux 3 cards + lignes + CTA PDF) |
+| `legal/registre` | En-tête + 2 CTA, table 6 lignes |
+| `legal/requests` | En-tête + CTA, table 5 lignes |
+
+`prefers-reduced-motion` couvert par règle globale `globals.css`.
+
+### D-03 — Hiérarchie typo travaillée
+
+Promotion ciblée des **corps de lecture réels** (paragraphes explicatifs, pas légendes) :
+
+- Prose légale (DPA prefill review, registre prefill review, DPIA prefill confirm) `text-sm` → **`text-base`** (paragraphes pédagogiques de plusieurs lignes).
+- Cards titre `legal/page.tsx` `text-sm font-semibold` → `text-base font-semibold` (cohérent panel-title pattern).
+- Maintenance : titres section `text-sm` → `text-base` ; descriptions `text-xs` → `text-sm`.
+- DPA prefill card help text `text-xs` → `text-sm`.
+- Archive driver modal help text `text-xs` → `text-sm`.
+
+**Résultats** :
+
+| Classe | Avant | Après | Δ |
+|---|---|---|---|
+| `text-base` | 4 | **10** | **+150 %** |
+| `text-sm` | 77 | 75 | -2 |
+| `text-xs` | 25 | **21** | **-16 %** |
+
+Tables/listes denses préservées (`text-sm`) — densité admin assumée.
+
+### D-04 — Cohérence légale vérifiée
+
+8 pages légales déjà homogènes (PageHeader unifié, descriptions cohérentes depuis 06.6 + 06.29). Vérifié que terracotta est appliqué de façon cohérente (pattern page-button + drawer-submit) sur les 4 sous-domaines (DPA, DPIA, registre, requests). Pas de refonte.
+
+### Validation
+
+- `pnpm typecheck` propre
+- `pnpm test` **129/129 verts**
+- `pnpm build` vert
+- `pnpm lint` clean (10 warnings préexistants hors périmètre)
+- `grep -rn 'variant="accent"' "apps/web/src/app/(admin)" | wc -l` → 11 (lignes), 13 occurrences logiques (2 dans EmptyState via variant prop)
+- 6/6 `loading.tsx` présents sur les écrans à fetch admin
+- 0 hex ajouté, 0 nouvelle dépendance, 0 migration BDD
+
+**Pas d'ADR** : activation et déclinaison de patterns existants (variant accent, loading.tsx, Skeleton). Extension légère et rétro-compatible de `EmptyState`. DEC-110 LOCKED.
+
 ## 2026-06-05 — Phase 06.29 livrée localement (typo française : chasse aux cadratins UI)
 
 Lot transversal de finition typographique. Le tiret cadratin (—) était utilisé comme incise en prose d'UI (~280 occurrences brutes, ~50 réellement visibles après filtre) — pas la ponctuation française idiomatique. Corrigé en typo française correcte selon le **sens** de chaque phrase.

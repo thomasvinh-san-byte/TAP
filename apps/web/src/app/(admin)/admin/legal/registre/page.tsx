@@ -44,7 +44,7 @@ export default async function RegistrePage() {
         actions={
           <>
             <ExportPdfButton />
-            <Button asChild>
+            <Button asChild variant="accent">
               <Link href="#nouveau">
                 <Plus className="mr-8 h-16 w-16" aria-hidden />
                 Nouvelle entrée

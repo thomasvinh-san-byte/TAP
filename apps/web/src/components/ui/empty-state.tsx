@@ -23,16 +23,23 @@ import { Button } from '@/components/ui/button';
  *   />
  */
 
+/**
+ * `variant` (Phase 06.30 DEC-110) : passe `'accent'` quand l'action est
+ * un moment-clé d'avancement (cohérence terracotta lot 2 DEC-104). Par
+ * défaut `'default'` (bleu primaire).
+ */
 interface EmptyStateActionLink {
   href: string;
   label: string;
   icon?: LucideIcon;
+  variant?: 'default' | 'accent';
 }
 
 interface EmptyStateActionButton {
   onClick: () => void;
   label: string;
   icon?: LucideIcon;
+  variant?: 'default' | 'accent';
 }
 
 export type EmptyStateAction = EmptyStateActionLink | EmptyStateActionButton;
@@ -55,7 +62,7 @@ function ActionButton({
   variant = 'default',
 }: {
   action: EmptyStateAction;
-  variant?: 'default' | 'outline';
+  variant?: 'default' | 'outline' | 'accent';
 }): JSX.Element {
   const Icon = action.icon;
   const content = (
@@ -94,7 +101,7 @@ export function EmptyState({
       {description && <p className="text-muted-foreground max-w-md text-sm">{description}</p>}
       {action && (
         <div className="mt-8">
-          <ActionButton action={action} variant="default" />
+          <ActionButton action={action} variant={action.variant ?? 'default'} />
         </div>
       )}
       {secondaryAction && <ActionButton action={secondaryAction} variant="outline" />}

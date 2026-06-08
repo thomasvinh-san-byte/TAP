@@ -48,7 +48,7 @@ export function DpiaPrefillConfirm(): JSX.Element {
     <form action={handleSubmit} className="space-y-24">
       <div className="bg-muted flex items-start gap-12 rounded-lg p-16">
         <AlertTriangle className="text-muted-foreground h-16 w-16 shrink-0" aria-hidden />
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground text-base">
           Cette trame fournit la structure d&apos;une analyse d&apos;impact, sans aucun verdict de
           risque. L&apos;identification et l&apos;évaluation des risques restent votre
           responsabilité (avec votre DPO si besoin). Ceci ne constitue pas un conseil juridique.

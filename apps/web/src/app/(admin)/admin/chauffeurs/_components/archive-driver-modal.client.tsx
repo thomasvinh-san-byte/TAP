@@ -108,7 +108,7 @@ export function ArchiveDriverModal({ driver, onClose, onArchived }: Props): JSX.
               aria-invalid={!!motifError}
               {...form.register('motif')}
             />
-            <p className="text-muted-foreground text-xs">
+            <p className="text-muted-foreground text-sm">
               10 caractères minimum. Sera tracé dans l&apos;historique.
             </p>
             {motifError ? (
