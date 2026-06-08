@@ -1,5 +1,50 @@
 # Journal — phases livrées
 
+## 2026-06-08 — Phase 06.34 livrée localement (Conformité lot 2 : alertes in-app cockpit + dashboard)
+
+Deuxième lot du module Conformité (CdC §5.21). Construit les alertes d'échéance **IN-APP** dérivées. Suit le cadrage GSD validé (discuss clos avec le dirigeant).
+
+### Cadrage validé
+
+- **Q1 IN-APP uniquement** : cockpit (régulateur) + dashboard (dirigeant). Email/push = branchement d'infra REPOUSSÉ (principe : on construit la fonctionnalité, pas l'infra).
+- **Q2 DÉRIVÉ** : statut/alerte calculés à la volée depuis `compliance_items` vs date du jour. PAS de table d'alertes stockées, pas d'accusé de lecture.
+- **Cron pg_cron : NON** au lot 2 (affichage dérivé suffit ; le cron servira au futur canal externe).
+
+### D-01 — Helper pur sélection/tri (`@tap/shared`)
+
+`packages/shared/src/utils/compliance-alerts.ts` :
+- `selectComplianceAlerts(items, today?)` : filtre `soon` (≤ 90 j) + `expired`, tri par urgence (expired plus passé en haut, puis soon ascendant).
+- `countComplianceAlerts(alerts)` : buckets `{ expired, soon, total }`.
+- Module pur sans dépendance React/Supabase. Partagé cockpit + dashboard + futur canal externe sans refonte.
+- **9 tests Vitest verts** (filtre, tri, borne 90 j, buckets).
+
+### D-04 — Query serveur partagée
+
+`apps/web/src/app/(admin)/admin/conformite/_lib/get-compliance-alerts.ts` :
+- `getComplianceAlerts()` (`'server-only'`) : lit `compliance_items` (RLS `same_org`), applique `selectComplianceAlerts`, hydrate labels entité (driver/vehicle/organization) en 2 lookups applicatifs (pas de FK polymorphe SQL, cf. ADR-013).
+
+### D-02 / D-03 — Affichage
+
+`<ComplianceAlertsPanel>` (client component) :
+- Variant `panel` (cockpit, dense, sous `<AlertsPanel>` courses, limit 4).
+- Variant `card` (dashboard, bordée, dans grid `lg:grid-cols-2` à côté du `<ComplianceCard>` RGPD, limit 5).
+- Compteur + liste compacte (entité, type, `<ComplianceBadge>` compact).
+- Lien « Gérer les échéances » → `/admin/conformite`.
+- Si zéro alerte : message court « Aucune échéance à surveiller. »
+- Pas de terracotta (vigilance, pas moment-clé).
+- WCAG 1.4.1 : icône + texte + jours (pas couleur seule).
+
+### Validation
+
+- `pnpm typecheck` propre
+- `pnpm test` **129/129 web + 106/106 shared verts** (9 nouveaux tests compliance-alerts)
+- `pnpm build` vert
+- `pnpm lint` clean
+- 0 migration BDD, 0 cron, 0 dépendance ajoutée
+- Source d'alerte partagée cockpit/dashboard : `getComplianceAlerts` + `selectComplianceAlerts` réutilisés (0 duplication)
+
+**DEC-113 LOCKED**. Lot 3 (blocage paramétrable planification) à venir. Pas d'ADR (pas de nouveau modèle, cohérent ADR-013).
+
 ## 2026-06-08 — Phase 06.33 livrée localement (Conformité réglementaire CdC §5.21 lot 1)
 
 Premier lot du module **Conformité réglementaire métier** (CdC §5.21, V1 §2.1 « Suivi des échéances réglementaires »). Pose le socle ; les alertes et le blocage planification sont les lots 2 et 3.

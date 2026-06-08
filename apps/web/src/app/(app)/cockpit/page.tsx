@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { CockpitContent } from './_components/cockpit-content.client';
 import type { CockpitAlert, CockpitRide } from './_lib/types';
 import type { DriverPosition } from './_lib/use-driver-positions';
+import { getComplianceAlerts } from '../../(admin)/admin/conformite/_lib/get-compliance-alerts';
 
 export const metadata = { title: 'Cockpit' };
 export const dynamic = 'force-dynamic';
@@ -81,12 +82,17 @@ export default async function CockpitPage() {
     console.error('[cockpit] driver_positions non disponible:', err);
   }
 
+  // Phase 06.34 DEC-113 : alertes dérivées d'échéances réglementaires
+  // (conformité §5.21). Distinctes des alertes course (no-show, sms).
+  const complianceAlerts = await getComplianceAlerts();
+
   return (
     <CockpitContent
       initialRides={rides}
       initialAlerts={alerts}
       initialPositions={positions}
       driverLabels={driverLabels}
+      complianceAlerts={complianceAlerts}
     />
   );
 }

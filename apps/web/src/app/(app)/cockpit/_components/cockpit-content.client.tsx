@@ -9,6 +9,8 @@ import { useCockpitAlerts } from '../_lib/use-cockpit-alerts';
 import { useCockpitRides } from '../_lib/use-cockpit-rides';
 import type { CockpitAlert, CockpitRide } from '../_lib/types';
 import type { DriverPosition } from '../_lib/use-driver-positions';
+import type { ComplianceAlertEnriched } from '../../../(admin)/admin/conformite/_lib/get-compliance-alerts';
+import { ComplianceAlertsPanel } from '../../../(admin)/admin/conformite/_components/compliance-alerts-panel.client';
 import { AlertsPanel } from './alerts-panel.client';
 import { CoursesTable } from './courses-table.client';
 import { DriverPositionsPanel } from './driver-positions-panel.client';
@@ -23,11 +25,13 @@ export function CockpitContent({
   initialAlerts,
   initialPositions,
   driverLabels,
+  complianceAlerts,
 }: {
   initialRides: CockpitRide[];
   initialAlerts: CockpitAlert[];
   initialPositions: DriverPosition[];
   driverLabels: Record<string, string>;
+  complianceAlerts: ComplianceAlertEnriched[];
 }): JSX.Element {
   const { rides, status, newRideIds } = useCockpitRides(initialRides);
   const { alerts } = useCockpitAlerts(initialAlerts);
@@ -113,8 +117,9 @@ export function CockpitContent({
         <CoursesTable rides={rides} newRideIds={newRideIds} />
         <DriverPositionsPanel initial={initialPositions} driverLabels={driverLabels} />
       </section>
-      <aside className="lg:border-border w-full shrink-0 lg:w-80 lg:border-l lg:pl-24">
+      <aside className="lg:border-border flex w-full shrink-0 flex-col gap-24 lg:w-80 lg:border-l lg:pl-24">
         <AlertsPanel alerts={alerts} />
+        <ComplianceAlertsPanel alerts={complianceAlerts} variant="panel" limit={4} />
       </aside>
       {recentNoShowRide && <NoShowAlertModal ride={recentNoShowRide} onClose={dismissNoShow} />}
     </div>
