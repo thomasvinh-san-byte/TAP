@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState as SharedEmptyState } from '@/components/ui/empty-state';
 import { SegmentedNav } from '@/components/ui/segmented-control';
+import { ComplianceBadge } from '@/components/ui/compliance-badge';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
 import { DataTable, type DataTableColumn } from '@/components/data-table';
 import {
@@ -51,6 +52,8 @@ interface Props {
   initialDrivers: DriverRow[];
   currentRole: Role;
   vue: Vue;
+  /** Map driver_id → prochaine date d'échéance (Phase 06.33). */
+  nextComplianceByDriverId?: Record<string, string>;
 }
 
 type Mode = { kind: 'closed' } | { kind: 'create' } | { kind: 'edit'; driver: DriverRow };
@@ -71,7 +74,12 @@ function getAccountStatus(d: DriverRow): AccountStatus {
   return 'none';
 }
 
-export function DriversList({ initialDrivers, currentRole, vue }: Props): JSX.Element {
+export function DriversList({
+  initialDrivers,
+  currentRole,
+  vue,
+  nextComplianceByDriverId,
+}: Props): JSX.Element {
   const router = useRouter();
   const isDirigeant = currentRole === 'dirigeant';
 
@@ -245,6 +253,19 @@ export function DriversList({ initialDrivers, currentRole, vue }: Props): JSX.El
               ) : (
                 <Badge variant="outline">Désactivé</Badge>
               ),
+          },
+          {
+            key: 'conformite',
+            header: 'Conformité',
+            width: '160px',
+            cell: (d) => {
+              const next = nextComplianceByDriverId?.[d.id];
+              return next ? (
+                <ComplianceBadge expiresAt={next} />
+              ) : (
+                <span className="text-muted-foreground text-xs">—</span>
+              );
+            },
           },
           {
             key: 'actions',

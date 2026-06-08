@@ -6,6 +6,7 @@ import { Accessibility, Car, HeartPulse, Plus, PlusCircle, type LucideIcon } fro
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ComplianceBadge } from '@/components/ui/compliance-badge';
 import { EmptyState as SharedEmptyState } from '@/components/ui/empty-state';
 import { DataTable, type DataTableColumn } from '@/components/data-table';
 import {
@@ -21,6 +22,8 @@ import { VehicleForm } from './vehicle-form.client';
 
 interface Props {
   initialVehicles: VehicleRow[];
+  /** Map vehicle_id → prochaine date d'échéance (Phase 06.33). */
+  nextComplianceByVehicleId?: Record<string, string>;
 }
 
 type Mode = { kind: 'closed' } | { kind: 'create' } | { kind: 'edit'; vehicle: VehicleRow };
@@ -39,7 +42,7 @@ const TYPE_ICONS: Record<VehicleRow['type'], LucideIcon> = {
   ambulance: PlusCircle,
 };
 
-export function VehiclesList({ initialVehicles }: Props): JSX.Element {
+export function VehiclesList({ initialVehicles, nextComplianceByVehicleId }: Props): JSX.Element {
   const router = useRouter();
   const [mode, setMode] = React.useState<Mode>({ kind: 'closed' });
   const [archiveTarget, setArchiveTarget] = React.useState<VehicleRow | null>(null);
@@ -134,6 +137,19 @@ export function VehiclesList({ initialVehicles }: Props): JSX.Element {
             width: '120px',
             cell: (v) =>
               v.actif ? <Badge>Actif</Badge> : <Badge variant="outline">Inactif</Badge>,
+          },
+          {
+            key: 'conformite',
+            header: 'Conformité',
+            width: '160px',
+            cell: (v) => {
+              const next = nextComplianceByVehicleId?.[v.id];
+              return next ? (
+                <ComplianceBadge expiresAt={next} />
+              ) : (
+                <span className="text-muted-foreground text-xs">—</span>
+              );
+            },
           },
         ]}
         rows={initialVehicles}

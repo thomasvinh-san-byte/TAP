@@ -6,6 +6,7 @@ import { TYPE_PERMIS_VALUES, type TypePermis } from '@tap/shared';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/form/field';
+import { ComplianceFieldset } from '../../conformite/_components/compliance-fieldset.client';
 import { type ActionState, createDriverAction, updateDriverAction } from '../actions';
 import type { DriverRow } from '../page';
 
@@ -113,6 +114,8 @@ export function DriverForm({ initial, onSuccess }: Props): JSX.Element {
       )}
 
       <SubmitButton edit={Boolean(initial)} />
+
+      {initial && <ComplianceFieldset entityType="driver" entityId={initial.id} />}
     </form>
   );
 }

@@ -25,13 +25,33 @@ export default async function VehiculesPage() {
     console.error('[admin/vehicules] Erreur Supabase:', vehiclesError);
   }
 
+  // Conformité (Phase 06.33) : prochaine échéance par véhicule.
+  const complianceRes = await supabase
+    .from('compliance_items' as never)
+    .select('entity_id, expires_at')
+    .eq('entity_type', 'vehicle')
+    .eq('archive', false)
+    .not('expires_at', 'is', null)
+    .order('expires_at', { ascending: true });
+
+  const nextComplianceByVehicleId: Record<string, string> = {};
+  for (const r of (complianceRes.data as { entity_id: string; expires_at: string }[] | null) ??
+    []) {
+    if (!nextComplianceByVehicleId[r.entity_id]) {
+      nextComplianceByVehicleId[r.entity_id] = r.expires_at;
+    }
+  }
+
   return (
     <div className="space-y-24">
       <PageHeader
         title="Véhicules"
         description="Référentiel des véhicules de l'organisation. Une immatriculation active ne peut pas être saisie deux fois."
       />
-      <VehiclesList initialVehicles={(vehicles ?? []) as VehicleRow[]} />
+      <VehiclesList
+        initialVehicles={(vehicles ?? []) as VehicleRow[]}
+        nextComplianceByVehicleId={nextComplianceByVehicleId}
+      />
     </div>
   );
 }

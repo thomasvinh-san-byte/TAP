@@ -81,6 +81,24 @@ export default async function ChauffeursPage(props: { searchParams?: Promise<{ v
     invitation: invitationByDriverId.get(d.id) ?? null,
   }));
 
+  // Conformité (Phase 06.33) : prochaine échéance par chauffeur, pour
+  // afficher le badge sémantique dans la liste.
+  const complianceRes = await supabase
+    .from('compliance_items' as never)
+    .select('entity_id, expires_at')
+    .eq('entity_type', 'driver')
+    .eq('archive', false)
+    .not('expires_at', 'is', null)
+    .order('expires_at', { ascending: true });
+
+  const nextComplianceByDriverId: Record<string, string> = {};
+  for (const r of (complianceRes.data as { entity_id: string; expires_at: string }[] | null) ??
+    []) {
+    if (!nextComplianceByDriverId[r.entity_id]) {
+      nextComplianceByDriverId[r.entity_id] = r.expires_at;
+    }
+  }
+
   return (
     <div className="space-y-24">
       <PageHeader
@@ -91,6 +109,7 @@ export default async function ChauffeursPage(props: { searchParams?: Promise<{ v
         initialDrivers={driversWithInvitation}
         currentRole={role as 'dirigeant' | 'regulateur'}
         vue={vueArchives ? 'archives' : 'actifs'}
+        nextComplianceByDriverId={nextComplianceByDriverId}
       />
     </div>
   );
