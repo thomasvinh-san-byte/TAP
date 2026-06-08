@@ -131,7 +131,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ rideId: 
         return {
           status: 403,
           body: {
-            error: 'Course non modifiée — vérifiez que vous êtes bien le chauffeur assigné.',
+            error: 'Course non modifiée : vérifiez que vous êtes bien le chauffeur assigné.',
           },
         };
       }

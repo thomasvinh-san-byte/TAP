@@ -66,7 +66,7 @@ export async function updateDpoContactAction(
 
   if (upd.error) return { error: 'Modification impossible.' };
   if (!upd.data || (upd.data as unknown[]).length === 0) {
-    return { error: 'Modification refusée — droits insuffisants.' };
+    return { error: 'Modification refusée : droits insuffisants.' };
   }
 
   revalidatePath('/admin/legal/dpo');

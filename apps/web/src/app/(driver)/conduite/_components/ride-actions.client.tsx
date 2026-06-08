@@ -102,7 +102,7 @@ export function RideActions({ rideId, status, endedAt, variant = 'inline' }: Pro
         resource_id: rideId,
         payload: position,
       });
-      toast.warning('Mutation enregistrée — sync au retour réseau');
+      toast.warning('Mutation enregistrée : sync au retour réseau.');
       router.refresh();
     } finally {
       setPending(false);

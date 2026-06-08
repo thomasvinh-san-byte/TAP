@@ -75,7 +75,7 @@ export async function updateRidePaymentAction(
     .select('id');
   if (upd.error) return { error: 'Mise à jour paiement impossible.' };
   if (!upd.data || upd.data.length === 0) {
-    return { error: 'Mise à jour refusée — droits insuffisants ou course absente.' };
+    return { error: 'Mise à jour refusée : droits insuffisants ou course absente.' };
   }
 
   revalidatePath('/courses');

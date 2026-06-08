@@ -133,7 +133,7 @@ export function TemplateEditor({
         <div className="space-y-4">
           <Label>Aperçu (valeurs génériques)</Label>
           <div className="border-border bg-muted/30 rounded-md border border-dashed p-12 text-sm">
-            {preview || <span className="text-muted-foreground">— vide —</span>}
+            {preview || <span className="text-muted-foreground">(vide)</span>}
           </div>
         </div>
 

@@ -30,13 +30,13 @@ type Account = {
 
 const ADMINS: ReadonlyArray<Account> = [
   {
-    role: 'Dirigeant — Mme Hoarau',
+    role: 'Dirigeant : Mme Hoarau',
     description: 'Accès complet, pilotage, configuration.',
     email: 'dirigeant@demo.tap',
     password: 'demo1234!',
   },
   {
-    role: 'Régulateur — Mme Payet',
+    role: 'Régulateur : Mme Payet',
     description: 'Saisie des courses, affectation, caisse.',
     email: 'regulateur@demo.tap',
     password: 'demo1234!',

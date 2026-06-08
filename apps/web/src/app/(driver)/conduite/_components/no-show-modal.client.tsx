@@ -76,7 +76,7 @@ export function NoShowModal({
           resource_id: rideId,
           payload: { motif: motif.trim() || undefined },
         });
-        toast.warning('Déclaration enregistrée — sync au retour réseau.');
+        toast.warning('Déclaration enregistrée : sync au retour réseau.');
         reset();
         onOpenChange(false);
         router.refresh();

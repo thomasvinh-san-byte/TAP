@@ -57,7 +57,7 @@ export function PricingBreakdown({ pricing, editable, onOverride }: Props): JSX.
         >
           <AlertTriangle className="text-warning mt-2 h-16 w-16 shrink-0" aria-hidden />
           <p className="text-foreground text-xs">
-            Distance non disponible — forfait et suppléments seuls.
+            Distance non disponible : forfait et suppléments seuls.
           </p>
         </div>
       )}

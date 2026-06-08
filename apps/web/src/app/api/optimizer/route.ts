@@ -115,12 +115,12 @@ function enrichProposal(
       ? `${(ride.patient.prenom ?? '?').slice(0, 1)}. ${(ride.patient.nom ?? '?').slice(0, 1)}.`
       : '';
     const suffixePatient = initiales ? ` (${initiales})` : '';
-    rideLabels[ride.id] = `${heure} — ${pickupVille} → ${dropoffVille}${suffixePatient}`;
+    rideLabels[ride.id] = `${heure} · ${pickupVille} → ${dropoffVille}${suffixePatient}`;
   }
 
   const vehiclesLabels = vehicles.map((v) => ({
     id: v.id,
-    label: `${v.immatriculation ?? v.id.slice(0, 8)} — ${v.type}`,
+    label: `${v.immatriculation ?? v.id.slice(0, 8)} · ${v.type}`,
   }));
 
   const rideAttributes: Record<string, RideAttributes> = {};

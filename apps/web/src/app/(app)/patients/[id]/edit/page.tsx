@@ -46,7 +46,7 @@ export default async function EditPatientPage(props: PageProps) {
 
   return (
     <div className="space-y-32">
-      <PageHeader title={`Modifier — ${p.nom} ${p.prenom}`} />
+      <PageHeader title={`Modifier : ${p.nom} ${p.prenom}`} />
       <PatientForm
         action={action}
         defaultValues={{

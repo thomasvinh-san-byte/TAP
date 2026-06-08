@@ -315,7 +315,7 @@ export async function updateRecurrenceAction(formData: FormData): Promise<Recurr
     .select('id');
   if (upRes.error) return { error: 'Modification impossible.' };
   if (!upRes.data || (upRes.data as unknown[]).length === 0) {
-    return { error: 'Modification refusée — droits insuffisants ou récurrence absente.' };
+    return { error: 'Modification refusée : droits insuffisants ou récurrence absente.' };
   }
 
   // CASCADE DEC-048 : delete rides futures non démarrées (validee + assignee).
@@ -382,7 +382,7 @@ export async function cancelRecurrenceAction(recurrenceId: string): Promise<Recu
     .select('id');
   if (upRes.error) return { error: 'Archivage impossible.' };
   if (!upRes.data || (upRes.data as unknown[]).length === 0) {
-    return { error: 'Archivage refusé — droits insuffisants.' };
+    return { error: 'Archivage refusé : droits insuffisants.' };
   }
 
   await supabase.from('audit_logs').insert({

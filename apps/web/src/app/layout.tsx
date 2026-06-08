@@ -4,7 +4,7 @@ import { Toaster } from 'sonner';
 import { tokensLight } from '@/styles/tokens.generated';
 
 export const metadata: Metadata = {
-  title: 'TAP Réunion — Régulation',
+  title: 'TAP Réunion · Régulation',
   description:
     'Régulation, optimisation et communication patient pour TAP et taxis conventionnés CGSS.',
   icons: {

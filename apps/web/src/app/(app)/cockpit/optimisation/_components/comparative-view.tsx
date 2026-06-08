@@ -88,7 +88,7 @@ export function ComparativeView({
                       title={`Groupement ${groupIdx + 1}`}
                     />
                   )}
-                  {ride.pickup_address && <span>— {ride.pickup_address}</span>}
+                  {ride.pickup_address && <span>· {ride.pickup_address}</span>}
                   {attrs && (
                     <span className="ml-4 inline-flex flex-wrap gap-4">
                       <RideBadge type="transport" value={attrs.transport_mode} />
@@ -106,7 +106,7 @@ export function ComparativeView({
         {/* Panneau droit — Plan proposé */}
         <section
           aria-labelledby="plan-propose-title"
-          aria-label="Plan proposé — affiché en premier sur petit écran"
+          aria-label="Plan proposé (affiché en premier sur petit écran)"
         >
           <h2 id="plan-propose-title" className="text-base font-semibold">
             Plan proposé
@@ -134,7 +134,7 @@ export function ComparativeView({
 
             {Array.from(ridesNonGroupeesIds).map((rideId) => (
               <div key={rideId} className="text-muted-foreground text-sm">
-                {rideLabels[rideId] ?? `Course ${rideId.slice(0, 8)}`} — non groupée
+                {rideLabels[rideId] ?? `Course ${rideId.slice(0, 8)}`} : non groupée
               </div>
             ))}
           </div>

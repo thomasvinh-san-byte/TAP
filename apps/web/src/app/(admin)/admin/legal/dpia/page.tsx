@@ -3,7 +3,7 @@ import { DpiaList } from './_components/dpia-list.client';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 import { PageHeader } from '@/components/page-header';
 
-export const metadata = { title: "Analyse d'impact DPIA — TAP Admin" };
+export const metadata = { title: "Analyse d'impact DPIA · TAP Admin" };
 
 /**
  * Page admin DPIA (DPA-03, D-07).

@@ -100,7 +100,7 @@ export const REGISTRE_PREFILL_ENTRIES: DataProcessingRegisterInput[] = [
     recipients: ['personnel de régulation', "chauffeur affecté (selon le besoin d'en connaître)"],
     retention_period_days: 1825,
     security_measures:
-      "Données de santé chiffrées au niveau applicatif, accès limité au besoin d'en connaître, cloisonnement par organisation (RLS), journalisation. Traitement nécessaire à la prise en charge sanitaire (condition de l'art. 9-2-h du RGPD — à confirmer avec votre conseil).",
+      "Données de santé chiffrées au niveau applicatif, accès limité au besoin d'en connaître, cloisonnement par organisation (RLS), journalisation. Traitement nécessaire à la prise en charge sanitaire (condition de l'art. 9-2-h du RGPD : à confirmer avec votre conseil).",
     international_transfer: false,
     international_transfer_safeguards: null,
   },

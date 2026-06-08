@@ -150,7 +150,7 @@ export async function archiveVehicleAction(vehicleId: string): Promise<ActionSta
   if (error) return { error: 'Archivage impossible.' };
   // DEC-041 — row count check : RLS rejette en silence un UPDATE hors droits.
   if (!data || (data as unknown[]).length === 0) {
-    return { error: 'Véhicule introuvable — droits insuffisants.' };
+    return { error: 'Véhicule introuvable : droits insuffisants.' };
   }
   revalidatePath('/admin/vehicules');
   return { success: true };

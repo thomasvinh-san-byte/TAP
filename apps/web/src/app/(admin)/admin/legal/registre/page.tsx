@@ -40,7 +40,7 @@ export default async function RegistrePage() {
     <div className="space-y-24">
       <PageHeader
         title="Registre des traitements"
-        description="Recensez quelles données patients vous utilisez et pourquoi — la première chose qu'un contrôle vous demandera. (RGPD art. 30)"
+        description="Recensez quelles données patients vous utilisez et pourquoi : la première chose qu'un contrôle vous demandera. (RGPD art. 30)"
         actions={
           <>
             <ExportPdfButton />

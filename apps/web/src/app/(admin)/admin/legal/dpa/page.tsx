@@ -34,7 +34,7 @@ export default async function DpaPage() {
     <div className="space-y-24">
       <PageHeader
         title="DPA sous-traitants"
-        description="Vos prestataires qui accèdent aux données patients doivent signer un contrat — conservez-les ici pour prouver que vous êtes en règle. (RGPD art. 28)"
+        description="Vos prestataires qui accèdent aux données patients doivent signer un contrat : conservez-les ici pour prouver que vous êtes en règle. (RGPD art. 28)"
       />
 
       <DpaList entries={entries} />

@@ -88,11 +88,11 @@ describe('<Combobox>', () => {
         options={FRUITS}
         value=""
         onChange={vi.fn()}
-        hint="Liste indicative — saisie libre permise."
+        hint="Liste indicative : saisie libre permise."
       />,
     );
     const combobox = getByRole('combobox');
-    const hint = getByText('Liste indicative — saisie libre permise.');
+    const hint = getByText('Liste indicative : saisie libre permise.');
     expect(combobox.getAttribute('aria-describedby')).toContain(hint.id);
   });
 });

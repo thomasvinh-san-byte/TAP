@@ -75,7 +75,7 @@ export function VehicleForm({ initial, onSuccess }: Props): JSX.Element {
             // re-pioche dans la liste. On ne réinitialise PAS le modèle
             // automatiquement pour ne pas effacer une saisie en cours.
           }}
-          hint="Liste indicative — saisie libre permise."
+          hint="Liste indicative : saisie libre permise."
           error={fe.marque}
         />
         <Combobox

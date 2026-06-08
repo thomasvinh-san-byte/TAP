@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.28 livrée localement (incarnation Chauffeur — terracotta moment-clé + contraste élevé terrain). PR à ouvrir."
-last_updated: "2026-06-05T17:00:00.000Z"
-last_activity: Phase 06.28 cadrée + exécutée. Incarnation famille Chauffeur (driver) — déclinaison « grande et lisible » de DEC-101 sur le terrain. D-01 : terracotta sur "Démarrer la course" (variant=accent, cohérence lot 2 ; "Clôturer" reste bg-warning = sémantique d'attention de fin). D-02 : en-tête /conduite migré vers PageHeader ; empty state accueillant (« Pas de course pour l'instant », titre text-2xl, description text-base). D-03 : mode contraste élevé (DEC-014) implémenté — hook useHighContrast + HighContrastToggle dans header driver + CSS overrides via [data-driver-contrast="high"] et @media (prefers-contrast: more) auto-detect ; persistance localStorage. 0 hex en dur, cibles 56px préservées, tint crème intact, offline non régressé. DEC-108 LOCKED. PR à ouvrir.
+stopped_at: "Phase 06.29 livrée localement (typo française : chasse aux cadratins UI). PR à ouvrir."
+last_updated: "2026-06-05T18:00:00.000Z"
+last_activity: Phase 06.29 cadrée + exécutée. Lot transversal de finition typographique : ~50 corrections de tirets cadratins (—) en prose d'UI visible vers la ponctuation française idiomatique (deux-points/point/virgule/parenthèses/point médian selon le sens). Familles touchées : (driver), (app) patients/cockpit/courses, (admin) legal/facturation/tarifs/sms-templates, (auth), components, optimizer route, server actions errors (batch sed pour pattern « X refusé(e) — droits insuffisants » → « : droits insuffisants »). 20 séparateurs-vide '—' préservés (convention valeur absente). Commentaires hors périmètre. 1 test aligné (combobox.test.tsx). DEC-109 LOCKED. PR à ouvrir.
 progress:
   total_phases: 38
   completed_phases: 34
@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.28 livrée localement (incarnation Chauffeur — terrain). Famille driver « grande et lisible » alignée sur DEC-101 : terracotta moment-clé, en-tête harmonisé, mode contraste élevé DEC-014. 34/38 phases livrées. Restantes : 09 HDS + 10 géoloc réelle ; incarnation des autres familles (Caisse intégrée régulation, B2B, Admin) à planifier après design partner.
+**Current focus:** Phase 06.29 livrée localement (typo française — chasse aux cadratins UI). Lot transversal de finition typographique : ~50 corrections en prose UI selon le sens, séparateurs-vide préservés. 34/38 phases livrées. Restantes : 09 HDS + 10 géoloc réelle ; incarnation des autres familles à planifier après design partner.
 
 ## Current Position
 
@@ -30,12 +30,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.28 livrée localement (2026-06-05) — incarnation Chauffeur (driver) sur le terrain. PR à ouvrir.
+Phase: 06.29 livrée localement (2026-06-05) — typo française, chasse aux cadratins UI. PR à ouvrir.
 Phase next: Phase 09 HDS + Phase 10 géoloc réelle ; incarnation des autres familles à planifier.
-Status: 34/38 phases livrées. Famille Régulation (5 lots) + famille Chauffeur (1 phase) du programme d'incarnation DEC-101 LIVRÉS.
+Status: 34/38 phases livrées. Programme d'incarnation Régulation (5 lots) + Chauffeur (1 phase) + finition typo française LIVRÉS.
 Blockers: aucun
-Last activity: Phase 06.28 — Démarrer la course en terracotta (cohérence lot 2) ; en-tête conduite via PageHeader + empty state accueillant ; mode contraste élevé DEC-014 (toggle persistant + prefers-contrast auto-detect, CSS vars uniquement). Cibles 56px, offline, tint crème préservés. DEC-108 LOCKED. PR à ouvrir.
-Précédent: lot 5 rangement Régulation décision (#253), 06.27 lot 4 refactor modales (#252), 06.26 lot 3 skeletons (#251).
+Last activity: Phase 06.29 — chasse aux ~50 cadratins en prose UI vers ponctuation FR (deux-points/point/virgule/parenthèses/point médian selon le sens). Familles : driver, app (patients/cockpit/courses), admin (legal/facturation/tarifs/sms-templates), auth, components, optimizer, server actions. 20 séparateurs-vide '—' préservés. DEC-109 LOCKED. PR à ouvrir.
+Précédent: 06.28 incarnation Chauffeur (#254), lot 5 rangement (#253), 06.27 lot 4 refactor modales (#252).
 
 Progress: [██████████] 100%
 

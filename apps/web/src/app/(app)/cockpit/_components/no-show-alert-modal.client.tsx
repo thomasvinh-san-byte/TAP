@@ -83,7 +83,7 @@ export function NoShowAlertModal({
   return (
     <aside
       role="alertdialog"
-      aria-label="Patient absent — décision"
+      aria-label="Patient absent : décision"
       className="cockpit-noshow-slide-in border-destructive/30 bg-background fixed right-0 top-0 z-40 flex h-full w-full max-w-[24rem] flex-col gap-12 border-l p-16 shadow-xl"
     >
       <header className="flex items-start justify-between gap-12">
@@ -139,7 +139,7 @@ export function NoShowAlertModal({
 
       <label
         className="text-muted-foreground flex cursor-not-allowed items-center gap-8 text-xs opacity-60"
-        title="Disponible Phase 06 (DEC-055 — consentement tiers RGPD à clarifier)."
+        title="Disponible Phase 06 (DEC-055 : consentement tiers RGPD à clarifier)."
       >
         <input type="checkbox" disabled />
         Notifier la famille par SMS

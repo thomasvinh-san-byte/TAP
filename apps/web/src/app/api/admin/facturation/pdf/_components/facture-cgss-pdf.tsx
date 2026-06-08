@@ -79,7 +79,7 @@ export function FactureCgssPdf({
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        <Text style={styles.h1}>Facturation CGSS — Récapitulatif mensuel</Text>
+        <Text style={styles.h1}>Facturation CGSS · Récapitulatif mensuel</Text>
         <Text style={styles.value}>Société : {organizationName}</Text>
         <Text style={styles.value}>Période : {periodeLabel}</Text>
         <Text style={styles.value}>Chauffeur : {chauffeurLabel ?? 'tous'}</Text>
@@ -111,7 +111,7 @@ export function FactureCgssPdf({
                   </View>
                 ))}
                 <View style={styles.subtotal}>
-                  <Text style={[styles.cTrajet, styles.bold]}>Sous-total — {g.driverNom}</Text>
+                  <Text style={[styles.cTrajet, styles.bold]}>Sous-total · {g.driverNom}</Text>
                   <Text style={styles.cPatient}>
                     {g.count} course{g.count > 1 ? 's' : ''}
                   </Text>
@@ -122,7 +122,7 @@ export function FactureCgssPdf({
 
             <View style={styles.totalRow}>
               <Text style={[styles.cTrajet, styles.bold]}>
-                Total — {aggregate.count} course
+                Total · {aggregate.count} course
                 {aggregate.count > 1 ? 's' : ''}
               </Text>
               <Text style={styles.cPatient} />
@@ -133,9 +133,9 @@ export function FactureCgssPdf({
 
         <Text style={styles.disclaimer}>
           Tarif estimatif, non contractuel jusqu&apos;à la facturation CGSS télétransmise.
-          Récapitulatif interne — ne vaut pas bordereau de télétransmission B2/SEFi.
+          Récapitulatif interne : ne vaut pas bordereau de télétransmission B2/SEFi.
         </Text>
-        <Text style={styles.meta}>Document généré automatiquement — TAP Régulation</Text>
+        <Text style={styles.meta}>Document généré automatiquement · TAP Régulation</Text>
       </Page>
     </Document>
   );

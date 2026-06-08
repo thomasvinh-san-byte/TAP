@@ -77,7 +77,7 @@ export function BreachList({ entries }: { entries: Entry[] }) {
           <EmptyState
             icon={ShieldCheck}
             title="Aucun incident enregistré"
-            description="Aucune violation de données déclarée. En cas d'incident, déclarez-le ici — vous avez 72 h pour notifier la CNIL, un compte à rebours vous accompagne."
+            description="Aucune violation de données déclarée. En cas d'incident, déclarez-le ici : vous avez 72 h pour notifier la CNIL, un compte à rebours vous accompagne."
           />
         }
       />

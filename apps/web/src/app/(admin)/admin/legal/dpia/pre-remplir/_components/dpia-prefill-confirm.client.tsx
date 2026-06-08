@@ -85,7 +85,7 @@ export function DpiaPrefillConfirm(): JSX.Element {
       </div>
 
       <p className="text-muted-foreground text-sm">
-        Risques et mesures d&apos;atténuation : vides — à compléter par vos soins. Statut :
+        Risques et mesures d&apos;atténuation : vides, à compléter par vos soins. Statut :
         brouillon.
       </p>
 

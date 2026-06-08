@@ -85,7 +85,7 @@ export async function saveTariffGridAction(formData: FormData): Promise<TariffGr
     return { error: 'Création de la grille refusée.' };
   }
   if (!insertRes.data || (insertRes.data as unknown[]).length === 0) {
-    return { error: 'Création refusée — droits insuffisants.' };
+    return { error: 'Création refusée : droits insuffisants.' };
   }
 
   await supabase.from('audit_logs').insert({

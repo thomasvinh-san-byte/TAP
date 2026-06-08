@@ -38,7 +38,7 @@ export default async function TarifsPage(): Promise<JSX.Element> {
     <div className="space-y-24">
       <PageHeader
         title="Grille tarifaire CGSS"
-        description="Convention-cadre nationale CNAM applicable 2026. Toute modification crée une nouvelle version datée — l'historique est conservé."
+        description="Convention-cadre nationale CNAM applicable 2026. Toute modification crée une nouvelle version datée. L'historique est conservé."
       />
 
       {activeGrid === null ? (

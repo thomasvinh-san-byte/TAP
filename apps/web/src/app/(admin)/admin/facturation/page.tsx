@@ -39,7 +39,7 @@ export default async function FacturationPage(props: {
     <div className="space-y-24">
       <PageHeader
         title="Facturation CGSS"
-        description="Récapitulatif mensuel des courses en tiers payant CGSS. Le PDF agrège les montants déjà calculés — tarif estimatif, non contractuel jusqu'à la facturation CGSS télétransmise."
+        description="Récapitulatif mensuel des courses en tiers payant CGSS. Le PDF agrège les montants déjà calculés : tarif estimatif, non contractuel jusqu'à la facturation CGSS télétransmise."
       />
 
       <PeriodeSelector mois={mois} chauffeurId={chauffeurId} chauffeurs={chauffeurs} />

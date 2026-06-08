@@ -105,7 +105,7 @@ export function FactureApercu({
           <p className="text-warning flex items-center gap-8 text-xs">
             <AlertTriangle className="h-12 w-12 shrink-0" aria-hidden />
             {countSansTarif} course{countSansTarif > 1 ? 's' : ''} CGSS clôturée
-            {countSansTarif > 1 ? 's' : ''} sans tarif — non incluse
+            {countSansTarif > 1 ? 's' : ''} sans tarif, non incluse
             {countSansTarif > 1 ? 's' : ''} dans la facture.
           </p>
         )}

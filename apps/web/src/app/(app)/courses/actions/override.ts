@@ -62,7 +62,7 @@ export async function overrideRideTarifAction(
     .select('id');
   if (updated.error) return { error: 'Modification impossible.' };
   if (!updated.data || updated.data.length === 0) {
-    return { error: 'Modification refusée — droits insuffisants.' };
+    return { error: 'Modification refusée : droits insuffisants.' };
   }
 
   // 3. INSERT audit_logs explicite ride.tarif.override

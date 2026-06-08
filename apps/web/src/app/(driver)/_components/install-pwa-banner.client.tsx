@@ -71,7 +71,7 @@ export function InstallPwaBanner(): JSX.Element {
   // Chrome (la PWA ne se teste qu'en HTTPS sur mobile).
   const debugBadge = (
     <p data-pwa-kind={promptState.kind} className="text-muted-foreground mb-8 text-xs">
-      PWA debug — état détecté : {promptState.kind}
+      PWA debug · état détecté : {promptState.kind}
     </p>
   );
 

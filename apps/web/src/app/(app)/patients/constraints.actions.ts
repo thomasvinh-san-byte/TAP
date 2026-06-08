@@ -85,7 +85,7 @@ export async function removePatientConstraintAction(
   if (error) return { error: 'Suppression impossible.' };
   // DEC-041 — row count check : RLS rejette en silence un DELETE hors droits.
   if (!data || data.length === 0) {
-    return { error: 'Contrainte introuvable — droits insuffisants.' };
+    return { error: 'Contrainte introuvable : droits insuffisants.' };
   }
   return { ok: true };
 }

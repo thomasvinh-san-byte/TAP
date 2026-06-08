@@ -49,7 +49,7 @@ export function ExcludedRidesSection({
       <ul className="mt-8 space-y-4">
         {visible.map((ride) => (
           <li key={ride.id} className="text-sm text-amber-800">
-            {rideLabels[ride.id] ?? ride.id.slice(0, 8)} — Adresse sans coordonnées. À affecter
+            {rideLabels[ride.id] ?? ride.id.slice(0, 8)} : adresse sans coordonnées. À affecter
             manuellement.
           </li>
         ))}

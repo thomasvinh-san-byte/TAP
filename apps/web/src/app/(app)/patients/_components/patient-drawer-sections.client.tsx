@@ -36,7 +36,7 @@ export function IdentitySection({ d }: { d: DrawerPatientShape }) {
       {d.has_nir && <PatientNirDisplay patientId={d.id} maskedNir={maskNir(d.nir_last4)} />}
       <p className="text-sm">
         Né(e) le {d.date_naissance}
-        {d.genre ? ` — ${d.genre}` : ''}
+        {d.genre ? `, ${d.genre}` : ''}
       </p>
     </section>
   );
@@ -65,7 +65,7 @@ export function CoordinatesSection({ d }: { d: DrawerPatientShape }) {
       </p>
       {d.contact_urgence_nom && (
         <p className="text-sm">
-          Urgence : {d.contact_urgence_nom} — {d.contact_urgence_telephone}
+          Urgence : {d.contact_urgence_nom}, {d.contact_urgence_telephone}
         </p>
       )}
     </section>
@@ -105,7 +105,7 @@ export function ConstraintsSection({ d }: { d: DrawerPatientShape }) {
             <li key={c.id}>
               <Badge variant="outline">
                 {c.type}
-                {c.note ? ` — ${c.note}` : ''}
+                {c.note ? ` : ${c.note}` : ''}
               </Badge>
             </li>
           ))}

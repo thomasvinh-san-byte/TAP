@@ -193,7 +193,7 @@ export function AddressOrPOIPicker({
   const select = React.useCallback(
     (s: Suggestion) => {
       if (s.kind === 'poi') {
-        const labelText = `${s.poi.nom_court} — ${s.poi.adresse}, ${s.poi.code_postal} ${s.poi.ville}`;
+        const labelText = `${s.poi.nom_court}, ${s.poi.adresse}, ${s.poi.code_postal} ${s.poi.ville}`;
         setPicked(true);
         onChange(labelText);
         onSelect?.({
