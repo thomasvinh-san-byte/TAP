@@ -3,9 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.38 livrée localement (header — regroupement nav dirigeant Flotte/Gestion). PR à ouvrir."
-last_updated: "2026-06-08T18:00:00.000Z"
-last_activity: Phase 06.38 cadrée + exécutée. Désencombrement du header dirigeant (passé de 5 à 11 entrées plates, > seuil secteur 5-7). Pas de sidebar (repoussée si besoin persiste). D-01 : dirigeant = 5 liens primaires (Tableau de bord, Cockpit, Patients, Courses, Caisse) + 3 menus déroulants (Flotte ▾ : Chauffeurs/Véhicules/Conformité/Maintenance ; Gestion ▾ : Tarifs/Facturation ; Légal ▾ inchangé). D-02 : régulateur conservé à 5 entrées plates (sous le seuil, son flux quotidien reste 1 clic). D-03 : <NavGroupMenu> générique créé (pattern LegalNavMenu généralisé, signature bleue active DEC-115 — soulignement 3px + text-primary cohérents). LegalNavMenu réécrit pour suivre exactement le même style + items lus depuis LEGAL_NAV_GROUP (nav-config source unique). Items du menu marqués aria-current quand actifs. D-04 : nav-config restructuré (NavGroup, RoleNav, navForRole). tabsForRole conservé en rétro-compat. D-05 : pas de sidebar, pas de changement d'URL, pas header chauffeur PWA. WCAG/RGAA : DropdownMenu shadcn (clavier OK), aria-current sur trigger + item. 0 migration BDD, 0 dépendance, 0 régression. DEC-117 LOCKED. PR à ouvrir.
+stopped_at: "Phase 06.39 livrée localement (SegmentedControl — densité resserrée). PR à ouvrir."
+last_updated: "2026-06-08T19:30:00.000Z"
+last_activity: Phase 06.39 cadrée + exécutée. SegmentedControl trop haut sur écrans denses (patients/chauffeurs), détonnait vs le champ de recherche voisin. Cause : segment py-6 → la clé 6 hors scale custom → fallback Tailwind 24px → hauteur ~76px (≈2× l'Input h-10 de 40px). D-01 : py-6 → py-4 (4px) → hauteur ~36px (h-9), alignée sur la barre de filtres ; conteneur p-4/gap-4/rounded-lg conservés ; actif bg-background + font-medium + shadow-sm CONSERVÉS (fond plein actif = bon pattern a11y, surtout dark — ne PAS le retirer). D-02 : alignement vérifié vs PatientSearch (Input h-10) dans la rangée flex items-center. D-03 : périmètre densité uniquement, pas d'API/logique/couleur ; composant partagé → 3 usages (patients, chauffeurs, assign-modal) + blocking-mode-control. typecheck/lint/build OK, 129/129 tests verts. Contraste ≥4.5:1 jour+nuit conservé, prefers-reduced-motion inchangé. 0 migration, 0 dépendance, 0 régression. DEC-118 LOCKED. PR à ouvrir.
+last_activity_prev: Phase 06.38 cadrée + exécutée. Désencombrement du header dirigeant (passé de 5 à 11 entrées plates, > seuil secteur 5-7). Pas de sidebar (repoussée si besoin persiste). D-01 : dirigeant = 5 liens primaires (Tableau de bord, Cockpit, Patients, Courses, Caisse) + 3 menus déroulants (Flotte ▾ : Chauffeurs/Véhicules/Conformité/Maintenance ; Gestion ▾ : Tarifs/Facturation ; Légal ▾ inchangé). D-02 : régulateur conservé à 5 entrées plates (sous le seuil, son flux quotidien reste 1 clic). D-03 : <NavGroupMenu> générique créé (pattern LegalNavMenu généralisé, signature bleue active DEC-115 — soulignement 3px + text-primary cohérents). LegalNavMenu réécrit pour suivre exactement le même style + items lus depuis LEGAL_NAV_GROUP (nav-config source unique). Items du menu marqués aria-current quand actifs. D-04 : nav-config restructuré (NavGroup, RoleNav, navForRole). tabsForRole conservé en rétro-compat. D-05 : pas de sidebar, pas de changement d'URL, pas header chauffeur PWA. WCAG/RGAA : DropdownMenu shadcn (clavier OK), aria-current sur trigger + item. 0 migration BDD, 0 dépendance, 0 régression. DEC-117 LOCKED. PR à ouvrir.
 progress:
   total_phases: 38
   completed_phases: 34
@@ -30,12 +31,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.38 livrée localement (2026-06-08) — header regroupement nav dirigeant. PR à ouvrir.
+Phase: 06.39 livrée localement (2026-06-08) — SegmentedControl densité resserrée (py-6→py-4, ~36px aligné sur Input h-10). PR à ouvrir.
 Phase next: Phase 09 HDS + Phase 10 géoloc réelle ; sidebar repoussée si besoin persiste.
-Status: 34/38 phases livrées. Programme d'incarnation complet + Conformité §5.21 COMPLET + exports §5.23 partiel + header regroupé LIVRÉS.
+Status: 34/38 phases livrées. Programme d'incarnation complet + Conformité §5.21 COMPLET + exports §5.23 partiel + header regroupé + densité SegmentedControl LIVRÉS.
 Blockers: aucun
-Last activity: Phase 06.38 — dirigeant passé de 11 entrées plates à 5 primaires + 3 menus (Flotte/Gestion/Légal). NavGroupMenu générique (pattern LegalNavMenu généralisé). nav-config restructuré (NavGroup/RoleNav/navForRole). Régulateur inchangé (5 entrées sous le seuil). Signature bleue active DEC-115 préservée même dans les menus (aria-current sur trigger + item). 0 URL changée. DEC-117 LOCKED. PR à ouvrir.
-Précédent: 06.37 exports §5.23 (#263), 06.36 incarnation header (#262), 06.35 Conformité lot 3 (#261).
+Last activity: Phase 06.39 — SegmentedControl resserré (py-6 retombait sur 24px Tailwind par défaut → ~76px ; py-4 → ~36px h-9 aligné sur l'Input h-10). Fond plein actif + font-medium + shadow-sm CONSERVÉS (anti-pattern de retirer le fond). Composant partagé → 3 usages + blocking-mode-control. 129/129 tests verts, jour+nuit OK, contraste ≥4.5:1. DEC-118 LOCKED. PR à ouvrir.
+Précédent: 06.38 header regroupement nav (DEC-117), 06.37 exports §5.23 (#263), 06.36 incarnation header (#262).
 
 Progress: [██████████] 100%
 

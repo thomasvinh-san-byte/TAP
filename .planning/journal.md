@@ -1,5 +1,46 @@
 # Journal — phases livrées
 
+## 2026-06-08 — Phase 06.39 livrée localement (SegmentedControl — densité resserrée)
+
+Le `<SegmentedControl>` (« Actifs / Archivés ») détonnait sur les écrans denses (patients, chauffeurs) : plus haut que le champ de recherche voisin, il entrait en compétition avec les données. Recherche secteur : accorder la densité visuelle à l'UI environnante ; un contrôle taille mobile paraît lourd dans un dashboard dense ; **le fond plein actif est le BON pattern** (les indices subtils ne tiennent pas en sombre, enjeu a11y) — le défaut n'est PAS le fond, c'est la TAILLE.
+
+### Cause réelle
+
+Le scale `spacing` custom (`tailwind.config.ts`) n'override que `4/8/12/16/24/32/48/64`. Le segment portait `py-6` : la clé `6` n'est pas dans le scale custom → **fallback Tailwind par défaut = 1.5rem = 24px**. Hauteur segment ≈ 20px (texte) + 48px (py-6×2) + 8px (conteneur p-4×2) ≈ **76px**, soit presque le double du champ de recherche voisin (`Input` `h-10` = 40px).
+
+### D-01 — Densité resserrée (fond plein actif conservé)
+
+| Avant | Après |
+|---|---|
+| segment `px-12 py-6` → ~76px | segment `px-12 py-4` → **~36px (h-9)** |
+| dépasse les voisins, « vibre » | aligné sur la barre de filtres |
+
+- Segment `py-6` → **`py-4`** (4px, dans le scale custom). Hauteur ~36px alignée sur `Input` h-10.
+- Conteneur `inline-flex items-center gap-4 rounded-lg bg-muted p-4` conservé (`4` déjà au minimum du scale ; `p-2`/`gap-2` seraient PLUS grands en défaut Tailwind).
+- Actif : **`bg-background` + `font-medium` + `shadow-sm` CONSERVÉS** (`shadow-sm` = token d'ombre le plus léger). Double signal fond + graisse.
+- Transition `transition-all duration-150` + `prefers-reduced-motion` global inchangés.
+
+### D-02 — Alignement aux voisins
+
+Sur patients/chauffeurs, le contrôle vit dans une rangée `flex flex-wrap items-center gap-12` avec `<PatientSearch>` (`Input` h-10 = 40px). ~36px centré dans la même rangée → barre de filtres cohérente, plus de dépassement.
+
+### D-03 — Périmètre
+
+Densité/dimensions du composant UNIQUEMENT. Pas de changement d'API, de logique, de couleur signature (pas un moment-clé). Composant partagé → bénéficie aux **3 usages** (`patients-list`, `drivers-list`, `assign-modal`) + `blocking-mode-control`.
+
+### Validation
+
+- `grep -nE 'py-|px-|p-|h-|shadow|rounded' …/segmented-control.tsx` → `px-12 py-4`, `bg-muted p-4`, `shadow-sm`
+- `pnpm --filter web typecheck` propre
+- `pnpm --filter web lint` : 0 erreur (10 warnings préexistants hors périmètre)
+- `pnpm --filter web build` vert
+- `pnpm --filter web test` **129/129 verts**
+- a11y : fond + graisse = double signal, contraste actif/inactif ≥ 4.5:1 conservé jour ET nuit ; fond actif NON retiré (anti-pattern évité)
+- Artefact avant/après jour+nuit : `docs/showcase/06.39-segmented-densite/comparatif.html` (avant/après live = preview Vercel `/patients`)
+- 0 migration BDD, 0 dépendance, 0 régression
+
+**Pas d'ADR** : ajustement de densité d'un composant existant. DEC-118 LOCKED.
+
 ## 2026-06-08 — Phase 06.38 livrée localement (header — regroupement nav dirigeant Flotte/Gestion)
 
 Désencombrement du header dirigeant. Recherche secteur : top-bar 5-7 max ; TAP dirigeant était à **11 entrées plates**. Décision : regroupement en menus déroulants (pas sidebar — repoussée si besoin persiste). Faible risque, sur existant.
