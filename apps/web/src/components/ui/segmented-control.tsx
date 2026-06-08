@@ -13,9 +13,9 @@ import { cn } from '@/lib/utils';
  * pastille active différenciée par une OMBRE seule, pas de poids typo,
  * pas de transition.
  *
- * Cible (direction DEC-101 §5 / §5bis) :
- *   - Conteneur : fond `bg-muted` sobre, `rounded-lg`, padding `p-4`
- *     confortable, `gap-4` entre segments.
+ * Cible (direction DEC-101 §5 / §5bis, densité DEC-118 / Phase 06.39) :
+ *   - Conteneur : fond `bg-muted` sobre, `rounded-lg`, padding `p-4`,
+ *     `gap-4` entre segments.
  *   - Actif : `bg-background` + `text-foreground` + `font-medium`
  *     + ombre token `shadow-sm` + `rounded-md`. La pastille gagne par
  *     contraste de fond + poids typo, l'ombre n'est qu'un soutien
@@ -25,7 +25,12 @@ import { cn } from '@/lib/utils';
  *   - Transition 150ms ease-out (grammaire animation §5), `prefers-
  *     reduced-motion` couvert par règle globale `globals.css`.
  *   - Focus ring `focus-visible:ring-ring` (RGAA).
- *   - Cibles tactiles : `py-6 px-12` minimum.
+ *   - Densité (DEC-118) : segment `px-12 py-4` → hauteur totale ~36px
+ *     (h-9), alignée sur le champ de recherche voisin (`Input` h-10)
+ *     dans les barres de filtres denses (patients, chauffeurs). Le
+ *     `py-6` initial retombait sur l'échelle Tailwind par défaut (24px)
+ *     et faisait dépasser le contrôle de ses voisins. Fond plein actif
+ *     CONSERVÉ (le retirer serait un anti-pattern a11y, surtout dark).
  *
  * Deux variantes :
  *   - `<SegmentedControl>` : segments = `<button>` ; usage state local
@@ -45,7 +50,7 @@ export interface SegmentOption<T extends string> {
 const containerCls = 'inline-flex items-center gap-4 rounded-lg bg-muted p-4';
 
 const segmentBaseCls =
-  'rounded-md px-12 py-6 text-sm transition-all duration-150 ' +
+  'rounded-md px-12 py-4 text-sm transition-all duration-150 ' +
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-muted';
 
 const segmentActiveCls = 'bg-background text-foreground font-medium shadow-sm';

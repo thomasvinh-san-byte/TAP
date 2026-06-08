@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Phase 06.39 — SegmentedControl : densité (avant / après)</title>
+    <style>
+      /* Reproduction fidèle des classes Tailwind résolues (scale custom :
+         4/8/12/16/24px ; py-6 retombe sur le défaut Tailwind = 24px).
+         Police Inter pour rester proche de l'UI réelle. */
+      :root {
+        --radius: 8px;
+        font-family: Inter, system-ui, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 32px;
+        background: #f4f4f5;
+        color: #18181b;
+      }
+      .panes {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+      }
+      .pane {
+        flex: 1 1 360px;
+        border-radius: 12px;
+        padding: 24px;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+      }
+      .pane.light {
+        background: #ffffff;
+        color: #18181b;
+        --muted: #f4f4f5;
+        --bg: #ffffff;
+        --fg: #18181b;
+        --muted-fg: #71717a;
+        --border: #e4e4e7;
+      }
+      .pane.dark {
+        background: #18181b;
+        color: #fafafa;
+        --muted: #27272a;
+        --bg: #18181b;
+        --fg: #fafafa;
+        --muted-fg: #a1a1aa;
+        --border: #3f3f46;
+      }
+      h1 {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0 0 4px;
+      }
+      .sub {
+        color: #71717a;
+        font-size: 13px;
+        margin: 0 0 24px;
+      }
+      h2 {
+        font-size: 13px;
+        font-weight: 600;
+        margin: 0 0 12px;
+        opacity: 0.8;
+      }
+      .case {
+        margin-bottom: 24px;
+      }
+      .label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin: 0 0 8px;
+        opacity: 0.55;
+      }
+
+      /* Barre de filtres : flex items-center gap-12 (12px) */
+      .filterbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      /* SegmentedControl : conteneur inline-flex items-center gap-4 rounded-lg bg-muted p-4 */
+      .seg {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        border-radius: var(--radius);
+        background: var(--muted);
+        padding: 4px;
+      }
+      .seg button {
+        border: 0;
+        cursor: pointer;
+        font-family: inherit;
+        font-size: 14px;
+        border-radius: calc(var(--radius) - 2px);
+        padding: 0 12px; /* px-12 */
+        background: transparent;
+        color: var(--muted-fg);
+        transition: all 150ms cubic-bezier(0, 0, 0.2, 1);
+      }
+      .seg button.active {
+        background: var(--bg);
+        color: var(--fg);
+        font-weight: 500;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+      }
+      /* AVANT : py-6 = 24px ; APRÈS : py-4 = 4px */
+      .seg.before button {
+        padding-top: 24px;
+        padding-bottom: 24px;
+      }
+      .seg.after button {
+        padding-top: 4px;
+        padding-bottom: 4px;
+      }
+
+      /* Champ de recherche voisin : Input h-10 (40px) rounded-md border px-12 */
+      .search {
+        height: 40px;
+        border-radius: calc(var(--radius) - 2px);
+        border: 1px solid var(--border);
+        background: var(--bg);
+        color: var(--fg);
+        padding: 0 12px;
+        font-size: 14px;
+        min-width: 200px;
+        flex: 1;
+        display: flex;
+        align-items: center;
+      }
+      .search.ph {
+        color: var(--muted-fg);
+      }
+      .note {
+        font-size: 12px;
+        color: #71717a;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Phase 06.39 — SegmentedControl : densité resserrée</h1>
+    <p class="sub">
+      DEC-118. Le segment passait par <code>py-6</code>, qui retombe sur l'échelle Tailwind par
+      défaut (24px) et non sur le scale custom — d'où une hauteur ~76px, presque le double du champ
+      de recherche voisin (<code>Input</code> h-10 = 40px). Après : <code>py-4</code>
+      (4px) → hauteur ~36px (h-9), alignée sur la barre de filtres. Fond plein actif + graisse
+      conservés (a11y, dark mode).
+    </p>
+
+    <div class="panes">
+      <div class="pane light">
+        <h2>Mode jour</h2>
+        <div class="case">
+          <p class="label">Avant — segment ~76px</p>
+          <div class="filterbar">
+            <div class="seg before">
+              <button class="active">Actifs</button>
+              <button>Archivés</button>
+            </div>
+            <div class="search ph">Rechercher un patient…</div>
+          </div>
+          <p class="note">Le contrôle dépasse nettement le champ de recherche en hauteur.</p>
+        </div>
+        <div class="case">
+          <p class="label">Après — segment ~36px</p>
+          <div class="filterbar">
+            <div class="seg after">
+              <button class="active">Actifs</button>
+              <button>Archivés</button>
+            </div>
+            <div class="search ph">Rechercher un patient…</div>
+          </div>
+          <p class="note">Hauteur alignée, plus de « vibration » visuelle.</p>
+        </div>
+      </div>
+
+      <div class="pane dark">
+        <h2>Mode nuit</h2>
+        <div class="case">
+          <p class="label">Avant — segment ~76px</p>
+          <div class="filterbar">
+            <div class="seg before">
+              <button class="active">Actifs</button>
+              <button>Archivés</button>
+            </div>
+            <div class="search ph">Rechercher un patient…</div>
+          </div>
+        </div>
+        <div class="case">
+          <p class="label">Après — segment ~36px</p>
+          <div class="filterbar">
+            <div class="seg after">
+              <button class="active">Actifs</button>
+              <button>Archivés</button>
+            </div>
+            <div class="search ph">Rechercher un patient…</div>
+          </div>
+          <p class="note">Fond plein actif conservé : contraste maintenu en sombre.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
