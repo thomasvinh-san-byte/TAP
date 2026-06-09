@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ComplianceBadge } from '@/components/ui/compliance-badge';
 import { EmptyState as SharedEmptyState } from '@/components/ui/empty-state';
-import { DataTable, type DataTableColumn } from '@/components/data-table';
+import { DataTable, Pagination, type DataTableColumn } from '@/components/data-table';
 import {
   Sheet,
   SheetContent,
@@ -46,6 +46,10 @@ export function VehiclesList({ initialVehicles, nextComplianceByVehicleId }: Pro
   const router = useRouter();
   const [mode, setMode] = React.useState<Mode>({ kind: 'closed' });
   const [archiveTarget, setArchiveTarget] = React.useState<VehicleRow | null>(null);
+  const [page, setPage] = React.useState(0);
+
+  const PAGE_SIZE = 50;
+  const pagedVehicles = initialVehicles.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   const close = React.useCallback(() => setMode({ kind: 'closed' }), []);
 
@@ -152,12 +156,19 @@ export function VehiclesList({ initialVehicles, nextComplianceByVehicleId }: Pro
             },
           },
         ]}
-        rows={initialVehicles}
+        rows={pagedVehicles}
         // DEC-033 : clé inclut `actif` pour re-mount au changement.
         rowKey={(v) => `${v.id}-${v.actif}`}
         ariaLabel="Liste des véhicules de la flotte"
         onRowClick={(v) => setMode({ kind: 'edit', vehicle: v })}
         emptyState={<EmptyState onCreate={() => setMode({ kind: 'create' })} />}
+      />
+
+      <Pagination
+        page={page}
+        pageSize={PAGE_SIZE}
+        total={initialVehicles.length}
+        onPageChange={setPage}
       />
 
       <Sheet

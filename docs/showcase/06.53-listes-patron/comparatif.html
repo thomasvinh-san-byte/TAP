@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Phase 06.53 — Patron de liste : toolbar + pagination (avant / après)</title>
+    <style>
+      :root {
+        font-family: Inter, system-ui, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 32px;
+        background: #eef2f7;
+        color: #0f172a;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0 0 4px;
+      }
+      .sub {
+        color: #64748b;
+        font-size: 13px;
+        margin: 0 0 24px;
+        max-width: 900px;
+      }
+      .grid {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+      .case {
+        flex: 1 1 380px;
+      }
+      .case > p.label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #64748b;
+        margin: 0 0 8px;
+      }
+      .panel {
+        background: #fff;
+        border: 1px solid hsl(214 32% 91%);
+        border-radius: 10px;
+        padding: 12px;
+      }
+      .tb {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .ipt {
+        height: 30px;
+        border-radius: 6px;
+        border: 1px solid hsl(214 32% 91%);
+        background: #fff;
+      }
+      .ipt.search {
+        flex: 1;
+        min-width: 140px;
+      }
+      .ipt.f {
+        width: 90px;
+      }
+      .ipt.act {
+        width: 80px;
+        background: #f1f5f9;
+      }
+      .meta {
+        font-size: 10px;
+        color: #94a3b8;
+        margin: 8px 2px;
+      }
+      .tbl {
+        border: 1px solid hsl(214 32% 91%);
+        border-radius: 6px;
+        overflow: hidden;
+        margin-top: 6px;
+      }
+      .tr {
+        height: 26px;
+        border-bottom: 1px solid hsl(214 32% 93%);
+      }
+      .tr:last-child {
+        border-bottom: 0;
+      }
+      .pag {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 10px;
+        font-size: 10px;
+        color: #64748b;
+      }
+      .pag .btns {
+        display: flex;
+        gap: 6px;
+      }
+      .pg {
+        border: 1px solid hsl(214 32% 85%);
+        border-radius: 6px;
+        padding: 3px 8px;
+      }
+      .pg.off {
+        opacity: 0.4;
+      }
+      .voirplus {
+        text-align: center;
+        margin-top: 8px;
+      }
+      .voirplus span {
+        border: 1px solid hsl(214 32% 85%);
+        border-radius: 6px;
+        padding: 4px 12px;
+        font-size: 10px;
+        color: #64748b;
+      }
+      .note {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 8px;
+      }
+      .misaligned {
+        align-items: flex-end;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Phase 06.53 — Patron de liste unifié : toolbar + pagination + seuil</h1>
+    <p class="sub">
+      DEC-132. Toolbars refaites main (alignements divergents items-center/items-end) et paginations
+      incohérentes : rides « Voir plus » cumulatif, drivers/vehicles aucune. Unification :
+      <code>ListToolbar</code> (recherche flex-1 + filtres + actions à droite, hauteur unique) +
+      <code>Pagination</code> par plage (Précédent/Suivant grisés en bord, lignes par page).
+      <b>Règle clé : la pagination ne s'affiche QUE si total &gt; pageSize</b> (pas de barre sous
+      une liste courte). data-table/tri/EmptyState/filtres et valeurs métier (statuts CGSS,
+      date=aujourd'hui, colonnes, formats 974) inchangés.
+    </p>
+
+    <div class="grid">
+      <div class="case">
+        <p class="label">Avant — toolbar bricolée + « Voir plus » (rides)</p>
+        <div class="panel">
+          <div class="tb misaligned">
+            <div class="ipt search"></div>
+            <div class="ipt f"></div>
+            <div class="ipt f"></div>
+            <div class="ipt act"></div>
+          </div>
+          <div class="tbl">
+            <div class="tr"></div>
+            <div class="tr"></div>
+            <div class="tr"></div>
+            <div class="tr"></div>
+          </div>
+          <div class="voirplus"><span>Voir plus (50 de plus)</span></div>
+        </div>
+        <p class="note">Alignement items-end, offset cumulatif (recherche limitée à la fenêtre).</p>
+      </div>
+
+      <div class="case">
+        <p class="label">Après — liste longue (pagination affichée)</p>
+        <div class="panel">
+          <div class="tb">
+            <div class="ipt search"></div>
+            <div class="ipt f"></div>
+            <div class="ipt f"></div>
+            <div class="ipt act" style="margin-left: auto"></div>
+          </div>
+          <div class="meta">128 courses</div>
+          <div class="tbl">
+            <div class="tr"></div>
+            <div class="tr"></div>
+            <div class="tr"></div>
+            <div class="tr"></div>
+          </div>
+          <div class="pag">
+            <span>1–50 sur 128</span>
+            <div class="btns">
+              <span class="pg off">‹ Précédent</span><span class="pg">Suivant ›</span>
+            </div>
+          </div>
+        </div>
+        <p class="note">Toolbar alignée, plage « 1–50 sur 128 », Précédent grisé en bord.</p>
+      </div>
+
+      <div class="case">
+        <p class="label">Après — liste courte (AUCUNE pagination, seuil)</p>
+        <div class="panel">
+          <div class="tb">
+            <div class="ipt search"></div>
+            <div class="ipt act" style="margin-left: auto"></div>
+          </div>
+          <div class="meta">3 véhicules</div>
+          <div class="tbl">
+            <div class="tr"></div>
+            <div class="tr"></div>
+            <div class="tr"></div>
+          </div>
+        </div>
+        <p class="note">
+          total ≤ pageSize → la barre de pagination retourne null (rien sous la liste).
+        </p>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top: 24px">
+      Composants `components/data-table/{pagination,list-toolbar}.tsx`, logés autour du data-table
+      existant. Migrés : rides (Voir plus → pagination), patients (pageSize 25), véhicules (seuil).
+      drivers/caisse/tarifs/legal : mécaniques, à enchaîner (mêmes composants). Avant/après live =
+      preview Vercel /courses (long) + /admin/vehicules (court).
+    </p>
+  </body>
+</html>
