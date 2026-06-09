@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Phase 06.48 — Bouton auth aligné sur les champs (avant / après)</title>
+    <style>
+      :root {
+        font-family: Inter, system-ui, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 32px;
+        background: #eef2f7;
+        color: #0f172a;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0 0 4px;
+      }
+      .sub {
+        color: #64748b;
+        font-size: 13px;
+        margin: 0 0 24px;
+        max-width: 760px;
+      }
+      .grid {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+      }
+      .case {
+        flex: 0 1 280px;
+      }
+      .case > p.label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #64748b;
+        margin: 0 0 8px;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid hsl(214 32% 91%);
+        border-radius: 8px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+      .lbl {
+        font-size: 12px;
+        margin-bottom: 6px;
+        color: hsl(222 47% 11%);
+      }
+      .field {
+        height: 40px;
+        border-radius: 6px;
+        border: 1px solid hsl(214 32% 91%);
+        background: #fff;
+      }
+      .btn {
+        width: 100%;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 500;
+        color: #fff;
+        background: hsl(217 92% 32%);
+        border: 0;
+      }
+      /* AVANT : bouton h-12 (48px) text-base, plus haut que les champs */
+      .before .btn {
+        height: 48px;
+        font-size: 16px;
+      }
+      /* APRÈS : bouton h-10 (40px) = champs */
+      .after .btn {
+        height: 40px;
+        font-size: 14px;
+      }
+      .note {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 8px;
+      }
+      .ruler {
+        position: relative;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Phase 06.48 — Bouton de connexion aligné sur les champs</h1>
+    <p class="sub">
+      DEC-127. Les champs font <code>h-10</code> (40px) mais le bouton faisait
+      <code>h-12</code> (48px) + <code>text-base</code> → plus haut que les champs, il « flottait ».
+      Aligné sur le gabarit des inputs : <code>h-10</code>, même <code>rounded-md</code>, texte
+      <code>text-sm</code>. La pile e-mail / mot de passe / bouton est désormais homogène (login +
+      accept-invite).
+    </p>
+
+    <div class="grid">
+      <div class="case before">
+        <p class="label">Avant — bouton 48px</p>
+        <div class="card">
+          <div>
+            <div class="lbl">Adresse e-mail</div>
+            <div class="field"></div>
+          </div>
+          <div>
+            <div class="lbl">Mot de passe</div>
+            <div class="field"></div>
+          </div>
+          <button class="btn">Se connecter</button>
+        </div>
+        <p class="note">Le bouton dépasse la largeur visuelle/hauteur des champs (flotte).</p>
+      </div>
+
+      <div class="case after">
+        <p class="label">Après — bouton 40px (= champs)</p>
+        <div class="card">
+          <div>
+            <div class="lbl">Adresse e-mail</div>
+            <div class="field"></div>
+          </div>
+          <div>
+            <div class="lbl">Mot de passe</div>
+            <div class="field"></div>
+          </div>
+          <button class="btn">Se connecter</button>
+        </div>
+        <p class="note">Barre rectangulaire alignée : même hauteur, même radius que les champs.</p>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top: 24px">
+      Cible large conservée (pleine largeur). Couleur bleue (06.44) et focus outline (06.47)
+      inchangés. Avant/après live = preview Vercel /login.
+    </p>
+  </body>
+</html>
