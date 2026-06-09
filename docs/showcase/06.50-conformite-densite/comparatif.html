@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Phase 06.50 — Conformité : densité & alignement (avant / après)</title>
+    <style>
+      :root {
+        font-family: Inter, system-ui, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 32px;
+        background: #eef2f7;
+        color: #0f172a;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0 0 4px;
+      }
+      .sub {
+        color: #64748b;
+        font-size: 13px;
+        margin: 0 0 24px;
+        max-width: 880px;
+      }
+      .grid {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+      .case {
+        flex: 1 1 420px;
+      }
+      .case > p.label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #64748b;
+        margin: 0 0 8px;
+      }
+      .vp {
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        border-radius: 10px;
+        background: #fff;
+        padding: 12px;
+        position: relative;
+        overflow: hidden;
+      }
+      .fold {
+        position: absolute;
+        left: 0;
+        right: 0;
+        border-top: 2px dashed hsl(0 72% 51%);
+        font-size: 10px;
+        color: hsl(0 72% 51%);
+        text-align: right;
+        padding-right: 4px;
+      }
+      .sec {
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #94a3b8;
+        margin: 6px 0 4px;
+      }
+      .card {
+        background: #f8fafc;
+        border: 1px solid hsl(214 32% 91%);
+        border-radius: 6px;
+      }
+      .empty {
+        background: #fff;
+        border: 1px dashed hsl(214 32% 80%);
+        border-radius: 6px;
+        font-size: 9px;
+        color: #94a3b8;
+        padding: 6px 8px;
+      }
+      .row {
+        display: grid;
+        gap: 6px;
+        margin-bottom: 6px;
+      }
+      .c2 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .c3 {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .full {
+        grid-template-columns: 1fr;
+      }
+      .h-s {
+        height: 44px;
+      }
+      .h-m {
+        height: 60px;
+      }
+      .h-l {
+        height: 84px;
+      }
+      .note {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Phase 06.50 — Conformité : densité & alignement</h1>
+    <p class="sub">
+      DEC-129. L'écran flottait : Chauffeurs/Véhicules occupaient chacun une SECTION pleine pour un
+      simple « Aucune échéance saisie », réglage Avertir/Bloquer en pleine largeur, résumé via une
+      carte maison ≠ dashboard. Application de la doctrine d'alignement (2e écran) : résumé via
+      KpiCard partagée, réglage compact sur une ligne, Chauffeurs+Véhicules côte à côte avec état
+      vide = ligne discrète. Données/logique inchangées. Ligne pointillée = bas du viewport.
+    </p>
+
+    <div class="grid">
+      <div class="case">
+        <p class="label">Avant — sections empilées, vide structurel</p>
+        <div class="vp" style="height: 330px">
+          <div class="fold" style="top: 290px">↧ ligne de flottaison</div>
+          <div class="sec">Résumé (carte maison)</div>
+          <div class="row c3">
+            <div class="card h-m"></div>
+            <div class="card h-m"></div>
+            <div class="card h-m"></div>
+          </div>
+          <div class="sec">Réglage Avertir/Bloquer (pleine largeur + long paragraphe)</div>
+          <div class="row full"><div class="card h-l"></div></div>
+          <div class="sec">Convention CGSS</div>
+          <div class="row full"><div class="card h-m"></div></div>
+          <div class="sec">Chauffeurs (section pleine pour « aucune échéance »)</div>
+          <div class="row full"><div class="card h-m"></div></div>
+          <div class="sec">Véhicules (section pleine)</div>
+          <div class="row full"><div class="card h-m"></div></div>
+        </div>
+        <p class="note">5 blocs empilés pleine largeur → le bas passe sous la ligne (scroll).</p>
+      </div>
+
+      <div class="case">
+        <p class="label">Après — doctrine, tient sur une page</p>
+        <div class="vp" style="height: 330px">
+          <div class="fold" style="top: 290px">↧ ligne de flottaison</div>
+          <div class="sec">Résumé (KpiCard partagée)</div>
+          <div class="row c3">
+            <div class="card h-s"></div>
+            <div class="card h-s"></div>
+            <div class="card h-s"></div>
+          </div>
+          <div class="sec">Réglage Avertir/Bloquer (compact, une ligne)</div>
+          <div class="row full"><div class="card h-s"></div></div>
+          <div class="sec">Convention CGSS</div>
+          <div class="row full"><div class="card h-s"></div></div>
+          <div class="sec">Chauffeurs · Véhicules (côte à côte)</div>
+          <div class="row c2">
+            <div class="empty">Aucune échéance saisie — Fiches chauffeurs →</div>
+            <div class="empty">Aucune échéance saisie — Fiches véhicules →</div>
+          </div>
+        </div>
+        <p class="note">
+          Résumé KpiCard · réglage 1 ligne · entités côte à côte, état vide = ligne discrète. Tient.
+        </p>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top: 24px">
+      État rempli : la `ConformiteTable` existante s'affiche à la place de la ligne vide (tableau
+      structuré, cohérent Cockpit). Couleurs du résumé via states KpiCard (tokens) jour+nuit.
+      Données/counts/saisies inchangés. Avant/après live = preview Vercel /admin/conformite.
+    </p>
+  </body>
+</html>

@@ -45,20 +45,19 @@ export function BlockingModeControl({ initialMode }: Props): JSX.Element {
   return (
     <section
       aria-labelledby="blocking-mode-title"
-      className="border-border space-y-12 rounded-lg border p-16"
+      className="border-border flex flex-col gap-12 rounded-lg border p-16 sm:flex-row sm:items-center sm:justify-between sm:gap-16"
     >
-      <header className="space-y-4">
-        <h2 id="blocking-mode-title" className="text-base font-semibold">
+      <div className="min-w-0">
+        <h2 id="blocking-mode-title" className="text-sm font-semibold">
           Comportement en cas de non-conformité
         </h2>
-        <p className="text-muted-foreground text-sm">
-          Avertir : la régulatrice garde la main (assignation possible sous sa responsabilité).
-          Bloquer : assignation refusée pour un chauffeur ou véhicule avec une échéance expirée
-          (manuel et optimisation).
+        <p className="text-muted-foreground max-w-[58ch] text-sm">
+          Avertir : la régulatrice garde la main. Bloquer : assignation refusée (manuel et
+          optimisation) pour une échéance expirée.
         </p>
-      </header>
+      </div>
 
-      <div className="flex items-center gap-12">
+      <div className="flex shrink-0 items-center gap-12">
         <SegmentedControl<Mode>
           ariaLabel="Mode de blocage conformité"
           value={mode}
