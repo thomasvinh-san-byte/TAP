@@ -6,6 +6,11 @@ des non-négociables. Le pipeline GSD lui-même (`/gsd-discuss-phase`,
 `/gsd-ui-spec-phase`, `/gsd-plan-phase`, `/gsd-execute-phase`) reste tel quel —
 ceci le complète, ne le remplace pas.
 
+> La **méthode de travail** complète du binôme (rôles, prompts autoporteurs,
+> maquette-avant-code, audit post-merge) est décrite dans
+> `.planning/METHODE-ARCHITECTE-CHAT.md` ; le gabarit de prompt dans
+> `.planning/PROMPT-MODELE.md`.
+
 ## Contenu
 
 | Fichier | Rôle |
