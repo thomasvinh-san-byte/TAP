@@ -103,7 +103,7 @@ export function BirthDateField({
           required={required}
           aria-label="Date de naissance"
           className={cn(
-            'border-input bg-background h-48 w-full rounded-md border px-12 pr-32 text-sm',
+            'border-input bg-background h-10 w-full rounded-md border px-12 pr-32 text-sm',
             'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2',
           )}
           autoComplete="off"
@@ -340,7 +340,7 @@ export function CityPostalCodeField({
           items={VILLES_ITEMS}
           ariaLabel="Ville"
           placeholder="Sélectionnez une commune"
-          triggerClassName="h-48 w-full"
+          triggerClassName="w-full"
         />
         <p className="text-muted-foreground text-sm">24 communes Réunion.</p>
         <input type="hidden" name="ville" value={ville} />

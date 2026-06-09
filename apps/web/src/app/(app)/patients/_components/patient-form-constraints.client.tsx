@@ -98,7 +98,7 @@ export function PatientFormConstraints({ patientId, initial }: Props) {
             id="constraint-type"
             value={type}
             onChange={(e) => setType(e.target.value)}
-            className="border-border bg-background h-48 w-full rounded-md border px-12 text-sm"
+            className="border-border bg-background h-10 w-full rounded-md border px-12 text-sm"
           >
             {CONSTRAINT_TYPES.map((t) => (
               <option key={t.value} value={t.value}>
@@ -111,7 +111,7 @@ export function PatientFormConstraints({ patientId, initial }: Props) {
           <Label htmlFor="constraint-note">Précision (optionnel)</Label>
           <Input id="constraint-note" value={note} onChange={(e) => setNote(e.target.value)} />
         </div>
-        <Button type="button" onClick={handleAdd} disabled={pending} className="h-48">
+        <Button type="button" onClick={handleAdd} disabled={pending} className="h-10">
           <Plus className="mr-8 h-16 w-16" aria-hidden />
           Ajouter
         </Button>

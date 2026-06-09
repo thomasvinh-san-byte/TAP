@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Phase 06.51 — Formulaire patient : 2 colonnes + patron (avant / après)</title>
+    <style>
+      :root {
+        font-family: Inter, system-ui, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 32px;
+        background: #eef2f7;
+        color: #0f172a;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0 0 4px;
+      }
+      .sub {
+        color: #64748b;
+        font-size: 13px;
+        margin: 0 0 24px;
+        max-width: 900px;
+      }
+      .grid {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+      .case {
+        flex: 1 1 420px;
+      }
+      .case > p.label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #64748b;
+        margin: 0 0 8px;
+      }
+      .form {
+        background: #fff;
+        border: 1px solid hsl(214 32% 91%);
+        border-radius: 10px;
+        padding: 16px;
+      }
+      .sec {
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #94a3b8;
+        margin: 10px 0 4px;
+      }
+      .field {
+        height: 30px;
+        border-radius: 6px;
+        border: 1px solid hsl(214 32% 91%);
+        background: #fff;
+        margin-bottom: 6px;
+      }
+      .row {
+        display: grid;
+        gap: 8px;
+      }
+      .c2 {
+        grid-template-columns: 1fr 1fr;
+      }
+      .cols {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .narrow {
+        max-width: 120px;
+      }
+      .tall {
+        height: 56px;
+      }
+      .actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        border-top: 1px solid hsl(214 32% 91%);
+        margin-top: 12px;
+        padding-top: 12px;
+      }
+      .btn {
+        height: 30px;
+        border-radius: 6px;
+        padding: 0 14px;
+        font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+      }
+      .btn.primary {
+        background: hsl(217 92% 32%);
+        color: #fff;
+      }
+      .btn.ghost {
+        border: 1px solid hsl(214 32% 91%);
+        background: #fff;
+        color: #0f172a;
+      }
+      .note {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Phase 06.51 — Formulaire patient : 2 colonnes « tout visible » + patron partagé</h1>
+    <p class="sub">
+      DEC-130. La colonne unique s'étirait → invisible d'un coup, dur à relire/repérer une erreur.
+      Refonte en 2 colonnes (back-office, saisie pro répétée), via un PATRON de layout extrait
+      (FormColumns/Section/Row/Actions) réutilisable véhicule/chauffeur. Lecture ligne par ligne
+      (anti-saut Baymard), largeurs selon contenu, champs homogènes (ui/*), barre d'action en bas.
+      Données/validation inchangées.
+    </p>
+
+    <div class="grid">
+      <div class="case">
+        <p class="label">Avant — colonne unique, s'étire</p>
+        <div class="form" style="max-width: 300px">
+          <div class="sec">Identité</div>
+          <div class="row c2">
+            <div class="field"></div>
+            <div class="field"></div>
+          </div>
+          <div class="field"></div>
+          <div class="field"></div>
+          <div class="sec">Coordonnées</div>
+          <div class="field"></div>
+          <div class="field"></div>
+          <div class="field"></div>
+          <div class="sec">Préférences</div>
+          <div class="field"></div>
+          <div class="sec">Note</div>
+          <div class="field tall"></div>
+          <div class="field" style="height: 30px; background: hsl(217 92% 32%)"></div>
+        </div>
+        <p class="note">Tout empilé, le bas sort de l'écran ; relecture par scroll.</p>
+      </div>
+
+      <div class="case">
+        <p class="label">Après — 2 colonnes, tout visible</p>
+        <div class="form">
+          <div class="cols">
+            <div>
+              <div class="sec">Identité</div>
+              <div class="row c2">
+                <div class="field"></div>
+                <div class="field"></div>
+              </div>
+              <div class="row c2">
+                <div class="field"></div>
+                <div class="field narrow"></div>
+              </div>
+              <div class="field"></div>
+              <div class="sec">Préférences</div>
+              <div class="field narrow" style="max-width: 160px"></div>
+            </div>
+            <div>
+              <div class="sec">Coordonnées</div>
+              <div class="field narrow" style="max-width: 160px"></div>
+              <div class="field"></div>
+              <div class="field"></div>
+              <div class="row c2">
+                <div class="field narrow"></div>
+                <div class="field"></div>
+              </div>
+              <div class="sec">Note opérationnelle</div>
+              <div class="field tall"></div>
+            </div>
+          </div>
+          <div class="actions">
+            <span class="btn ghost">Annuler</span>
+            <span class="btn primary">Créer le patient</span>
+          </div>
+        </div>
+        <p class="note">
+          GAUCHE Identité + Préférences · DROITE Coordonnées + Note. Largeurs selon contenu, barre
+          d'action en bas. 1 colonne en mobile.
+        </p>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top: 24px">
+      Patron `FormColumns/FormColumn/FormSection/FormRow/FormActions` extrait dans
+      `components/form/` → réutilisable véhicule + chauffeur (lot suivant). Champs homogènes
+      (ui/input, ui/select natif soumettant, ui/textarea). Avant/après live = preview Vercel
+      /patients/new.
+    </p>
+  </body>
+</html>

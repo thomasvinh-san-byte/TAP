@@ -3,23 +3,23 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.50 livrée localement (conformité — densité & alignement, doctrine). PR à ouvrir."
-last_updated: "2026-06-09T12:30:00.000Z"
-last_activity: Phase 06.50 (application de la doctrine d'alignement à l'écran Conformité — 2e écran après le dashboard ; maquette validée ; données/logique INCHANGÉES, 0 dépendance). L'écran flottait (Chauffeurs/Véhicules en sections pleines pour un simple « aucune échéance », réglage pleine largeur, résumé via SummaryCard maison ≠ dashboard). D-01 : résumé via KpiCard PARTAGÉE du dashboard (variant simple ; Expirées state alerte si >0, Proches attention si >0, Total neutre) — SummaryCard maison supprimée. D-02 : BlockingModeControl compacté sur une ligne (titre+aide courte à gauche, SegmentedControl à droite, flex justify-between sm:, aide max-w-[58ch]) — aria conservé. D-03 : Chauffeurs+Véhicules CÔTE À CÔTE (lg:grid-cols-2) ; état VIDE = ligne discrète bordée muted + lien « Fiches → » (EmptyEntity, fin du vide structurel) ; état REMPLI = ConformiteTable existant ; Convention CGSS pleine largeur (fieldset si vide / table sinon). D-04 : échelle d'espacement doctrine (space-y-16/8, gap-12, p-16) + section-labels xs uppercase. KpiCard importée via @/app/(app)/tableau-de-bord/_components/kpi-card. typecheck+lint+build verts, 129 web. Artefact docs/showcase/06.50-conformite-densite/. DEC-129 LOCKED.
-last_activity_prev: Phase 06.49 (tableau de bord densité & alignement). DEC-128 LOCKED.
+stopped_at: "Phase 06.51 livrée localement (formulaire patient 2 colonnes + patron de form partagé). PR à ouvrir."
+last_updated: "2026-06-09T14:00:00.000Z"
+last_activity: Phase 06.51 (doctrine FORMULAIRE 1re application + extraction d'un patron partagé ; données/validation/Server Actions/NIR INCHANGÉS, 0 dépendance). Le form patient s'étirait en colonne unique (invisible d'un coup, dur à relire). D-01 : patron de layout PARTAGÉ créé dans components/form/form-layout.tsx (FormColumns lg:grid-cols-2, FormColumn space-y-24, FormSection, FormRow grid-cols-2, FormActions barre filet+boutons droite) — réutilisable véhicule/chauffeur. D-02 : patient-form refondu en 2 colonnes (GAUCHE Identité+Préférences / DROITE Coordonnées+Note), max-w-[980px], 1 col < lg ; FormRow pour champs liés (Nom/Prénom, Date/Sexe) ; largeurs selon contenu (téléphone/canal ~240px, date/CP/sexe réduits) ; champs homogènes h-10 (selects natifs genre/canal restylés au gabarit Input car ui/Select n'a pas de name ; note → ui/Textarea ; datepicker + ville Select h-48→h-10) ; barre FormActions (Annuler → /patients + « Créer le patient »/« Enregistrer »). D-03 : new+edit même composant ; constraints (même page) aligné h-48→h-10. Données/validation inchangées. typecheck+lint+build verts, 129 web. Doctrine versée .planning/doctrine-formulaires.md. Artefact docs/showcase/06.51-form-patient-patron/. h-48 restants = avatar/skeleton/search (tailles légitimes hors form). DEC-130 LOCKED.
+last_activity_prev: Phase 06.50 (conformité densité & alignement, 2e application doctrine). DEC-129 LOCKED.
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
 # ensuite (06.20-06.23 pré-prod + 06.24-06.39 = 50) + 06.41 messagerie + 06.42 fix overlays
 # + 06.43 fix cible cliquable + 06.44 refonte login + 06.45 login centré + 06.46 fix focus ring
 # + 06.47 calibrage focus + 06.48 bouton auth aligné + 06.49 dashboard densité + 06.50 conformité
-# densité = 60. (06.40 = lot d'hygiène docs, hors compte feature ; 06.45 supersede 06.44 mais les
-# 2 ont été livrées.) Restantes réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07
-# abandonnée (DEC-092) hors compte. Dernière phase livrée : 06.50. Dernier DEC : 129 (06.50).
-# Dernier ADR : ADR-013 (06.33).
+# densité + 06.51 form patient patron = 61. (06.40 = lot d'hygiène docs, hors compte feature ;
+# 06.45 supersede 06.44 mais les 2 ont été livrées.) Restantes réelles = Phase 09 (HDS) + Phase 10
+# (géoloc réelle) = 2. Phase 07 abandonnée (DEC-092) hors compte. Dernière phase livrée : 06.51.
+# Dernier DEC : 130 (06.51). Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 62
-  completed_phases: 60
+  total_phases: 63
+  completed_phases: 61
   total_plans: 89
   completed_plans: 89
   percent: 97
@@ -32,7 +32,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.50 livrée localement (écran Conformité aligné sur la doctrine : résumé KpiCard partagée, réglage compact 1 ligne, entités côte à côte, état vide discret — 2e écran après le dashboard). 60 phases livrées (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; messagerie lots photo/push/fil général à venir.
+**Current focus:** Phase 06.51 livrée localement (formulaire patient en 2 colonnes « tout visible » + extraction d'un patron de form partagé réutilisable véhicule/chauffeur). 61 phases livrées (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; messagerie lots photo/push/fil général à venir.
 
 ## Current Position
 
@@ -41,12 +41,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.50 livrée localement (2026-06-09) — conformité densité & alignement (doctrine, 2e écran). PR à ouvrir.
+Phase: 06.51 livrée localement (2026-06-09) — formulaire patient 2 colonnes + patron de form partagé. PR à ouvrir.
 Phase next: messagerie lots photo (HDS)/push (VAPID)/fil général ; Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 60 phases livrées. Doctrine d'alignement appliquée à 2 écrans (dashboard + conformité) : KpiCard partagée, espacement resserré, états vides discrets, tableau pour le tabulaire. Conformité tient sur une page. Données inchangées.
+Status: 61 phases livrées. Doctrine FORMULAIRE inaugurée : patron de layout partagé (FormColumns/Section/Row/Actions) + form patient en 2 colonnes « tout visible », champs homogènes h-10, barre d'action. Réutilisable véhicule/chauffeur. Données/validation inchangées.
 Blockers: aucun
-Last activity: Phase 06.50 — doctrine d'alignement appliquée à Conformité (données/logique inchangées). L'écran flottait (entités en sections pleines pour « aucune échéance », réglage pleine largeur, résumé SummaryCard maison). Résumé via KpiCard partagée (Expirées alerte / Proches attention / Total neutre) — SummaryCard supprimée ; BlockingModeControl compacté en 1 ligne (flex justify-between sm:, aide courte) ; Chauffeurs+Véhicules côte à côte (lg:grid-cols-2), état vide = ligne discrète EmptyEntity + lien Fiches, état rempli = ConformiteTable ; échelle d'espacement doctrine (space-y-16/8, gap-12, p-16). typecheck+lint+build verts, 129 web. Artefact docs/showcase/06.50-conformite-densite/. 0 dépendance. DEC-129 LOCKED. PR à ouvrir.
-Précédent: 06.49 dashboard densité (DEC-128), 06.48 bouton auth aligné (DEC-127), 06.47 calibrage focus (DEC-126).
+Last activity: Phase 06.51 — doctrine formulaire (1re application) + patron partagé. Form patient s'étirait en colonne unique. Patron créé components/form/form-layout.tsx (FormColumns/FormColumn/FormSection/FormRow/FormActions). patient-form en 2 colonnes (GAUCHE Identité+Préférences / DROITE Coordonnées+Note, max-w-[980px], 1 col <lg), FormRow pour champs liés, largeurs selon contenu, champs homogènes h-10 (selects natifs au gabarit Input, note ui/Textarea, datepicker+ville h-48→h-10), barre FormActions (Annuler + Créer le patient/Enregistrer). new+edit même composant ; constraints aligné h-48→h-10. Données/validation/SA/NIR inchangés. typecheck+lint+build verts, 129 web. Doctrine .planning/doctrine-formulaires.md. Artefact docs/showcase/06.51-form-patient-patron/. 0 dépendance. DEC-130 LOCKED. PR à ouvrir.
+Précédent: 06.50 conformité densité (DEC-129), 06.49 dashboard densité (DEC-128), 06.48 bouton auth aligné (DEC-127).
 
 Progress: [██████████] 100%
 
