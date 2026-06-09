@@ -3,6 +3,8 @@
 import { useRef, useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { FormSection, FormActions } from '@/components/form/form-layout';
 import { TEMPLATE_VARIABLES, renderTemplate, type TemplateVars } from '@tap/sms/templates';
 import { saveTemplateAction } from '../actions';
 import { TemplateTestModal } from './template-test-modal.client';
@@ -91,8 +93,7 @@ export function TemplateEditor({
         </p>
       </header>
 
-      <div className="space-y-8">
-        <Label>Variables (clic pour insérer)</Label>
+      <FormSection title="Variables — clic pour insérer">
         <div className="flex flex-wrap gap-8">
           {TEMPLATE_VARIABLES.map((v) => (
             <button
@@ -105,13 +106,15 @@ export function TemplateEditor({
             </button>
           ))}
         </div>
-      </div>
+      </FormSection>
 
       <form action={handleSubmit} className="space-y-12">
-        <div className="space-y-4">
+        <div className="space-y-8">
           <div className="flex items-center justify-between">
             <Label htmlFor={`tpl-${templateKey}`}>Corps du SMS</Label>
             <span
+              id={`tpl-${templateKey}-count`}
+              aria-live="polite"
               className={
                 'text-xs tabular-nums ' +
                 (over ? 'text-destructive font-semibold' : 'text-muted-foreground')
@@ -120,17 +123,18 @@ export function TemplateEditor({
               {body.length}/{MAX_LENGTH}
             </span>
           </div>
-          <textarea
+          <Textarea
             id={`tpl-${templateKey}`}
             ref={textareaRef}
             value={body}
             onChange={(e) => setBody(e.target.value)}
             rows={5}
-            className="border-input bg-background w-full rounded-md border px-12 py-8 text-sm"
+            aria-describedby={`tpl-${templateKey}-count`}
+            aria-invalid={over || undefined}
           />
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-8">
           <Label>Aperçu (valeurs génériques)</Label>
           <div className="border-border bg-muted/30 rounded-md border border-dashed p-12 text-sm">
             {preview || <span className="text-muted-foreground">(vide)</span>}
@@ -138,7 +142,7 @@ export function TemplateEditor({
         </div>
 
         {feedback?.ok && (
-          <p role="status" className="text-sm text-emerald-700">
+          <p role="status" className="text-success text-sm">
             {feedback.ok}
           </p>
         )}
@@ -148,7 +152,7 @@ export function TemplateEditor({
           </p>
         )}
 
-        <div className="flex justify-between gap-12">
+        <FormActions>
           <Button
             type="button"
             variant="outline"
@@ -160,7 +164,7 @@ export function TemplateEditor({
           <Button type="submit" disabled={pending || over || body.length === 0}>
             {pending ? 'Enregistrement…' : 'Enregistrer'}
           </Button>
-        </div>
+        </FormActions>
       </form>
 
       <TemplateTestModal
