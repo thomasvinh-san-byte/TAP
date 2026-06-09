@@ -3,21 +3,22 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.44 livrée localement (refonte page de connexion — bleu institutionnel pro). PR à ouvrir."
-last_updated: "2026-06-09T03:30:00.000Z"
-last_activity: Phase 06.44 (refonte page login, composition typographique, 0 asset, 0 dépendance). Recherche auth SaaS + direction DEC-101 (bleu institutionnel = identité ; terracotta réservé moments-clés métier, un login n'en est pas un). D-01 : bouton « Se connecter » variant accent (terracotta) → default (bleu primary). accept-invite NON touché (terracotta « Activer mon compte » justifié et LOCKED par DEC-111). D-02 : aside bg-muted terne → bg-primary text-primary-foreground ; marque rendue TYPOGRAPHIQUEMENT (pavé T + mot TAP colorés par tokens, lisibles ~40-48px au lieu du logo 12px tronqué) — pas de SVG figé (casserait en nuit) ; baseline forte + 3 points de valeur sobres (Check) ; footer /70 ; bloc ancré (justify-center). D-04 : responsive < lg = bandeau compact (points de valeur + footer masqués, baseline réduite text-xl). Contraste AA jour (bleu profond/blanc) ET nuit (bleu clair/navy) par la paire de tokens primary/primary-foreground. Image next/image retirée (plus utilisée). typecheck+lint+build verts, 129 web. Artefact avant/après docs/showcase/06.44-refonte-login/. DEC-123 LOCKED.
-last_activity_prev: Phase 06.43 (fix cible cliquable suppression brouillons, WCAG 44px). DEC-122 LOCKED.
+stopped_at: "Phase 06.45 livrée localement (login — formulaire centré, abandon du split-screen). PR à ouvrir."
+last_updated: "2026-06-09T05:30:00.000Z"
+last_activity: Phase 06.45 (refonte login = formulaire centré, supersède DEC-123/06.44, 0 asset, 0 dépendance). Recherche : split-screen valable à ratio 40:60/33:66 quand 2 éléments de poids égal ; TAP avait ~75% branding / <25% form (inversé, panneau de marque léger à moitié vide) → hors-norme. Décision dirigeant : formulaire CENTRÉ (carte, Notion/Linear ; B2B une colonne). D-01 : AuthShell split lg:flex-row → layout centré (min-h-screen flex items-center justify-center, fond bg-muted sobre), ThemeToggle en coin haut-droite (clavier OK), aside/panneau bleu pleine hauteur SUPPRIMÉ. D-02 : carte centrée max-w-[400px] bg-background rounded-lg border shadow-sm p-32 ; en-tête marque (pavé T h-32 + mot TAP par tokens — fini le logo 12px tronqué ; pas de SVG figé qui casserait en nuit sur carte sombre) + titre ; children ; rightSlot + footerHint conservés ; baseline courte sous la carte ; 3 puces SUPPRIMÉES (allègement). D-03 bouton bleu : déjà fait en 06.44 (variant default). Footer page discret en bas. Profite à /login ET /accept-invite (shell partagé). Contraste AA jour+nuit (tokens). typecheck+lint+build verts, 129 web. Artefact avant/après docs/showcase/06.45-login-centre/. DEC-124 LOCKED (supersede DEC-123).
+last_activity_prev: Phase 06.44 (refonte login split-screen bleu — superseded par 06.45). DEC-123.
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
 # ensuite (06.20-06.23 pré-prod + 06.24-06.39 = 50) + 06.41 messagerie + 06.42 fix overlays
-# + 06.43 fix cible cliquable + 06.44 refonte login = 54. (06.40 = lot d'hygiène docs, hors
-# compte feature.) Restantes réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07
-# abandonnée (DEC-092) hors compte. Dernière phase livrée : 06.44. Dernier DEC : 123 (06.44).
+# + 06.43 fix cible cliquable + 06.44 refonte login + 06.45 login centré = 55. (06.40 = lot
+# d'hygiène docs, hors compte feature ; 06.45 supersede 06.44 mais compté — les 2 phases ont
+# été livrées.) Restantes réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07
+# abandonnée (DEC-092) hors compte. Dernière phase livrée : 06.45. Dernier DEC : 124 (06.45).
 # Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 56
-  completed_phases: 54
+  total_phases: 57
+  completed_phases: 55
   total_plans: 89
   completed_plans: 89
   percent: 96
@@ -30,7 +31,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.44 livrée localement (refonte page de connexion : panneau gauche bleu institutionnel + marque typographique lisible + baseline + points de valeur ; bouton « Se connecter » bleu, terracotta banni). 54 phases livrées (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; messagerie lots photo/push/fil général à venir.
+**Current focus:** Phase 06.45 livrée localement (login en formulaire CENTRÉ — abandon du split-screen ; carte centrée pattern Notion/Linear, supersède 06.44). 55 phases livrées (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; messagerie lots photo/push/fil général à venir.
 
 ## Current Position
 
@@ -39,12 +40,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.44 livrée localement (2026-06-09) — refonte page de connexion (bleu institutionnel pro). PR à ouvrir.
+Phase: 06.45 livrée localement (2026-06-09) — login en formulaire centré (carte), abandon du split-screen. PR à ouvrir.
 Phase next: messagerie lots photo (HDS)/push (VAPID)/fil général ; Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 54 phases livrées. Login recomposé : panneau gauche bleu institutionnel (marque typographique tokens, baseline forte, 3 points de valeur), bouton bleu (default), responsive bandeau compact, contraste AA jour+nuit. Zéro terracotta sur le login.
+Status: 55 phases livrées. Login = carte centrée (form = point focal), logo lisible h-32, bouton bleu, fond sobre, ThemeToggle en coin. Shell partagé → /login + /accept-invite. Contraste AA jour+nuit. Supersède le split-screen 06.44.
 Blockers: aucun
-Last activity: Phase 06.44 — refonte login. Bouton accent(terracotta)→default(bleu). aside bg-muted→bg-primary text-primary-foreground ; marque typographique (pavé T + TAP par tokens, ~40-48px, fini le logo 12px tronqué ; pas de SVG figé qui casserait en nuit) ; baseline + 3 points de valeur (Check) ; bloc ancré ; responsive bandeau compact <lg. accept-invite NON touché (terracotta DEC-111 justifié/LOCKED). Image next/image retirée. AA jour (bleu/blanc)+nuit (bleu clair/navy) par paire de tokens. typecheck+lint+build verts, 129 web. Artefact avant/après docs/showcase/06.44-refonte-login/. 0 asset, 0 dépendance. DEC-123 LOCKED. PR à ouvrir.
-Précédent: 06.43 fix cible cliquable (DEC-122), 06.42 fix overlays (DEC-121), 06.41 messagerie lot 1 (DEC-120, #267).
+Last activity: Phase 06.45 — login en formulaire centré (supersède le split 06.44). AuthShell : split lg:flex-row → centré (flex items-center justify-center, fond bg-muted sobre), panneau bleu pleine hauteur supprimé, ThemeToggle en coin. Carte max-w-[400px] bg-background rounded-lg border shadow-sm p-32 : marque (pavé T h-32 + TAP par tokens) + titre + form + rightSlot + footerHint ; baseline courte sous la carte ; 3 puces supprimées. Bouton bleu déjà fait (06.44). Profite à /login + /accept-invite. AA jour+nuit. typecheck+lint+build verts, 129 web. Artefact docs/showcase/06.45-login-centre/. 0 asset, 0 dépendance. DEC-124 LOCKED (supersede DEC-123). PR à ouvrir.
+Précédent: 06.44 refonte login split bleu (DEC-123, superseded), 06.43 fix cible cliquable (DEC-122), 06.42 fix overlays (DEC-121).
 
 Progress: [██████████] 100%
 

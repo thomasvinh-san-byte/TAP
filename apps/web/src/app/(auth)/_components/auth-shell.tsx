@@ -1,5 +1,4 @@
 import { type ReactNode } from 'react';
-import { Check } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle.client';
 
 interface AuthShellProps {
@@ -9,87 +8,66 @@ interface AuthShellProps {
   rightSlot?: ReactNode; // pour DemoCredentials uniquement /login
 }
 
-const VALUE_POINTS = [
-  'Régulation temps réel',
-  'Optimisation des tournées',
-  'Pilotage et conformité',
-] as const;
-
 /**
- * `<AuthShell>` — wrapper layout pour les surfaces auth (C05).
+ * `<AuthShell>` — wrapper layout pour les surfaces auth (login, accept-invite).
  *
- * Split desktop ≥ 1024 px (`lg:`), single column < 1024 px.
+ * Phase 06.45 (DEC-124, supersede DEC-123) : abandon du split-screen. Le
+ * contenu de marque TAP est léger (logo + baseline) → un split (panneau de
+ * marque ~demi-page) était hors-norme (ratio inversé, panneau à moitié vide).
+ * Pattern retenu : **formulaire CENTRÉ** une colonne (Notion/Linear ; B2B =
+ * une colonne par défaut, chemin le plus court vers l'entrée).
  *
- * Colonne identité gauche (Phase 06.44, DEC-123) : **bleu institutionnel**
- * `bg-primary text-primary-foreground` — le bleu porte l'identité (direction
- * DEC-101 §3), pas un gris terne. Marque rendue **typographiquement** (pas
- * d'asset) : pavé « T » + mot « TAP » colorés par tokens, donc lisibles ET
- * contrastés AA en jour (bleu profond / texte blanc) comme en nuit (bleu clair
- * / texte navy) — un SVG à couleurs figées casserait en nuit. Baseline forte +
- * 2-3 points de valeur sobres (masqués sur mobile, bandeau compact).
+ * Composition : page centrée sur fond `bg-muted` sobre + carte
+ * `bg-background` élévation légère (border + shadow-sm), largeur contenue
+ * (max 400 px), marge sur mobile. En-tête de carte = marque + titre.
  *
- * Colonne form droite `bg-background` (titre 28 px + children + footerHint),
- * centrée et respirante. Le toggle thème (îlot client) reste en haut à droite.
+ * Marque rendue **typographiquement** (pavé « T » `bg-primary` + mot « TAP »
+ * `text-foreground`) plutôt que via `/logo-tap.svg` : le SVG a des couleurs
+ * figées (« TAP » navy) qui deviendraient illisibles sur la carte en mode
+ * nuit (fond quasi-noir). Le rendu par tokens reste lisible et AA jour ET
+ * nuit, sans asset.
  *
- * Server Component (le toggle est encapsulé dans `<ThemeToggle>`). Padding
- * échelle stricte 4/8/12/16/24/32/48/64 (NFR-003).
+ * Server Component (le toggle thème est l'îlot client `<ThemeToggle>`, placé
+ * en coin haut-droite, atteignable au clavier). Padding échelle stricte
+ * 4/8/12/16/24/32/48/64 (NFR-003).
  */
 export function AuthShell({ children, title, footerHint, rightSlot }: AuthShellProps) {
   return (
-    <div className="flex min-h-screen flex-col lg:flex-row">
-      {/* Colonne identité (gauche desktop, bandeau compact mobile) */}
-      <aside
-        className="bg-primary text-primary-foreground flex flex-col p-24 lg:flex-1 lg:p-48"
-        aria-label="Identité produit"
-      >
-        <div className="flex flex-col justify-center gap-16 lg:flex-1 lg:gap-32">
-          {/* Marque typographique — couleurs par tokens (jour + nuit AA). */}
-          <div className="flex items-center gap-12">
-            <span
-              className="bg-primary-foreground text-primary flex h-40 w-40 items-center justify-center rounded-md text-2xl font-bold lg:h-48 lg:w-48 lg:text-3xl"
-              aria-hidden
-            >
-              T
-            </span>
-            <span className="text-3xl font-semibold tracking-tight lg:text-4xl">TAP</span>
+    <div className="bg-muted relative flex min-h-screen flex-col items-center justify-center p-16">
+      <div className="absolute right-16 top-16">
+        <ThemeToggle />
+      </div>
+
+      <main className="w-full max-w-[400px]">
+        <div className="border-border bg-background rounded-lg border p-32 shadow-sm">
+          <div className="mb-24 flex flex-col items-center gap-16 text-center">
+            {/* Marque typographique — couleurs par tokens (jour + nuit AA). */}
+            <div className="flex items-center gap-8">
+              <span
+                className="bg-primary text-primary-foreground flex h-32 w-32 items-center justify-center rounded-md text-xl font-bold"
+                aria-hidden
+              >
+                T
+              </span>
+              <span className="text-2xl font-semibold tracking-tight">TAP</span>
+            </div>
+            <h1 className="text-2xl font-semibold leading-tight">{title}</h1>
           </div>
 
-          <h2 className="max-w-[460px] text-xl font-semibold leading-tight lg:text-3xl">
-            La régulation du transport sanitaire, sans friction.
-          </h2>
+          {children}
 
-          <ul className="text-primary-foreground/80 hidden max-w-[460px] flex-col gap-12 lg:flex">
-            {VALUE_POINTS.map((point) => (
-              <li key={point} className="flex items-center gap-8 text-base">
-                <Check className="h-16 w-16 shrink-0" aria-hidden />
-                {point}
-              </li>
-            ))}
-          </ul>
+          {rightSlot ? <div className="pt-16">{rightSlot}</div> : null}
+          {footerHint ? <p className="text-muted-foreground pt-16 text-sm">{footerHint}</p> : null}
         </div>
 
-        <footer className="text-primary-foreground/70 hidden pt-32 text-xs lg:block">
-          SaaS de régulation TAP · Réunion 974
-        </footer>
-      </aside>
+        <p className="text-muted-foreground mt-16 text-center text-sm">
+          La régulation du transport sanitaire, sans friction.
+        </p>
+      </main>
 
-      {/* Colonne form (droite desktop, body mobile) */}
-      <section className="bg-background flex w-full flex-col p-24 lg:w-[480px] lg:flex-shrink-0 lg:p-32">
-        {/* Header 56 px — ThemeToggle pour l'utilisateur non connecté (D-05). */}
-        <header className="flex h-14 items-center justify-end">
-          <ThemeToggle />
-        </header>
-        <div className="flex flex-1 flex-col justify-center">
-          <div className="mx-auto w-full max-w-[400px] space-y-24">
-            <h1 className="text-[28px] font-semibold leading-[1.2]">{title}</h1>
-            {children}
-            {rightSlot ? <div className="pt-16">{rightSlot}</div> : null}
-            {footerHint ? (
-              <p className="text-muted-foreground pt-16 text-sm">{footerHint}</p>
-            ) : null}
-          </div>
-        </div>
-      </section>
+      <footer className="text-muted-foreground absolute bottom-16 left-0 right-0 text-center text-xs">
+        SaaS de régulation TAP · Réunion 974
+      </footer>
     </div>
   );
 }

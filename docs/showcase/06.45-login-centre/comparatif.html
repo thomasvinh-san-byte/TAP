@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Phase 06.45 — Login : passage en formulaire centré (avant / après)</title>
+    <style>
+      /* Tokens résolus. Jour : background #fff, muted 210 40% 96%, primary 217 92% 32%,
+         border 214 32% 91%, foreground 222 47% 11%.
+         Nuit : background 222 47% 8%, muted 217 33% 17%, primary 217 91% 60%,
+         border 217 33% 17%, foreground 210 40% 96%, primary-foreground 222 47% 11%. */
+      :root {
+        font-family: Inter, system-ui, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 32px;
+        background: #eef2f7;
+        color: #0f172a;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0 0 4px;
+      }
+      .sub {
+        color: #64748b;
+        font-size: 13px;
+        margin: 0 0 24px;
+        max-width: 920px;
+      }
+      .grid {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+      .case {
+        flex: 1 1 360px;
+      }
+      .case > p.label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #64748b;
+        margin: 0 0 8px;
+      }
+      .stage {
+        height: 340px;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+      /* ----- AVANT : split ~75/25 ----- */
+      .split {
+        display: flex;
+        height: 100%;
+        width: 100%;
+      }
+      .split .brand {
+        flex: 1;
+        background: hsl(217 92% 32%);
+        color: #fff;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 12px;
+        padding: 24px;
+      }
+      .split .brand .word {
+        font-size: 24px;
+        font-weight: 600;
+      }
+      .split .form {
+        width: 150px;
+        background: #fff;
+        padding: 20px 16px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 10px;
+      }
+      /* ----- APRÈS : carte centrée ----- */
+      .day {
+        background: hsl(210 40% 96%);
+      }
+      .night {
+        background: hsl(217 33% 17%);
+      }
+      .card {
+        width: 240px;
+        border-radius: 8px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+      }
+      .day .card {
+        background: #fff;
+        border: 1px solid hsl(214 32% 91%);
+        color: hsl(222 47% 11%);
+      }
+      .night .card {
+        background: hsl(222 47% 8%);
+        border: 1px solid hsl(217 33% 17%);
+        color: hsl(210 40% 96%);
+      }
+      .brandmark {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .tile {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 17px;
+        color: #fff;
+      }
+      .day .tile {
+        background: hsl(217 92% 32%);
+      }
+      .night .tile {
+        background: hsl(217 91% 60%);
+        color: hsl(222 47% 11%);
+      }
+      .word {
+        font-size: 20px;
+        font-weight: 600;
+      }
+      .title {
+        text-align: center;
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0 0 4px;
+      }
+      .field {
+        height: 34px;
+        border-radius: 6px;
+        border: 1px solid;
+      }
+      .day .field {
+        border-color: hsl(214 32% 91%);
+        background: #fff;
+      }
+      .night .field {
+        border-color: hsl(217 33% 17%);
+        background: hsl(222 47% 10%);
+      }
+      .btn {
+        height: 38px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 500;
+        color: #fff;
+      }
+      .day .btn {
+        background: hsl(217 92% 32%);
+      }
+      .night .btn {
+        background: hsl(217 91% 60%);
+        color: hsl(222 47% 11%);
+      }
+      .baseline {
+        text-align: center;
+        font-size: 12px;
+        margin-top: 12px;
+        color: #64748b;
+      }
+      .night-wrap .baseline {
+        color: hsl(215 20% 65%);
+      }
+      .note {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Phase 06.45 — Login : abandon du split-screen → formulaire centré</h1>
+    <p class="sub">
+      DEC-124 (supersede DEC-123). Le split-screen avait un ratio inversé (~75 % branding / &lt; 25
+      % form) et un panneau de marque à moitié vide — hors-norme. Le contenu de marque léger ne
+      justifie pas une demi-page : passage au formulaire CENTRÉ (carte, pattern Notion/Linear, B2B
+      une colonne). Le formulaire devient le point focal. Marque par tokens → lisible jour ET nuit.
+    </p>
+
+    <div class="grid">
+      <div class="case">
+        <p class="label">Avant — split ~75/25 (ratio inversé)</p>
+        <div class="stage">
+          <div class="split">
+            <div class="brand">
+              <span class="word">TAP</span>
+              <span style="font-size: 13px; opacity: 0.85">Beaucoup d'espace, peu de contenu.</span>
+            </div>
+            <div class="form">
+              <div class="field" style="background: #fff; border: 1px solid #e2e8f0"></div>
+              <div class="field" style="background: #fff; border: 1px solid #e2e8f0"></div>
+              <div class="btn">Se connecter</div>
+            </div>
+          </div>
+        </div>
+        <p class="note">Le form est écrasé à droite ; la marge bleue domine sans raison.</p>
+      </div>
+
+      <div class="case">
+        <p class="label">Après — carte centrée (jour)</p>
+        <div class="stage day">
+          <div class="card">
+            <div class="brandmark"><span class="tile">T</span><span class="word">TAP</span></div>
+            <p class="title">Connexion</p>
+            <div class="field"></div>
+            <div class="field"></div>
+            <div class="btn">Se connecter</div>
+          </div>
+        </div>
+        <p class="baseline">La régulation du transport sanitaire, sans friction.</p>
+        <p class="note">Form = point focal, logo lisible, CTA bleu, fond sobre.</p>
+      </div>
+
+      <div class="case night-wrap">
+        <p class="label">Après — carte centrée (nuit)</p>
+        <div class="stage night">
+          <div class="card">
+            <div class="brandmark"><span class="tile">T</span><span class="word">TAP</span></div>
+            <p class="title">Connexion</p>
+            <div class="field"></div>
+            <div class="field"></div>
+            <div class="btn">Se connecter</div>
+          </div>
+        </div>
+        <p class="baseline">Marque par tokens : lisible sur carte sombre (contraste AA).</p>
+        <p class="note">Avant/après live = preview Vercel /login (jour, nuit, mobile).</p>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top: 24px">
+      Le même AuthShell sert /login ET /accept-invite → la carte centrée profite aux deux.
+      ThemeToggle en coin haut-droite (clavier OK). Responsive : carte pleine largeur avec marge.
+    </p>
+  </body>
+</html>
