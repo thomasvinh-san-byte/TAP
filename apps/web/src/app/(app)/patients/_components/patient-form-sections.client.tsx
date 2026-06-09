@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { FormSection, FormRow } from '@/components/form/form-layout';
 import type { PatientFormDefaults } from './patient-form-types';
 import {
   BirthDateField,
@@ -14,13 +15,22 @@ import { PatientAddressField } from './patient-address-field.client';
 
 export type { PatientFormDefaults };
 
+/**
+ * Sections du formulaire patient — refondues sur le patron de form partagé
+ * (Phase 06.51, DEC-130) : `FormSection`/`FormRow`, champs homogènes (gabarit
+ * Input h-10), lecture ligne par ligne. Selects natifs (soumission via `name`)
+ * stylés au gabarit Input. Données/validation inchangées.
+ */
+
+// Select natif aligné sur le gabarit `<Input>` (h-10) — il soumet via `name`,
+// contrairement au `ui/Select` contrôlé (Radix) qui n'a pas de `name`.
+const NATIVE_SELECT_CLASS =
+  'border-input bg-background ring-offset-background focus-visible:ring-ring h-10 w-full rounded-md border px-12 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2';
+
 export function IdentitySection({ dv }: { dv: PatientFormDefaults }) {
   return (
-    <section className="space-y-12">
-      <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-        Identité
-      </h2>
-      <div className="grid grid-cols-2 gap-12">
+    <FormSection title="Identité">
+      <FormRow>
         <div className="space-y-8">
           <Label htmlFor="nom">Nom</Label>
           <Input
@@ -47,6 +57,8 @@ export function IdentitySection({ dv }: { dv: PatientFormDefaults }) {
             className="capitalize"
           />
         </div>
+      </FormRow>
+      <FormRow>
         <BirthDateField name="date_naissance" defaultValue={dv.date_naissance} required />
         <div className="space-y-8">
           <Label htmlFor="genre">Sexe</Label>
@@ -54,7 +66,7 @@ export function IdentitySection({ dv }: { dv: PatientFormDefaults }) {
             id="genre"
             name="genre"
             defaultValue={dv.genre ?? ''}
-            className="border-border bg-background h-48 w-full rounded-md border px-12 text-sm"
+            className={NATIVE_SELECT_CLASS}
           >
             <option value="">—</option>
             <option value="M">M</option>
@@ -62,9 +74,9 @@ export function IdentitySection({ dv }: { dv: PatientFormDefaults }) {
             <option value="X">Non précisé</option>
           </select>
         </div>
-      </div>
+      </FormRow>
       <NirField defaultValue={dv.nir} />
-    </section>
+    </FormSection>
   );
 }
 
@@ -73,10 +85,7 @@ export function CoordinatesSection({ dv }: { dv: PatientFormDefaults }) {
   const [ville, setVille] = useState(dv.ville ?? '');
 
   return (
-    <section className="space-y-12">
-      <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-        Coordonnées
-      </h2>
+    <FormSection title="Coordonnées">
       <TelField defaultValue={dv.telephone} />
       <PatientAddressField
         defaultValue={dv.adresse_ligne1}
@@ -95,23 +104,20 @@ export function CoordinatesSection({ dv }: { dv: PatientFormDefaults }) {
         />
       </div>
       <CityPostalCodeField key={`${postcode}|${ville}`} defaultCp={postcode} defaultVille={ville} />
-    </section>
+    </FormSection>
   );
 }
 
 export function PreferencesSection({ dv }: { dv: PatientFormDefaults }) {
   return (
-    <section className="space-y-12">
-      <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-        Préférences
-      </h2>
-      <div className="space-y-8">
+    <FormSection title="Préférences">
+      <div className="max-w-[240px] space-y-8">
         <Label htmlFor="canal_contact_prefere">Canal préféré</Label>
         <select
           id="canal_contact_prefere"
           name="canal_contact_prefere"
           defaultValue={dv.canal_contact_prefere ?? 'appel'}
-          className="border-border bg-background h-48 w-full rounded-md border px-12 text-sm"
+          className={NATIVE_SELECT_CLASS}
         >
           <option value="sms">SMS</option>
           <option value="appel">Appel</option>
@@ -128,6 +134,6 @@ export function PreferencesSection({ dv }: { dv: PatientFormDefaults }) {
         />
         <Label htmlFor="consentement_sms">Consentement SMS</Label>
       </div>
-    </section>
+    </FormSection>
   );
 }

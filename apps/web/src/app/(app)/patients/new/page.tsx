@@ -13,7 +13,7 @@ export default function NewPatientPage() {
   return (
     <div className="space-y-24">
       <PageHeader title="Nouveau patient" />
-      <PatientForm action={createPatientAction} submitLabel="Créer" />
+      <PatientForm action={createPatientAction} submitLabel="Créer le patient" />
     </div>
   );
 }
