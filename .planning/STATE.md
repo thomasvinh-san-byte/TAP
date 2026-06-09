@@ -3,23 +3,23 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.51 livrée localement (formulaire patient 2 colonnes + patron de form partagé). PR à ouvrir."
-last_updated: "2026-06-09T14:00:00.000Z"
-last_activity: Phase 06.51 (doctrine FORMULAIRE 1re application + extraction d'un patron partagé ; données/validation/Server Actions/NIR INCHANGÉS, 0 dépendance). Le form patient s'étirait en colonne unique (invisible d'un coup, dur à relire). D-01 : patron de layout PARTAGÉ créé dans components/form/form-layout.tsx (FormColumns lg:grid-cols-2, FormColumn space-y-24, FormSection, FormRow grid-cols-2, FormActions barre filet+boutons droite) — réutilisable véhicule/chauffeur. D-02 : patient-form refondu en 2 colonnes (GAUCHE Identité+Préférences / DROITE Coordonnées+Note), max-w-[980px], 1 col < lg ; FormRow pour champs liés (Nom/Prénom, Date/Sexe) ; largeurs selon contenu (téléphone/canal ~240px, date/CP/sexe réduits) ; champs homogènes h-10 (selects natifs genre/canal restylés au gabarit Input car ui/Select n'a pas de name ; note → ui/Textarea ; datepicker + ville Select h-48→h-10) ; barre FormActions (Annuler → /patients + « Créer le patient »/« Enregistrer »). D-03 : new+edit même composant ; constraints (même page) aligné h-48→h-10. Données/validation inchangées. typecheck+lint+build verts, 129 web. Doctrine versée .planning/doctrine-formulaires.md. Artefact docs/showcase/06.51-form-patient-patron/. h-48 restants = avatar/skeleton/search (tailles légitimes hors form). DEC-130 LOCKED.
-last_activity_prev: Phase 06.50 (conformité densité & alignement, 2e application doctrine). DEC-129 LOCKED.
+stopped_at: "Phase 06.52 livrée localement (formulaires véhicule & chauffeur — patron de form partagé). PR à ouvrir."
+last_updated: "2026-06-09T15:30:00.000Z"
+last_activity: Phase 06.52 (application du patron de form 06.51 à véhicule + chauffeur ; données/validation/Server Actions/Combobox/ComplianceFieldset INCHANGÉS, 0 dépendance). vehicle-form et driver-form avaient encore l'ancien style ad hoc (space-y-16, grid-cols-2 gap-8/12, labels/checkbox bricolés border-input px-12 py-8). D-01 vehicle-form : FormSection (Identification : immat réduit + FormRow marque/modèle Combobox ; Caractéristiques : type Select + FormRow places assises/TPMR ; Disponibilité : checkbox propre ; Conformité : ComplianceFieldset) + FormActions. D-02 driver-form : FormSection (Identité & contact : nom + FormRow téléphone/licence ; Types de permis : grid checkboxes propres ; Statut : checkbox actif ; Conformité) + FormActions. D-03 : champs homogènes (Field/Combobox/Select/NumberField), checkboxes en input+Label propres (fin des labels encadrés bricolés), espacement via patron. Layout souple 1 colonne (les 2 forms sont rendus en Sheet, peu de champs) max-w-[640px]. SubmitButton w-full → h-10 dans FormActions. typecheck+lint(0 err, 9 warn)+build verts, 129 web. Artefact docs/showcase/06.52-form-vehicule-chauffeur/. Cohérence CRUD patient/véhicule/chauffeur atteinte. DEC-131 LOCKED.
+last_activity_prev: Phase 06.51 (formulaire patient 2 colonnes + patron de form partagé). DEC-130 LOCKED.
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
 # ensuite (06.20-06.23 pré-prod + 06.24-06.39 = 50) + 06.41 messagerie + 06.42 fix overlays
 # + 06.43 fix cible cliquable + 06.44 refonte login + 06.45 login centré + 06.46 fix focus ring
 # + 06.47 calibrage focus + 06.48 bouton auth aligné + 06.49 dashboard densité + 06.50 conformité
-# densité + 06.51 form patient patron = 61. (06.40 = lot d'hygiène docs, hors compte feature ;
-# 06.45 supersede 06.44 mais les 2 ont été livrées.) Restantes réelles = Phase 09 (HDS) + Phase 10
-# (géoloc réelle) = 2. Phase 07 abandonnée (DEC-092) hors compte. Dernière phase livrée : 06.51.
-# Dernier DEC : 130 (06.51). Dernier ADR : ADR-013 (06.33).
+# densité + 06.51 form patient patron + 06.52 form véhicule/chauffeur = 62. (06.40 = lot d'hygiène
+# docs, hors compte feature ; 06.45 supersede 06.44 mais les 2 ont été livrées.) Restantes réelles
+# = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07 abandonnée (DEC-092) hors compte.
+# Dernière phase livrée : 06.52. Dernier DEC : 131 (06.52). Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 63
-  completed_phases: 61
+  total_phases: 64
+  completed_phases: 62
   total_plans: 89
   completed_plans: 89
   percent: 97
@@ -32,7 +32,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.51 livrée localement (formulaire patient en 2 colonnes « tout visible » + extraction d'un patron de form partagé réutilisable véhicule/chauffeur). 61 phases livrées (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; messagerie lots photo/push/fil général à venir.
+**Current focus:** Phase 06.52 livrée localement (formulaires véhicule & chauffeur refondus sur le patron de form partagé — cohérence CRUD patient/véhicule/chauffeur). 62 phases livrées (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; messagerie lots photo/push/fil général à venir.
 
 ## Current Position
 
@@ -41,12 +41,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.51 livrée localement (2026-06-09) — formulaire patient 2 colonnes + patron de form partagé. PR à ouvrir.
+Phase: 06.52 livrée localement (2026-06-09) — formulaires véhicule & chauffeur sur le patron partagé. PR à ouvrir.
 Phase next: messagerie lots photo (HDS)/push (VAPID)/fil général ; Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 61 phases livrées. Doctrine FORMULAIRE inaugurée : patron de layout partagé (FormColumns/Section/Row/Actions) + form patient en 2 colonnes « tout visible », champs homogènes h-10, barre d'action. Réutilisable véhicule/chauffeur. Données/validation inchangées.
+Status: 62 phases livrées. Patron de form appliqué à 3 entités (patient, véhicule, chauffeur) → CRUD cohérent : FormSection/Row/Actions, champs homogènes ui/*, checkboxes propres, barres d'action explicites. Combobox + ComplianceFieldset conservés. Données/validation inchangées.
 Blockers: aucun
-Last activity: Phase 06.51 — doctrine formulaire (1re application) + patron partagé. Form patient s'étirait en colonne unique. Patron créé components/form/form-layout.tsx (FormColumns/FormColumn/FormSection/FormRow/FormActions). patient-form en 2 colonnes (GAUCHE Identité+Préférences / DROITE Coordonnées+Note, max-w-[980px], 1 col <lg), FormRow pour champs liés, largeurs selon contenu, champs homogènes h-10 (selects natifs au gabarit Input, note ui/Textarea, datepicker+ville h-48→h-10), barre FormActions (Annuler + Créer le patient/Enregistrer). new+edit même composant ; constraints aligné h-48→h-10. Données/validation/SA/NIR inchangés. typecheck+lint+build verts, 129 web. Doctrine .planning/doctrine-formulaires.md. Artefact docs/showcase/06.51-form-patient-patron/. 0 dépendance. DEC-130 LOCKED. PR à ouvrir.
-Précédent: 06.50 conformité densité (DEC-129), 06.49 dashboard densité (DEC-128), 06.48 bouton auth aligné (DEC-127).
+Last activity: Phase 06.52 — patron de form appliqué à véhicule + chauffeur (ad hoc → FormSection/Row/Actions). vehicle-form : Identification (immat réduit + Combobox marque/modèle) / Caractéristiques (type Select + places NumberField) / Disponibilité (checkbox propre) / Conformité (ComplianceFieldset). driver-form : Identité & contact / Types de permis (checkboxes propres) / Statut / Conformité. Champs homogènes ui/*, fin des labels encadrés bricolés, SubmitButton h-10 dans FormActions, souple 1 colonne (Sheet) max-w-[640px]. Combobox + ComplianceFieldset + données/validation/SA inchangés. typecheck+lint+build verts, 129 web. Artefact docs/showcase/06.52-form-vehicule-chauffeur/. 0 dépendance. DEC-131 LOCKED. PR à ouvrir.
+Précédent: 06.51 form patient patron (DEC-130), 06.50 conformité densité (DEC-129), 06.49 dashboard densité (DEC-128).
 
 Progress: [██████████] 100%
 

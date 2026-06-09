@@ -9,6 +9,7 @@ import { Select } from '@/components/ui/select';
 import { Field } from '@/components/form/field';
 import { NumberField } from '@/components/form/number-field';
 import { Combobox } from '@/components/form/combobox.client';
+import { FormSection, FormRow, FormActions } from '@/components/form/form-layout';
 import { VEHICLE_BRANDS, modelsForBrand } from '@/lib/vehicles/catalog';
 import { ComplianceFieldset } from '../../conformite/_components/compliance-fieldset.client';
 import { type ActionState, createVehicleAction, updateVehicleAction } from '../actions';
@@ -26,6 +27,12 @@ interface Props {
   onSuccess?: (id: string) => void;
 }
 
+/**
+ * Formulaire véhicule (création + édition) — refondu sur le patron de form
+ * partagé (Phase 06.52, DEC-131) : `FormSection`/`FormRow`/`FormActions`,
+ * champs homogènes (Field/Combobox/Select/NumberField). Layout souple 1 colonne
+ * (rendu en Sheet, peu de champs). Données/validation/Server Actions inchangées.
+ */
 export function VehicleForm({ initial, onSuccess }: Props): JSX.Element {
   const action = initial ? updateVehicleAction.bind(null, initial.id) : createVehicleAction;
   const [state, formAction] = useFormState<ActionState, FormData>(action, {});
@@ -49,101 +56,99 @@ export function VehicleForm({ initial, onSuccess }: Props): JSX.Element {
   const fe = state.fieldErrors ?? {};
 
   return (
-    <form action={formAction} className="space-y-16">
-      <Field
-        id="immatriculation"
-        label="Immatriculation"
-        defaultValue={initial?.immatriculation ?? ''}
-        hint="Format : AB-123-CD"
-        placeholder="AB-123-CD"
-        error={fe.immatriculation}
-        autoFocus
-        required
-        maxLength={9}
-        className="uppercase tabular-nums"
-      />
+    <form action={formAction} className="w-full max-w-[640px] space-y-24">
+      <FormSection title="Identification">
+        <div className="max-w-[220px]">
+          <Field
+            id="immatriculation"
+            label="Immatriculation"
+            defaultValue={initial?.immatriculation ?? ''}
+            hint="Format : AB-123-CD"
+            placeholder="AB-123-CD"
+            error={fe.immatriculation}
+            autoFocus
+            required
+            maxLength={9}
+            className="uppercase tabular-nums"
+          />
+        </div>
+        <FormRow>
+          <Combobox
+            id="marque"
+            label="Marque"
+            options={VEHICLE_BRANDS}
+            value={marque}
+            onChange={setMarque}
+            hint="Liste indicative : saisie libre permise."
+            error={fe.marque}
+          />
+          <Combobox
+            id="modele"
+            label="Modèle"
+            options={modelOptions}
+            value={modele}
+            onChange={setModele}
+            hint={modelOptions.length > 0 ? `Modèles connus pour ${marque}.` : 'Saisie libre.'}
+            error={fe.modele}
+          />
+        </FormRow>
+      </FormSection>
 
-      <div className="grid grid-cols-2 gap-12">
-        <Combobox
-          id="marque"
-          label="Marque"
-          options={VEHICLE_BRANDS}
-          value={marque}
-          onChange={(v) => {
-            setMarque(v);
-            // Si on quitte une marque connue → la combobox modèle reste
-            // libre. Si on revient sur une marque connue, l'utilisateur
-            // re-pioche dans la liste. On ne réinitialise PAS le modèle
-            // automatiquement pour ne pas effacer une saisie en cours.
-          }}
-          hint="Liste indicative : saisie libre permise."
-          error={fe.marque}
-        />
-        <Combobox
-          id="modele"
-          label="Modèle"
-          options={modelOptions}
-          value={modele}
-          onChange={setModele}
-          hint={modelOptions.length > 0 ? `Modèles connus pour ${marque}.` : 'Saisie libre.'}
-          error={fe.modele}
-        />
-      </div>
+      <FormSection title="Caractéristiques">
+        <div className="max-w-[280px] space-y-8">
+          <Label htmlFor="type">Type</Label>
+          <input type="hidden" name="type" value={type} />
+          <Select
+            ariaLabel="Type de véhicule"
+            value={type}
+            onChange={(v) => setType(v as VehicleType)}
+            items={VEHICLE_TYPE_VALUES.map((v) => ({ value: v, label: TYPE_LABELS[v] }))}
+            triggerClassName="w-full"
+          />
+          {fe.type && (
+            <p className="text-destructive text-xs" role="alert">
+              {fe.type}
+            </p>
+          )}
+        </div>
+        <FormRow>
+          <NumberField
+            id="places_assises"
+            label="Places assises"
+            min={1}
+            max={9}
+            kind="counter"
+            defaultValue={initial?.places_assises ?? null}
+            hint="1 à 9"
+            error={fe.places_assises}
+          />
+          <NumberField
+            id="places_tpmr"
+            label="Places TPMR"
+            min={0}
+            max={3}
+            kind="counter"
+            defaultValue={initial?.places_tpmr ?? null}
+            hint="0 à 3"
+            error={fe.places_tpmr}
+          />
+        </FormRow>
+      </FormSection>
 
-      <div className="space-y-8">
-        <Label htmlFor="type">Type</Label>
-        <input type="hidden" name="type" value={type} />
-        <Select
-          ariaLabel="Type de véhicule"
-          value={type}
-          onChange={(v) => setType(v as VehicleType)}
-          items={VEHICLE_TYPE_VALUES.map((v) => ({
-            value: v,
-            label: TYPE_LABELS[v],
-          }))}
-          triggerClassName="w-full"
-        />
-        {fe.type && (
-          <p className="text-destructive text-xs" role="alert">
-            {fe.type}
-          </p>
-        )}
-      </div>
-
-      <div className="grid grid-cols-2 gap-12">
-        {/* PR2 rattrapage : kind=counter → défaut = min (1 ou 0), évite
-            qu'un champ min=1 démarre vide et soit rejeté au submit. */}
-        <NumberField
-          id="places_assises"
-          label="Places assises"
-          min={1}
-          max={9}
-          kind="counter"
-          defaultValue={initial?.places_assises ?? null}
-          hint="1 à 9"
-          error={fe.places_assises}
-        />
-        <NumberField
-          id="places_tpmr"
-          label="Places TPMR"
-          min={0}
-          max={3}
-          kind="counter"
-          defaultValue={initial?.places_tpmr ?? null}
-          hint="0 à 3"
-          error={fe.places_tpmr}
-        />
-      </div>
-
-      <label className="border-input hover:bg-muted flex cursor-pointer items-center gap-8 rounded-md border px-12 py-8 text-sm">
-        <input
-          type="checkbox"
-          name="actif"
-          defaultChecked={initial?.actif ?? true}
-          className="h-16 w-16"
-        />
-        Véhicule actif (apparaît dans la fenêtre d&apos;affectation)
-      </label>
+      <FormSection title="Disponibilité">
+        <div className="flex items-center gap-12">
+          <input
+            id="actif"
+            type="checkbox"
+            name="actif"
+            defaultChecked={initial?.actif ?? true}
+            className="border-border h-16 w-16 rounded"
+          />
+          <Label htmlFor="actif">
+            Véhicule actif (apparaît dans la fenêtre d&apos;affectation)
+          </Label>
+        </div>
+      </FormSection>
 
       {state.error && !state.fieldErrors && (
         <p className="text-destructive text-sm" role="alert">
@@ -151,9 +156,15 @@ export function VehicleForm({ initial, onSuccess }: Props): JSX.Element {
         </p>
       )}
 
-      <SubmitButton edit={Boolean(initial)} />
+      <FormActions>
+        <SubmitButton edit={Boolean(initial)} />
+      </FormActions>
 
-      {initial && <ComplianceFieldset entityType="vehicle" entityId={initial.id} />}
+      {initial && (
+        <FormSection title="Conformité">
+          <ComplianceFieldset entityType="vehicle" entityId={initial.id} />
+        </FormSection>
+      )}
     </form>
   );
 }
@@ -161,7 +172,7 @@ export function VehicleForm({ initial, onSuccess }: Props): JSX.Element {
 function SubmitButton({ edit }: { edit: boolean }): JSX.Element {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending} className="w-full">
+    <Button type="submit" disabled={pending} className="h-10">
       {pending
         ? edit
           ? 'Enregistrement…'
