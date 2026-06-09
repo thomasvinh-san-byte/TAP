@@ -117,19 +117,21 @@ export function DraftQueue(): JSX.Element {
             className="flex flex-col items-start gap-4"
           >
             <span className="w-full truncate text-sm font-medium">{formatPreview(d)}</span>
-            <div className="text-muted-foreground flex w-full items-center justify-between text-xs">
+            <div className="text-muted-foreground flex w-full items-center justify-between gap-8 text-xs">
               <span>{formatRelative(d.updated_at)}</span>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon"
                 aria-label="Supprimer ce brouillon"
                 onClick={(e) => {
                   e.stopPropagation();
                   void handleDelete(d.id);
                 }}
-                className="hover:text-destructive transition-colors"
+                className="text-muted-foreground hover:text-destructive shrink-0"
               >
-                <Trash2 className="h-12 w-12" aria-hidden />
-              </button>
+                <Trash2 className="h-16 w-16" aria-hidden />
+              </Button>
             </div>
           </DropdownMenuItem>
         ))}
