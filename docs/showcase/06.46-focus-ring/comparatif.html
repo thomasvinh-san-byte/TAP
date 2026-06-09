@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Phase 06.46 — Anneau de focus primary contrasté (avant / après)</title>
+    <style>
+      /* Tokens résolus. Jour : primary 217 92% 32%, ring AVANT = primary,
+         ring APRÈS = 217 91% 60%, offset = background blanc.
+         Nuit : primary 217 91% 60%, ring AVANT = primary, ring APRÈS = 213 94% 78%,
+         offset = background 222 47% 8%. Le focus = ring-2 + ring-offset-2. */
+      :root {
+        font-family: Inter, system-ui, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 32px;
+        background: #eef2f7;
+        color: #0f172a;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0 0 4px;
+      }
+      .sub {
+        color: #64748b;
+        font-size: 13px;
+        margin: 0 0 24px;
+        max-width: 900px;
+      }
+      .grid {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+      }
+      .pane {
+        flex: 1 1 320px;
+        border-radius: 12px;
+        padding: 32px 24px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+      }
+      .pane h2 {
+        font-size: 13px;
+        font-weight: 600;
+        margin: 0 0 20px;
+        opacity: 0.8;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        margin-bottom: 24px;
+      }
+      .row .lbl {
+        font-size: 12px;
+        width: 90px;
+        opacity: 0.7;
+      }
+      .btn {
+        height: 44px;
+        padding: 0 20px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 500;
+        border: 0;
+        color: #fff;
+      }
+      /* JOUR */
+      .day {
+        background: #fff;
+        color: hsl(222 47% 11%);
+      }
+      .day .btn {
+        background: hsl(217 92% 32%);
+      }
+      /* offset = blanc (couleur de la carte) */
+      .day .focus-before {
+        box-shadow:
+          0 0 0 2px #fff,
+          0 0 0 4px hsl(217 92% 32%);
+      } /* ring = primary → se fond */
+      .day .focus-after {
+        box-shadow:
+          0 0 0 2px #fff,
+          0 0 0 4px hsl(217 91% 60%);
+      } /* ring clair → halo net */
+
+      /* NUIT */
+      .night {
+        background: hsl(222 47% 8%);
+        color: hsl(210 40% 96%);
+      }
+      .night .btn {
+        background: hsl(217 91% 60%);
+        color: hsl(222 47% 11%);
+      }
+      .night .focus-before {
+        box-shadow:
+          0 0 0 2px hsl(222 47% 8%),
+          0 0 0 4px hsl(217 91% 60%);
+      }
+      .night .focus-after {
+        box-shadow:
+          0 0 0 2px hsl(222 47% 8%),
+          0 0 0 4px hsl(213 94% 78%);
+      }
+      .note {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 4px;
+      }
+      .night .note {
+        color: hsl(215 20% 65%);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Phase 06.46 — Anneau de focus des boutons primary</h1>
+    <p class="sub">
+      DEC-125. Cause racine : <code>--ring</code> était STRICTEMENT égal à
+      <code>--primary</code> (jour 217 92% 32%, nuit 217 91% 60%). Un bouton à fond primary qui
+      reçoit le focus dessinait un anneau de la même couleur que son fond → anneau invisible, perçu
+      comme un faux soulignement de lien. Correctif : <code>--ring</code> découplé (jour 217 91%
+      60%, nuit 213 94% 78%) → halo net qui se détache toujours. Focus visible RGAA préservé.
+    </p>
+
+    <div class="grid">
+      <div class="pane day">
+        <h2>Mode jour</h2>
+        <div class="row">
+          <span class="lbl">Avant</span>
+          <button class="btn focus-before">Se connecter</button>
+        </div>
+        <p class="note">Anneau = couleur du bouton → se fond, liseré confus.</p>
+        <div class="row" style="margin-top: 24px">
+          <span class="lbl">Après</span>
+          <button class="btn focus-after">Se connecter</button>
+        </div>
+        <p class="note">Anneau bleu clair distinct → halo net, plus de faux soulignement.</p>
+      </div>
+
+      <div class="pane night">
+        <h2>Mode nuit</h2>
+        <div class="row">
+          <span class="lbl">Avant</span>
+          <button class="btn focus-before">Se connecter</button>
+        </div>
+        <p class="note">Anneau = couleur du bouton.</p>
+        <div class="row" style="margin-top: 24px">
+          <span class="lbl">Après</span>
+          <button class="btn focus-after">Se connecter</button>
+        </div>
+        <p class="note">Anneau bleu ciel clair distinct, fort contraste sur fond sombre.</p>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top: 24px">
+      Fix de token (design system) → s'applique à TOUS les boutons primary et à tout focus utilisant
+      <code>ring-ring</code>, sur tous les variants et les inputs. Avant/après live = preview Vercel
+      (Tab vers le bouton « Se connecter »).
+    </p>
+  </body>
+</html>
