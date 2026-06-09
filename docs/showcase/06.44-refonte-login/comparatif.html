@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Phase 06.44 — Refonte page de connexion (avant / après)</title>
+    <style>
+      /* Reproduction fidèle des tokens résolus (tokens.generated.css).
+         Jour : primary 217 92% 32% / primary-foreground blanc.
+         Nuit : primary 217 91% 60% / primary-foreground navy 222 47% 11%. */
+      :root {
+        font-family: Inter, system-ui, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 32px;
+        background: #eef2f7;
+        color: #0f172a;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0 0 4px;
+      }
+      .sub {
+        color: #64748b;
+        font-size: 13px;
+        margin: 0 0 24px;
+        max-width: 900px;
+      }
+      .grid {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+      }
+      .case {
+        flex: 1 1 380px;
+      }
+      .case > p {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #64748b;
+        margin: 0 0 8px;
+      }
+      /* Mockup login split */
+      .login {
+        display: flex;
+        height: 320px;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+      }
+      .brand {
+        flex: 1;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 20px;
+      }
+      .brand .mark {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .brand .tile {
+        width: 40px;
+        height: 40px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 22px;
+      }
+      .brand .word {
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+      .brand h2 {
+        font-size: 20px;
+        font-weight: 600;
+        line-height: 1.2;
+        margin: 0;
+        max-width: 300px;
+      }
+      .brand ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        font-size: 14px;
+      }
+      .brand li {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .brand li::before {
+        content: '✓';
+        font-size: 13px;
+      }
+      .form {
+        width: 230px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 12px;
+      }
+      .form .lbl {
+        font-size: 12px;
+        margin-bottom: 4px;
+      }
+      .form .field {
+        height: 36px;
+        border-radius: 6px;
+        border: 1px solid;
+        margin-bottom: 8px;
+      }
+      .btn {
+        height: 40px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 500;
+        color: #fff;
+      }
+
+      /* JOUR */
+      .day .brand {
+        background: hsl(217 92% 32%);
+        color: #fff;
+      }
+      .day .brand .tile {
+        background: #fff;
+        color: hsl(217 92% 32%);
+      }
+      .day .brand ul {
+        color: rgba(255, 255, 255, 0.85);
+      }
+      .day .form {
+        background: #fff;
+        color: hsl(222 47% 11%);
+      }
+      .day .form .field {
+        border-color: hsl(214 32% 91%);
+        background: #fff;
+      }
+      .day .btn {
+        background: hsl(217 92% 32%);
+      }
+
+      /* NUIT */
+      .night .brand {
+        background: hsl(217 91% 60%);
+        color: hsl(222 47% 11%);
+      }
+      .night .brand .tile {
+        background: hsl(222 47% 11%);
+        color: hsl(217 91% 60%);
+      }
+      .night .brand ul {
+        color: rgba(15, 23, 42, 0.8);
+      }
+      .night .form {
+        background: hsl(222 47% 8%);
+        color: hsl(210 40% 96%);
+      }
+      .night .form .field {
+        border-color: hsl(217 33% 17%);
+        background: hsl(222 47% 10%);
+      }
+      .night .btn {
+        background: hsl(217 91% 60%);
+        color: hsl(222 47% 11%);
+      }
+
+      /* AVANT (terne) */
+      .before .brand {
+        background: hsl(210 40% 96%);
+        color: hsl(215 16% 47%);
+        justify-content: space-between;
+        align-items: flex-start;
+      }
+      .before .brand .tile {
+        display: none;
+      }
+      .before .brand .word {
+        font-size: 12px;
+        color: hsl(215 16% 47%);
+      }
+      .before .brand ul {
+        display: none;
+      }
+      .before .brand h2 {
+        font-size: 14px;
+        font-weight: 400;
+        color: hsl(215 16% 47%);
+      }
+      .before .btn {
+        background: hsl(14 78% 46%);
+      } /* terracotta */
+      .note {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Phase 06.44 — Refonte page de connexion</h1>
+    <p class="sub">
+      DEC-123. Avant : panneau gauche gris terne, logo 12px tronqué, bouton terracotta criard. Après
+      : bleu institutionnel porteur d'identité (marque typographique lisible, baseline forte, points
+      de valeur), bouton « Se connecter » bleu (terracotta banni de l'entrée). Marque colorée par
+      tokens → lisible en jour ET nuit.
+    </p>
+
+    <div class="grid">
+      <div class="case">
+        <p>Avant</p>
+        <div class="login before">
+          <div class="brand">
+            <span class="word">TAP</span>
+            <h2>Régulation, optimisation, pilotage TAP/CGSS · 974</h2>
+          </div>
+          <div class="form">
+            <div>
+              <div class="lbl">Adresse e-mail</div>
+              <div class="field" style="border-color: #e2e8f0"></div>
+            </div>
+            <div>
+              <div class="lbl">Mot de passe</div>
+              <div class="field" style="border-color: #e2e8f0"></div>
+            </div>
+            <div class="btn">Se connecter</div>
+          </div>
+        </div>
+        <p class="note">Panneau vide/terne · logo tronqué · CTA terracotta hors-direction.</p>
+      </div>
+
+      <div class="case">
+        <p>Après — jour</p>
+        <div class="login day">
+          <div class="brand">
+            <div class="mark"><span class="tile">T</span><span class="word">TAP</span></div>
+            <h2>La régulation du transport sanitaire, sans friction.</h2>
+            <ul>
+              <li>Régulation temps réel</li>
+              <li>Optimisation des tournées</li>
+              <li>Pilotage et conformité</li>
+            </ul>
+          </div>
+          <div class="form">
+            <div>
+              <div class="lbl">Adresse e-mail</div>
+              <div class="field"></div>
+            </div>
+            <div>
+              <div class="lbl">Mot de passe</div>
+              <div class="field"></div>
+            </div>
+            <div class="btn">Se connecter</div>
+          </div>
+        </div>
+        <p class="note">Bleu institutionnel · marque lisible · CTA bleu (default).</p>
+      </div>
+
+      <div class="case">
+        <p>Après — nuit</p>
+        <div class="login night">
+          <div class="brand">
+            <div class="mark"><span class="tile">T</span><span class="word">TAP</span></div>
+            <h2>La régulation du transport sanitaire, sans friction.</h2>
+            <ul>
+              <li>Régulation temps réel</li>
+              <li>Optimisation des tournées</li>
+              <li>Pilotage et conformité</li>
+            </ul>
+          </div>
+          <div class="form">
+            <div>
+              <div class="lbl">Adresse e-mail</div>
+              <div class="field"></div>
+            </div>
+            <div>
+              <div class="lbl">Mot de passe</div>
+              <div class="field"></div>
+            </div>
+            <div class="btn">Se connecter</div>
+          </div>
+        </div>
+        <p class="note">Tokens basculés : bleu clair / texte navy, contraste AA conservé.</p>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top: 24px">
+      Responsive &lt; 1024px : le panneau bleu devient un bandeau compact en haut (marque + baseline
+      courte, points de valeur masqués), le formulaire dessous. Avant/après live = preview Vercel
+      <code>/login</code> (jour, nuit, mobile).
+    </p>
+  </body>
+</html>

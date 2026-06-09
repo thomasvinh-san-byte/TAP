@@ -3,21 +3,21 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.43 livrée localement (fix cible cliquable — suppression brouillons, WCAG 44px). PR à ouvrir."
-last_updated: "2026-06-09T02:00:00.000Z"
-last_activity: Phase 06.43 (correctif a11y cible cliquable, 0 dépendance). La corbeille du popover brouillons faisait ~12px de cible (icône h-12 nue, sans padding) → sous WCAG 2.5.8 (≥24px, viser 44). Patron icône discrète + cible large. D-01 : variant size=icon du Button porté h-10 w-10 (40px) → h-11 w-11 (44px) — confort Apple/AAA, +4px marginal, aucun usage existant cassé (0 autre size=icon dans le code). D-02 : corbeille de draft-queue passée d'un <button> nu à <Button variant=ghost size=icon> (cible 44px, hover bg-muted + focus-visible ring inclus) ; l'ICÔNE reste discrète Trash2 h-16 w-16 (on agrandit la cible, pas le dessin) ; aria-label + stopPropagation conservés. D-03 : gap-8 ajouté dans la ligne meta (≥8px entre l'horodatage/corbeille). typecheck+lint+build verts, 129 web. 0 dépendance. DEC-122 LOCKED.
-last_activity_prev: Phase 06.42 (fix overlays — combobox createPortal + DialogContent scrollable). DEC-121 LOCKED.
+stopped_at: "Phase 06.44 livrée localement (refonte page de connexion — bleu institutionnel pro). PR à ouvrir."
+last_updated: "2026-06-09T03:30:00.000Z"
+last_activity: Phase 06.44 (refonte page login, composition typographique, 0 asset, 0 dépendance). Recherche auth SaaS + direction DEC-101 (bleu institutionnel = identité ; terracotta réservé moments-clés métier, un login n'en est pas un). D-01 : bouton « Se connecter » variant accent (terracotta) → default (bleu primary). accept-invite NON touché (terracotta « Activer mon compte » justifié et LOCKED par DEC-111). D-02 : aside bg-muted terne → bg-primary text-primary-foreground ; marque rendue TYPOGRAPHIQUEMENT (pavé T + mot TAP colorés par tokens, lisibles ~40-48px au lieu du logo 12px tronqué) — pas de SVG figé (casserait en nuit) ; baseline forte + 3 points de valeur sobres (Check) ; footer /70 ; bloc ancré (justify-center). D-04 : responsive < lg = bandeau compact (points de valeur + footer masqués, baseline réduite text-xl). Contraste AA jour (bleu profond/blanc) ET nuit (bleu clair/navy) par la paire de tokens primary/primary-foreground. Image next/image retirée (plus utilisée). typecheck+lint+build verts, 129 web. Artefact avant/après docs/showcase/06.44-refonte-login/. DEC-123 LOCKED.
+last_activity_prev: Phase 06.43 (fix cible cliquable suppression brouillons, WCAG 44px). DEC-122 LOCKED.
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
 # ensuite (06.20-06.23 pré-prod + 06.24-06.39 = 50) + 06.41 messagerie + 06.42 fix overlays
-# + 06.43 fix cible cliquable = 53. (06.40 = lot d'hygiène docs, hors compte feature.)
-# Restantes réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07 abandonnée
-# (DEC-092) hors compte. Dernière phase livrée : 06.43. Dernier DEC : 122 (06.43).
+# + 06.43 fix cible cliquable + 06.44 refonte login = 54. (06.40 = lot d'hygiène docs, hors
+# compte feature.) Restantes réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07
+# abandonnée (DEC-092) hors compte. Dernière phase livrée : 06.44. Dernier DEC : 123 (06.44).
 # Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 55
-  completed_phases: 53
+  total_phases: 56
+  completed_phases: 54
   total_plans: 89
   completed_plans: 89
   percent: 96
@@ -30,7 +30,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.43 livrée localement (fix cible cliquable WCAG : corbeille brouillons ~12px → cible 44px, icône discrète 16px ; Button size=icon 40→44px). 53 phases livrées (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; messagerie lots photo/push/fil général à venir.
+**Current focus:** Phase 06.44 livrée localement (refonte page de connexion : panneau gauche bleu institutionnel + marque typographique lisible + baseline + points de valeur ; bouton « Se connecter » bleu, terracotta banni). 54 phases livrées (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; messagerie lots photo/push/fil général à venir.
 
 ## Current Position
 
@@ -39,12 +39,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.43 livrée localement (2026-06-09) — fix cible cliquable suppression brouillons (WCAG 44px). PR à ouvrir.
+Phase: 06.44 livrée localement (2026-06-09) — refonte page de connexion (bleu institutionnel pro). PR à ouvrir.
 Phase next: messagerie lots photo (HDS)/push (VAPID)/fil général ; Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 53 phases livrées. Cible de suppression brouillons ≥44px (patron icône discrète 16px + cible large), Button size=icon porté 40→44px (confort Apple/AAA), hover/focus-visible inclus. Composants partagés.
+Status: 54 phases livrées. Login recomposé : panneau gauche bleu institutionnel (marque typographique tokens, baseline forte, 3 points de valeur), bouton bleu (default), responsive bandeau compact, contraste AA jour+nuit. Zéro terracotta sur le login.
 Blockers: aucun
-Last activity: Phase 06.43 — corbeille popover brouillons passait ~12px (sous WCAG 2.5.8). Button size=icon 40→44px ; corbeille draft-queue en Button ghost/icon (cible 44, icône Trash2 16, hover bg-muted + focus ring) ; gap-8 ligne meta (≥8px corbeille/horodatage) ; aria-label + stopPropagation conservés. Aucun autre size=icon existant (0 régression). typecheck+lint+build verts, 129 web. 0 dépendance. DEC-122 LOCKED. PR à ouvrir.
-Précédent: 06.42 fix overlays (DEC-121), 06.41 messagerie lot 1 (DEC-120, #267), 06.40 hygiène .planning (DEC-119, #266).
+Last activity: Phase 06.44 — refonte login. Bouton accent(terracotta)→default(bleu). aside bg-muted→bg-primary text-primary-foreground ; marque typographique (pavé T + TAP par tokens, ~40-48px, fini le logo 12px tronqué ; pas de SVG figé qui casserait en nuit) ; baseline + 3 points de valeur (Check) ; bloc ancré ; responsive bandeau compact <lg. accept-invite NON touché (terracotta DEC-111 justifié/LOCKED). Image next/image retirée. AA jour (bleu/blanc)+nuit (bleu clair/navy) par paire de tokens. typecheck+lint+build verts, 129 web. Artefact avant/après docs/showcase/06.44-refonte-login/. 0 asset, 0 dépendance. DEC-123 LOCKED. PR à ouvrir.
+Précédent: 06.43 fix cible cliquable (DEC-122), 06.42 fix overlays (DEC-121), 06.41 messagerie lot 1 (DEC-120, #267).
 
 Progress: [██████████] 100%
 
