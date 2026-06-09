@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Phase 06.54 — Formulaires spécialisés : patron de form (avant / après)</title>
+    <style>
+      :root {
+        font-family: Inter, system-ui, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 32px;
+        background: #eef2f7;
+        color: #0f172a;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0 0 4px;
+      }
+      .sub {
+        color: #64748b;
+        font-size: 13px;
+        margin: 0 0 24px;
+        max-width: 980px;
+      }
+      .grid {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+      .case {
+        flex: 1 1 300px;
+      }
+      .case > p.label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #64748b;
+        margin: 0 0 8px;
+      }
+      .panel {
+        background: #fff;
+        border: 1px solid hsl(214 32% 91%);
+        border-radius: 10px;
+        padding: 16px;
+      }
+      .kicker {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #94a3b8;
+        font-weight: 600;
+        margin: 0 0 8px;
+      }
+      .sec {
+        margin-bottom: 18px;
+      }
+      .lbl {
+        font-size: 11px;
+        color: #334155;
+        margin: 0 0 4px;
+      }
+      .ipt {
+        height: 30px;
+        border-radius: 6px;
+        border: 1px solid hsl(214 32% 88%);
+        background: #fff;
+        margin-bottom: 10px;
+      }
+      .ipt.sm {
+        height: 26px;
+      }
+      .ta {
+        height: 54px;
+        border-radius: 6px;
+        border: 1px solid hsl(214 32% 88%);
+        background: #fff;
+        margin-bottom: 10px;
+      }
+      .chip {
+        display: inline-block;
+        height: 20px;
+        width: 70px;
+        border: 1px solid hsl(214 32% 88%);
+        border-radius: 5px;
+        background: #f1f5f9;
+        margin: 0 6px 6px 0;
+      }
+      .cbx {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 10px;
+        font-size: 11px;
+        color: #334155;
+      }
+      .cbx .box {
+        width: 14px;
+        height: 14px;
+        border: 1px solid hsl(214 32% 70%);
+        border-radius: 3px;
+      }
+      .bar {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        border-top: 1px solid hsl(214 32% 91%);
+        padding-top: 12px;
+        margin-top: 4px;
+      }
+      .bar.left {
+        justify-content: flex-start;
+        border-top: 0;
+      }
+      .btn {
+        height: 28px;
+        width: 96px;
+        border-radius: 6px;
+        background: #1e3a8a;
+      }
+      .btn.ghost {
+        background: #fff;
+        border: 1px solid hsl(214 32% 80%);
+      }
+      .note {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 8px;
+      }
+      .messy .ipt,
+      .messy .ta {
+        border-color: hsl(214 22% 82%);
+      }
+      .messy .sec {
+        margin-bottom: 8px;
+      }
+      .counter {
+        float: right;
+        font-size: 10px;
+        color: #94a3b8;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Phase 06.54 — Formulaires spécialisés : application respectueuse du patron de form</h1>
+    <p class="sub">
+      DEC-133. 06.51/52 ont posé le patron
+      (<code>FormSection</code>/<code>FormRow</code>/<code>FormActions</code>) sur
+      patient/véhicule/chauffeur. Les formulaires spécialisés restaient en style ad hoc
+      (<code>space-y-12/16</code>, classes brutes, selects <code>h-32</code>, textareas sans anneau
+      de focus). Harmonisation de l'<b>enveloppe</b> (sections, champs <code>ui/*</code>, barre
+      d'action) <b>sans toucher aux mécaniques métier</b> : insertion variables SMS
+      <code>{{…}}</code> + compteur 160, Sheet + simulateur tarifs, libellés RGPD. Règle valeurs
+      métier respectée — aucun libellé remplacé par du générique.
+    </p>
+
+    <div class="grid">
+      <!-- SMS -->
+      <div class="case">
+        <p class="label">Avant — éditeur SMS (ad hoc)</p>
+        <div class="panel messy">
+          <div class="sec">
+            <p class="lbl">Variables (clic pour insérer)</p>
+            <span class="chip"></span><span class="chip"></span><span class="chip"></span>
+          </div>
+          <div class="sec">
+            <p class="lbl">Corps du SMS <span class="counter">142/160</span></p>
+            <div class="ta"></div>
+          </div>
+          <div class="bar left">
+            <div class="btn ghost"></div>
+            <div class="btn"></div>
+          </div>
+        </div>
+        <p class="note">Espacement serré, textarea brute (pas d'anneau focus), actions à gauche.</p>
+      </div>
+
+      <div class="case">
+        <p class="label">Après — éditeur SMS (patron)</p>
+        <div class="panel">
+          <div class="sec">
+            <p class="kicker">Variables — clic pour insérer</p>
+            <span class="chip"></span><span class="chip"></span><span class="chip"></span>
+          </div>
+          <div class="sec">
+            <p class="lbl">Corps du SMS <span class="counter">142/160</span></p>
+            <div class="ta"></div>
+          </div>
+          <div class="bar">
+            <div class="btn ghost"></div>
+            <div class="btn"></div>
+          </div>
+        </div>
+        <p class="note">
+          Section kicker, <code>ui/Textarea</code> (focus + compteur annoncé
+          <code>aria-live</code>), barre d'action à droite. Insertion <code>{{…}}</code> + compteur
+          160 INCHANGÉS.
+        </p>
+      </div>
+
+      <!-- DPIA -->
+      <div class="case">
+        <p class="label">Après — DPIA (legal, libellés RGPD intacts)</p>
+        <div class="panel">
+          <div class="sec">
+            <p class="kicker">Identification</p>
+            <p class="lbl">Titre</p>
+            <div class="ipt"></div>
+            <p class="lbl">Périmètre</p>
+            <div class="ta"></div>
+          </div>
+          <div class="sec">
+            <p class="kicker">Analyse des risques</p>
+            <p class="lbl">Risques (JSON)</p>
+            <div class="ta"></div>
+            <p class="lbl">Risque résiduel</p>
+            <div class="ipt"></div>
+          </div>
+          <div class="bar">
+            <div class="btn ghost"></div>
+            <div class="btn"></div>
+          </div>
+        </div>
+        <p class="note">
+          Sections RGPD, selects <code>h-32</code>→gabarit <code>h-10</code>, textareas
+          <code>ui/Textarea</code>. Vocabulaire légal (DPIA, périmètre, risque résiduel…) conservé.
+        </p>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top: 24px">
+      Tarifs : patron <em>dans</em> le Sheet (SheetHeader/Footer conservés), NumberFields prix/€ +
+      simulateur intacts. DPO : <code>FormSection</code> + <code>FormActions</code>, libellés DPO
+      conservés. Breaches : 4 sections (Détection / Données touchées / Description et mesures /
+      Notifications), Article 33 RGPD conservé. Avant/après live = preview Vercel
+      <code>/admin/sms-templates</code>, <code>/admin/tarifs</code>, <code>/admin/legal/dpia</code>
+      (jour + nuit). Hors périmètre : requests/registre (utilitaires, lot suivant du plan d'audit).
+    </p>
+  </body>
+</html>
