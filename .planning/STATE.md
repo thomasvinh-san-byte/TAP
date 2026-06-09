@@ -3,22 +3,22 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.46 livrée localement (fix anneau de focus primary — faux soulignement). PR à ouvrir."
-last_updated: "2026-06-09T07:00:00.000Z"
-last_activity: Phase 06.46 (fix cause-racine token, design system, 0 dépendance). Les boutons à fond primary affichaient un faux soulignement au focus : --ring était STRICTEMENT égal à --primary (jour 217 92% 32%, nuit 217 91% 60%) → anneau de focus de la même couleur que le fond du bouton, invisible, perçu comme un soulignement de lien. Touche TOUS les boutons primary focalisés. D-01 : --ring découplé de --primary à la SOURCE (tokens.json focusRing jour 217 92% 32% → 217 91% 60% ; tokens.dark.json focusRing nuit 217 91% 60% → 213 94% 78%) puis régénération via pnpm tokens:build (style-dictionary, fichiers générés non édités à la main). Anneau désormais distinct : halo bleu clair sur fond clair (≈4:1 sur blanc) ET sur bouton primary ; bleu ciel clair en nuit (fort sur fond sombre, distinct du primary nuit). D-02 : focus visible et contrasté conservé sur tous les variants (primary/outline/ghost/destructive) + inputs, jour+nuit. Anneau JAMAIS retiré (RGAA). typecheck+lint+build verts (tokens:build idempotent), 129 web. Artefact avant/après docs/showcase/06.46-focus-ring/. DEC-125 LOCKED.
-last_activity_prev: Phase 06.45 (login formulaire centré, supersede DEC-123). DEC-124 LOCKED.
+stopped_at: "Phase 06.47 livrée localement (calibrage anneau de focus — icon-buttons + login). PR à ouvrir."
+last_updated: "2026-06-09T08:30:00.000Z"
+last_activity: Phase 06.47 (calibrage focus, suite de 06.46, design system, 0 dépendance). Après 06.46 (couleur du ring découplée), le ring-2 + offset-2 (box-shadow plein) restait trop épais sur les petits boutons ronds (icônes header brouillons/thème, variant ghost 40px) → paraissait un fond bleu plein « ovale » ; même cause donnait au bouton login un aspect pilule au focus (une cause, deux symptômes). D-01 : focus-visible passé de ring (box-shadow qui peut sembler un glow/fond) à OUTLINE (reco c) — focus-visible:outline outline-2 outline-offset-2 outline-ring → se lit comme un CONTOUR net, jamais un fond ; suit le border-radius. Harmonisé base buttonVariants (button.tsx) ET theme-toggle.client.tsx (les deux divergaient, désormais identiques). ring-offset-background retiré du base (devenu inutile). D-02/D-03 : forme/taille des boutons inchangées (login reste rounded-md h-12 w-full, pas d'ovale dans le code) ; focus visible et contrasté RGAA conservé jour ET nuit ; anneau jamais retiré. Inputs hors périmètre (gardent leur ring, plus larges). typecheck+lint+build verts, 129 web. Artefact avant/après docs/showcase/06.47-focus-calibrage/. DEC-126 LOCKED.
+last_activity_prev: Phase 06.46 (fix --ring découplé de --primary). DEC-125 LOCKED.
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
 # ensuite (06.20-06.23 pré-prod + 06.24-06.39 = 50) + 06.41 messagerie + 06.42 fix overlays
 # + 06.43 fix cible cliquable + 06.44 refonte login + 06.45 login centré + 06.46 fix focus ring
-# = 56. (06.40 = lot d'hygiène docs, hors compte feature ; 06.45 supersede 06.44 mais les 2 ont
-# été livrées.) Restantes réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07
-# abandonnée (DEC-092) hors compte. Dernière phase livrée : 06.46. Dernier DEC : 125 (06.46).
-# Dernier ADR : ADR-013 (06.33).
+# + 06.47 calibrage focus = 57. (06.40 = lot d'hygiène docs, hors compte feature ; 06.45
+# supersede 06.44 mais les 2 ont été livrées.) Restantes réelles = Phase 09 (HDS) + Phase 10
+# (géoloc réelle) = 2. Phase 07 abandonnée (DEC-092) hors compte. Dernière phase livrée : 06.47.
+# Dernier DEC : 126 (06.47). Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 58
-  completed_phases: 56
+  total_phases: 59
+  completed_phases: 57
   total_plans: 89
   completed_plans: 89
   percent: 97
@@ -31,7 +31,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.46 livrée localement (fix token : anneau de focus des boutons primary découplé de --primary — fin du faux soulignement). 56 phases livrées (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; messagerie lots photo/push/fil général à venir.
+**Current focus:** Phase 06.47 livrée localement (calibrage focus : ring → outline pour que l'anneau se lise comme un contour net et non un fond plein sur les icon-buttons + login). 57 phases livrées (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; messagerie lots photo/push/fil général à venir.
 
 ## Current Position
 
@@ -40,12 +40,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.46 livrée localement (2026-06-09) — fix anneau de focus primary (token --ring découplé). PR à ouvrir.
+Phase: 06.47 livrée localement (2026-06-09) — calibrage anneau de focus (ring → outline, contour net). PR à ouvrir.
 Phase next: messagerie lots photo (HDS)/push (VAPID)/fil général ; Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 56 phases livrées. Anneau de focus des boutons primary corrigé (token --ring ≠ --primary jour+nuit) : halo net, plus de faux soulignement, focus visible RGAA sur tous variants + inputs. Fix design-system global.
+Status: 57 phases livrées. Focus des boutons recalibré : ring (box-shadow plein) → outline (contour net) sur button base + theme-toggle → plus d'« ovale plein » sur les icon-buttons ni d'aspect pilule au login. Focus RGAA conservé jour+nuit, formes inchangées.
 Blockers: aucun
-Last activity: Phase 06.46 — fix faux soulignement focus. Cause : --ring == --primary (jour 217 92% 32%, nuit 217 91% 60%) → anneau invisible sur boutons primary. --ring découplé à la source (tokens.json focusRing → 217 91% 60% jour ; tokens.dark.json → 213 94% 78% nuit) + régénération pnpm tokens:build (style-dictionary, généré non édité à la main). Halo distinct sur fond clair (~4:1 blanc) ET bouton primary ; bleu ciel clair en nuit (fort sur fond sombre). Focus visible RGAA conservé tous variants + inputs ; anneau jamais retiré. typecheck+lint+build verts (tokens:build idempotent), 129 web. Artefact docs/showcase/06.46-focus-ring/. 0 dépendance. DEC-125 LOCKED. PR à ouvrir.
-Précédent: 06.45 login formulaire centré (DEC-124, supersede DEC-123), 06.44 refonte login split (DEC-123, superseded), 06.43 fix cible cliquable (DEC-122).
+Last activity: Phase 06.47 — calibrage focus (suite 06.46). Le ring-2+offset-2 (box-shadow plein) paraissait un fond bleu plein sur les icon-buttons ghost 40px (header) et une pilule au login. Passage à outline (focus-visible:outline outline-2 outline-offset-2 outline-ring) = contour net, jamais un fond, suit le radius. Harmonisé button.tsx base + theme-toggle (divergeaient). ring-offset-background retiré du base. Formes/tailles inchangées (login rounded-md h-12 w-full). Focus RGAA jour+nuit conservé. typecheck+lint+build verts, 129 web. Artefact docs/showcase/06.47-focus-calibrage/. 0 dépendance. DEC-126 LOCKED. PR à ouvrir.
+Précédent: 06.46 fix --ring découplé (DEC-125), 06.45 login centré (DEC-124, supersede DEC-123), 06.44 refonte login split (DEC-123, superseded).
 
 Progress: [██████████] 100%
 

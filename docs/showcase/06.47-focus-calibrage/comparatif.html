@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Phase 06.47 — Calibrage anneau de focus (avant / après)</title>
+    <style>
+      /* Tokens résolus. Jour : ring 217 91% 60%, bg blanc, muted 210 40% 96%, fg 222 47% 11%.
+         Nuit : ring 213 94% 78%, bg 222 47% 8%, muted 217 33% 17%, fg 210 40% 96%, primary 217 91% 60%.
+         AVANT = ring-2 + offset-2 (box-shadow plein) ; APRÈS = outline 2px + offset (contour). */
+      :root {
+        font-family: Inter, system-ui, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 32px;
+        background: #eef2f7;
+        color: #0f172a;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0 0 4px;
+      }
+      .sub {
+        color: #64748b;
+        font-size: 13px;
+        margin: 0 0 24px;
+        max-width: 900px;
+      }
+      .grid {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+      }
+      .pane {
+        flex: 1 1 320px;
+        border-radius: 12px;
+        padding: 32px 24px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+      }
+      .pane h2 {
+        font-size: 13px;
+        font-weight: 600;
+        margin: 0 0 24px;
+        opacity: 0.8;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 32px;
+        margin-bottom: 32px;
+      }
+      .row .lbl {
+        font-size: 12px;
+        width: 80px;
+        opacity: 0.7;
+      }
+      /* icon-button ghost 40px */
+      .icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 0;
+        background: transparent;
+      }
+      .btn {
+        height: 44px;
+        padding: 0 20px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 500;
+        border: 0;
+        color: #fff;
+      }
+      /* JOUR */
+      .day {
+        background: #fff;
+        color: hsl(222 47% 11%);
+      }
+      .day .icon {
+        color: hsl(215 16% 47%);
+      }
+      .day .btn {
+        background: hsl(217 92% 32%);
+      }
+      .day .ring {
+        box-shadow:
+          0 0 0 2px #fff,
+          0 0 0 4px hsl(217 91% 60%);
+      }
+      .day .outline {
+        outline: 2px solid hsl(217 91% 60%);
+        outline-offset: 2px;
+      }
+      /* NUIT */
+      .night {
+        background: hsl(222 47% 8%);
+        color: hsl(210 40% 96%);
+      }
+      .night .icon {
+        color: hsl(215 20% 65%);
+      }
+      .night .btn {
+        background: hsl(217 91% 60%);
+        color: hsl(222 47% 11%);
+      }
+      .night .ring {
+        box-shadow:
+          0 0 0 2px hsl(222 47% 8%),
+          0 0 0 4px hsl(213 94% 78%);
+      }
+      .night .outline {
+        outline: 2px solid hsl(213 94% 78%);
+        outline-offset: 2px;
+      }
+      .note {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 4px;
+      }
+      .night .note {
+        color: hsl(215 20% 65%);
+      }
+      svg {
+        width: 18px;
+        height: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Phase 06.47 — Calibrage de l'anneau de focus</h1>
+    <p class="sub">
+      DEC-126 (suite de 06.46). La couleur du ring était corrigée, mais
+      <code>ring-2 + offset-2</code> (box-shadow plein) restait trop épais sur les petits boutons
+      ronds (icônes header) → paraissait un fond bleu plein « ovale ». Même cause = aspect pilule au
+      focus du bouton login. Correctif : passage à un <code>outline</code> (2px + offset) qui se lit
+      comme un CONTOUR net, jamais un fond. Harmonisé base buttonVariants + theme-toggle. Focus RGAA
+      préservé jour ET nuit.
+    </p>
+
+    <div class="grid">
+      <div class="pane day">
+        <h2>Mode jour</h2>
+        <div class="row">
+          <span class="lbl">Avant</span>
+          <button class="icon ring" aria-label="Brouillons">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 12h-6l-2 3h-4l-2-3H2" />
+              <path
+                d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"
+              />
+            </svg>
+          </button>
+          <button class="btn ring">Se connecter</button>
+        </div>
+        <p class="note">
+          Anneau épais collé → « ovale plein » sur l'icône, « pilule » sur le bouton.
+        </p>
+        <div class="row" style="margin-top: 32px">
+          <span class="lbl">Après</span>
+          <button class="icon outline" aria-label="Brouillons">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 12h-6l-2 3h-4l-2-3H2" />
+              <path
+                d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"
+              />
+            </svg>
+          </button>
+          <button class="btn outline">Se connecter</button>
+        </div>
+        <p class="note">Contour net détaché (outline + offset), forme du bouton préservée.</p>
+      </div>
+
+      <div class="pane night">
+        <h2>Mode nuit</h2>
+        <div class="row">
+          <span class="lbl">Avant</span>
+          <button class="icon ring" aria-label="Thème">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2M12 20v2M2 12h2M20 12h2" />
+            </svg>
+          </button>
+          <button class="btn ring">Se connecter</button>
+        </div>
+        <p class="note">Ring très clair (78%) → effet de fond brillant sur petit bouton.</p>
+        <div class="row" style="margin-top: 32px">
+          <span class="lbl">Après</span>
+          <button class="icon outline" aria-label="Thème">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2M12 20v2M2 12h2M20 12h2" />
+            </svg>
+          </button>
+          <button class="btn outline">Se connecter</button>
+        </div>
+        <p class="note">Contour fin et net, fort contraste sur fond sombre sans « remplir ».</p>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top: 24px">
+      Harmonisé sur le composant Button partagé + theme-toggle → tous les boutons et icon-buttons.
+      Couleur du ring inchangée (06.46). Avant/après live = preview Vercel (Tab dans le header / sur
+      le bouton « Se connecter »).
+    </p>
+  </body>
+</html>
