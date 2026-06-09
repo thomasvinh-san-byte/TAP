@@ -130,7 +130,7 @@ export function AcceptInviteForm({ userEmail }: { userEmail: string }) {
         variant="accent"
         disabled={form.formState.isSubmitting}
         aria-busy={form.formState.isSubmitting}
-        className="h-12 w-full"
+        className="h-10 w-full"
       >
         {form.formState.isSubmitting ? 'Activation en cours…' : 'Activer mon compte'}
       </Button>

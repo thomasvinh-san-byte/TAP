@@ -114,7 +114,7 @@ export function LoginForm({ next, prefill }: LoginFormProps) {
         variant="default"
         disabled={form.formState.isSubmitting}
         aria-busy={form.formState.isSubmitting}
-        className="h-12 w-full text-base"
+        className="h-10 w-full"
       >
         {form.formState.isSubmitting ? 'Connexion en cours…' : 'Se connecter'}
       </Button>
