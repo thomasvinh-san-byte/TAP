@@ -68,9 +68,9 @@
         "$description": "Override dark — accent terracotta aligné sur la valeur jour (L=46%) pour passer WCAG AA texte blanc en nuit (contraste 6.33:1). DEC-104."
       },
       "focusRing": {
-        "$value": "hsl(217 91% 60%)",
+        "$value": "hsl(213 94% 78%)",
         "$type": "color",
-        "$description": "Override dark — focus ring aligné sur primary dark."
+        "$description": "Override dark — focus ring DÉCOUPLÉ de primary dark (DEC-125) : bleu ciel clair, distinct du primary nuit (60%) pour se détacher en halo sur les boutons primary, fort contraste sur fond sombre."
       }
     },
     "feedback": {

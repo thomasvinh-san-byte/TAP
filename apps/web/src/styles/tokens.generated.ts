@@ -25,7 +25,7 @@ export const tokensLight = {
     action: {
       primary: '#07409d',
       accent: '#d1451a',
-      focusRing: '#07409d',
+      focusRing: '#3c83f6',
     },
     feedback: {
       success: '#1a9948',
@@ -59,7 +59,7 @@ export const tokensDark = {
     action: {
       primary: '#3c83f6',
       accent: '#d1451a',
-      focusRing: '#3c83f6',
+      focusRing: '#92c2fc',
     },
     feedback: {
       success: '#21c45d',

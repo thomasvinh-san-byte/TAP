@@ -3,25 +3,25 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.45 livrée localement (login — formulaire centré, abandon du split-screen). PR à ouvrir."
-last_updated: "2026-06-09T05:30:00.000Z"
-last_activity: Phase 06.45 (refonte login = formulaire centré, supersède DEC-123/06.44, 0 asset, 0 dépendance). Recherche : split-screen valable à ratio 40:60/33:66 quand 2 éléments de poids égal ; TAP avait ~75% branding / <25% form (inversé, panneau de marque léger à moitié vide) → hors-norme. Décision dirigeant : formulaire CENTRÉ (carte, Notion/Linear ; B2B une colonne). D-01 : AuthShell split lg:flex-row → layout centré (min-h-screen flex items-center justify-center, fond bg-muted sobre), ThemeToggle en coin haut-droite (clavier OK), aside/panneau bleu pleine hauteur SUPPRIMÉ. D-02 : carte centrée max-w-[400px] bg-background rounded-lg border shadow-sm p-32 ; en-tête marque (pavé T h-32 + mot TAP par tokens — fini le logo 12px tronqué ; pas de SVG figé qui casserait en nuit sur carte sombre) + titre ; children ; rightSlot + footerHint conservés ; baseline courte sous la carte ; 3 puces SUPPRIMÉES (allègement). D-03 bouton bleu : déjà fait en 06.44 (variant default). Footer page discret en bas. Profite à /login ET /accept-invite (shell partagé). Contraste AA jour+nuit (tokens). typecheck+lint+build verts, 129 web. Artefact avant/après docs/showcase/06.45-login-centre/. DEC-124 LOCKED (supersede DEC-123).
-last_activity_prev: Phase 06.44 (refonte login split-screen bleu — superseded par 06.45). DEC-123.
+stopped_at: "Phase 06.46 livrée localement (fix anneau de focus primary — faux soulignement). PR à ouvrir."
+last_updated: "2026-06-09T07:00:00.000Z"
+last_activity: Phase 06.46 (fix cause-racine token, design system, 0 dépendance). Les boutons à fond primary affichaient un faux soulignement au focus : --ring était STRICTEMENT égal à --primary (jour 217 92% 32%, nuit 217 91% 60%) → anneau de focus de la même couleur que le fond du bouton, invisible, perçu comme un soulignement de lien. Touche TOUS les boutons primary focalisés. D-01 : --ring découplé de --primary à la SOURCE (tokens.json focusRing jour 217 92% 32% → 217 91% 60% ; tokens.dark.json focusRing nuit 217 91% 60% → 213 94% 78%) puis régénération via pnpm tokens:build (style-dictionary, fichiers générés non édités à la main). Anneau désormais distinct : halo bleu clair sur fond clair (≈4:1 sur blanc) ET sur bouton primary ; bleu ciel clair en nuit (fort sur fond sombre, distinct du primary nuit). D-02 : focus visible et contrasté conservé sur tous les variants (primary/outline/ghost/destructive) + inputs, jour+nuit. Anneau JAMAIS retiré (RGAA). typecheck+lint+build verts (tokens:build idempotent), 129 web. Artefact avant/après docs/showcase/06.46-focus-ring/. DEC-125 LOCKED.
+last_activity_prev: Phase 06.45 (login formulaire centré, supersede DEC-123). DEC-124 LOCKED.
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
 # ensuite (06.20-06.23 pré-prod + 06.24-06.39 = 50) + 06.41 messagerie + 06.42 fix overlays
-# + 06.43 fix cible cliquable + 06.44 refonte login + 06.45 login centré = 55. (06.40 = lot
-# d'hygiène docs, hors compte feature ; 06.45 supersede 06.44 mais compté — les 2 phases ont
+# + 06.43 fix cible cliquable + 06.44 refonte login + 06.45 login centré + 06.46 fix focus ring
+# = 56. (06.40 = lot d'hygiène docs, hors compte feature ; 06.45 supersede 06.44 mais les 2 ont
 # été livrées.) Restantes réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07
-# abandonnée (DEC-092) hors compte. Dernière phase livrée : 06.45. Dernier DEC : 124 (06.45).
+# abandonnée (DEC-092) hors compte. Dernière phase livrée : 06.46. Dernier DEC : 125 (06.46).
 # Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 57
-  completed_phases: 55
+  total_phases: 58
+  completed_phases: 56
   total_plans: 89
   completed_plans: 89
-  percent: 96
+  percent: 97
 ---
 
 # Project State
@@ -31,7 +31,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.45 livrée localement (login en formulaire CENTRÉ — abandon du split-screen ; carte centrée pattern Notion/Linear, supersède 06.44). 55 phases livrées (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; messagerie lots photo/push/fil général à venir.
+**Current focus:** Phase 06.46 livrée localement (fix token : anneau de focus des boutons primary découplé de --primary — fin du faux soulignement). 56 phases livrées (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; messagerie lots photo/push/fil général à venir.
 
 ## Current Position
 
@@ -40,12 +40,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.45 livrée localement (2026-06-09) — login en formulaire centré (carte), abandon du split-screen. PR à ouvrir.
+Phase: 06.46 livrée localement (2026-06-09) — fix anneau de focus primary (token --ring découplé). PR à ouvrir.
 Phase next: messagerie lots photo (HDS)/push (VAPID)/fil général ; Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 55 phases livrées. Login = carte centrée (form = point focal), logo lisible h-32, bouton bleu, fond sobre, ThemeToggle en coin. Shell partagé → /login + /accept-invite. Contraste AA jour+nuit. Supersède le split-screen 06.44.
+Status: 56 phases livrées. Anneau de focus des boutons primary corrigé (token --ring ≠ --primary jour+nuit) : halo net, plus de faux soulignement, focus visible RGAA sur tous variants + inputs. Fix design-system global.
 Blockers: aucun
-Last activity: Phase 06.45 — login en formulaire centré (supersède le split 06.44). AuthShell : split lg:flex-row → centré (flex items-center justify-center, fond bg-muted sobre), panneau bleu pleine hauteur supprimé, ThemeToggle en coin. Carte max-w-[400px] bg-background rounded-lg border shadow-sm p-32 : marque (pavé T h-32 + TAP par tokens) + titre + form + rightSlot + footerHint ; baseline courte sous la carte ; 3 puces supprimées. Bouton bleu déjà fait (06.44). Profite à /login + /accept-invite. AA jour+nuit. typecheck+lint+build verts, 129 web. Artefact docs/showcase/06.45-login-centre/. 0 asset, 0 dépendance. DEC-124 LOCKED (supersede DEC-123). PR à ouvrir.
-Précédent: 06.44 refonte login split bleu (DEC-123, superseded), 06.43 fix cible cliquable (DEC-122), 06.42 fix overlays (DEC-121).
+Last activity: Phase 06.46 — fix faux soulignement focus. Cause : --ring == --primary (jour 217 92% 32%, nuit 217 91% 60%) → anneau invisible sur boutons primary. --ring découplé à la source (tokens.json focusRing → 217 91% 60% jour ; tokens.dark.json → 213 94% 78% nuit) + régénération pnpm tokens:build (style-dictionary, généré non édité à la main). Halo distinct sur fond clair (~4:1 blanc) ET bouton primary ; bleu ciel clair en nuit (fort sur fond sombre). Focus visible RGAA conservé tous variants + inputs ; anneau jamais retiré. typecheck+lint+build verts (tokens:build idempotent), 129 web. Artefact docs/showcase/06.46-focus-ring/. 0 dépendance. DEC-125 LOCKED. PR à ouvrir.
+Précédent: 06.45 login formulaire centré (DEC-124, supersede DEC-123), 06.44 refonte login split (DEC-123, superseded), 06.43 fix cible cliquable (DEC-122).
 
 Progress: [██████████] 100%
 
