@@ -1,8 +1,10 @@
 import { COMPLIANCE_LABELS, type ComplianceKind, complianceStatus } from '@tap/shared';
+import Link from 'next/link';
 import { PageHeader } from '@/components/page-header';
 import { createClient } from '@/lib/supabase/server';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 import { ComplianceBadge } from '@/components/ui/compliance-badge';
+import { KpiCard } from '@/app/(app)/tableau-de-bord/_components/kpi-card';
 import { ComplianceFieldset } from './_components/compliance-fieldset.client';
 import { BlockingModeControl } from './_components/blocking-mode-control.client';
 import { getComplianceBlockingMode } from './_lib/compliance-planning';
@@ -89,21 +91,34 @@ export default async function ConformitePage() {
   };
 
   return (
-    <div className="space-y-24">
+    <div className="space-y-16">
       <PageHeader
         title="Conformité réglementaire"
         description="Suivi des échéances cartes professionnelles, contrôles techniques, assurances et convention CGSS. Distinct du suivi RGPD documentaire."
       />
 
-      <div className="grid gap-12 sm:grid-cols-3">
-        <SummaryCard tone="text-destructive" label="Expirées" value={counts.expired} />
-        <SummaryCard tone="text-warning" label="Proches de l’échéance" value={counts.soon} />
-        <SummaryCard tone="text-muted-foreground" label="Total suivies" value={counts.total} />
+      {/* Résumé via KpiCard partagée (cohérence dashboard, DEC-128/129). */}
+      <div className="grid items-stretch gap-12 sm:grid-cols-3">
+        <KpiCard
+          variant="simple"
+          label="Expirées"
+          value={String(counts.expired)}
+          state={counts.expired > 0 ? 'alerte' : 'neutre'}
+        />
+        <KpiCard
+          variant="simple"
+          label="Proches de l'échéance"
+          value={String(counts.soon)}
+          state={counts.soon > 0 ? 'attention' : 'neutre'}
+        />
+        <KpiCard variant="simple" label="Total suivies" value={String(counts.total)} />
       </div>
 
+      {/* Réglage Avertir/Bloquer — compact (une ligne, D-02). */}
       <BlockingModeControl initialMode={blockingMode} />
 
-      <section className="space-y-16">
+      {/* Convention CGSS (organisation) — pleine largeur. */}
+      <section className="space-y-8">
         <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
           Convention CGSS (organisation)
         </h2>
@@ -114,54 +129,70 @@ export default async function ConformitePage() {
         )}
       </section>
 
-      <section className="space-y-16">
-        <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-          Chauffeurs
-        </h2>
-        {driverRows.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
-            Aucune échéance saisie. Renseignez-les depuis la fiche chauffeur (Modifier).
-          </p>
-        ) : (
-          <ConformiteTable
-            rows={driverRows}
-            getLabel={(r) => (r.entity_id ? (driverLabels[r.entity_id] ?? '—') : '—')}
-          />
-        )}
-      </section>
+      {/* Chauffeurs + Véhicules côte à côte (D-03). */}
+      <div className="grid items-stretch gap-12 lg:grid-cols-2">
+        <section className="space-y-8">
+          <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+            Chauffeurs
+          </h2>
+          {driverRows.length === 0 ? (
+            <EmptyEntity
+              message="Aucune échéance saisie — à renseigner depuis la fiche chauffeur."
+              href="/admin/chauffeurs"
+              linkLabel="Fiches chauffeurs"
+            />
+          ) : (
+            <ConformiteTable
+              rows={driverRows}
+              getLabel={(r) => (r.entity_id ? (driverLabels[r.entity_id] ?? '—') : '—')}
+            />
+          )}
+        </section>
 
-      <section className="space-y-16">
-        <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-          Véhicules
-        </h2>
-        {vehicleRows.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
-            Aucune échéance saisie. Renseignez-les depuis la fiche véhicule (Modifier).
-          </p>
-        ) : (
-          <ConformiteTable
-            rows={vehicleRows}
-            getLabel={(r) => (r.entity_id ? (vehicleLabels[r.entity_id] ?? '—') : '—')}
-          />
-        )}
-      </section>
+        <section className="space-y-8">
+          <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+            Véhicules
+          </h2>
+          {vehicleRows.length === 0 ? (
+            <EmptyEntity
+              message="Aucune échéance saisie — à renseigner depuis la fiche véhicule."
+              href="/admin/vehicules"
+              linkLabel="Fiches véhicules"
+            />
+          ) : (
+            <ConformiteTable
+              rows={vehicleRows}
+              getLabel={(r) => (r.entity_id ? (vehicleLabels[r.entity_id] ?? '—') : '—')}
+            />
+          )}
+        </section>
+      </div>
     </div>
   );
 }
 
-function SummaryCard({
-  tone,
-  label,
-  value,
+/**
+ * État vide discret (D-03) : une ligne bordée muted + lien vers les fiches,
+ * pas une section pleine. Évite le vide structurel.
+ */
+function EmptyEntity({
+  message,
+  href,
+  linkLabel,
 }: {
-  tone: string;
-  label: string;
-  value: number;
+  message: string;
+  href: string;
+  linkLabel: string;
 }): JSX.Element {
   return (
-    <div className="border-border rounded-md border p-16">
-      <p className="text-muted-foreground text-xs uppercase tracking-wide">{label}</p>
-      <p className={`mt-4 text-2xl font-semibold tabular-nums ${tone}`}>{value}</p>
+    <div className="border-border text-muted-foreground flex flex-wrap items-center justify-between gap-8 rounded-md border p-16 text-sm">
+      <span>{message}</span>
+      <Link
+        href={href}
+        className="text-primary focus-visible:outline-ring shrink-0 rounded-sm font-medium hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+      >
+        {linkLabel} →
+      </Link>
     </div>
   );
 }
