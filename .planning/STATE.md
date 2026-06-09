@@ -3,22 +3,23 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.48 livrée localement (bouton auth aligné sur les champs). PR à ouvrir."
-last_updated: "2026-06-09T09:30:00.000Z"
-last_activity: Phase 06.48 (alignement bouton auth, 0 dépendance). Le bouton « Se connecter » faisait h-12 (48px) + text-base alors que les inputs font h-10 (40px) → plus haut que les champs, il flottait. D-01 : bouton submit aligné sur le gabarit des inputs — h-12 → h-10, text-base retiré (text-sm par défaut du Button = comme l'input), rounded-md conservé (= radius des inputs). D-02 : appliqué à login ET accept-invite (mêmes 2 formulaires auth). accept-invite garde son variant accent (terracotta DEC-111, hors périmètre couleur). La pile e-mail / mot de passe / bouton forme un gabarit homogène. Cible reste large (pleine largeur ; h-10=40px acceptable car surface horizontale énorme). Couleur bleue (06.44) + focus outline (06.47) inchangés. typecheck+lint+build verts, 129 web. Artefact docs/showcase/06.48-bouton-auth-aligne/. DEC-127 LOCKED.
-last_activity_prev: Phase 06.47 (calibrage focus ring → outline). DEC-126 LOCKED.
+stopped_at: "Phase 06.49 livrée localement (tableau de bord — densité & alignement, tient sur une page). PR à ouvrir."
+last_updated: "2026-06-09T11:00:00.000Z"
+last_activity: Phase 06.49 (refonte densité/alignement du Tableau de bord, dérivée d'une maquette validée + doctrine d'alignement, Cockpit référence ; données INCHANGÉES, 0 dépendance). Le dashboard scrollait alors que le contenu tient sur ~430px — cause = LAYOUT (sections empilées, space-y-24, KPIs 4+2, cartes hautes, SLA en section pleine largeur). D-01 : KpiCard unifiée en anatomie FIXE (label→corps→action mt-auto, h-full pour hauteurs égales, valeur text-3xl→text-2xl) ; les 4 variantes deviennent des slots. D-02 : échelle d'espacement resserrée unique (page space-y-16, titre→grille space-y-8, grilles gap-12, card p-16). D-03 : layout 3 rangées tenant sur un viewport — À traiter lg:grid-cols-3 (facturation/alertes/SLA délais intégré en 3e col) · Activité du mois lg:grid-cols-6 (6 KPIs sur une rangée, replie grid-cols-2/sm:3) · Conformité lg:grid-cols-2 ; items-stretch partout. D-04 : couleurs sémantiques en tokens (text-green-700/amber-700 → text-success/warning + bg-*) dans kpi-card + sla-badges, jour+nuit, doublage couleur+texte conservé. Ventilation par mode de paiement condensée en contexte (info préservée). compliance-card + sla-badges passées en h-full. typecheck+lint+build verts, 129 web. Doctrine versée : .planning/doctrine-alignement-dashboard.md (réutilisable). Artefact docs/showcase/06.49-dashboard-densite/. DEC-128 LOCKED.
+last_activity_prev: Phase 06.48 (bouton auth aligné sur les champs). DEC-127 LOCKED.
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
 # ensuite (06.20-06.23 pré-prod + 06.24-06.39 = 50) + 06.41 messagerie + 06.42 fix overlays
 # + 06.43 fix cible cliquable + 06.44 refonte login + 06.45 login centré + 06.46 fix focus ring
-# + 06.47 calibrage focus + 06.48 bouton auth aligné = 58. (06.40 = lot d'hygiène docs, hors
-# compte feature ; 06.45 supersede 06.44 mais les 2 ont été livrées.) Restantes réelles =
-# Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07 abandonnée (DEC-092) hors compte.
-# Dernière phase livrée : 06.48. Dernier DEC : 127 (06.48). Dernier ADR : ADR-013 (06.33).
+# + 06.47 calibrage focus + 06.48 bouton auth aligné + 06.49 dashboard densité = 59. (06.40 = lot
+# d'hygiène docs, hors compte feature ; 06.45 supersede 06.44 mais les 2 ont été livrées.)
+# Restantes réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07 abandonnée
+# (DEC-092) hors compte. Dernière phase livrée : 06.49. Dernier DEC : 128 (06.49).
+# Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 60
-  completed_phases: 58
+  total_phases: 61
+  completed_phases: 59
   total_plans: 89
   completed_plans: 89
   percent: 97
@@ -31,7 +32,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.48 livrée localement (bouton « Se connecter » aligné sur le gabarit des champs : h-12→h-10, barre rectangulaire homogène). 58 phases livrées (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; messagerie lots photo/push/fil général à venir.
+**Current focus:** Phase 06.49 livrée localement (Tableau de bord refondu en densité/alignement : KpiCard anatomie fixe, 3 rangées, 6 KPIs sur une ligne, tient sur un viewport sans scroll). 59 phases livrées (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; messagerie lots photo/push/fil général à venir.
 
 ## Current Position
 
@@ -40,12 +41,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.48 livrée localement (2026-06-09) — bouton auth aligné sur les champs (h-10, rounded-md). PR à ouvrir.
+Phase: 06.49 livrée localement (2026-06-09) — tableau de bord densité & alignement (tient sur une page). PR à ouvrir.
 Phase next: messagerie lots photo (HDS)/push (VAPID)/fil général ; Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 58 phases livrées. Bouton submit auth aligné sur les inputs (h-10, rounded-md, text-sm) sur login + accept-invite → pile e-mail/mot de passe/bouton homogène. Couleur bleue (06.44) + focus outline (06.47) inchangés.
+Status: 59 phases livrées. Tableau de bord : KpiCard anatomie fixe (h-full, valeur 24px, slots), 3 rangées denses (À traiter 3 / Activité 6 KPIs / Conformité 2), espacement resserré, couleurs en tokens jour+nuit, tient sur un viewport sans scroll. Données inchangées. Doctrine d'alignement versée (réutilisable). Première application.
 Blockers: aucun
-Last activity: Phase 06.48 — bouton auth aligné. Le bouton « Se connecter » faisait h-12 (48px) + text-base vs inputs h-10 (40px) → flottait. Bouton submit passé h-12→h-10, text-base retiré (text-sm), rounded-md conservé, sur login + accept-invite. accept-invite garde son variant accent (terracotta DEC-111). Pile e-mail/mot de passe/bouton homogène. Cible reste large (pleine largeur). typecheck+lint+build verts, 129 web. Artefact docs/showcase/06.48-bouton-auth-aligne/. 0 dépendance. DEC-127 LOCKED. PR à ouvrir.
-Précédent: 06.47 calibrage focus (DEC-126), 06.46 fix --ring découplé (DEC-125), 06.45 login centré (DEC-124, supersede DEC-123).
+Last activity: Phase 06.49 — refonte densité/alignement Tableau de bord (maquette validée + doctrine, données inchangées). Cause du scroll = layout (sections empilées, space-y-24, KPIs 4+2, SLA pleine largeur). KpiCard anatomie fixe (label→corps→action mt-auto, h-full, valeur 24px, slots) ; espacement resserré (space-y-16/8, gap-12, p-16) ; 3 rangées (À traiter lg:grid-cols-3 avec SLA en 3e col / Activité lg:grid-cols-6 / Conformité lg:grid-cols-2, items-stretch) ; couleurs en tokens success/warning (kpi-card + sla-badges) ; ventilation paiement condensée en contexte ; compliance + sla en h-full. typecheck+lint+build verts, 129 web. Doctrine .planning/doctrine-alignement-dashboard.md. Artefact docs/showcase/06.49-dashboard-densite/. 0 dépendance. DEC-128 LOCKED. PR à ouvrir.
+Précédent: 06.48 bouton auth aligné (DEC-127), 06.47 calibrage focus (DEC-126), 06.46 fix --ring découplé (DEC-125).
 
 Progress: [██████████] 100%
 

@@ -15,20 +15,20 @@ import type { SlaRule, SlaStatus } from '../_lib/sla-status';
  * - Si `rules` vide : état neutre « Délais légaux respectés » (icône check,
  *   texte neutre, AUCUN jugement « conforme RGPD »).
  *
- * Couleurs : alignées sur la palette STATE_CLASS de KpiCard
- * (`text-destructive`, `text-amber-700`).
+ * Couleurs : tokens sémantiques alignés sur KpiCard (Phase 06.49, DEC-128) —
+ * `text-destructive` / `text-warning` / `text-success`, jour+nuit.
  */
 
 const STATUS_CLASS: Record<SlaStatus, string> = {
   rouge: 'text-destructive',
-  orange: 'text-amber-700',
-  vert: 'text-green-700',
+  orange: 'text-warning',
+  vert: 'text-success',
 };
 
 const STATUS_DOT_CLASS: Record<SlaStatus, string> = {
   rouge: 'bg-destructive',
-  orange: 'bg-amber-700',
-  vert: 'bg-green-700',
+  orange: 'bg-warning',
+  vert: 'bg-success',
 };
 
 interface Props {
@@ -39,7 +39,7 @@ export function SlaBadgesCard({ rules }: Props): JSX.Element {
   if (rules.length === 0) {
     return (
       <section
-        className="border-border bg-background flex flex-col gap-8 rounded-lg border p-16"
+        className="border-border bg-background flex h-full flex-col gap-8 rounded-lg border p-16"
         aria-labelledby="sla-title"
       >
         <div className="flex items-center gap-8">
@@ -55,7 +55,7 @@ export function SlaBadgesCard({ rules }: Props): JSX.Element {
 
   return (
     <section
-      className="border-border bg-background flex flex-col gap-8 rounded-lg border p-16"
+      className="border-border bg-background flex h-full flex-col gap-8 rounded-lg border p-16"
       aria-labelledby="sla-title"
     >
       <h3 id="sla-title" className="text-sm font-medium">

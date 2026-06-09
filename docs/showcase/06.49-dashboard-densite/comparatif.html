@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Phase 06.49 — Tableau de bord : densité & alignement (avant / après)</title>
+    <style>
+      :root {
+        font-family: Inter, system-ui, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 32px;
+        background: #eef2f7;
+        color: #0f172a;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0 0 4px;
+      }
+      .sub {
+        color: #64748b;
+        font-size: 13px;
+        margin: 0 0 24px;
+        max-width: 860px;
+      }
+      .grid {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+      .case {
+        flex: 1 1 420px;
+      }
+      .case > p.label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #64748b;
+        margin: 0 0 8px;
+      }
+      /* viewport simulé ~ 900px de haut ramené à l'échelle */
+      .vp {
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        border-radius: 10px;
+        background: #fff;
+        padding: 12px;
+        position: relative;
+        overflow: hidden;
+      }
+      .vp .fold {
+        position: absolute;
+        left: 0;
+        right: 0;
+        border-top: 2px dashed hsl(0 72% 51%);
+        font-size: 10px;
+        color: hsl(0 72% 51%);
+        text-align: right;
+        padding-right: 4px;
+      }
+      .sec {
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #94a3b8;
+        margin: 6px 0 4px;
+      }
+      .card {
+        background: #f8fafc;
+        border: 1px solid hsl(214 32% 91%);
+        border-radius: 6px;
+      }
+      .row {
+        display: grid;
+        gap: 6px;
+        margin-bottom: 6px;
+      }
+      .c2 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .c3 {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .c4 {
+        grid-template-columns: repeat(4, 1fr);
+      }
+      .c6 {
+        grid-template-columns: repeat(6, 1fr);
+      }
+      .full {
+        grid-template-columns: 1fr;
+      }
+      .note {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 8px;
+      }
+      /* hauteurs de cartes pour illustrer */
+      .h-s {
+        height: 46px;
+      }
+      .h-m {
+        height: 64px;
+      }
+      .h-l {
+        height: 92px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Phase 06.49 — Tableau de bord : tient sur une page</h1>
+    <p class="sub">
+      DEC-128. Le contenu tenait sur ~430px mais le LAYOUT faisait scroller (sections empilées,
+      <code>space-y-24</code>, KPIs en 4+2, cartes hautes, SLA en section pleine largeur). Refonte
+      densité/alignement (maquette validée + doctrine d'alignement) : KpiCard en anatomie fixe
+      (valeur 24px, <code>h-full items-stretch</code>), espacement resserré, 3 rangées (À traiter 3
+      · Activité 6 KPIs · Conformité 2). Données inchangées. La ligne pointillée = bas du viewport
+      (~900px).
+    </p>
+
+    <div class="grid">
+      <div class="case">
+        <p class="label">Avant — empilé, scrolle</p>
+        <div class="vp" style="height: 340px">
+          <div class="fold" style="top: 300px">↧ ligne de flottaison</div>
+          <div class="sec">À traiter</div>
+          <div class="row c2">
+            <div class="card h-m"></div>
+            <div class="card h-m"></div>
+          </div>
+          <div class="sec">Délais légaux (section pleine largeur)</div>
+          <div class="row full"><div class="card h-m"></div></div>
+          <div class="sec">Activité</div>
+          <div class="row c4">
+            <div class="card h-l"></div>
+            <div class="card h-l"></div>
+            <div class="card h-l"></div>
+            <div class="card h-l"></div>
+          </div>
+          <div class="row c2">
+            <div class="card h-m"></div>
+            <div class="card h-m"></div>
+          </div>
+          <div class="sec">Conformité</div>
+          <div class="row c2">
+            <div class="card h-m"></div>
+            <div class="card h-m"></div>
+          </div>
+        </div>
+        <p class="note">
+          KPIs en 4+2, SLA en section dédiée, gros écarts → le bas passe sous la ligne (scroll).
+        </p>
+      </div>
+
+      <div class="case">
+        <p class="label">Après — 3 rangées denses, tient au-dessus de la ligne</p>
+        <div class="vp" style="height: 340px">
+          <div class="fold" style="top: 300px">↧ ligne de flottaison</div>
+          <div class="sec">À traiter</div>
+          <div class="row c3">
+            <div class="card h-s"></div>
+            <div class="card h-s"></div>
+            <div class="card h-s"></div>
+          </div>
+          <div class="sec">Activité du mois</div>
+          <div class="row c6">
+            <div class="card h-s"></div>
+            <div class="card h-s"></div>
+            <div class="card h-s"></div>
+            <div class="card h-s"></div>
+            <div class="card h-s"></div>
+            <div class="card h-s"></div>
+          </div>
+          <div class="sec">Conformité &amp; échéances</div>
+          <div class="row c2">
+            <div class="card h-m"></div>
+            <div class="card h-m"></div>
+          </div>
+        </div>
+        <p class="note">
+          À traiter 3 · Activité 6 KPIs sur une rangée · Conformité 2. Cartes alignées (hauteurs
+          égales), rythme resserré → tout au-dessus de la ligne.
+        </p>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top: 24px">
+      Couleurs sémantiques en tokens (success/warning/destructive) jour+nuit, doublage couleur+texte
+      conservé. Données/KPIs/liens inchangés. Avant/après live = preview Vercel /tableau-de-bord.
+    </p>
+  </body>
+</html>
