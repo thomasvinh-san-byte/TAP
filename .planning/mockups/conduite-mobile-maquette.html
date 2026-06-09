@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Maquette — conduite mobile chauffeur (06.55)</title>
+    <style>
+      :root {
+        font-family: Inter, system-ui, sans-serif;
+        --bg: #f1f5f9;
+        --card: #fff;
+        --border: hsl(214 32% 91%);
+        --muted: #64748b;
+        --fg: #0f172a;
+        --primary: #1e3a8a;
+        --warning: #c2410c;
+        --success: #047857;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 24px;
+        background: var(--bg);
+        color: var(--fg);
+        display: flex;
+        gap: 32px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .phone {
+        width: 390px;
+        background: #f8fafc;
+        border: 10px solid #0f172a;
+        border-radius: 36px;
+        overflow: hidden;
+        position: relative;
+        height: 760px;
+      }
+      .screen {
+        padding: 16px;
+        height: 100%;
+        overflow: hidden;
+      }
+      .cap {
+        text-align: center;
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 8px;
+      }
+      h1 {
+        font-size: 16px;
+        margin: 4px 0 12px;
+      }
+      .geoloc {
+        border: 1px solid var(--border);
+        background: #fff;
+        border-radius: 10px;
+        padding: 12px;
+        font-size: 12px;
+        display: flex;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .geoloc .more {
+        color: var(--primary);
+        font-weight: 600;
+        margin-top: 6px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+      }
+      .liseret {
+        height: 4px;
+        background: var(--warning);
+      }
+      .card .body {
+        padding: 16px;
+      }
+      .h {
+        font-size: 26px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        line-height: 1.1;
+      }
+      .pat {
+        font-size: 16px;
+        font-weight: 600;
+        margin-top: 2px;
+      }
+      .meta {
+        font-size: 11px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      .trajet {
+        background: #f1f5f9;
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 14px;
+        margin-top: 14px;
+      }
+      .btn {
+        height: 52px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 15px;
+      }
+      .btn.prim {
+        background: var(--warning);
+        color: #fff;
+        margin: 16px 16px 0;
+      }
+      .btn.start {
+        background: var(--primary);
+        color: #fff;
+      }
+      .btn.ghost {
+        border: 1px solid var(--border);
+        color: var(--fg);
+        height: 46px;
+      }
+      .sep {
+        border-top: 1px solid var(--border);
+        margin: 18px 16px 0;
+        padding-top: 14px;
+      }
+      /* bottom-sheet */
+      .backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+      }
+      .sheet {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #fff;
+        border-radius: 18px 18px 0 0;
+        padding: 8px 20px 24px;
+        box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.18);
+      }
+      .grip {
+        width: 40px;
+        height: 4px;
+        background: #cbd5e1;
+        border-radius: 99px;
+        margin: 6px auto 14px;
+      }
+      .sheet h2 {
+        font-size: 18px;
+        margin: 0 0 4px;
+      }
+      .sheet .desc {
+        font-size: 13px;
+        color: var(--muted);
+        margin: 0 0 16px;
+      }
+      .tarif {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 30px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+        display: flex;
+        justify-content: space-between;
+        color: var(--muted);
+      }
+      .pays {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 16px;
+      }
+      .pay {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .pay.on {
+        border-color: var(--primary);
+        background: rgba(30, 58, 138, 0.08);
+      }
+      .toggle {
+        background: #f1f5f9;
+        border-radius: 10px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        font-size: 14px;
+        font-weight: 600;
+        margin-top: 16px;
+      }
+      .knob {
+        width: 48px;
+        height: 24px;
+        border-radius: 99px;
+        background: var(--success);
+        position: relative;
+      }
+      .knob::after {
+        content: '';
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        border-radius: 99px;
+        background: #fff;
+        top: 4px;
+        right: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Écran 1 : Ma journée -->
+    <div>
+      <div class="phone">
+        <div class="screen">
+          <h1>Ma journée</h1>
+          <div class="geoloc">
+            <span>📍</span>
+            <div>
+              <div style="font-weight: 600; color: var(--fg)">
+                Position partagée à chaque pointage
+              </div>
+              <div style="margin-top: 4px">
+                À chaque pointage, votre position est captée et liée à la course. Conservée 90 j
+                max.
+              </div>
+              <div class="more">En savoir plus ⌄</div>
+            </div>
+            <span style="color: var(--muted)">✕</span>
+          </div>
+
+          <div class="card">
+            <div class="liseret"></div>
+            <div class="body">
+              <div class="h">08:30</div>
+              <div class="pat">Hoarau Marie</div>
+              <div class="meta">Taxi conv. · Programmée</div>
+              <div class="trajet">
+                📍 12 rue de Paris, Saint-Denis<br />↓<br />🧭 CHU Nord, Saint-Denis
+              </div>
+            </div>
+            <div class="btn prim start" style="margin: 0 16px 16px">Démarrer la course</div>
+            <div class="sep">
+              <div class="btn ghost">Patient absent</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="cap">
+        Ma journée — pas de debug, géoloc 1re couche + « En savoir plus », carte dense, actions zone
+        pouce.
+      </p>
+    </div>
+
+    <!-- Écran 2 : Clôturer (bottom-sheet) -->
+    <div>
+      <div class="phone">
+        <div class="screen" style="filter: brightness(0.96)">
+          <h1>Ma journée</h1>
+          <div class="card" style="opacity: 0.4">
+            <div class="liseret" style="background: var(--warning)"></div>
+            <div class="body">
+              <div class="h">08:30</div>
+              <div class="pat">Hoarau Marie</div>
+            </div>
+          </div>
+        </div>
+        <div class="backdrop"></div>
+        <div class="sheet">
+          <div class="grip"></div>
+          <h2>Clôturer la course</h2>
+          <p class="desc">Saisis le tarif et le mode de paiement.</p>
+          <div class="tarif"><span>0,00</span><span>€</span></div>
+          <div class="pays">
+            <div class="pay on">Cash</div>
+            <div class="pay">CB</div>
+            <div class="pay">Chèque</div>
+            <div class="pay">CGSS différé</div>
+          </div>
+          <div class="toggle">Encaissé maintenant <span class="knob"></span></div>
+          <div class="btn start" style="margin-top: 18px">Clôturer la course</div>
+        </div>
+      </div>
+      <p class="cap">
+        Clôturer — bottom-sheet ancré bas, poignée, tarif (clavier chiffres), paiement en grille
+        tactile, bouton bas.
+      </p>
+    </div>
+  </body>
+</html>

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { toast } from 'sonner';
 import { Banknote, Clock, CreditCard, FileText, Loader2, type LucideIcon } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
+import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { enqueue } from '@/lib/offline/sync-engine';
@@ -33,11 +33,11 @@ interface Props {
 }
 
 /**
- * Modal de clôture (Phase 3 / 03-E — cf. conduite-maquette.html).
- *
- * Layout responsive : bottom-sheet sur mobile (inset-x-0 bottom-0,
- * rounded-t-xl), centré sur ≥ sm. Inputs gros et tactiles, focus
- * immédiat sur le tarif, format virgule française accepté.
+ * Clôture de course en BOTTOM-SHEET (Phase 06.55 DEC-134 D-03 — doctrine
+ * mobile chauffeur). Feuille ancrée en bas (zone pouce), poignée +
+ * drag-to-dismiss, boutons larges en bas. Inputs gros et tactiles, focus
+ * immédiat sur le tarif (inputMode="decimal" — clavier chiffres),
+ * format virgule française accepté.
  *
  * Submission : endRideAction (en_cours → terminee + tarif + paiement).
  * Toast Sonner sur succès, refresh route pour recharger la liste.
@@ -138,25 +138,15 @@ export function EndRideModal({ rideId, open, onOpenChange }: Props): JSX.Element
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className={cn(
-          // Mobile : bottom-sheet pleine largeur
-          'fixed inset-x-0 bottom-0 left-0 right-0 top-auto w-full max-w-none',
-          'translate-x-0 translate-y-0 rounded-b-none rounded-t-xl border-x-0 border-b-0',
-          // Desktop ≥ sm : recentré au milieu
-          'sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:right-auto sm:top-1/2 sm:max-w-md',
-          'sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl sm:border',
-          'max-h-[92vh] gap-16 overflow-y-auto p-24',
-        )}
-      >
-        <div className="space-y-4">
-          <DialogTitle className="text-lg">Clôturer la course</DialogTitle>
-          <DialogDescription className="text-sm">
-            Saisis le tarif et le mode de paiement.
-          </DialogDescription>
-        </div>
-
+    <BottomSheet
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Clôturer la course"
+      description="Saisis le tarif et le mode de paiement."
+      // Laisser le focus au tarif (pas à la poignée) à l'ouverture.
+      onOpenAutoFocus={(e) => e.preventDefault()}
+    >
+      <div className="space-y-16 pb-8">
         <div className="space-y-4">
           <label htmlFor="end-ride-amount" className="text-muted-foreground text-xs font-medium">
             Tarif
@@ -260,7 +250,7 @@ export function EndRideModal({ rideId, open, onOpenChange }: Props): JSX.Element
             'Clôturer la course'
           )}
         </Button>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </BottomSheet>
   );
 }

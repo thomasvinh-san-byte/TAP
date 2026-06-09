@@ -66,14 +66,16 @@ export function InstallPwaBanner(): JSX.Element {
     setDismissed(true);
   };
 
-  // DEBUG PWA — à retirer après diagnostic. Affiche l'état réel détecté par
-  // useInstallPrompt() pour confirmer l'installabilité sur un vrai Android
-  // Chrome (la PWA ne se teste qu'en HTTPS sur mobile).
-  const debugBadge = (
-    <p data-pwa-kind={promptState.kind} className="text-muted-foreground mb-8 text-xs">
-      PWA debug · état détecté : {promptState.kind}
-    </p>
-  );
+  // Bandeau de diagnostic PWA — DEV UNIQUEMENT (DEC-134 D-01). Un chauffeur
+  // en production ne doit jamais voir « PWA debug · état détecté ». En prod,
+  // `process.env.NODE_ENV` est inliné à la compilation → le badge disparaît
+  // entièrement du bundle.
+  const debugBadge =
+    process.env.NODE_ENV !== 'production' ? (
+      <p data-pwa-kind={promptState.kind} className="text-muted-foreground mb-8 text-xs">
+        PWA debug · état détecté : {promptState.kind}
+      </p>
+    ) : null;
 
   const bannerHidden =
     promptState.kind === 'standalone' || promptState.kind === 'unsupported' || dismissed;
