@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Phase 06.55 — Parcours chauffeur mobile (avant / après)</title>
+    <style>
+      :root {
+        font-family: Inter, system-ui, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 32px;
+        background: #eef2f7;
+        color: #0f172a;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0 0 4px;
+      }
+      .sub {
+        color: #64748b;
+        font-size: 13px;
+        margin: 0 0 24px;
+        max-width: 960px;
+      }
+      .grid {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+      .case {
+        flex: 1 1 300px;
+        max-width: 360px;
+      }
+      .case > p.label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #64748b;
+        margin: 0 0 8px;
+      }
+      .phone {
+        background: #f8fafc;
+        border: 8px solid #0f172a;
+        border-radius: 28px;
+        padding: 12px;
+        position: relative;
+        height: 420px;
+        overflow: hidden;
+      }
+      .debug {
+        font-size: 10px;
+        color: #94a3b8;
+        font-family: monospace;
+        border: 1px dashed #cbd5e1;
+        padding: 4px 6px;
+        border-radius: 4px;
+        margin-bottom: 8px;
+      }
+      .geoverbose {
+        border: 1px solid hsl(214 32% 88%);
+        border-radius: 8px;
+        padding: 8px;
+        font-size: 10px;
+        color: #64748b;
+        line-height: 1.5;
+        margin-bottom: 10px;
+      }
+      .geolayer {
+        border: 1px solid hsl(214 32% 88%);
+        border-radius: 8px;
+        padding: 8px;
+        font-size: 10px;
+        margin-bottom: 10px;
+      }
+      .geolayer b {
+        color: #0f172a;
+      }
+      .geolayer .more {
+        color: #1e3a8a;
+        font-weight: 600;
+        margin-top: 4px;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid hsl(214 32% 88%);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .lis {
+        height: 4px;
+        background: #c2410c;
+      }
+      .card .b {
+        padding: 10px;
+      }
+      .hh {
+        font-size: 20px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+      .pat {
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .meta {
+        font-size: 9px;
+        color: #64748b;
+      }
+      .btn {
+        height: 34px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 600;
+        color: #fff;
+        background: #1e3a8a;
+        margin-top: 8px;
+      }
+      .modal-c {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 80%;
+        background: #fff;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+        padding: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      }
+      .backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 20px;
+      }
+      .sheet {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #fff;
+        border-radius: 16px 16px 0 0;
+        padding: 6px 12px 14px;
+      }
+      .grip {
+        width: 36px;
+        height: 4px;
+        background: #cbd5e1;
+        border-radius: 99px;
+        margin: 4px auto 10px;
+      }
+      .sheet h2 {
+        font-size: 14px;
+        margin: 0 0 8px;
+      }
+      .tarif {
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 8px 10px;
+        font-size: 20px;
+        font-weight: 700;
+        color: #64748b;
+        display: flex;
+        justify-content: space-between;
+      }
+      .pays {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 5px;
+        margin-top: 8px;
+      }
+      .pay {
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        height: 34px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 600;
+      }
+      .pay.on {
+        border-color: #1e3a8a;
+        background: rgba(30, 58, 138, 0.08);
+      }
+      .note {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Phase 06.55 — Parcours chauffeur mobile (viewport ~390px)</h1>
+    <p class="sub">
+      DEC-134. Doctrine mobile chauffeur sourcée. AVANT : bandeau « PWA debug · état détecté »
+      visible en prod, notice géoloc verbeuse (5 lignes), modales centrées. APRÈS : debug masqué
+      hors dev, notice géoloc par couches (1re couche quoi/pourquoi/rétention + « En savoir plus »),
+      modales Clôturer & Patient absent en <b>bottom-sheet</b> (poignée, swipe, boutons en bas, zone
+      pouce). Logique métier inchangée, tarif <code>inputMode="decimal"</code> conservé.
+    </p>
+
+    <div class="grid">
+      <div class="case">
+        <p class="label">Avant — Ma journée (debug + géoloc verbeuse)</p>
+        <div class="phone">
+          <div class="debug">PWA debug · état détecté : unsupported</div>
+          <div class="geoverbose">
+            Aux pointages (démarrage, clôture, patient absent), votre position est captée et liée à
+            la course. Service uniquement. Conservée 90 jours max. Vous pouvez refuser la permission
+            GPS : le pointage fonctionne quand même.
+          </div>
+          <div class="card">
+            <div class="lis"></div>
+            <div class="b">
+              <div class="hh">08:30</div>
+              <div class="pat">Hoarau Marie</div>
+              <div class="meta">Taxi conv. · Programmée</div>
+              <div class="btn">Démarrer la course</div>
+            </div>
+          </div>
+        </div>
+        <p class="note">Debug visible en prod, pavé géoloc verbeux non dépliable.</p>
+      </div>
+
+      <div class="case">
+        <p class="label">Après — Ma journée (propre + géoloc en couches)</p>
+        <div class="phone">
+          <div class="geolayer">
+            <b>Position partagée à chaque pointage</b><br />
+            À chaque pointage, votre position est captée et liée à la course. Conservée 90 j max.
+            <div class="more">En savoir plus ⌄</div>
+          </div>
+          <div class="card">
+            <div class="lis"></div>
+            <div class="b">
+              <div class="hh">08:30</div>
+              <div class="pat">Hoarau Marie</div>
+              <div class="meta">Taxi conv. · Programmée</div>
+              <div class="btn">Démarrer la course</div>
+            </div>
+          </div>
+        </div>
+        <p class="note">Pas de debug, 1re couche informative + détail dépliable (aria-expanded).</p>
+      </div>
+
+      <div class="case">
+        <p class="label">Après — Clôturer (bottom-sheet)</p>
+        <div class="phone">
+          <div class="backdrop"></div>
+          <div class="sheet">
+            <div class="grip"></div>
+            <h2>Clôturer la course</h2>
+            <div class="tarif"><span>0,00</span><span>€</span></div>
+            <div class="pays">
+              <div class="pay on">Cash</div>
+              <div class="pay">CB</div>
+              <div class="pay">Chèque</div>
+              <div class="pay">CGSS différé</div>
+            </div>
+            <div class="btn">Clôturer la course</div>
+          </div>
+        </div>
+        <p class="note">
+          Bottom-sheet ancré bas, poignée + swipe, tarif clavier chiffres, bouton bas.
+        </p>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top: 24px">
+      AVANT « Patient absent » = Dialog centré ; APRÈS = bottom-sheet (motif optionnel + compteur
+      0/200 conservés, « Confirmer absence » destructif distinct en bas). Composant partagé
+      <code>components/ui/bottom-sheet.tsx</code> (Radix Dialog : focus trap, aria, Escape, backdrop
+      + poignée drag-to-dismiss). Avant/après live = preview Vercel <code>/conduite</code> sur
+      viewport mobile (~390px), jour + nuit. Carte + actions zone pouce déjà conformes (h-14
+      primaire, « Patient absent » h-12 détaché). Maquette :
+      <code>.planning/mockups/conduite-mobile-maquette.html</code>.
+    </p>
+  </body>
+</html>
