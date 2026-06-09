@@ -108,6 +108,12 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
     label: METHOD_LABELS[method] ?? method,
     value: eur.format(montant),
   }));
+  // Ventilation par mode de paiement condensée en contexte (densité 06.49 —
+  // l'info est préservée, le détail complet reste dans Caisse).
+  const ventilationContext =
+    ventilation.length > 0
+      ? ventilation.map((l) => `${l.label} ${l.value}`).join(' · ')
+      : undefined;
 
   const taux = tauxState(data.incidents.taux);
 
@@ -118,21 +124,22 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
   const incidentsDelta = deltaPoints(data.incidents.taux, data.incidentsPrec.taux);
 
   return (
-    <div className="space-y-24">
+    <div className="space-y-16">
       <PageHeader
         title="Tableau de bord"
         description={<>Vue d&apos;ensemble de votre activité · {periode}</>}
         actions={<ExportStatsButton />}
       />
 
-      <section className="space-y-12" aria-labelledby="bloc-action">
+      {/* Rangée 1 — À traiter (3 colonnes : facturation · alertes · délais légaux). */}
+      <section className="space-y-8" aria-labelledby="bloc-action">
         <h2
           id="bloc-action"
           className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
         >
           À traiter
         </h2>
-        <div className="grid gap-16 sm:grid-cols-2">
+        <div className="grid items-stretch gap-12 sm:grid-cols-2 lg:grid-cols-3">
           <KpiCard
             variant="simple"
             label="Courses à facturer"
@@ -145,63 +152,29 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
             action={{ href: `/admin/facturation?mois=${data.moisCourant}`, label: 'Facturer' }}
           />
           <KpiCard variant="alerte" label="Alertes" items={alerteItems} />
+          {/* SLA factuels datés (Wave 1 Phase 06.11 — A3), intégré en 3e colonne. */}
+          <SlaBadgesCard rules={data.slaRules} />
         </div>
       </section>
 
-      {/* Wave 1 Phase 06.11 — A3 SLA factuels datés (carte distincte). */}
-      <SlaBadgesCard rules={data.slaRules} />
-
-      <section className="space-y-12" aria-labelledby="bloc-sante">
+      {/* Rangée 2 — Activité du mois (6 KPIs sur une rangée). */}
+      <section className="space-y-8" aria-labelledby="bloc-sante">
         <h2
           id="bloc-sante"
           className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
         >
-          Activité
+          Activité du mois
         </h2>
-        <div className="grid gap-16 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 items-stretch gap-12 sm:grid-cols-3 lg:grid-cols-6">
           <KpiCard
-            variant="ventilation"
+            variant="simple"
             label="CA du mois"
             value={eur.format(data.caMois.total_eur)}
-            lines={ventilation}
-          />
-          <KpiCard
-            variant="multi"
-            label="Volume de courses"
-            rows={[
-              { label: "Aujourd'hui", value: String(data.volume.aujourdhui) },
-              { label: '7 derniers jours', value: String(data.volume.semaine) },
-              { label: 'Ce mois', value: String(data.volume.mois) },
-            ]}
+            context={ventilationContext}
           />
           <KpiCard
             variant="simple"
-            label="No-show / annulation"
-            value={`${data.incidents.taux} %`}
-            state={taux.state}
-            stateLabel={taux.label}
-            context={`${data.incidents.noShow} no-show · ${data.incidents.annulations} annulation${
-              data.incidents.annulations > 1 ? 's' : ''
-            } ce mois`}
-            delta={incidentsDelta}
-            deltaUnit="pts"
-            deltaSign="inverse"
-            previousLabel={moisPrecLibelle}
-            previousValue={`${data.incidentsPrec.taux} %`}
-          />
-          <KpiCard
-            variant="simple"
-            label="Chauffeurs"
-            value={`${data.chauffeurs.actifsAvecCourse} / ${data.chauffeurs.totalActifs}`}
-            context={`avec une course aujourd'hui · ~${data.chauffeurs.moyenneParChauffeur} par chauffeur`}
-          />
-        </div>
-
-        {/* Wave 1 Phase 06.11 — A4 : CA + Volume avec comparatif N vs N-1. */}
-        <div className="grid gap-16 sm:grid-cols-2">
-          <KpiCard
-            variant="simple"
-            label="CA encaissé du mois"
+            label="CA encaissé"
             value={eur.format(data.caMois.total_eur)}
             delta={caDelta}
             deltaUnit="%"
@@ -219,13 +192,49 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
             previousLabel={moisPrecLibelle}
             previousValue={String(data.volMoisPrec)}
           />
+          <KpiCard
+            variant="simple"
+            label="Aujourd'hui"
+            value={String(data.volume.aujourdhui)}
+            context={`7 derniers jours : ${data.volume.semaine}`}
+          />
+          <KpiCard
+            variant="simple"
+            label="No-show"
+            value={`${data.incidents.taux} %`}
+            state={taux.state}
+            stateLabel={taux.label}
+            context={`${data.incidents.noShow} no-show · ${data.incidents.annulations} annulation${
+              data.incidents.annulations > 1 ? 's' : ''
+            }`}
+            delta={incidentsDelta}
+            deltaUnit="pts"
+            deltaSign="inverse"
+            previousLabel={moisPrecLibelle}
+            previousValue={`${data.incidentsPrec.taux} %`}
+          />
+          <KpiCard
+            variant="simple"
+            label="Chauffeurs"
+            value={`${data.chauffeurs.actifsAvecCourse} / ${data.chauffeurs.totalActifs}`}
+            context={`actifs aujourd'hui · ~${data.chauffeurs.moyenneParChauffeur}/chauffeur`}
+          />
         </div>
       </section>
 
-      <div className="grid gap-16 lg:grid-cols-2">
-        <ComplianceCard conformite={data.conformite} />
-        <ComplianceAlertsPanel alerts={complianceAlerts} variant="card" limit={5} />
-      </div>
+      {/* Rangée 3 — Conformité & échéances (2 colonnes condensées). */}
+      <section className="space-y-8" aria-labelledby="bloc-conformite">
+        <h2
+          id="bloc-conformite"
+          className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
+        >
+          Conformité &amp; échéances
+        </h2>
+        <div className="grid items-stretch gap-12 lg:grid-cols-2">
+          <ComplianceCard conformite={data.conformite} />
+          <ComplianceAlertsPanel alerts={complianceAlerts} variant="card" limit={5} />
+        </div>
+      </section>
     </div>
   );
 }

@@ -6,16 +6,23 @@ import { cn } from '@/lib/utils';
  * présentationnel, server component. Reçoit ses valeurs en props, aucune
  * query.
  *
- * 4 variantes (anatomie UI-SPEC §3). WCAG : tout état couleur est doublé d'un
- * texte ; les liens sont focusables, cible ≥ 44 px.
+ * Anatomie FIXE (Phase 06.49, DEC-128, doctrine d'alignement) :
+ * `[label muted] → [corps] → [action mt-auto]`, `h-full` pour des hauteurs
+ * égales par rangée (`items-stretch`), valeur `text-2xl tabular-nums`,
+ * espacement resserré. Les 4 variantes (simple/ventilation/multi/alerte) sont
+ * des SLOTS du corps, pas des compositions divergentes. Couleurs sémantiques
+ * en tokens (success/warning/destructive), jour+nuit.
+ *
+ * WCAG : tout état couleur est doublé d'un texte ; liens focusables, cible
+ * ≥ 44 px.
  */
 
 export type KpiState = 'neutre' | 'succes' | 'attention' | 'alerte';
 
 const STATE_CLASS: Record<KpiState, string> = {
   neutre: 'text-foreground',
-  succes: 'text-green-700',
-  attention: 'text-amber-700',
+  succes: 'text-success',
+  attention: 'text-warning',
   alerte: 'text-destructive',
 };
 
@@ -32,8 +39,8 @@ const ACTION_CLASS =
 function deltaClass(delta: number, sign: 'positive' | 'inverse' = 'positive'): string {
   const favorable = sign === 'positive' ? delta > 0 : delta < 0;
   const defavorable = sign === 'positive' ? delta < 0 : delta > 0;
-  if (favorable) return 'text-green-700';
-  if (defavorable) return Math.abs(delta) >= 10 ? 'text-destructive' : 'text-amber-700';
+  if (favorable) return 'text-success';
+  if (defavorable) return Math.abs(delta) >= 10 ? 'text-destructive' : 'text-warning';
   return 'text-muted-foreground';
 }
 
@@ -112,7 +119,7 @@ function KpiBody(props: KpiCardProps): JSX.Element {
         <div className="flex flex-col gap-4">
           <p
             className={cn(
-              'text-3xl font-semibold tabular-nums',
+              'text-2xl font-semibold tabular-nums',
               props.state && STATE_CLASS[props.state],
             )}
           >
@@ -135,8 +142,8 @@ function KpiBody(props: KpiCardProps): JSX.Element {
       );
     case 'ventilation':
       return (
-        <div className="flex flex-col gap-8">
-          <p className="text-3xl font-semibold tabular-nums">{props.value}</p>
+        <div className="flex flex-col gap-4">
+          <p className="text-2xl font-semibold tabular-nums">{props.value}</p>
           <dl className="flex flex-col gap-4">
             {props.lines.map((l) => (
               <div key={l.label} className="flex justify-between text-sm">
@@ -160,7 +167,7 @@ function KpiBody(props: KpiCardProps): JSX.Element {
       );
     case 'alerte':
       if (props.items.length === 0) {
-        return <p className="text-sm font-medium text-green-700">Aucune alerte</p>;
+        return <p className="text-success text-sm font-medium">Aucune alerte</p>;
       }
       return (
         <ul className="flex flex-col gap-4">
@@ -191,7 +198,7 @@ function KpiBody(props: KpiCardProps): JSX.Element {
 
 export function KpiCard(props: KpiCardProps): JSX.Element {
   return (
-    <div className="border-border bg-background flex flex-col gap-12 rounded-lg border p-16">
+    <div className="border-border bg-background flex h-full flex-col gap-8 rounded-lg border p-16">
       <h3 className="text-muted-foreground text-sm font-medium">{props.label}</h3>
       <KpiBody {...props} />
       {props.action ? (
