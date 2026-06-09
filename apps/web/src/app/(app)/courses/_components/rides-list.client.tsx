@@ -1,6 +1,6 @@
 'use client';
 
-import { useDeferredValue, useState } from 'react';
+import { useDeferredValue, useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowRight, Calendar, Plus } from 'lucide-react';
 import { listRidesEnrichedAction } from '../actions';
@@ -11,7 +11,13 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { EmptyState } from '@/components/ui/empty-state';
-import { DataTable, type DataTableColumn } from '@/components/data-table';
+import {
+  DataTable,
+  ListToolbar,
+  ListMeta,
+  Pagination,
+  type DataTableColumn,
+} from '@/components/data-table';
 import { DateFieldFr } from '@/components/date-field-fr.client';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
 import { formatShortDateFr, formatTimeFr, isToday } from '@/lib/dates-fr';
@@ -68,6 +74,9 @@ function shortAddress(full: string): string {
  * modal (gain de clic régulatrice 8h/jour).
  */
 const PAGE_SIZE = 50;
+// Borne de fetch journalière (le filtre date par défaut = aujourd'hui → set
+// borné). On pagine ensuite côté client par plage de PAGE_SIZE (DEC-132).
+const FETCH_CAP = 500;
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
@@ -79,27 +88,27 @@ export function RidesList(): JSX.Element {
   const [modeFilter, setModeFilter] = useState<string>('all');
   // Hotfix 04.7-bis : filtre date — défaut aujourd'hui pour focus régulatrice
   const [dateFilter, setDateFilter] = useState<string>(todayIso());
-  // Hotfix 04.7-bis : pagination simple — offset cumulatif via bouton Voir plus
-  const [pageOffset, setPageOffset] = useState<number>(0);
+  // Pagination par page (DEC-132) — remplace l'offset cumulatif « Voir plus ».
+  const [page, setPage] = useState<number>(0);
   const [openRideId, setOpenRideId] = useState<string | null>(null);
   const [assignRideId, setAssignRideId] = useState<string | null>(null);
   const dq = useDeferredValue(q);
   const orchestrator = useRideOrchestrator();
 
-  // Reset offset quand un filtre change (sinon on perd la cohérence pagination)
-  const resetOffset = () => setPageOffset(0);
+  const resetPage = () => setPage(0);
+  // Revenir page 1 quand la recherche change (cohérence de plage).
+  useEffect(() => {
+    setPage(0);
+  }, [dq]);
 
   const { data, isPending } = useQuery({
-    queryKey: [
-      'rides',
-      { status: statusFilter, mode: modeFilter, date: dateFilter, limit: pageOffset + PAGE_SIZE },
-    ],
+    queryKey: ['rides', { status: statusFilter, mode: modeFilter, date: dateFilter }],
     queryFn: () =>
       listRidesEnrichedAction({
         status: statusFilter === 'all' ? undefined : (statusFilter as RideStatus),
         transport_mode: modeFilter === 'all' ? undefined : (modeFilter as RideTransportMode),
         date: dateFilter || undefined,
-        limit: pageOffset + PAGE_SIZE,
+        limit: FETCH_CAP,
         offset: 0,
       }),
     placeholderData: (prev) => prev,
@@ -107,7 +116,6 @@ export function RidesList(): JSX.Element {
   });
 
   const rides = (data ?? []) as RideRowEnriched[];
-  const hasMore = rides.length === pageOffset + PAGE_SIZE;
   const filtered = rides.filter((r) => {
     if (!dq) return true;
     const lower = dq.toLowerCase();
@@ -117,69 +125,75 @@ export function RidesList(): JSX.Element {
       `${r.patient?.nom ?? ''} ${r.patient?.prenom ?? ''}`.toLowerCase().includes(lower)
     );
   });
+  const total = filtered.length;
+  const paged = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   return (
     <div className="space-y-16">
-      <div className="flex flex-wrap items-end gap-12">
-        <div className="min-w-[240px] flex-1">
+      <ListToolbar
+        search={
           <Input
             aria-label="Rechercher dans les adresses ou patients"
             placeholder="Rechercher…"
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
-        </div>
-        <div className="flex items-end gap-8">
-          <DateFieldFr
-            value={dateFilter}
-            onChange={(v) => {
-              setDateFilter(v);
-              resetOffset();
-            }}
-            ariaLabel="Filtre date des courses"
-            className="h-10 w-[160px] tabular-nums"
-          />
-          {dateFilter && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setDateFilter('');
-                resetOffset();
+        }
+        filters={
+          <>
+            <DateFieldFr
+              value={dateFilter}
+              onChange={(v) => {
+                setDateFilter(v);
+                resetPage();
               }}
-              aria-label="Effacer le filtre date"
-            >
-              Effacer
-            </Button>
-          )}
-        </div>
-        <Select
-          ariaLabel="Filtre statut"
-          value={statusFilter}
-          onChange={(v) => {
-            setStatusFilter(v);
-            resetOffset();
-          }}
-          items={[...STATUS_FILTERS]}
-          triggerClassName="min-w-[180px]"
-        />
-        <Select
-          ariaLabel="Filtre mode de transport"
-          value={modeFilter}
-          onChange={(v) => {
-            setModeFilter(v);
-            resetOffset();
-          }}
-          items={[...MODE_FILTERS]}
-          triggerClassName="min-w-[180px]"
-        />
-        <ExportCsvButton
-          dateFilter={dateFilter}
-          statusFilter={statusFilter}
-          modeFilter={modeFilter}
-        />
-      </div>
+              ariaLabel="Filtre date des courses"
+              className="h-10 w-[160px] tabular-nums"
+            />
+            {dateFilter && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setDateFilter('');
+                  resetPage();
+                }}
+                aria-label="Effacer le filtre date"
+              >
+                Effacer
+              </Button>
+            )}
+            <Select
+              ariaLabel="Filtre statut"
+              value={statusFilter}
+              onChange={(v) => {
+                setStatusFilter(v);
+                resetPage();
+              }}
+              items={[...STATUS_FILTERS]}
+              triggerClassName="min-w-[180px]"
+            />
+            <Select
+              ariaLabel="Filtre mode de transport"
+              value={modeFilter}
+              onChange={(v) => {
+                setModeFilter(v);
+                resetPage();
+              }}
+              items={[...MODE_FILTERS]}
+              triggerClassName="min-w-[180px]"
+            />
+          </>
+        }
+        actions={
+          <ExportCsvButton
+            dateFilter={dateFilter}
+            statusFilter={statusFilter}
+            modeFilter={modeFilter}
+          />
+        }
+      />
 
       {isPending && (
         <div className="space-y-8" aria-label="Chargement des courses">
@@ -202,38 +216,26 @@ export function RidesList(): JSX.Element {
         />
       )}
 
-      {!isPending && filtered.length > 0 && (
-        <div className="text-muted-foreground flex items-center justify-between text-xs tabular-nums">
-          <span>
-            {filtered.length} course{filtered.length > 1 ? 's' : ''} affichée
-            {filtered.length > 1 ? 's' : ''}
-          </span>
-        </div>
+      {!isPending && total > 0 && (
+        <ListMeta>
+          {total} course{total > 1 ? 's' : ''}
+        </ListMeta>
       )}
 
-      {!isPending && filtered.length > 0 && (
-        <DataTable<RideRowEnriched>
-          columns={RIDE_COLUMNS((rid) => setAssignRideId(rid))}
-          rows={filtered}
-          // DEC-033 : clé inclut `status` pour re-mount au changement
-          // (sans ça, « Assigner » reste actif après affectation —
-          // précédent Phase 03.2 #4).
-          rowKey={(r) => `${r.id}-${r.status}`}
-          ariaLabel="Liste des courses"
-          onRowClick={(r) => setOpenRideId(r.id)}
-        />
-      )}
-
-      {!isPending && filtered.length > 0 && hasMore && (
-        <div className="flex justify-center">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setPageOffset((o) => o + PAGE_SIZE)}
-          >
-            Voir plus ({PAGE_SIZE} de plus)
-          </Button>
-        </div>
+      {!isPending && total > 0 && (
+        <>
+          <DataTable<RideRowEnriched>
+            columns={RIDE_COLUMNS((rid) => setAssignRideId(rid))}
+            rows={paged}
+            // DEC-033 : clé inclut `status` pour re-mount au changement
+            // (sans ça, « Assigner » reste actif après affectation —
+            // précédent Phase 03.2 #4).
+            rowKey={(r) => `${r.id}-${r.status}`}
+            ariaLabel="Liste des courses"
+            onRowClick={(r) => setOpenRideId(r.id)}
+          />
+          <Pagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={setPage} />
+        </>
       )}
 
       <RideDrawer

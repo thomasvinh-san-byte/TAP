@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useDeferredValue } from 'react';
+import { useState, useDeferredValue, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Archive, ArchiveRestore, MessageSquare, Phone, Plus, Users, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
 import { SegmentedControl } from '@/components/ui/segmented-control';
-import { DataTable } from '@/components/data-table';
+import { DataTable, ListToolbar, ListMeta, Pagination } from '@/components/data-table';
 import { daysFromNow, formatShortDateFr, formatTimeFr } from '@/lib/dates-fr';
 
 interface PatientListItem {
@@ -81,6 +81,11 @@ export function PatientsList() {
   const [pendingArchive, setPendingArchive] = useState<string | null>(null);
   const qc = useQueryClient();
 
+  const [page, setPage] = useState(0);
+  useEffect(() => {
+    setPage(0);
+  }, [dq, scope]);
+
   const { data, isPending, isFetching } = useQuery({
     queryKey: ['patients', { q: dq, scope }],
     queryFn: () => searchPatientsAction(dq, scope),
@@ -88,6 +93,10 @@ export function PatientsList() {
     placeholderData: (prev) => prev,
     staleTime: 5_000,
   });
+
+  const rows = (data ?? []) as PatientListItem[];
+  const PAGE_SIZE = 25;
+  const paged = rows.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   const handleArchive = async (patientId: string, fullName: string): Promise<void> => {
     // Confirmation native (V1.5 — ConfirmDialog shadcn différé V2)
@@ -130,20 +139,20 @@ export function PatientsList() {
 
   return (
     <div className="space-y-16">
-      <div className="flex flex-wrap items-center gap-12">
-        <SegmentedControl
-          ariaLabel="Filtre archive patients"
-          value={scope}
-          onValueChange={setScope}
-          options={[
-            { value: 'active', label: 'Actifs' },
-            { value: 'archived', label: 'Archivés' },
-          ]}
-        />
-        <div className="min-w-[240px] flex-1">
-          <PatientSearch value={q} onChange={setQ} />
-        </div>
-      </div>
+      <ListToolbar
+        filters={
+          <SegmentedControl
+            ariaLabel="Filtre archive patients"
+            value={scope}
+            onValueChange={setScope}
+            options={[
+              { value: 'active', label: 'Actifs' },
+              { value: 'archived', label: 'Archivés' },
+            ]}
+          />
+        }
+        search={<PatientSearch value={q} onChange={setQ} />}
+      />
 
       {q.length === 1 && (
         <p className="text-muted-foreground text-sm">
@@ -172,6 +181,12 @@ export function PatientsList() {
           description="Créez votre première fiche patient pour commencer."
           action={{ href: '/patients/new', label: 'Nouveau patient', icon: Plus }}
         />
+      )}
+
+      {rows.length > 0 && (
+        <ListMeta>
+          {rows.length} patient{rows.length > 1 ? 's' : ''}
+        </ListMeta>
       )}
 
       {data && data.length > 0 && (
@@ -259,10 +274,14 @@ export function PatientsList() {
               },
             },
           ]}
-          rows={data}
+          rows={paged}
           rowKey={(p) => p.id}
           ariaLabel="Résultats de recherche patients"
         />
+      )}
+
+      {rows.length > 0 && (
+        <Pagination page={page} pageSize={PAGE_SIZE} total={rows.length} onPageChange={setPage} />
       )}
 
       <PatientDrawer

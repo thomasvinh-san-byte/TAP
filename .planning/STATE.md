@@ -3,23 +3,24 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.52 livrée localement (formulaires véhicule & chauffeur — patron de form partagé). PR à ouvrir."
-last_updated: "2026-06-09T15:30:00.000Z"
-last_activity: Phase 06.52 (application du patron de form 06.51 à véhicule + chauffeur ; données/validation/Server Actions/Combobox/ComplianceFieldset INCHANGÉS, 0 dépendance). vehicle-form et driver-form avaient encore l'ancien style ad hoc (space-y-16, grid-cols-2 gap-8/12, labels/checkbox bricolés border-input px-12 py-8). D-01 vehicle-form : FormSection (Identification : immat réduit + FormRow marque/modèle Combobox ; Caractéristiques : type Select + FormRow places assises/TPMR ; Disponibilité : checkbox propre ; Conformité : ComplianceFieldset) + FormActions. D-02 driver-form : FormSection (Identité & contact : nom + FormRow téléphone/licence ; Types de permis : grid checkboxes propres ; Statut : checkbox actif ; Conformité) + FormActions. D-03 : champs homogènes (Field/Combobox/Select/NumberField), checkboxes en input+Label propres (fin des labels encadrés bricolés), espacement via patron. Layout souple 1 colonne (les 2 forms sont rendus en Sheet, peu de champs) max-w-[640px]. SubmitButton w-full → h-10 dans FormActions. typecheck+lint(0 err, 9 warn)+build verts, 129 web. Artefact docs/showcase/06.52-form-vehicule-chauffeur/. Cohérence CRUD patient/véhicule/chauffeur atteinte. DEC-131 LOCKED.
-last_activity_prev: Phase 06.51 (formulaire patient 2 colonnes + patron de form partagé). DEC-130 LOCKED.
+stopped_at: "Phase 06.53 livrée localement (patron de liste unifié — toolbar + pagination + actions). PR à ouvrir."
+last_updated: "2026-06-09T17:00:00.000Z"
+last_activity: Phase 06.53 (patron de liste unifié sur data-table ; données/validation/Server Actions/RLS INCHANGÉS, 0 migration, 0 dépendance). Toolbars bricolées (alignements items-center vs items-end) + paginations hétérogènes (courses « Voir plus » cumulatif, drivers/vehicles/patients aucune). D-01 ListToolbar+ListMeta (components/data-table/list-toolbar.tsx, server-safe) — slots search flex-1 min 260px / filters / clear / actions ml-auto ; compteur ListMeta SOUS la toolbar. D-02 Pagination (components/data-table/pagination.tsx) par PLAGE (« 1–50 sur 128 ») + Précédent/Suivant grisés en bord + lignes par page optionnel ; pagination par PAGE pas « voir plus ». D-03 règle clé : if (total <= pageSize) return null — aucune barre sous une liste courte. D-04 data-table réutilisé tel quel. D-05 migrés : courses (Voir plus → pagination par plage sur FETCH_CAP=500 borné date du jour, pageSize 50), patients (ListToolbar SegmentedControl+PatientSearch + Pagination pageSize 25 + ListMeta), véhicules (Pagination pageSize 50 seule, démontre le seuil). D-06 préservé : statuts CGSS, filtre date défaut=aujourd'hui, colonnes contextuelles, formats FR/974, pageSize par contexte, données/validation/SA/RLS inchangés, pas de bulk. drivers/caisse/tarifs/legal : mécaniques, à enchaîner. Dette tracée : rides-list reste 356 LOC (>300, pré-existant). typecheck+lint(0 err, 9 warn)+build verts, 129 web. Doctrine .planning/audit-ui-pages.md. Artefact docs/showcase/06.53-listes-patron/. DEC-132 LOCKED.
+last_activity_prev: Phase 06.52 (formulaires véhicule & chauffeur — patron de form partagé). DEC-131 LOCKED.
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
 # ensuite (06.20-06.23 pré-prod + 06.24-06.39 = 50) + 06.41 messagerie + 06.42 fix overlays
 # + 06.43 fix cible cliquable + 06.44 refonte login + 06.45 login centré + 06.46 fix focus ring
 # + 06.47 calibrage focus + 06.48 bouton auth aligné + 06.49 dashboard densité + 06.50 conformité
-# densité + 06.51 form patient patron + 06.52 form véhicule/chauffeur = 62. (06.40 = lot d'hygiène
-# docs, hors compte feature ; 06.45 supersede 06.44 mais les 2 ont été livrées.) Restantes réelles
-# = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07 abandonnée (DEC-092) hors compte.
-# Dernière phase livrée : 06.52. Dernier DEC : 131 (06.52). Dernier ADR : ADR-013 (06.33).
+# densité + 06.51 form patient patron + 06.52 form véhicule/chauffeur + 06.53 patron de liste = 63.
+# (06.40 = lot d'hygiène docs, hors compte feature ; 06.45 supersede 06.44 mais les 2 ont été
+# livrées.) Restantes réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07 abandonnée
+# (DEC-092) hors compte.
+# Dernière phase livrée : 06.53. Dernier DEC : 132 (06.53). Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 64
-  completed_phases: 62
+  total_phases: 65
+  completed_phases: 63
   total_plans: 89
   completed_plans: 89
   percent: 97
@@ -32,7 +33,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.52 livrée localement (formulaires véhicule & chauffeur refondus sur le patron de form partagé — cohérence CRUD patient/véhicule/chauffeur). 62 phases livrées (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; messagerie lots photo/push/fil général à venir.
+**Current focus:** Phase 06.53 livrée localement (patron de liste unifié — toolbar + pagination par seuil + actions, appliqué à courses/patients/véhicules ; data-table inchangé). 63 phases livrées (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; migration listes drivers/caisse/tarifs/legal (mécanique) + messagerie lots photo/push/fil général à venir.
 
 ## Current Position
 
@@ -41,12 +42,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.52 livrée localement (2026-06-09) — formulaires véhicule & chauffeur sur le patron partagé. PR à ouvrir.
-Phase next: messagerie lots photo (HDS)/push (VAPID)/fil général ; Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 62 phases livrées. Patron de form appliqué à 3 entités (patient, véhicule, chauffeur) → CRUD cohérent : FormSection/Row/Actions, champs homogènes ui/*, checkboxes propres, barres d'action explicites. Combobox + ComplianceFieldset conservés. Données/validation inchangées.
+Phase: 06.53 livrée localement (2026-06-09) — patron de liste unifié (toolbar + pagination par seuil + actions). PR à ouvrir.
+Phase next: migration listes drivers/caisse/tarifs/legal (mécanique, mêmes composants) ; messagerie lots photo (HDS)/push (VAPID)/fil général ; Phase 09 HDS + Phase 10 géoloc réelle.
+Status: 63 phases livrées. Patron de liste partagé (ListToolbar/ListMeta/Pagination) appliqué à courses/patients/véhicules autour du data-table existant : toolbars alignées, pagination par plage affichée SEULEMENT au-delà du seuil (total > pageSize). Données/validation/SA/RLS inchangées.
 Blockers: aucun
-Last activity: Phase 06.52 — patron de form appliqué à véhicule + chauffeur (ad hoc → FormSection/Row/Actions). vehicle-form : Identification (immat réduit + Combobox marque/modèle) / Caractéristiques (type Select + places NumberField) / Disponibilité (checkbox propre) / Conformité (ComplianceFieldset). driver-form : Identité & contact / Types de permis (checkboxes propres) / Statut / Conformité. Champs homogènes ui/*, fin des labels encadrés bricolés, SubmitButton h-10 dans FormActions, souple 1 colonne (Sheet) max-w-[640px]. Combobox + ComplianceFieldset + données/validation/SA inchangés. typecheck+lint+build verts, 129 web. Artefact docs/showcase/06.52-form-vehicule-chauffeur/. 0 dépendance. DEC-131 LOCKED. PR à ouvrir.
-Précédent: 06.51 form patient patron (DEC-130), 06.50 conformité densité (DEC-129), 06.49 dashboard densité (DEC-128).
+Last activity: Phase 06.53 — patron de liste unifié. D-01 ListToolbar+ListMeta (server-safe, slots search/filters/clear/actions, compteur sous la toolbar). D-02 Pagination par PLAGE (« 1–50 sur 128 ») + Précédent/Suivant grisés en bord + lignes par page optionnel, par PAGE pas « voir plus ». D-03 règle clé : total <= pageSize → null (aucune barre sous liste courte). D-04 data-table réutilisé tel quel. D-05 migrés : courses (Voir plus → plage sur FETCH_CAP=500 borné date du jour, pageSize 50), patients (pageSize 25), véhicules (pageSize 50, démontre le seuil). D-06 préservé : statuts CGSS, date défaut=aujourd'hui, colonnes, formats FR/974, pageSize par contexte, pas de bulk. drivers/caisse/tarifs/legal à enchaîner. Dette : rides-list 356 LOC (>300, pré-existant). typecheck+lint+build verts, 129 web. Doctrine .planning/audit-ui-pages.md. Artefact docs/showcase/06.53-listes-patron/. 0 migration, 0 dépendance. DEC-132 LOCKED. PR à ouvrir.
+Précédent: 06.52 form véhicule/chauffeur patron (DEC-131), 06.51 form patient patron (DEC-130), 06.50 conformité densité (DEC-129).
 
 Progress: [██████████] 100%
 
