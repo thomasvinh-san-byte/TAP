@@ -3,10 +3,12 @@
 import * as React from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import { TYPE_PERMIS_VALUES, type TypePermis } from '@tap/shared';
-import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { SheetFooter } from '@/components/ui/sheet';
 import { Field } from '@/components/form/field';
-import { FormSection, FormRow, FormActions } from '@/components/form/form-layout';
+import { FormSection, FormRow } from '@/components/form/form-layout';
+import { cn } from '@/lib/utils';
 import { ComplianceFieldset } from '../../conformite/_components/compliance-fieldset.client';
 import { type ActionState, createDriverAction, updateDriverAction } from '../actions';
 import type { DriverRow } from '../page';
@@ -21,16 +23,20 @@ const TYPE_PERMIS_LABELS: Record<TypePermis, string> = {
 interface Props {
   initial?: DriverRow;
   onSuccess?: (id: string) => void;
+  /** Ferme le drawer (bouton Annuler). */
+  onCancel?: () => void;
+  /** Archiver (édition, dirigeant) — affiche le bouton destructif en bas du corps. */
+  onArchive?: () => void;
 }
 
 /**
- * Formulaire chauffeur (création + édition) — refondu sur le patron de form
- * partagé (Phase 06.52, DEC-131) : `FormSection`/`FormRow`/`FormActions`,
- * champs homogènes (Field), checkboxes propres (fin des labels bricolés
- * `border-input px-12 py-8`). Layout souple 1 colonne (rendu en Sheet).
- * useFormState + useFormStatus. Données/validation/Server Actions inchangées.
+ * Formulaire chauffeur (création + édition) — drawer structuré 3 zones
+ * (Phase 06.60, DEC-139) : corps scrollable + `SheetFooter` ancré (la
+ * `SheetHeader` est rendue par la liste). Permis en chips cliquables,
+ * checkbox tokenisée (`ui/Checkbox`), statut hors `FormSection`. Largeur =
+ * celle du drawer (w-full). Données/validation/Server Actions inchangées.
  */
-export function DriverForm({ initial, onSuccess }: Props): JSX.Element {
+export function DriverForm({ initial, onSuccess, onCancel, onArchive }: Props): JSX.Element {
   const action = initial ? updateDriverAction.bind(null, initial.id) : createDriverAction;
   const [state, formAction] = useFormState<ActionState, FormData>(action, {});
 
@@ -45,85 +51,104 @@ export function DriverForm({ initial, onSuccess }: Props): JSX.Element {
   const fe = state.fieldErrors ?? {};
 
   return (
-    <form action={formAction} className="w-full max-w-[640px] space-y-24">
-      <FormSection title="Identité & contact">
-        <Field
-          id="nom_affichage"
-          label="Nom affiché"
-          defaultValue={initial?.nom_affichage ?? ''}
-          error={fe.nom_affichage}
-          autoFocus
-          required
-        />
-        <FormRow>
+    <form action={formAction} className="flex min-h-0 flex-1 flex-col">
+      <div className="flex-1 space-y-24 overflow-y-auto px-24 py-16">
+        <FormSection title="Identité & contact">
           <Field
-            id="telephone"
-            label="Téléphone"
-            type="tel"
-            inputMode="tel"
-            defaultValue={initial?.telephone ?? ''}
-            error={fe.telephone}
-            hint="Format libre (ex : 06 12 34 56 78)."
-            placeholder="06 12 34 56 78"
-            maxLength={14}
+            id="nom_affichage"
+            label="Nom affiché"
+            defaultValue={initial?.nom_affichage ?? ''}
+            error={fe.nom_affichage}
+            autoFocus
+            required
           />
-          <Field
-            id="numero_licence"
-            label="Numéro de licence"
-            defaultValue={initial?.numero_licence ?? ''}
-            error={fe.numero_licence}
-          />
-        </FormRow>
-      </FormSection>
-
-      <FormSection title="Types de permis">
-        <div className="grid grid-cols-2 gap-12">
-          {TYPE_PERMIS_VALUES.map((v) => (
-            <div key={v} className="flex items-center gap-12">
-              <input
-                id={`type_permis_${v}`}
-                type="checkbox"
-                name="type_permis"
-                value={v}
-                defaultChecked={initial?.type_permis?.includes(v) ?? false}
-                className="border-border h-16 w-16 rounded"
-              />
-              <Label htmlFor={`type_permis_${v}`}>{TYPE_PERMIS_LABELS[v]}</Label>
-            </div>
-          ))}
-        </div>
-      </FormSection>
-
-      <FormSection title="Statut">
-        <div className="flex items-center gap-12">
-          <input
-            id="actif"
-            type="checkbox"
-            name="actif"
-            defaultChecked={initial?.actif ?? true}
-            className="border-border h-16 w-16 rounded"
-          />
-          <Label htmlFor="actif">
-            Chauffeur actif (apparaît dans la fenêtre d&apos;affectation)
-          </Label>
-        </div>
-      </FormSection>
-
-      {state.error && !state.fieldErrors && (
-        <p className="text-destructive text-sm" role="alert">
-          {state.error}
-        </p>
-      )}
-
-      <FormActions>
-        <SubmitButton edit={Boolean(initial)} />
-      </FormActions>
-
-      {initial && (
-        <FormSection title="Conformité">
-          <ComplianceFieldset entityType="driver" entityId={initial.id} />
+          <FormRow>
+            <Field
+              id="telephone"
+              label="Téléphone"
+              type="tel"
+              inputMode="tel"
+              defaultValue={initial?.telephone ?? ''}
+              error={fe.telephone}
+              hint="Format libre (ex : 06 12 34 56 78)."
+              placeholder="06 12 34 56 78"
+              maxLength={14}
+            />
+            <Field
+              id="numero_licence"
+              label="Numéro de licence"
+              defaultValue={initial?.numero_licence ?? ''}
+              error={fe.numero_licence}
+            />
+          </FormRow>
         </FormSection>
-      )}
+
+        <FormSection title="Types de permis">
+          <div className="grid grid-cols-2 gap-12">
+            {TYPE_PERMIS_VALUES.map((v) => (
+              <label
+                key={v}
+                className={cn(
+                  'flex cursor-pointer items-center gap-12 rounded-md border px-12 py-12 transition-colors',
+                  'border-input hover:bg-muted/50',
+                  'has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:text-primary',
+                )}
+              >
+                <Checkbox
+                  name="type_permis"
+                  value={v}
+                  defaultChecked={initial?.type_permis?.includes(v) ?? false}
+                />
+                <span className="text-sm font-medium">{TYPE_PERMIS_LABELS[v]}</span>
+              </label>
+            ))}
+          </div>
+        </FormSection>
+
+        {/* Statut : ligne discrète séparée par un filet (D-03, plus de titre-kicker). */}
+        <div className="border-border border-t pt-12">
+          <label className="flex cursor-pointer items-center gap-12">
+            <Checkbox name="actif" defaultChecked={initial?.actif ?? true} />
+            <span className="text-sm">
+              Chauffeur actif (apparaît dans la fenêtre d&apos;affectation)
+            </span>
+          </label>
+        </div>
+
+        {state.error && !state.fieldErrors && (
+          <p className="text-destructive text-sm" role="alert">
+            {state.error}
+          </p>
+        )}
+
+        {initial && (
+          <FormSection title="Conformité">
+            <ComplianceFieldset entityType="driver" entityId={initial.id} />
+          </FormSection>
+        )}
+
+        {initial && onArchive && (
+          <div className="border-border border-t pt-16">
+            <Button
+              type="button"
+              variant="ghost"
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive w-full"
+              onClick={onArchive}
+            >
+              Archiver ce chauffeur
+            </Button>
+          </div>
+        )}
+      </div>
+
+      <SheetFooter className="border-border shrink-0 gap-12 border-t px-24 py-16">
+        {onCancel && (
+          <Button type="button" variant="ghost" onClick={onCancel}>
+            Annuler
+          </Button>
+        )}
+        <SubmitButton edit={Boolean(initial)} />
+      </SheetFooter>
     </form>
   );
 }
@@ -131,7 +156,7 @@ export function DriverForm({ initial, onSuccess }: Props): JSX.Element {
 function SubmitButton({ edit }: { edit: boolean }): JSX.Element {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending} className="h-10">
+    <Button type="submit" disabled={pending}>
       {pending
         ? edit
           ? 'Enregistrement…'

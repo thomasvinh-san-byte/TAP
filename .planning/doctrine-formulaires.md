@@ -55,6 +55,31 @@ Le form lui-même : `mx-auto w-full max-w-[980px] space-y-24`.
 - Tabulation ligne par ligne (pas de saut visuel ↔ DOM).
 - Focus outline (cf. DEC-126) ; jour+nuit par tokens.
 
+## 8. Page vs drawer — choix par densité (DEC-139, sourcé Eleken/Zuora/LogRocket 2026)
+- **Page** = formulaire **dense** (> ~10 champs, sections multiples, saisie de
+  référence à relire d'un coup — ex. patient 13 champs).
+- **Drawer (Sheet)** = **formulaire de base** (≤ ~6 champs — ex. chauffeur 5,
+  véhicule 6). Un drawer n'est PAS une page comprimée : il a sa propre structure.
+- **Drawer structuré en 3 zones** : `SheetHeader` figé (titre + description) ·
+  **corps scrollable** (`flex-1 overflow-y-auto`) · `SheetFooter` ANCRÉ en bas
+  (`border-t`, bouton primaire + Annuler ghost). Le bouton de soumission vit dans
+  le footer (le `<form>` enveloppe corps + footer). `SheetContent` = `flex
+  flex-col p-0`, zones internes paddées. La largeur du form épouse le drawer
+  (`w-full`) — pas de `max-w` global vestige de page (les `max-w` par champ
+  restent légitimes).
+- Une section réduite à **une seule checkbox** (statut « actif ») n'a PAS de
+  titre-kicker `FormSection` : ligne discrète séparée par un filet
+  (`border-t pt-12`) — éviter l'effet « vide segmenté ».
+
+## 9. Checkbox = primitive `ui/Checkbox` (DEC-139)
+- **Jamais** de `<input type="checkbox">` brut (pas de focus ring, état coché
+  incohérent jour/nuit). Toujours `components/ui/checkbox.tsx` : vrai input natif
+  (clavier, `name`/`value`/`defaultChecked` pour la soumission), tokenisé (carré
+  18px, coché `bg-primary` + coche blanche, focus ring), cible tactile 24px.
+- Choix multiple visuel (ex. permis) = **chips cliquables** : `<label>` englobant
+  (toute la pastille est la cible) + `has-[:checked]:border-primary
+  has-[:checked]:bg-primary/10`. La checkbox réelle porte le `name`/`value`.
+
 ## Application 06.51 (patient)
 - 2 colonnes : GAUCHE Identité + Préférences ; DROITE Coordonnées + Note.
 - Sexe/Canal = `<select>` natifs au gabarit Input ; ville = `ui/Select` + hidden.

@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.59 livrée localement (lot listes 2/2 — listes courtes legal+tarifs sur le patron ; caisse non migrée). PR à ouvrir."
-last_updated: "2026-06-10T12:00:00.000Z"
-last_activity: Phase 06.59 (lot listes 2/2 — généralisation patron 06.53 sur les listes courtes ; présentation seule, 0 migration, 0 dépendance). D-01 ListMeta au-dessus de chaque DataTable, libellé métier propre (DPIA analyse d'impact / DPA contrat sous-traitant / Violations / Demandes RGPD / Tarifs grille), affiché si non vide. D-02 Pagination à seuil pageSize 25 (barre masquée sous 25 lignes — voulu). D-03 tariff-history-table total=rows.length, titre « Historique des grilles » + rowKey conservés, ListMeta sous le titre. Migrés : dpia-list, dpa-list, breach-list, requests-list, tariff-history-table. Préservé D-06 : colonnes, libellés/statuts RGPD (Article 33, demandes), grilles CGSS, formats FR/974, tabular-nums, rowKey, EmptyState, données/Server Actions/drawers INCHANGÉS. Caisse NON migrée (décision sourcée : toolbar dédiée déjà conforme, abstraction prématurée ; registre §4.4, rule-of-three). Achève la migration des listes. typecheck+lint(0 err, 8 warn)+build verts, 129 web. DEC-138 LOCKED.
-last_activity_prev: Phase 06.58 (drivers-list migration patron + découpe LOC 645→244). DEC-137 LOCKED.
+stopped_at: "Phase 06.60 livrée localement (primitive ui/Checkbox + refonte visuelle drawers création chauffeur & véhicule). PR à ouvrir."
+last_updated: "2026-06-10T14:00:00.000Z"
+last_activity: Phase 06.60 (primitive ui/Checkbox + refonte visuelle des drawers création/édition chauffeur & véhicule ; valeurs métier/logique INCHANGÉES, 0 migration, 0 dépendance). Pattern drawer justifié (sourcé) ; 5 défauts d'EXÉCUTION corrigés. D-01 components/ui/checkbox.tsx (vrai input natif tokenisé — 18px, coché bg-primary + coche blanche, focus ring, cible 24px, peer-checked). D-02 permis en chips cliquables (label englobant has-[:checked]:border-primary/bg-primary/10, name inchangé). D-03 statut actif/disponibilité sorti de FormSection → ligne discrète sous filet. D-04 footer ancré SheetFooter (3 zones : header figé liste / corps flex-1 overflow-y-auto / footer figé) + Annuler ghost (onCancel) ; archive déplacé bas du corps (onArchive) ; SheetContent flex flex-col p-0. D-05 max-w-640 retiré (form w-full) ; max-w internes conservés. D-06 submit primary bleu (accent réservé toolbar). Préservé : champs/libellés/name/defaultChecked/logique (useFormState, create/update actions, ComplianceFieldset, Combobox marque→modèle, Select type, inputMode tel, uppercase tabular-nums immat, autoFocus). tertiary token absent → border-input. Maquette drawers-chauffeur-vehicule.html. Doctrine formulaire §8 (page vs drawer) + §9 (checkbox). Dette tracée registre §5 (~14 checkboxes brutes restantes → lot dédié). typecheck+lint(0 err, 8 warn)+build verts, 129 web. DEC-139 LOCKED.
+last_activity_prev: Phase 06.59 (lot listes 2/2 — listes courtes legal+tarifs sur le patron ; caisse non migrée). DEC-138 LOCKED.
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
@@ -15,14 +15,14 @@ last_activity_prev: Phase 06.58 (drivers-list migration patron + découpe LOC 64
 # + 06.47 calibrage focus + 06.48 bouton auth aligné + 06.49 dashboard densité + 06.50 conformité
 # densité + 06.51 form patient patron + 06.52 form véhicule/chauffeur + 06.53 patron de liste
 # + 06.54 form spécialisés + 06.55 chauffeur mobile + 06.57 optimisation alignement
-# + 06.58 drivers-list patron+découpe + 06.59 listes courtes legal+tarifs = 68. (06.40 hygiène docs
-# ET 06.56 onboarding méthode = lots documentaires, hors compte feature ; 06.45 supersede 06.44 mais
-# les 2 ont été livrées.) Restantes réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07
-# abandonnée (DEC-092) hors compte.
-# Dernière phase livrée : 06.59. Dernier DEC : 138 (06.59). Dernier ADR : ADR-013 (06.33).
+# + 06.58 drivers-list patron+découpe + 06.59 listes courtes legal+tarifs + 06.60 drawers+checkbox
+# = 69. (06.40 hygiène docs ET 06.56 onboarding méthode = lots documentaires, hors compte feature ;
+# 06.45 supersede 06.44 mais les 2 ont été livrées.) Restantes réelles = Phase 09 (HDS) + Phase 10
+# (géoloc réelle) = 2. Phase 07 abandonnée (DEC-092) hors compte.
+# Dernière phase livrée : 06.60. Dernier DEC : 139 (06.60). Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 70
-  completed_phases: 68
+  total_phases: 71
+  completed_phases: 69
   total_plans: 89
   completed_plans: 89
   percent: 97
@@ -35,7 +35,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.59 livrée localement (lot listes 2/2 — listes courtes legal+tarifs sur le patron ; migration des listes terminée, caisse non migrée par décision sourcée). 68 phases feature livrées + 2 lots documentaires (06.40, 06.56) (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; étapes restantes du plan d'audit (pages texte légales, utilitaires) + messagerie lots photo/push/fil général à venir.
+**Current focus:** Phase 06.60 livrée localement (primitive `ui/Checkbox` + refonte visuelle des drawers création/édition chauffeur & véhicule — checkbox tokenisée, chips permis, footer ancré, Annuler). 69 phases feature livrées + 2 lots documentaires (06.40, 06.56) (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; étapes restantes du plan d'audit (pages texte légales, utilitaires) + migration des ~14 checkboxes brutes restantes (lot dédié) + messagerie lots photo/push/fil général à venir.
 
 ## Current Position
 
@@ -44,12 +44,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.59 livrée localement (2026-06-10) — lot listes 2/2 (listes courtes legal+tarifs). PR à ouvrir.
-Phase next: étapes restantes du plan d'audit (pages texte légales, utilitaires) ; messagerie lots photo (HDS)/push (VAPID)/fil général ; Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 68 phases feature + 2 lots doc. **Migration des listes terminée** : toutes les listes sur DataTable portent le patron 06.53 (ListMeta + Pagination à seuil), seule la caisse reste hors patron (décision sourcée, toolbar dédiée). Plan d'audit UI : reste pages texte légales + utilitaires.
+Phase: 06.60 livrée localement (2026-06-10) — primitive ui/Checkbox + refonte visuelle drawers création chauffeur & véhicule. PR à ouvrir.
+Phase next: étapes restantes du plan d'audit (pages texte légales, utilitaires) ; migration des ~14 checkboxes brutes restantes (lot dédié, registre §5) ; messagerie lots photo (HDS)/push (VAPID)/fil général ; Phase 09 HDS + Phase 10 géoloc réelle.
+Status: 69 phases feature + 2 lots doc. Primitive Checkbox tokenisée créée ; drawers chauffeur & véhicule refondus (chips permis, footer ancré SheetFooter + Annuler, statut hors FormSection, largeur drawer). Valeurs métier/logique inchangées. Migration des listes terminée (06.59).
 Blockers: aucun
-Last activity: Phase 06.59 — lot listes 2/2 (listes courtes). D-01 ListMeta libellé métier propre (analyse d'impact/contrat sous-traitant/violation/demande RGPD/grille), affiché si non vide. D-02 Pagination à seuil pageSize 25 (barre masquée sous 25 — voulu). D-03 tariff-history-table total=rows.length, titre+rowKey conservés. Migrés : dpia/dpa/breach/requests/tariff-history. Préservé D-06 (RGPD/CGSS, colonnes, formats FR/974, rowKey, EmptyState, données/Server Actions/drawers). Caisse non migrée (registre §4.4, rule-of-three). typecheck+lint+build verts, 129 web. 0 migration, 0 dépendance. DEC-138 LOCKED. PR à ouvrir.
-Précédent: 06.58 drivers-list patron+découpe (DEC-137), 06.57 optimisation alignement (DEC-136), 06.56 onboarding méthode (DEC-135, doc).
+Last activity: Phase 06.60 — ui/Checkbox + drawers. D-01 components/ui/checkbox.tsx (input natif tokenisé, coché bleu + coche blanche, focus ring, cible 24px, peer-checked). D-02 permis chips (has-[:checked], name inchangé). D-03 statut hors FormSection (ligne sous filet). D-04 footer ancré SheetFooter (3 zones) + Annuler (onCancel) ; archive bas du corps (onArchive) ; SheetContent flex flex-col p-0. D-05 max-w-640 retiré (w-full). D-06 submit primary bleu. Préservé : champs/libellés/name/logique (useFormState, actions, ComplianceFieldset, Combobox, Select, inputMode tel, autoFocus). Maquette drawers-chauffeur-vehicule.html. Doctrine formulaire §8/§9. Dette registre §5 (~14 checkboxes brutes). typecheck+lint+build verts, 129 web. 0 migration, 0 dépendance. DEC-139 LOCKED. PR à ouvrir.
+Précédent: 06.59 listes courtes legal+tarifs (DEC-138), 06.58 drivers-list patron+découpe (DEC-137), 06.57 optimisation alignement (DEC-136).
 
 Progress: [██████████] 100%
 

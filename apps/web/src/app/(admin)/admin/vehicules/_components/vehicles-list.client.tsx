@@ -179,9 +179,9 @@ export function VehiclesList({ initialVehicles, nextComplianceByVehicleId }: Pro
       >
         <SheetContent
           side="right"
-          className="w-[480px] overflow-y-auto sm:w-[480px] sm:max-w-[480px]"
+          className="flex w-[480px] flex-col gap-0 p-0 sm:w-[480px] sm:max-w-[480px]"
         >
-          <SheetHeader>
+          <SheetHeader className="border-border shrink-0 border-b px-24 py-16 text-left">
             <SheetTitle>
               {mode.kind === 'edit' ? 'Modifier le véhicule' : 'Nouveau véhicule'}
             </SheetTitle>
@@ -190,22 +190,14 @@ export function VehiclesList({ initialVehicles, nextComplianceByVehicleId }: Pro
             </SheetDescription>
           </SheetHeader>
 
-          <div className="mt-24">
-            {mode.kind === 'create' && <VehicleForm onSuccess={onSuccess} />}
-            {mode.kind === 'edit' && <VehicleForm initial={mode.vehicle} onSuccess={onSuccess} />}
-          </div>
-
+          {mode.kind === 'create' && <VehicleForm onSuccess={onSuccess} onCancel={close} />}
           {mode.kind === 'edit' && (
-            <div className="border-border mt-24 border-t pt-16">
-              <Button
-                type="button"
-                variant="ghost"
-                className="text-destructive hover:bg-destructive/10 hover:text-destructive w-full"
-                onClick={() => setArchiveTarget(mode.vehicle)}
-              >
-                Archiver ce véhicule
-              </Button>
-            </div>
+            <VehicleForm
+              initial={mode.vehicle}
+              onSuccess={onSuccess}
+              onCancel={close}
+              onArchive={() => setArchiveTarget(mode.vehicle)}
+            />
           )}
         </SheetContent>
       </Sheet>

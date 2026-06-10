@@ -164,6 +164,7 @@ EXTERNE (donnée/spec à obtenir d'un tiers).
   de régression `40483304800010` (doit être rejeté). Algo INCHANGÉ. Suite `@tap/shared` verte
   (124 tests). Piège connexe documenté (NON introduit) : les SIRET La Poste (SIREN 356000000) ne
   respectent pas Luhn — hors périmètre, aucun établissement La Poste dans TAP.
+- **Migration des `<input type="checkbox">` bruts restants vers `ui/Checkbox`** (🔍, ajouté 2026-06-10, Phase 06.60) : la primitive `components/ui/checkbox.tsx` est créée et appliquée aux drawers chauffeur + véhicule (DEC-139). ~14 fichiers gardent encore une checkbox brute : `cookie-banner`, `(auth)/accept-invite`, `patient-form-sections`, `no-show-alert-modal` (cockpit), `adjust-sheet` (optimisation), `deactivate-confirm-dialog`, `unarchive-confirm-dialog`, `dpia-form`, `breach-form-fields`, `dpa-prefill-card`, `dpo-form`, `registre-fields`, `registre-prefill-card`, `tariff-simulator`. Déblocage : lot d'harmonisation dédié (remplacement mécanique `<input type=checkbox>` → `<Checkbox>`). NON fait dans la PR 06.60 (périmètre = drawers création).
 - Audit complet Server Actions row count check (DEC-041) : généralisé en conformité, à confirmer partout.
 - Imports cross-domaine profonds vers `_lib/compliance-planning` (lot 3 conformité) : à déplacer en lib neutre si retouché.
 - 4 fichiers courses > 300 lignes (address-picker, assign-modal, rides-list, ride-drawer) : hors limite CON-008, non urgents.

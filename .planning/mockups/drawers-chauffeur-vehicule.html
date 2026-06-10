@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Maquette — drawers création chauffeur / véhicule (06.60)</title>
+    <style>
+      :root {
+        font-family: Inter, system-ui, sans-serif;
+        --bg: #eef2f7;
+        --fg: #0f172a;
+        --muted: #64748b;
+        --border: hsl(214 32% 88%);
+        --input: hsl(214 20% 80%);
+        --primary: #1e3a8a;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 32px;
+        background: var(--bg);
+        color: var(--fg);
+        display: flex;
+        gap: 32px;
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+      h1 {
+        width: 100%;
+        font-size: 18px;
+        margin: 0 0 4px;
+      }
+      .sub {
+        width: 100%;
+        color: var(--muted);
+        font-size: 13px;
+        margin: 0 0 16px;
+        max-width: 900px;
+      }
+      .cap {
+        font-size: 12px;
+        color: var(--muted);
+        margin: 8px 0 0;
+      }
+      /* drawer */
+      .drawer {
+        width: 480px;
+        height: 620px;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+      }
+      .dh {
+        padding: 16px 24px;
+        border-bottom: 1px solid var(--border);
+      }
+      .dh .t {
+        font-size: 18px;
+        font-weight: 600;
+      }
+      .dh .d {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      .db {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+      }
+      .df {
+        border-top: 1px solid var(--border);
+        padding: 16px 24px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+      }
+      .kicker {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #94a3b8;
+        margin: 0 0 12px;
+      }
+      .lbl {
+        font-size: 13px;
+        margin: 0 0 6px;
+      }
+      .inp {
+        height: 40px;
+        border: 1px solid var(--input);
+        border-radius: 6px;
+        background: #fff;
+      }
+      .row2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .chips {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .chip {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border: 1px solid var(--input);
+        border-radius: 6px;
+        padding: 12px;
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .chip.on {
+        border-color: var(--primary);
+        background: rgba(30, 58, 138, 0.1);
+        color: var(--primary);
+      }
+      .box {
+        width: 18px;
+        height: 18px;
+        border-radius: 5px;
+        border: 1px solid var(--input);
+        background: #fff;
+        flex: 0 0 auto;
+        position: relative;
+      }
+      .box.on {
+        background: var(--primary);
+        border-color: var(--primary);
+      }
+      .box.on::after {
+        content: '';
+        position: absolute;
+        left: 5px;
+        top: 1px;
+        width: 5px;
+        height: 10px;
+        border: solid #fff;
+        border-width: 0 3px 3px 0;
+        transform: rotate(45deg);
+      }
+      .statut {
+        border-top: 1px solid var(--border);
+        padding-top: 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 14px;
+      }
+      .btn {
+        height: 40px;
+        padding: 0 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+      }
+      .btn.primary {
+        background: var(--primary);
+        color: #fff;
+      }
+      .btn.ghost {
+        background: #fff;
+        color: var(--fg);
+      }
+      .defects {
+        width: 320px;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 16px;
+        font-size: 13px;
+      }
+      .defects h3 {
+        margin: 0 0 12px;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+      }
+      .defects li {
+        margin-bottom: 10px;
+        line-height: 1.4;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Maquette — drawers création/édition chauffeur &amp; véhicule (DEC-139)</h1>
+    <p class="sub">
+      Le pattern drawer est correct (formulaire de base ≤ ~6 champs). On corrige son EXÉCUTION :
+      checkbox tokenisée (primitive <code>ui/Checkbox</code>), permis en chips cliquables, statut en
+      ligne discrète (sans titre-kicker), footer ANCRÉ (Annuler + bouton primaire bleu), largeur =
+      celle du drawer. Header / corps scrollable / footer = 3 zones figées.
+    </p>
+
+    <div class="drawer">
+      <div class="dh">
+        <div class="t">Nouveau chauffeur</div>
+        <div class="d">Les informations sont visibles dans la fenêtre d'affectation de course.</div>
+      </div>
+      <div class="db">
+        <div>
+          <p class="kicker">Identité &amp; contact</p>
+          <p class="lbl">Nom affiché</p>
+          <div class="inp"></div>
+          <div class="row2" style="margin-top: 12px">
+            <div>
+              <p class="lbl">Téléphone</p>
+              <div class="inp"></div>
+            </div>
+            <div>
+              <p class="lbl">Numéro de licence</p>
+              <div class="inp"></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="kicker">Types de permis</p>
+          <div class="chips">
+            <div class="chip on"><span class="box on"></span>Taxi</div>
+            <div class="chip"><span class="box"></span>Ambulance</div>
+            <div class="chip on"><span class="box on"></span>VSL</div>
+            <div class="chip"><span class="box"></span>TPMR</div>
+          </div>
+        </div>
+        <div class="statut">
+          <span class="box on"></span>
+          Chauffeur actif (apparaît dans la fenêtre d'affectation)
+        </div>
+      </div>
+      <div class="df">
+        <div class="btn ghost">Annuler</div>
+        <div class="btn primary">Créer le chauffeur</div>
+      </div>
+    </div>
+
+    <div class="defects">
+      <h3>5 défauts corrigés (avant)</h3>
+      <ol>
+        <li>
+          <b>1. Checkbox brute</b> → primitive <code>ui/Checkbox</code> (focus ring, coché bleu,
+          coche blanche, cible 24px).
+        </li>
+        <li>
+          <b>2. Largeur fantôme</b> <code>max-w-640</code> écrasée par <code>w-[480px]</code> → form
+          en <code>w-full</code>.
+        </li>
+        <li>
+          <b>3. Footer non ancré</b> (scrollait hors vue en édition) → <code>SheetFooter</code> figé
+          en bas.
+        </li>
+        <li>
+          <b>4. Hiérarchie plate</b> (3 titres pour 5 champs) → statut en ligne discrète, plus de
+          titre-kicker.
+        </li>
+        <li><b>5. Pas d'Annuler</b> → bouton Annuler ghost dans le footer.</li>
+      </ol>
+      <p class="cap">
+        Même dette partagée par le drawer véhicule (immatriculation / marque-modèle / type / places
+        / disponibilité) — corrigé à l'identique.
+      </p>
+    </div>
+  </body>
+</html>
