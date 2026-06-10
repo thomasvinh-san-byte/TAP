@@ -136,7 +136,9 @@ export function AddressPickerField({
         >
           <div className="flex min-w-0 items-center gap-12">
             <MapPin className="text-muted-foreground h-16 w-16 shrink-0" aria-hidden />
-            <span className="truncate font-medium">{value}</span>
+            <span className="truncate font-medium" title={value}>
+              {value}
+            </span>
           </div>
           <Button
             type="button"
