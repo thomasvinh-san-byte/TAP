@@ -6,6 +6,7 @@ import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { PatientSearch } from '../../patients/_components/patient-search.client';
 import { searchPatientsAction } from '../../patients/actions';
@@ -56,9 +57,14 @@ export function PatientPickerField({ selectedLabel, onSelect, error }: Props): J
         >
           <div className="flex min-w-0 items-center gap-12">
             <InitialsAvatar name={selectedLabel} size={32} />
-            <span className="truncate font-medium" title={selectedLabel}>
-              {selectedLabel}
-            </span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="truncate font-medium" tabIndex={0}>
+                  {selectedLabel}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{selectedLabel}</TooltipContent>
+            </Tooltip>
           </div>
           <Button
             type="button"

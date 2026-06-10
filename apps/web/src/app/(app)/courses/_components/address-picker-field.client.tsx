@@ -7,6 +7,7 @@ import { MapPin, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { geocodeBanSearch, type BanSuggestion } from '@/lib/geocoding/ban';
 
@@ -136,9 +137,14 @@ export function AddressPickerField({
         >
           <div className="flex min-w-0 items-center gap-12">
             <MapPin className="text-muted-foreground h-16 w-16 shrink-0" aria-hidden />
-            <span className="truncate font-medium" title={value}>
-              {value}
-            </span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="truncate font-medium" tabIndex={0}>
+                  {value}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>{value}</TooltipContent>
+            </Tooltip>
           </div>
           <Button
             type="button"
