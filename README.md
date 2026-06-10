@@ -3,7 +3,6 @@
 > SaaS de régulation, optimisation, communication patient et pilotage pour sociétés de Transport Assis Professionnalisé (TAP) et taxiteurs conventionnés CGSS à La Réunion.
 
 **Document central pour Claude Code et l'équipe : [`CLAUDE.md`](./CLAUDE.md).**
-**Méthode de travail en binôme architecte-chat + Claude Code : [`.planning/METHODE-ARCHITECTE-CHAT.md`](./.planning/METHODE-ARCHITECTE-CHAT.md)** (gabarit de prompt : [`.planning/PROMPT-MODELE.md`](./.planning/PROMPT-MODELE.md)).
 **Cahier des charges V2 (référence métier) : `docs/cahier_des_charges_saas_tap_v2.docx`.**
 
 ---
@@ -12,8 +11,8 @@
 
 - **Front** : Next.js 14 (App Router), TypeScript strict, Tailwind, shadcn/ui, Lucide
 - **Back** : Supabase (Postgres + Auth + Realtime + Storage + Edge Functions)
-- **Optimisation tournées** : microservice Python + OR-Tools
-- **Routing** : OSRM auto-hébergé
+- **Optimisation tournées** : heuristique TypeScript native (`packages/optimizer-client`)
+- **Distance** : estimation Haversine (facteur de correction) ; routing réel (OSRM) prévu avec la géoloc certifiée
 - **SMS** : Twilio ou OVH SMS Pro
 - **Hébergement** : Vercel + Supabase (HDS pour la prod commerciale)
 - **Monorepo** : Turborepo + pnpm workspaces
@@ -23,11 +22,10 @@
 Voir [`CLAUDE.md` § 4](./CLAUDE.md#4-architecture-du-repo).
 
 ```
-apps/        # Next.js (web régulateur, mobile chauffeur, admin, b2b)
-packages/    # ui, domain, pricing, recurrence, sms, database, shared
-services/    # optimizer (Python), osrm
+apps/web/    # Next.js — régulateur, admin, chauffeur (PWA), tous segments
+packages/    # database, optimizer-client, pricing, recurrence, shared, sms
 supabase/    # migrations, functions, seed, tests pgTAP
-docs/        # CDC, ADR, observations terrain
+docs/        # cahier des charges, ADR, observations terrain
 ```
 
 ## Démarrage local
@@ -48,11 +46,7 @@ pnpm dev               # lance les apps en parallèle
 
 ## Comptes de démo (seed)
 
-| Rôle | Email | Mot de passe |
-|---|---|---|
-| Dirigeant | `dirigeant@demo.tap` | `demo1234!` |
-| Régulateur | `regulateur@demo.tap` | `demo1234!` |
-| Chauffeur | `chauffeur@demo.tap` | `demo1234!` |
+Comptes de démonstration créés par le seed (`pnpm db:reset`) — voir `supabase/seed`.
 
 ## Workflow Git
 
