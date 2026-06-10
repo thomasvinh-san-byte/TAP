@@ -189,6 +189,51 @@ EXTERNE (donnée/spec à obtenir d'un tiers).
 
 ---
 
+## 6. Module donneurs d'ordres B2B — extensions (cœur livré 07.01, DEC-148)
+
+Le CŒUR du module (CdC §5.5, Inclus V1) est livré en 07.01 : référentiel
+`ordering_parties` (fiche + liste CRUD) + rattachement OPTIONNEL d'une course à
+un donneur d'ordres (`rides.ordering_party_id` nullable). Restent à construire,
+par lots dédiés (aucun bloquant — le cœur tourne seul) :
+
+### 6.1 Demande groupée de transport — CdC §5.5
+- **Raison** : un donneur d'ordres B2B passe souvent plusieurs courses en une
+  seule demande (sorties d'hospitalisation groupées). Le cœur ne gère que la
+  course unitaire rattachée. La saisie groupée (1 formulaire → N courses) est un
+  lot UI + Server Action dédié.
+- **Déblocage** : dev dédié, s'appuie sur la saisie express existante (boucle).
+
+### 6.2 Grille tarifaire B2B propre — CdC §5.5 (`b2b_tariff_grid`)
+- **Raison** : chaque donneur d'ordres a une convention tarifaire propre
+  (distincte de la grille CGSS). Le moteur `packages/pricing` a été conçu avec
+  une **grille injectable** (DEC-057) — la grille B2B s'y branche sans réécrire
+  le moteur. Reste : table `b2b_tariff_grid` versionnée + sélection de grille
+  selon `ordering_party_id` au calcul de tarif.
+- **Déblocage** : dev dédié (table + RLS + intégration pricing). 🔍 modèle de
+  grille B2B (forfait, % CGSS, grille km propre ?) à cadrer avec un design partner.
+
+### 6.3 Récapitulatif PDF périodique par donneur d'ordres — CdC §5.5
+- **Raison** : facturation centralisée = récap hebdomadaire/mensuel (selon
+  `modalite_facturation`) des courses d'un donneur d'ordres → PDF. S'appuie sur
+  l'index `(organization_id, ordering_party_id)` posé en 07.01 et le pattern PDF
+  existant (`api/admin/chauffeurs/recap/pdf`).
+- **Déblocage** : dev dédié (agrégation par période + génération PDF).
+
+### 6.4 Contacts opérationnels multiples par service — CdC §5.5 l.188
+- **Raison** : le cœur se limite au **contact principal** (un nom/téléphone/email
+  sur `ordering_parties`). Un hôpital a plusieurs services (urgences, dialyse,
+  consultations) avec des contacts distincts. Lot = table `ordering_party_contacts`
+  (FK `ordering_party_id`, libellé service, coordonnées). TODO tracé en migration.
+- **Déblocage** : dev dédié (table + RLS + UI fiche).
+
+### 6.5 Portail self-service donneur d'ordres — V1.5
+- **Raison** : déjà tracé §3.7 (portail B2B multi-tenant commercial, ADR-006,
+  DEC-067). Le cœur 07.01 ne donne PAS d'accès self-service au donneur d'ordres ;
+  c'est la régulatrice qui saisit. Le portail reste différé V1.5.
+- **Déblocage** : 🗳 confirmer le report V1.5 (cf. Synthèse 3.7).
+
+---
+
 ## Synthèse — ce qui attend une DÉCISION ou un ACHAT de ta part
 | Item | Type | Action attendue |
 |------|------|-----------------|

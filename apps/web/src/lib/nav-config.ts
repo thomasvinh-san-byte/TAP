@@ -82,10 +82,11 @@ const FLOTTE_GROUP: NavGroup = {
 
 const GESTION_GROUP: NavGroup = {
   label: 'Gestion',
-  activePrefixes: ['/admin/tarifs', '/admin/facturation'],
+  activePrefixes: ['/admin/tarifs', '/admin/facturation', '/admin/donneurs-ordres'],
   items: [
     { href: '/admin/tarifs', label: 'Tarifs' },
     { href: '/admin/facturation', label: 'Facturation' },
+    { href: '/admin/donneurs-ordres', label: "Donneurs d'ordres" },
   ],
 };
 

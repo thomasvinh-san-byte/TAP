@@ -17,6 +17,7 @@ import { useSmartDefaults } from './use-smart-defaults.client';
 import { useDuplicateCheck } from './use-duplicate-check.client';
 import { DuplicateBanner } from './duplicate-banner.client';
 import { PatientPickerField } from './ride-patient-picker.client';
+import { OrderingPartyPickerField } from './ride-ordering-party-picker.client';
 import { AddressOrPOIPicker } from './address-or-poi-picker.client';
 import {
   DateTimeFields,
@@ -62,6 +63,7 @@ export function RideExpressModal(props: Props): JSX.Element {
     urgency: 'programmee',
   });
   const [patientLabel, setPatientLabel] = useState<string>('');
+  const [orderingPartyLabel, setOrderingPartyLabel] = useState<string>('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   // B3 — détection doublon non-bloquante (D-B3-1..5).
   const dup = useDuplicateCheck();
@@ -75,9 +77,10 @@ export function RideExpressModal(props: Props): JSX.Element {
   // Pré-chargement du ride en mode édition — extrait dans useRidePrefill.
   useRidePrefill<FormState>(
     props.rideId,
-    (next, label) => {
+    (next, label, orderingLabel) => {
       setForm(next);
       if (label) setPatientLabel(label);
+      if (orderingLabel) setOrderingPartyLabel(orderingLabel);
     },
     props.onClose,
     (r) => ({
@@ -88,6 +91,7 @@ export function RideExpressModal(props: Props): JSX.Element {
       transport_mode: r.transport_mode as TransportMode,
       urgency: r.urgency as Urgency,
       notes_regulateur: r.notes_regulateur ?? undefined,
+      ordering_party_id: r.ordering_party_id ?? null,
     }),
   );
 
@@ -154,6 +158,14 @@ export function RideExpressModal(props: Props): JSX.Element {
     [updateField, smartDefaults],
   );
 
+  const handleOrderingPartySelect = useCallback(
+    (id: string | null, label: string) => {
+      updateField('ordering_party_id', id);
+      setOrderingPartyLabel(label);
+    },
+    [updateField],
+  );
+
   const handleOpenChange = useCallback(
     (open: boolean) => {
       if (!open) void autosave.flushSave(form).then(() => props.onClose());
@@ -206,6 +218,13 @@ export function RideExpressModal(props: Props): JSX.Element {
             selectedLabel={patientLabel}
             onSelect={handlePatientSelect}
             error={fieldErrors.patient_id}
+          />
+
+          <OrderingPartyPickerField
+            selectedId={form.ordering_party_id ?? null}
+            selectedLabel={orderingPartyLabel}
+            onSelect={handleOrderingPartySelect}
+            error={fieldErrors.ordering_party_id}
           />
 
           <DateTimeFields

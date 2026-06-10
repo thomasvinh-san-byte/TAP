@@ -16,6 +16,7 @@
 import { createClient } from '@/lib/supabase/server';
 import type {
   DriverMin,
+  OrderingPartyMin,
   PatientMin,
   RideRow,
   RideRowEnriched,
@@ -33,7 +34,7 @@ const RIDE_COLUMNS =
   'archive, created_at, updated_at, created_by, updated_by, ' +
   'driver_id, vehicle_id, started_at, ended_at, ' +
   'tarif_amount_eur, tarif_source, payment_status, payment_method, ' +
-  'payment_received_at';
+  'payment_received_at, ordering_party_id';
 
 export async function listRidesEnriched(
   params: {
@@ -102,6 +103,9 @@ export async function listRidesEnriched(
     patient: patients.get(r.patient_id) ?? null,
     driver: r.driver_id ? (drivers.get(r.driver_id) ?? null) : null,
     vehicle: r.vehicle_id ? (vehicles.get(r.vehicle_id) ?? null) : null,
+    // Le donneur d'ordres n'est affiché que dans le drawer d'édition
+    // (getRideByIdEnriched). La liste ne le résout pas (évite N fetchs).
+    ordering_party: null,
   }));
 }
 
@@ -115,7 +119,7 @@ export async function getRideByIdEnriched(rideId: string): Promise<RideRowEnrich
   if (error || !data) return null;
   const r = data as unknown as RideRow;
 
-  const [patientRes, driverRes, vehicleRes] = await Promise.all([
+  const [patientRes, driverRes, vehicleRes, orderingPartyRes] = await Promise.all([
     supabase.from('patients_safe').select('id, nom, prenom').eq('id', r.patient_id).maybeSingle(),
     r.driver_id
       ? supabase
@@ -131,6 +135,13 @@ export async function getRideByIdEnriched(rideId: string): Promise<RideRowEnrich
           .eq('id', r.vehicle_id)
           .maybeSingle()
       : Promise.resolve({ data: null }),
+    r.ordering_party_id
+      ? supabase
+          .from('ordering_parties' as never)
+          .select('id, raison_sociale')
+          .eq('id', r.ordering_party_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
 
   return {
@@ -138,6 +149,7 @@ export async function getRideByIdEnriched(rideId: string): Promise<RideRowEnrich
     patient: (patientRes.data as PatientMin | null) ?? null,
     driver: (driverRes.data as DriverMin | null) ?? null,
     vehicle: (vehicleRes.data as VehicleMin | null) ?? null,
+    ordering_party: (orderingPartyRes.data as OrderingPartyMin | null) ?? null,
   };
 }
 
@@ -193,6 +205,25 @@ export async function listActiveVehicles(): Promise<VehicleMin[]> {
     console.error('[courses/vehicles] Erreur Supabase:', error);
   }
   return (data ?? []) as VehicleMin[];
+}
+
+/**
+ * Référentiel donneurs d'ordres B2B actifs (picker saisie course — DEC-148).
+ * RLS ordering_parties_select_same_org filtre l'org. Tri raison sociale.
+ */
+export async function listActiveOrderingParties(): Promise<OrderingPartyMin[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('ordering_parties' as never)
+    .select('id, raison_sociale')
+    .eq('actif', true)
+    .eq('archive', false)
+    .order('raison_sociale', { ascending: true })
+    .limit(100);
+  if (error) {
+    console.error('[courses/ordering-parties] Erreur Supabase:', error);
+  }
+  return (data ?? []) as OrderingPartyMin[];
 }
 
 function unique(arr: (string | null | undefined)[]): string[] {

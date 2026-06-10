@@ -34,6 +34,7 @@ export {
   getRideAuditLogAction,
   listActiveDriversAction,
   listActiveVehiclesAction,
+  listActiveOrderingPartiesAction,
   getActiveTariffGridAction,
   getAssignmentComplianceContextAction,
 } from './list';
