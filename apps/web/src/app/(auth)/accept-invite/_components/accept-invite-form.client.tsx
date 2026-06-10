@@ -24,6 +24,7 @@ import Link from 'next/link';
 import { acceptInvitationSchema, type AcceptInvitationInput } from '@tap/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { PasswordInput } from '@/components/form/password-input.client';
 import { acceptInvitationAction } from '../actions';
@@ -105,12 +106,7 @@ export function AcceptInviteForm({ userEmail }: { userEmail: string }) {
       </div>
 
       <div className="flex items-start gap-8">
-        <input
-          id="cguAccepted"
-          type="checkbox"
-          {...form.register('cguAccepted')}
-          className="border-border focus-visible:ring-ring mt-4 h-4 w-4 rounded focus-visible:ring-2"
-        />
+        <Checkbox id="cguAccepted" {...form.register('cguAccepted')} />
         <Label htmlFor="cguAccepted" className="text-sm leading-[1.4]">
           J&apos;accepte les{' '}
           <Link href="/legal/cgu" target="_blank" className="underline underline-offset-4">

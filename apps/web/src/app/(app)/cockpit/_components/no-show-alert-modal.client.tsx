@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { cancelRideForNoShowAction, rescheduleRideAction } from '../actions';
 import type { CockpitRide } from '../_lib/types';
@@ -141,7 +142,7 @@ export function NoShowAlertModal({
         className="text-muted-foreground flex cursor-not-allowed items-center gap-8 text-xs opacity-60"
         title="Disponible Phase 06 (DEC-055 : consentement tiers RGPD à clarifier)."
       >
-        <input type="checkbox" disabled />
+        <Checkbox disabled />
         Notifier la famille par SMS
       </label>
 

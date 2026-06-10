@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Field } from '@/components/form/field';
@@ -113,11 +114,7 @@ export function DpiaForm({ mode, dpiaId, onClose }: Props) {
 
           <FormSection title="Suivi">
             <div className="flex items-center gap-8">
-              <input
-                id="cnil_consultation_required"
-                name="cnil_consultation_required"
-                type="checkbox"
-              />
+              <Checkbox id="cnil_consultation_required" name="cnil_consultation_required" />
               <Label htmlFor="cnil_consultation_required">Consultation CNIL requise</Label>
             </div>
             <FormRow>
