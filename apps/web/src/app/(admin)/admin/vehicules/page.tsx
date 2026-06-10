@@ -51,6 +51,7 @@ export default async function VehiculesPage() {
       <VehiclesList
         initialVehicles={(vehicles ?? []) as VehicleRow[]}
         nextComplianceByVehicleId={nextComplianceByVehicleId}
+        uploadEnabled={process.env.UPLOAD_DOCS_ENABLED === 'true'}
       />
     </div>
   );

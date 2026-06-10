@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Fix DialogContent grille min-w-0 (fin du débordement des modals) livré localement. PR à ouvrir."
-last_updated: "2026-06-10T19:00:00.000Z"
-last_activity: Fix fix/ui-dialog-grid-overflow (DEC-142 ; primitive Dialog, 0 migration, 0 dépendance). La modal « Nouvelle course » débordait (libellés/adresse/téléphones coupés). Cause racine = DialogContent (components/ui/dialog.tsx) en display:grid SANS min-w-0 → items à min-width:auto = largeur du contenu insécable, neutralise les truncate enfants (sourcé CSS-Tricks/W3C/MDN). D-01 [&>*]:min-w-0 ajouté à DialogContent → corrige les 14 modals d'un coup, neutre sans débordement. D-02 overflow-x-hidden modal course conservé. D-03 title={value}/title={selectedLabel} sur pastilles tronquées (address-picker-field, ride-patient-picker) = tooltip natif. Champs/pickers/logique INCHANGÉS (les min-w-0/truncate/shrink-0 enfants étaient corrects, juste neutralisés par le parent). Doctrine-formulaires §10 (min-w-0 conteneurs). typecheck+lint(0 err, 8 warn)+build verts, 129 web. DEC-142 LOCKED.
-last_activity_prev: Phase 06.62 (échafaudage messagerie header §5.22 derrière MESSAGING_ENABLED OFF). DEC-141 LOCKED.
+stopped_at: "Phase 06.63 livrée localement (échafaudage upload documents conformité derrière UPLOAD_DOCS_ENABLED OFF). PR à ouvrir."
+last_updated: "2026-06-10T20:30:00.000Z"
+last_activity: Phase 06.63 (échafaudage upload documents conformité derrière release toggle UPLOAD_DOCS_ENABLED OFF ; coquille UI, PAS un mock — 0 Storage câblé, 0 migration, 0 dépendance). compliance_items.document_url existe mais aucune UI ne l'alimentait ; Supabase Storage vierge dans le repo. Garde-fou santé : tant que OFF, aucun octet vers un Storage non HDS. D-01 flag UPLOAD_DOCS_ENABLED (turbo.json + .env.example, OFF) évalué côté serveur dans les pages (chauffeurs/vehicules/conformite), threadé en prop uploadEnabled → DriversList/VehiclesList → DriverForm/VehicleForm → ComplianceFieldset (jamais process.env client). D-02 champ « Document justificatif » par slot : lien « Voir » si url legacy ; OFF = mention désactivée « Téléversement bientôt disponible (hébergement sécurisé requis) » (pas d'input file) ; ON = ComplianceDocUploadStub (vrai input file + bouton) appelant uploadComplianceDocumentAction = STUB explicite (« hébergement sécurisé HDS non configuré », pas de faux succès/URL). D-03 pas de bucket/migration (colonne existante). D-04 dissociation reportée (non triviale). Logique conformité INCHANGÉE. Registre §1.1/§4.3 maj. .env.example documenté. ComplianceFieldset 289 LOC. typecheck+lint(0 err, 8 warn)+build verts, 129 web. DEC-143 LOCKED.
+last_activity_prev: Fix DialogContent grille min-w-0 (DEC-142). Phase 06.62 échafaudage messagerie (DEC-141).
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
@@ -16,14 +16,15 @@ last_activity_prev: Phase 06.62 (échafaudage messagerie header §5.22 derrière
 # densité + 06.51 form patient patron + 06.52 form véhicule/chauffeur + 06.53 patron de liste
 # + 06.54 form spécialisés + 06.55 chauffeur mobile + 06.57 optimisation alignement
 # + 06.58 drivers-list patron+découpe + 06.59 listes courtes legal+tarifs + 06.60 drawers+checkbox
-# + 06.61 brouillons cockpit + 06.62 échafaudage messagerie = 71. (06.40 hygiène docs ET 06.56
-# onboarding méthode = lots documentaires, hors compte feature ; 06.45 supersede 06.44 mais les 2 ont
-# été livrées.) Restantes réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07 abandonnée
-# (DEC-092) hors compte.
-# Dernière phase livrée : 06.62. Dernier DEC : 142 (fix DialogContent min-w-0, hors numéro de phase). Dernier ADR : ADR-013 (06.33).
+# + 06.61 brouillons cockpit + 06.62 échafaudage messagerie + 06.63 échafaudage upload docs = 72.
+# (06.40 hygiène docs ET 06.56 onboarding méthode = lots documentaires, hors compte feature ; 06.45
+# supersede 06.44 mais les 2 ont été livrées ; DEC-142 fix DialogContent = fix hors numéro de phase.)
+# Restantes réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07 abandonnée (DEC-092)
+# hors compte.
+# Dernière phase livrée : 06.63. Dernier DEC : 143 (06.63). Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 73
-  completed_phases: 71
+  total_phases: 74
+  completed_phases: 72
   total_plans: 89
   completed_plans: 89
   percent: 97
@@ -36,7 +37,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Fix DialogContent grille `min-w-0` livré localement (DEC-142 — corrige le débordement horizontal de toutes les modals ; primitive partagée). 71 phases feature livrées + 2 lots documentaires (06.40, 06.56) (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; construction messagerie complète (registre §1.4) ; étapes restantes du plan d'audit (pages texte légales, utilitaires) + migration des ~14 checkboxes brutes restantes à venir.
+**Current focus:** Phase 06.63 livrée localement (échafaudage upload documents conformité derrière `UPLOAD_DOCS_ENABLED` OFF — coquille par slot, action stub, pas de Storage câblé). 72 phases feature livrées + 2 lots documentaires (06.40, 06.56) (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS (bucket Storage + RLS + `.upload()` réel — registre §1.1/§4.3) + Phase 10 géoloc réelle ; construction messagerie complète (registre §1.4) ; étapes restantes du plan d'audit (pages texte légales, utilitaires) + migration des ~14 checkboxes brutes restantes à venir.
 
 ## Current Position
 
@@ -45,12 +46,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: fix DialogContent min-w-0 livré localement (2026-06-10, DEC-142, hors numéro de phase). PR à ouvrir.
-Phase next: construction messagerie complète (fil général temps réel, photo, push PWA, non-lus — registre §1.4) ; étapes restantes du plan d'audit (pages texte légales, utilitaires) ; migration des ~14 checkboxes brutes (lot dédié) ; Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 71 phases feature + 2 lots doc. Fix primitive Dialog : grille min-w-0 → fin du débordement horizontal des 14 modals (cause = min-width:auto des items grid). Champs/pickers inchangés. Échafaudage messagerie (06.62) et brouillons cockpit (06.61) livrés en amont.
+Phase: 06.63 livrée localement (2026-06-10) — échafaudage upload documents conformité derrière UPLOAD_DOCS_ENABLED OFF. PR à ouvrir.
+Phase next: construction messagerie complète (registre §1.4) ; Phase 09 HDS (bucket Storage + RLS + .upload() réel pour upload docs — registre §1.1/§4.3) ; étapes restantes du plan d'audit (pages texte légales, utilitaires) ; migration des ~14 checkboxes brutes ; Phase 10 géoloc réelle.
+Status: 72 phases feature + 2 lots doc. Coquille upload docs conformité posée derrière flag OFF (champ par slot : OFF mention désactivée / lien legacy ; ON zone dépôt + action STUB). Pas de Storage câblé (Supabase Storage vierge). Logique conformité inchangée. 3 release toggles OFF désormais (GEOLOC, MESSAGING, UPLOAD_DOCS) — tous pré-infra.
 Blockers: aucun
-Last activity: Fix fix/ui-dialog-grid-overflow — D-01 [&>*]:min-w-0 sur DialogContent (corrige les 14 modals d'un coup ; cause racine = item grid min-width:auto, sourcé CSS-Tricks/W3C/MDN). D-02 overflow-x-hidden modal course conservé. D-03 title sur pastilles tronquées (adresse + patient) = tooltip natif. Champs/pickers/logique/threadage coords INCHANGÉS (min-w-0/truncate/shrink-0 enfants conservés). Doctrine-formulaires §10. typecheck+lint+build verts, 129 web. 0 migration, 0 dépendance. DEC-142 LOCKED. PR à ouvrir.
-Précédent: 06.62 échafaudage messagerie (DEC-141), 06.61 brouillons cockpit (DEC-140), 06.60 drawers+checkbox (DEC-139).
+Last activity: Phase 06.63 — échafaudage upload docs. D-01 flag UPLOAD_DOCS_ENABLED (turbo.json + .env.example, OFF) évalué serveur dans les pages, threadé en prop uploadEnabled jusqu'à ComplianceFieldset. D-02 champ « Document justificatif » par slot : lien « Voir » (url legacy) / OFF mention désactivée (pas d'input file) / ON ComplianceDocUploadStub (vrai input + bouton) → uploadComplianceDocumentAction STUB explicite (pas de faux succès/URL). D-03 pas de bucket/migration. D-04 dissociation reportée. Logique conformité INCHANGÉE. Registre §1.1/§4.3 maj. ComplianceFieldset 289 LOC. typecheck+lint+build verts, 129 web. 0 migration, 0 dépendance. DEC-143 LOCKED. PR à ouvrir.
+Précédent: fix DialogContent min-w-0 (DEC-142), 06.62 échafaudage messagerie (DEC-141), 06.61 brouillons cockpit (DEC-140).
 
 Progress: [██████████] 100%
 

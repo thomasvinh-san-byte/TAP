@@ -199,3 +199,21 @@ export async function listComplianceItemsForEntityAction(
   if (error) return { items: [], error: 'Lecture impossible.' };
   return { items: (data as ComplianceItemRow[] | null) ?? [] };
 }
+
+/**
+ * Échafaudage upload de document justificatif (Phase 06.63, DEC-143).
+ *
+ * STUB EXPLICITE : le bucket de stockage HDS n'existe pas encore (registre §1.1,
+ * Phase 09). On ne câble AUCUN Storage, on ne renvoie PAS de faux `document_url`.
+ * L'UI d'upload (flag `UPLOAD_DOCS_ENABLED` ON, dev) appelle cette action qui
+ * échoue clairement. Le vrai `.upload()` Supabase Storage sera branché quand le
+ * bucket HDS + RLS Storage existeront.
+ */
+export async function uploadComplianceDocumentAction(
+  _formData: FormData,
+): Promise<{ error: string }> {
+  return {
+    error:
+      'Téléversement indisponible : hébergement sécurisé (HDS) non configuré. Prévu en Phase 09.',
+  };
+}

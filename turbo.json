@@ -23,7 +23,8 @@
     "NEXT_PUBLIC_VERCEL_ENV",
     "CI",
     "GEOLOC_ENABLED",
-    "MESSAGING_ENABLED"
+    "MESSAGING_ENABLED",
+    "UPLOAD_DOCS_ENABLED"
   ],
   "tasks": {
     "build": {

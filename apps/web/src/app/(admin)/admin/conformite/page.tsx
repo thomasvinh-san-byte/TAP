@@ -123,7 +123,12 @@ export default async function ConformitePage() {
           Convention CGSS (organisation)
         </h2>
         {orgRows.length === 0 ? (
-          <ComplianceFieldset entityType="organization" entityId={null} initialItems={[]} />
+          <ComplianceFieldset
+            entityType="organization"
+            entityId={null}
+            initialItems={[]}
+            uploadEnabled={process.env.UPLOAD_DOCS_ENABLED === 'true'}
+          />
         ) : (
           <ConformiteTable rows={orgRows} getLabel={() => 'Organisation'} />
         )}

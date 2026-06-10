@@ -17,6 +17,7 @@ EXTERNE (donnée/spec à obtenir d'un tiers).
 - **Raison** : obligation légale dès l'exploitation commerciale de données de santé réelles, mais coût récurrent significatif + migration lourde. Tant qu'on est en design partner / preview, non requis.
 - **Déblocage** : 💳 ACHAT (hébergeur certifié HDS) + 🗳 décision business (engagement 1er client). Candidats à instruire : OVHcloud HDS, Scaleway, autres. 🔍 choix à arbitrer sur coût/réversibilité.
 - **Dépend de / bloque** : bloque géoloc réelle, upload de scans (bons, documents conformité), tout stockage de données santé en prod.
+- **Note 2026-06-10 (DEC-143)** : la COQUILLE d'upload de documents conformité est posée (flag `UPLOAD_DOCS_ENABLED` OFF) — UI passive en prod, action d'upload = stub explicite. Reste à construire en Phase 09 : **bucket HDS + RLS Storage + branchement `.upload()` réel** dans `uploadComplianceDocumentAction`.
 
 ### 1.2 Email transactionnel (provider)
 - **Décision** : repoussé. Principe acté 2026-06-08 : « on construit la fonctionnalité, pas le branchement d'infra ».
@@ -141,9 +142,9 @@ EXTERNE (donnée/spec à obtenir d'un tiers).
 - **Déblocage** : 🗳 prioriser ; chantier dédié.
 
 ### 4.3 Upload de scans (document_url conformité, bons de transport)
-- **Décision** : différé (bucket HDS).
-- **Raison** : stocker des scans (potentiellement données santé) = dépend du stockage HDS. Le champ `document_url` existe déjà (nullable), prêt à recevoir.
-- **Déblocage** : dépend de 1.1 HDS (bucket conforme).
+- **Décision** : coquille UI posée (2026-06-10, DEC-143, flag `UPLOAD_DOCS_ENABLED` OFF) ; branchement Storage différé (bucket HDS).
+- **Raison** : stocker des scans (potentiellement données santé) = dépend du stockage HDS. Le champ `document_url` existe déjà (nullable), prêt à recevoir. La coquille (champ « Document justificatif » par slot de conformité + action stub) est en place, mais aucun Storage n'est câblé tant que OFF.
+- **Déblocage** : dépend de 1.1 HDS (bucket conforme) — créer le bucket + RLS Storage, puis brancher le vrai `.upload()` dans `uploadComplianceDocumentAction` et persister l'URL via l'action conformité (+ option dissociation D-04 reportée). Phase 09.
 
 ### 4.4 Caisse — toolbar NON migrée sur le patron de liste (06.59)
 - **Décision** : non migré (2026-06-10, lot listes 2/2). La caisse (`(app)/courses/caisse/_components/caisse-toolbar.client.tsx` + `caisse-table` + `caisse-summary`) garde sa toolbar dédiée.
