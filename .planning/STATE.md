@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.67 (chore CI) livrée localement (suppression du sync-types redondant de cd.yml). PR à ouvrir."
-last_updated: "2026-06-11T09:00:00.000Z"
-last_activity: Phase 06.67 (chore CI ; 0 code applicatif, 0 migration, 0 dépendance). L'historique main subissait des re-merges en boucle (06.64/06.65/06.66 re-mergées plusieurs fois) ; contenu final sain (Git déduplique) mais historique pollué + branches en vol périmées. Cause racine : DEUX mécanismes redondants de sync de packages/database/src/types.gen.ts après chaque CD — (1) cd.yml job sync-types faisait un git push origin HEAD:main direct (sans PR) → main avançait sans cesse → branches behind → re-merges ; (2) sync-types.yml crée une PR propre (peter-evans/create-pull-request@v6, delete-branch true). Décision dirigeant Chemin B : garder types.gen.ts versionné, supprimer le mécanisme redondant. D-01 job sync-types retiré de cd.yml (aucun needs ne le visait ; deploy-migrations/deploy-edge-functions intacts). D-02 sync-types.yml conservé (seul chemin de sync, par PR propre). D-03/D-04 étapes manuelles dirigeant (hors CC) : activer auto-delete head branches + fermer la PR sync orpheline éventuelle. Garde-fous : types.gen.ts reste versionné ; db:types local conservé ; ci.yml/preview-smoke.yml/setup-vercel.yml non touchés. DEC-147 LOCKED.
-last_activity_prev: Phase 06.66 primitive Tooltip (DEC-146). Phase 06.65 harmonisation checkbox (DEC-145).
+stopped_at: "Phase 07.01 (module donneurs d'ordres B2B — cœur) livrée localement. PR à ouvrir."
+last_updated: "2026-06-11T10:00:00.000Z"
+last_activity: Phase 07.01 (module donneurs d'ordres B2B — cœur : référentiel + rattachement course ; 2 migrations, 0 dépendance). Seul élément de la liste Inclus V1 (CdC §2.1 l.74 / §5.5) absent de main. Donneur d'ordres (entité B2B qui commande le transport, convention + facturation centralisée) DISTINCT du prescripteur (CdC §5.5 l.186). D-01 table ordering_parties (raison sociale, SIRET optionnel Luhn, contact principal, modalite_facturation enum, actif/archive) calquée drivers — RLS select_same_org + write dirigeant, audit trigger ordering_party.*, pgTAP 13 assertions. D-02 colonne additive rides.ordering_party_id NULLABLE (cas nominal = transport individuel) + index partiel. D-03 référentiel front (admin)/admin/donneurs-ordres/ (page/actions CRUD/form drawer/liste) répliquant vehicules/ ; entrée nav menu Gestion. D-04 champ OPTIONNEL Donneur d'ordres dans la saisie express (picker recherche client-side, pattern PatientPicker pill+clear, listActiveOrderingPartiesAction) ; ordering_party_id ajouté à rideExpressInputSchema (uuid nullable optional), threadé create/edit (spread input) + prefill édition (getRideByIdEnriched joint raison sociale). Garde-fous : SIRET via siretSchema existant ; logique course sans donneur d'ordres INCHANGÉE ; hors lot tracés registre §6 (demande groupée, grille B2B, récap PDF, contacts par service, portail V1.5). Seed démo 3 établissements 974. typecheck+lint(0 err, 8 warn)+build verts, 124 tests shared. DEC-148 LOCKED.
+last_activity_prev: Phase 06.67 chore CI (DEC-147). Phase 06.66 primitive Tooltip (DEC-146).
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
@@ -17,15 +17,17 @@ last_activity_prev: Phase 06.66 primitive Tooltip (DEC-146). Phase 06.65 harmoni
 # + 06.54 form spécialisés + 06.55 chauffeur mobile + 06.57 optimisation alignement
 # + 06.58 drivers-list patron+découpe + 06.59 listes courtes legal+tarifs + 06.60 drawers+checkbox
 # + 06.61 brouillons cockpit + 06.62 échafaudage messagerie + 06.63 échafaudage upload docs
-# + 06.64 échafaudage email + 06.65 harmonisation checkbox + 06.66 primitive tooltip = 75. (06.40
+# + 06.64 échafaudage email + 06.65 harmonisation checkbox + 06.66 primitive tooltip
+# + 07.01 module donneurs d'ordres B2B (cœur) = 76. (06.40
 # hygiène docs ET 06.56 onboarding méthode = lots documentaires, hors compte feature ; 06.45 supersede
 # 06.44 mais les 2 ont été livrées ; DEC-142 fix DialogContent = fix hors numéro de phase ;
 # 06.67 chore CI = lot hors compte feature, comme 06.40/06.56.) Restantes
-# réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07 abandonnée (DEC-092) hors compte.
-# Dernière phase livrée : 06.67 (chore CI). Dernier DEC : 147 (06.67). Dernier ADR : ADR-013 (06.33).
+# réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07 mobile native abandonnée
+# (DEC-092) hors compte ; 07.01 = module métier B2B (sans rapport avec le mobile natif).
+# Dernière phase livrée : 07.01 (module B2B cœur). Dernier DEC : 148 (07.01). Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 77
-  completed_phases: 75
+  total_phases: 78
+  completed_phases: 76
   total_plans: 89
   completed_plans: 89
   percent: 97
@@ -38,7 +40,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.67 (chore CI) livrée localement (suppression du job `sync-types` redondant de `cd.yml` — fin de la dérive de re-merges ; `sync-types.yml` conservé comme seul chemin de sync par PR). 75 phases feature livrées + 3 lots hors compte (06.40 hygiène, 06.56 méthode, 06.67 chore CI) (cf. commentaire de comptage dans le frontmatter). 4 release toggles OFF pré-infra : GEOLOC, MESSAGING, UPLOAD_DOCS, EMAIL. Restantes : Phase 09 HDS (bucket Storage + RLS — registre §1.1/§4.3) + Phase 10 géoloc réelle ; choix provider email + `send` réel + préférences (registre §1.2) ; construction messagerie complète (registre §1.4) ; étapes restantes du plan d'audit (pages texte légales, utilitaires).
+**Current focus:** Phase 07.01 (module donneurs d'ordres B2B — cœur) livrée localement : référentiel `(admin)/admin/donneurs-ordres/` (CRUD calqué véhicules) + rattachement OPTIONNEL d'une course à un donneur d'ordres (CdC §5.5, dernier élément Inclus V1 absent de main). 76 phases feature livrées + 3 lots hors compte (06.40 hygiène, 06.56 méthode, 06.67 chore CI) (cf. commentaire de comptage dans le frontmatter). 4 release toggles OFF pré-infra : GEOLOC, MESSAGING, UPLOAD_DOCS, EMAIL. Restantes : extensions B2B (registre §6 : demande groupée, grille tarifaire B2B, récap PDF, contacts par service, portail V1.5) ; Phase 09 HDS (registre §1.1/§4.3) + Phase 10 géoloc réelle ; choix provider email + `send` réel + préférences (registre §1.2) ; construction messagerie complète (registre §1.4) ; étapes restantes du plan d'audit.
 
 ## Current Position
 
@@ -47,12 +49,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.67 (chore CI) livrée localement (2026-06-11) — suppression du sync-types redondant de cd.yml. PR à ouvrir.
-Phase next: choix provider email + send réel + préférences (registre §1.2) ; construction messagerie complète (registre §1.4) ; Phase 09 HDS (bucket Storage + RLS — registre §1.1/§4.3) ; étapes restantes du plan d'audit (pages texte légales, utilitaires) ; Phase 10 géoloc réelle.
-Status: 75 phases feature + 3 lots hors compte (06.40, 06.56, 06.67). Job sync-types retiré de cd.yml (faisait un push direct sur main → re-merges en boucle) ; sync-types.yml conservé comme seul chemin de sync (PR propre, delete-branch). types.gen.ts reste versionné (Chemin B). 4 release toggles OFF pré-infra. Logique applicative inchangée.
+Phase: 07.01 (module donneurs d'ordres B2B — cœur) livrée localement (2026-06-11). PR à ouvrir.
+Phase next: extensions B2B (registre §6 : demande groupée, grille tarifaire B2B via moteur pricing DEC-057, récap PDF périodique, contacts par service, portail self-service V1.5) ; choix provider email + send réel + préférences (registre §1.2) ; construction messagerie complète (registre §1.4) ; Phase 09 HDS (registre §1.1/§4.3) ; Phase 10 géoloc réelle.
+Status: 76 phases feature + 3 lots hors compte. Module B2B cœur livré : table ordering_parties (RLS calquée drivers, audit, pgTAP 13 assertions) + rides.ordering_party_id NULLABLE ; référentiel front /admin/donneurs-ordres (CRUD) + nav Gestion ; champ optionnel donneur d'ordres dans la saisie express (picker recherche). Distinction prescripteur ≠ donneur d'ordres respectée. 4 release toggles OFF pré-infra. Logique course existante inchangée.
 Blockers: aucun
-Last activity: Phase 06.67 (chore CI). Cause racine : DEUX mécanismes de sync de types.gen.ts après CD — cd.yml job sync-types (push direct HEAD:main, sans PR) + sync-types.yml (PR propre). Le push direct faisait avancer main sans cesse → branches behind → re-merges (06.64/06.65/06.66 re-mergées plusieurs fois). D-01 job sync-types retiré de cd.yml (deploy-migrations/deploy-edge-functions intacts). D-02 sync-types.yml conservé. D-03/D-04 étapes manuelles dirigeant (auto-delete head branches + fermer PR sync orpheline). types.gen.ts versionné conservé ; db:types local conservé ; ci.yml/preview-smoke.yml/setup-vercel.yml non touchés. 0 code applicatif, 0 migration, 0 dépendance. DEC-147 LOCKED. PR à ouvrir.
-Précédent: 06.66 primitive Tooltip (DEC-146), 06.65 harmonisation checkbox (DEC-145), 06.64 échafaudage email (DEC-144).
+Last activity: Phase 07.01 (module donneurs d'ordres B2B — cœur). Dernier élément Inclus V1 (CdC §5.5) absent de main. D-01 table ordering_parties (raison sociale, SIRET optionnel Luhn, contact principal, modalite_facturation enum, actif/archive) calquée drivers — RLS select_same_org + write dirigeant, audit ordering_party.*, pgTAP 13. D-02 colonne additive rides.ordering_party_id NULLABLE (cas nominal = transport individuel) + index partiel. D-03 référentiel front (admin)/admin/donneurs-ordres (page/actions/form/liste) répliquant vehicules ; nav menu Gestion. D-04 champ OPTIONNEL donneur d'ordres saisie express (picker recherche, pattern PatientPicker) ; ordering_party_id threadé schema/create/edit/prefill. Garde-fous : SIRET siretSchema ; logique course sans donneur d'ordres inchangée ; hors lot tracés registre §6. Seed démo 3 établissements 974. typecheck+lint(0 err, 8 warn)+build verts, 124 tests shared. 2 migrations, 0 dépendance. DEC-148 LOCKED. PR à ouvrir.
+Précédent: 06.67 chore CI (DEC-147), 06.66 primitive Tooltip (DEC-146), 06.65 harmonisation checkbox (DEC-145).
 
 Progress: [██████████] 100%
 

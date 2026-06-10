@@ -6,5 +6,6 @@ export * from './ride';
 export * from './driver';
 export * from './driver-position';
 export * from './vehicle';
+export * from './ordering-party';
 export * from './legal';
 export * from './compliance';

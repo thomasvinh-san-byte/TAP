@@ -29,6 +29,8 @@ export type RideSubmitFormState = {
   transport_mode?: TransportMode;
   urgency?: Urgency;
   notes_regulateur?: string;
+  /** Donneur d'ordres B2B (DEC-148) — optionnel, null = transport individuel */
+  ordering_party_id?: string | null;
 };
 
 export function useRideSubmit(args: {
@@ -59,6 +61,7 @@ export function useRideSubmit(args: {
         transport_mode: next.transport_mode ?? 'taxi_conventionne',
         urgency: next.urgency ?? 'programmee',
         notes_regulateur: next.notes_regulateur,
+        ordering_party_id: next.ordering_party_id ?? null,
       });
       if (!validation.success) {
         const flat = validation.error.flatten().fieldErrors;

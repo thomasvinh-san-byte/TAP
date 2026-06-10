@@ -44,6 +44,9 @@ export const rideExpressInputSchema = z.object({
   transport_mode: rideTransportModeSchema.default('taxi_conventionne'),
   urgency: rideUrgencySchema.default('programmee'),
   notes_regulateur: z.string().trim().max(500).optional(),
+  // Donneur d'ordres B2B (CdC §5.5, DEC-148) — OPTIONNEL. NULL = transport
+  // prescrit individuel (cas nominal). Ne JAMAIS rendre obligatoire.
+  ordering_party_id: z.string().uuid().nullable().optional(),
 });
 export type RideExpressInput = z.infer<typeof rideExpressInputSchema>;
 

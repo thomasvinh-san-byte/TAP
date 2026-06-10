@@ -15,7 +15,7 @@ import { getRideByIdAction } from '../actions';
  */
 export function useRidePrefill<F>(
   rideId: string | undefined,
-  apply: (next: F, patientLabel: string) => void,
+  apply: (next: F, patientLabel: string, orderingPartyLabel: string) => void,
   onMissing: () => void,
   buildForm: (r: PrefillRide) => F,
 ): void {
@@ -31,8 +31,10 @@ export function useRidePrefill<F>(
           }
           return;
         }
-        const label = r.patient ? `${r.patient.prenom} ${r.patient.nom}` : '';
-        apply(buildForm(r as PrefillRide), label);
+        const ride = r as PrefillRide;
+        const label = ride.patient ? `${ride.patient.prenom} ${ride.patient.nom}` : '';
+        const orderingPartyLabel = ride.ordering_party?.raison_sociale ?? '';
+        apply(buildForm(ride), label, orderingPartyLabel);
       })
       .catch(() => {
         if (cancelled) return;
@@ -56,5 +58,7 @@ export type PrefillRide = {
   transport_mode: string;
   urgency: string;
   notes_regulateur: string | null;
+  ordering_party_id?: string | null;
   patient?: { prenom: string; nom: string } | null;
+  ordering_party?: { id: string; raison_sociale: string } | null;
 };

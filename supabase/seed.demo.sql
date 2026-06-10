@@ -819,3 +819,32 @@ begin
     (org_id, drv3, null, -21.0344, 55.7124, 35.0, now() - interval '80 minutes', 'demo')
   on conflict do nothing;
 end$$;
+
+-- Donneurs d'ordres B2B fictifs 974 (CdC §5.5, DEC-148) — pour que le
+-- référentiel /admin/donneurs-ordres et le rattachement de course soient
+-- immédiatement démontrables sur la preview. Établissements crédibles 974.
+-- SIRET facultatif : l'EHPAD illustre le cas « sans SIRET » (colonne nullable).
+do $$
+declare
+  org_id uuid := '00000000-0000-0000-0000-000000000001';
+begin
+  insert into public.ordering_parties
+    (id, organization_id, raison_sociale, siret, contact_principal_nom,
+     contact_principal_telephone, contact_principal_email, modalite_facturation, actif)
+  values
+    ('33333333-0000-0000-0000-000000000001', org_id,
+     'Centre Hospitalier Universitaire de La Réunion', '40483304800014',
+     'Service transport sanitaire', '0262 90 50 50', 'transport@chu-reunion.re',
+     'mensuelle', true),
+    ('33333333-0000-0000-0000-000000000002', org_id,
+     'Clinique Sainte-Clotilde', '34280619200017',
+     'Bureau des sorties', '0262 48 20 20', 'sorties@clinique-sainteclotilde.re',
+     'hebdomadaire', true),
+    ('33333333-0000-0000-0000-000000000003', org_id,
+     'EHPAD Les Alizés (Le Tampon)', null,
+     'Direction', '0262 27 10 10', 'accueil@ehpad-lesalizes.re',
+     'a_la_course', true)
+  on conflict (id) do nothing;
+
+  raise notice 'Seed démo : 3 donneurs d''ordres B2B fictifs créés (organization_id=%)', org_id;
+end$$;

@@ -67,6 +67,12 @@ export async function listActiveVehiclesAction() {
   return listActiveVehicles();
 }
 
+/** Référentiel donneurs d'ordres B2B actifs (picker saisie course — DEC-148). */
+export async function listActiveOrderingPartiesAction() {
+  const { listActiveOrderingParties } = await import('../_lib/queries');
+  return listActiveOrderingParties();
+}
+
 /**
  * Phase 06.35 DEC-114 : pour le modal d'assignation, retourne le mode
  * de blocage org + la lookup conformité des chauffeurs/véhicules
