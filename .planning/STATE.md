@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.54 livrée localement (formulaires spécialisés — patron de form respectueux : tarifs, sms, legal). PR à ouvrir."
-last_updated: "2026-06-09T18:30:00.000Z"
-last_activity: Phase 06.54 (application respectueuse du patron de form 06.51 aux formulaires spécialisés ; logique/validation/Server Actions/mécaniques INCHANGÉES, 0 migration, 0 dépendance). Achève l'harmonisation des formulaires CRUD. Les formulaires spécialisés restaient en style ad hoc (space-y-12/16, classes brutes, selects h-32, textareas brutes sans anneau de focus). D-01 enveloppe harmonisée écran par écran : FormSection (groupes) / FormRow (champs liés) / FormActions (barre d'action), champs ui/* (Textarea à anneau de focus, selects natifs au gabarit Input h-10 via NATIVE_SELECT_CLASS). SMS (template-editor) : section Variables en kicker + FormActions ; insertion {{…}} (textareaRef/caret) + compteur MAX_LENGTH=160 + aperçu INCHANGÉS ; compteur annoncé aria-live + aria-describedby. Tarifs (tariff-edit-sheet) : patron DANS le Sheet (Header/Content/Footer conservés), NumberField prix/€ + simulateur (fichier séparé) intacts ; 2 sections. Legal : dpia-form (3 sections), dpo-form (FormSection+FormActions), breach-drawer (4 sections) + breach-form-fields (SelectField partagé h-32→h-10) ; libellés RGPD inchangés (DPIA, périmètre, risque résiduel, Article 33…). D-02 règle valeurs métier : structure harmonisée, valeurs (variables SMS, termes tarifaires, vocabulaire légal) conservées. D-03 mécaniques spéciales intactes ; patron 06.51 réutilisé tel quel. text-emerald-700→text-success (token). Hors périmètre : requests/registre (h-32 résiduels), cockpit/optimisation, chauffeur mobile, pages texte légales, utilitaires. Tous fichiers ≤300 LOC. typecheck+lint(0 err, 9 warn)+build verts, 129 web. Artefact docs/showcase/06.54-form-restants/. DEC-133 LOCKED.
-last_activity_prev: Phase 06.53 (patron de liste unifié — toolbar + pagination + actions). DEC-132 LOCKED.
+stopped_at: "Phase 06.55 livrée localement (parcours chauffeur mobile — debug masqué, géoloc en couches, bottom-sheets, zone pouce). PR à ouvrir."
+last_updated: "2026-06-09T20:00:00.000Z"
+last_activity: Phase 06.55 (doctrine mobile chauffeur sourcée appliquée à la PWA terrain ; logique métier INCHANGÉE, 0 migration, 0 dépendance). Nature DISTINCTE du back-office (terrain, une main). D-01 bandeau « PWA debug · état détecté » masqué hors dev (process.env.NODE_ENV !== 'production' → inliné/retiré du bundle prod) ; prompt d'install légitime conservé. D-02 notice géoloc par COUCHES : 1re couche toujours visible (quoi+pourquoi+rétention 90 j), « En savoir plus » (aria-expanded/aria-controls) déplie le détail (service uniquement, permission refusable — pointage marche sans GPS, retrait/DPO) ; dismiss mémorisé localStorage ; pas de dark pattern. D-03 composant partagé components/ui/bottom-sheet.tsx (Radix Dialog → focus trap/aria/Escape/backdrop + poignée drag-to-dismiss seuil 96px + title rendu h2) ; end-ride-modal (Clôturer) + no-show-modal (Patient absent) migrés en bottom-sheet (boutons larges en bas, ≥44px). D-04 carte + actions déjà conformes (liseré, heure 2xl tabular, mode·urgence, trajet ; primaire h-14, Patient absent h-12 détaché) ; libellés métier conservés → inchangés. D-05 tarif inputMode="decimal" CONSERVÉ ; motif texte. D-06 endRideAction/no-show/géoloc/pointage/file Dexie INCHANGÉS ; max-w-640 conservé ; prefers-reduced-motion respecté. E2E driver-workflow compatible (role dialog + heading h2). typecheck+lint(0 err, 9 warn)+build verts, 129 web. Doctrine .planning/doctrine-mobile-chauffeur.md + maquette .planning/mockups/conduite-mobile-maquette.html. Artefact docs/showcase/06.55-mobile-chauffeur/. DEC-134 LOCKED.
+last_activity_prev: Phase 06.54 (formulaires spécialisés — patron de form respectueux). DEC-133 LOCKED.
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
@@ -14,13 +14,13 @@ last_activity_prev: Phase 06.53 (patron de liste unifié — toolbar + paginatio
 # + 06.43 fix cible cliquable + 06.44 refonte login + 06.45 login centré + 06.46 fix focus ring
 # + 06.47 calibrage focus + 06.48 bouton auth aligné + 06.49 dashboard densité + 06.50 conformité
 # densité + 06.51 form patient patron + 06.52 form véhicule/chauffeur + 06.53 patron de liste
-# + 06.54 form spécialisés = 64. (06.40 = lot d'hygiène docs, hors compte feature ; 06.45 supersede
-# 06.44 mais les 2 ont été livrées.) Restantes réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle)
-# = 2. Phase 07 abandonnée (DEC-092) hors compte.
-# Dernière phase livrée : 06.54. Dernier DEC : 133 (06.54). Dernier ADR : ADR-013 (06.33).
+# + 06.54 form spécialisés + 06.55 chauffeur mobile = 65. (06.40 = lot d'hygiène docs, hors compte
+# feature ; 06.45 supersede 06.44 mais les 2 ont été livrées.) Restantes réelles = Phase 09 (HDS)
+# + Phase 10 (géoloc réelle) = 2. Phase 07 abandonnée (DEC-092) hors compte.
+# Dernière phase livrée : 06.55. Dernier DEC : 134 (06.55). Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 66
-  completed_phases: 64
+  total_phases: 67
+  completed_phases: 65
   total_plans: 89
   completed_plans: 89
   percent: 97
@@ -33,7 +33,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.54 livrée localement (formulaires spécialisés — patron de form respectueux : sms-templates, tarifs, legal dpia/dpo/breaches ; mécaniques métier intactes). Achève l'harmonisation des formulaires CRUD. 64 phases livrées (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; migration listes drivers/caisse/tarifs/legal (mécanique) + étapes restantes du plan d'audit (cockpit/optimisation, chauffeur mobile, pages texte légales, utilitaires) + messagerie lots photo/push/fil général à venir.
+**Current focus:** Phase 06.55 livrée localement (parcours chauffeur mobile — debug masqué hors dev, géoloc en couches, modales Clôturer/Patient absent en bottom-sheet, zone pouce ; logique métier intacte). 65 phases livrées (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; migration listes drivers/caisse/tarifs/legal (mécanique) + étapes restantes du plan d'audit (cockpit/optimisation, pages texte légales, utilitaires) + messagerie lots photo/push/fil général à venir.
 
 ## Current Position
 
@@ -42,12 +42,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.54 livrée localement (2026-06-09) — formulaires spécialisés sur le patron de form (respectueux). PR à ouvrir.
-Phase next: migration listes drivers/caisse/tarifs/legal (mécanique, mêmes composants) ; étapes restantes du plan d'audit (cockpit/optimisation, chauffeur mobile, pages texte légales, utilitaires) ; messagerie lots photo (HDS)/push (VAPID)/fil général ; Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 64 phases livrées. Patron de form appliqué à TOUS les formulaires CRUD (patient/véhicule/chauffeur + sms/tarifs/legal). Application respectueuse : enveloppe harmonisée (FormSection/Row/Actions, champs ui/*) SANS toucher aux mécaniques métier (insertion SMS, compteur 160, simulateur tarifs, Sheet, libellés RGPD). Données/validation/SA inchangées.
+Phase: 06.55 livrée localement (2026-06-09) — parcours chauffeur mobile (doctrine mobile : debug, géoloc, bottom-sheets, zone pouce). PR à ouvrir.
+Phase next: migration listes drivers/caisse/tarifs/legal (mécanique) ; étapes restantes du plan d'audit (cockpit/optimisation, pages texte légales, utilitaires) ; messagerie lots photo (HDS)/push (VAPID)/fil général ; Phase 09 HDS + Phase 10 géoloc réelle.
+Status: 65 phases livrées. Doctrine mobile chauffeur appliquée à la PWA terrain : debug masqué hors dev, notice géoloc en couches (sans dark pattern), composant bottom-sheet partagé (Radix Dialog + drag-to-dismiss) sur Clôturer/Patient absent, actions en zone pouce. Logique métier (endRideAction/no-show/géoloc/pointage/file offline) inchangée.
 Blockers: aucun
-Last activity: Phase 06.54 — patron de form aux formulaires spécialisés (respectueux). D-01 enveloppe : FormSection/FormRow/FormActions, Textarea (anneau focus), selects natifs h-32→h-10 (NATIVE_SELECT_CLASS). SMS : insertion {{…}} + compteur 160 + aperçu INTACTS, compteur annoncé aria-live. Tarifs : patron DANS le Sheet, NumberField prix/€ + simulateur intacts. Legal : dpia (3 sections), dpo, breaches (4 sections) + breach-form-fields ; libellés RGPD inchangés. D-02 valeurs métier préservées (variables SMS, termes tarifaires, vocabulaire légal). D-03 logique/mécaniques inchangées, patron 06.51 réutilisé tel quel. Hors périmètre : requests/registre, cockpit, chauffeur mobile, pages texte, utilitaires. ≤300 LOC. typecheck+lint+build verts, 129 web. Artefact docs/showcase/06.54-form-restants/. 0 migration, 0 dépendance. DEC-133 LOCKED. PR à ouvrir.
-Précédent: 06.53 patron de liste unifié (DEC-132), 06.52 form véhicule/chauffeur (DEC-131), 06.51 form patient (DEC-130).
+Last activity: Phase 06.55 — doctrine mobile chauffeur. D-01 debug PWA masqué hors dev (NODE_ENV). D-02 géoloc par couches : 1re couche (quoi+pourquoi+rétention 90 j) + En savoir plus (aria-expanded) dépliant le détail, dismiss mémorisé, pas de dark pattern. D-03 components/ui/bottom-sheet.tsx (Radix Dialog : focus trap/aria/Escape/backdrop + poignée drag-to-dismiss) ; end-ride + no-show migrés en bottom-sheet (boutons bas ≥44px). D-04 carte + actions déjà conformes (h-14 primaire, Patient absent h-12 détaché), libellés métier conservés. D-05 tarif inputMode="decimal" conservé. D-06 logique/max-w-640/prefers-reduced-motion intacts ; E2E compatible (role dialog + heading h2). ≤300 LOC. typecheck+lint+build verts, 129 web. Doctrine .planning/doctrine-mobile-chauffeur.md + maquette .planning/mockups/conduite-mobile-maquette.html. Artefact docs/showcase/06.55-mobile-chauffeur/. 0 migration, 0 dépendance. DEC-134 LOCKED. PR à ouvrir.
+Précédent: 06.54 form spécialisés (DEC-133), 06.53 patron de liste (DEC-132), 06.52 form véhicule/chauffeur (DEC-131).
 
 Progress: [██████████] 100%
 

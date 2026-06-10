@@ -4,15 +4,9 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { enqueue } from '@/lib/offline/sync-engine';
 
 const MAX_MOTIF = 200;
@@ -85,68 +79,66 @@ export function NoShowModal({
   }
 
   return (
-    <Dialog open={open} onOpenChange={close}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Confirmer absence patient ?</DialogTitle>
-          <DialogDescription>
-            Vous êtes sur le point de déclarer ce patient absent. Le régulateur sera notifié
-            immédiatement.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-8">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="no-show-motif">Motif (optionnel)</Label>
-            <span
-              className={
-                'text-xs tabular-nums ' +
-                (motif.length > MAX_MOTIF
-                  ? 'text-destructive font-semibold'
-                  : 'text-muted-foreground')
-              }
-            >
-              {motif.length}/{MAX_MOTIF}
-            </span>
-          </div>
-          <textarea
-            id="no-show-motif"
-            value={motif}
-            onChange={(e) => setMotif(e.target.value)}
-            rows={3}
-            maxLength={MAX_MOTIF + 1}
-            placeholder="Ex. porte close, pas de réponse au téléphone…"
-            className="border-input bg-background w-full rounded-md border px-12 py-8 text-base"
-          />
+    <BottomSheet
+      open={open}
+      onOpenChange={(o) => {
+        if (!o) close();
+      }}
+      title="Confirmer absence patient ?"
+      description="Vous êtes sur le point de déclarer ce patient absent. Le régulateur sera notifié immédiatement."
+    >
+      <div className="space-y-8">
+        <div className="flex items-center justify-between">
+          <Label htmlFor="no-show-motif">Motif (optionnel)</Label>
+          <span
+            className={
+              'text-xs tabular-nums ' +
+              (motif.length > MAX_MOTIF
+                ? 'text-destructive font-semibold'
+                : 'text-muted-foreground')
+            }
+          >
+            {motif.length}/{MAX_MOTIF}
+          </span>
         </div>
+        <Textarea
+          id="no-show-motif"
+          value={motif}
+          onChange={(e) => setMotif(e.target.value)}
+          rows={3}
+          maxLength={MAX_MOTIF + 1}
+          placeholder="Ex. porte close, pas de réponse au téléphone…"
+          className="text-base"
+        />
+      </div>
 
-        {error && (
-          <p role="alert" className="text-destructive text-sm">
-            {error}
-          </p>
-        )}
+      {error && (
+        <p role="alert" className="text-destructive text-sm">
+          {error}
+        </p>
+      )}
 
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={close}
-            disabled={pending}
-            className="h-12"
-          >
-            Annuler
-          </Button>
-          <Button
-            type="button"
-            variant="destructive"
-            onClick={handleConfirm}
-            disabled={pending || motif.length > MAX_MOTIF}
-            className="h-14 text-base font-semibold"
-          >
-            {pending ? 'Envoi…' : 'Confirmer absence'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      {/* Boutons en bas, zone pouce. « Confirmer absence » distinct (destructif). */}
+      <div className="flex flex-col gap-12 pb-8">
+        <Button
+          type="button"
+          variant="destructive"
+          onClick={handleConfirm}
+          disabled={pending || motif.length > MAX_MOTIF}
+          className="h-14 w-full text-base font-semibold"
+        >
+          {pending ? 'Envoi…' : 'Confirmer absence'}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={close}
+          disabled={pending}
+          className="h-12 w-full"
+        >
+          Annuler
+        </Button>
+      </div>
+    </BottomSheet>
   );
 }
