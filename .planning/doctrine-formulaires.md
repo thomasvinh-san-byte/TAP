@@ -80,6 +80,20 @@ Le form lui-même : `mx-auto w-full max-w-[980px] space-y-24`.
   (toute la pastille est la cible) + `has-[:checked]:border-primary
   has-[:checked]:bg-primary/10`. La checkbox réelle porte le `name`/`value`.
 
+## 10. Troncature & débordement — `min-w-0` sur les conteneurs (DEC-142)
+- **Tout conteneur `grid`/`flex` qui héberge du texte tronquable doit porter
+  `min-w-0`** (sur lui et/ou ses items). Par spec CSS, un item flex/grid a
+  `min-width: auto` (= aussi large que son contenu) : une seule chaîne insécable
+  (longue adresse, e-mail) pousse la largeur et fait déborder le parent. **Un
+  seul ancêtre sans `min-w-0` neutralise TOUS les `truncate` des enfants** (le
+  `truncate` ne peut rétrécir que si la chaîne de parents le permet).
+- Primitives partagées : mettre le garde-fou sur le PARENT pour être robuste
+  quels que soient les enfants. Ex. `DialogContent` (grid) porte `[&>*]:min-w-0`
+  (force `min-width: 0` sur ses enfants directs) → corrige les 14 modals d'un
+  coup. Sourcé : CSS-Tricks « Preventing a Grid Blowout », W3C csswg, MDN.
+- Complément gratuit : `title={valeur}` sur un `<span class="truncate">` →
+  tooltip natif révélant le texte complet au survol (accessible, standard).
+
 ## Application 06.51 (patient)
 - 2 colonnes : GAUCHE Identité + Préférences ; DROITE Coordonnées + Note.
 - Sexe/Canal = `<select>` natifs au gabarit Input ; ville = `ui/Select` + hidden.
