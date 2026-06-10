@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.56 livrée localement (onboarding repreneur — méthode de travail versée au repo, lot documentaire pur). PR à ouvrir."
-last_updated: "2026-06-09T21:30:00.000Z"
-last_activity: Phase 06.56 (lot DOCUMENTAIRE pur, hors compte feature comme 06.40 ; AUCUN code applicatif, 0 migration, 0 dépendance). Versement de la méthode de travail architecte-chat + Claude Code pour qu'un repreneur tienne le binôme. D-01 .planning/METHODE-ARCHITECTE-CHAT.md (3 rôles, règles d'or, maquette-avant-code, valeurs métier, discipline GSD, boucle de travail, limites — pas d'API GitHub, onboarding ; renvoie à CLAUDE.md + .claude/README.md). D-02 .planning/PROMPT-MODELE.md (gabarit de prompt autoporteur + rappels qualité). D-03 resync doctrines : règle transversale « préserver les valeurs métier (TAP/CGSS/974) » ajoutée à doctrine-formulaires.md ET doctrine-alignement-dashboard.md ; doctrine-mobile-chauffeur.md portée au contenu canonique sourcé (M1-M6 + M3bis/M6bis). D-04 liens depuis CLAUDE.md (en-tête) + README.md + .claude/README.md (sans réécrire). D-05 documentaire pur : aucun fichier apps/packages/services/supabase touché (vérifié git status vs tip 06.55). guard-commit vert. DEC-135 LOCKED.
-last_activity_prev: Phase 06.55 (parcours chauffeur mobile — debug, géoloc en couches, bottom-sheets, zone pouce). DEC-134 LOCKED.
+stopped_at: "Phase 06.57 livrée localement (optimisation — alignement léger sur la doctrine). PR à ouvrir."
+last_updated: "2026-06-10T08:00:00.000Z"
+last_activity: Phase 06.57 (alignement cosmétique de cockpit/optimisation sur la doctrine ; logique/états/données INCHANGÉS, 0 migration, 0 dépendance). PAS une refonte : l'écran est fonctionnellement bon. SEUL écart = cosmétique. D-01 échelle d'espacement unique cohérente avec le cockpit (comparative-view mt-8→mt-12 ; optimization-shell gap-8 pt-8→gap-12 pt-16). D-02 titres « Plan actuel »/« Plan proposé » passés de text-base font-semibold au kicker doctrine (text-muted-foreground text-xs font-semibold uppercase tracking-wide, comme alerts-panel cockpit) → PageHeader redevient dominant. D-03 structure 2 colonnes, logique useOptimization, états, dialog, pastilles, cibles 44px, aria-labelledby INCHANGÉS ; pas de maquette. D-04 périmètre = optimization-shell + comparative-view (présentation seule) ; valeurs métier (libellés, date FR) inchangées. Termine l'étape 5 du plan d'audit UI. typecheck+lint(0 err, 9 warn)+build verts, 129 web. Artefact docs/showcase/06.57-optimisation-alignement/. DEC-136 LOCKED.
+last_activity_prev: Phase 06.56 (onboarding repreneur — méthode de travail versée au repo, doc pur). DEC-135 LOCKED.
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
@@ -14,14 +14,14 @@ last_activity_prev: Phase 06.55 (parcours chauffeur mobile — debug, géoloc en
 # + 06.43 fix cible cliquable + 06.44 refonte login + 06.45 login centré + 06.46 fix focus ring
 # + 06.47 calibrage focus + 06.48 bouton auth aligné + 06.49 dashboard densité + 06.50 conformité
 # densité + 06.51 form patient patron + 06.52 form véhicule/chauffeur + 06.53 patron de liste
-# + 06.54 form spécialisés + 06.55 chauffeur mobile = 65. (06.40 hygiène docs ET 06.56 onboarding
-# méthode = lots documentaires, hors compte feature ; 06.45 supersede 06.44 mais les 2 ont été
-# livrées.) Restantes réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07 abandonnée
-# (DEC-092) hors compte.
-# Dernière phase livrée : 06.56 (doc). Dernier DEC : 135 (06.56). Dernier ADR : ADR-013 (06.33).
+# + 06.54 form spécialisés + 06.55 chauffeur mobile + 06.57 optimisation alignement = 66. (06.40
+# hygiène docs ET 06.56 onboarding méthode = lots documentaires, hors compte feature ; 06.45
+# supersede 06.44 mais les 2 ont été livrées.) Restantes réelles = Phase 09 (HDS) + Phase 10
+# (géoloc réelle) = 2. Phase 07 abandonnée (DEC-092) hors compte.
+# Dernière phase livrée : 06.57. Dernier DEC : 136 (06.57). Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 67
-  completed_phases: 65
+  total_phases: 68
+  completed_phases: 66
   total_plans: 89
   completed_plans: 89
   percent: 97
@@ -34,7 +34,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.56 livrée localement (onboarding repreneur — méthode de travail architecte-chat + Claude Code versée au repo ; lot documentaire pur). 65 phases feature livrées + 2 lots documentaires (06.40, 06.56) (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; migration listes drivers/caisse/tarifs/legal (mécanique) + étapes restantes du plan d'audit (cockpit/optimisation, pages texte légales, utilitaires) + messagerie lots photo/push/fil général à venir.
+**Current focus:** Phase 06.57 livrée localement (optimisation — alignement léger sur la doctrine : titres en kicker + rythme cohérent cockpit, sans refonte). 66 phases feature livrées + 2 lots documentaires (06.40, 06.56) (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; migration listes drivers/caisse/tarifs/legal (mécanique) + étapes restantes du plan d'audit (pages texte légales, utilitaires) + messagerie lots photo/push/fil général à venir.
 
 ## Current Position
 
@@ -43,12 +43,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.56 livrée localement (2026-06-09) — onboarding repreneur, méthode de travail versée au repo (documentaire pur). PR à ouvrir.
-Phase next: migration listes drivers/caisse/tarifs/legal (mécanique) ; étapes restantes du plan d'audit (cockpit/optimisation, pages texte légales, utilitaires) ; messagerie lots photo (HDS)/push (VAPID)/fil général ; Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 65 phases feature + 2 lots doc. Méthode de travail architecte-chat + Claude Code désormais dans le repo (METHODE-ARCHITECTE-CHAT.md + PROMPT-MODELE.md), doctrines resynchronisées (règle valeurs métier transversale, doctrine mobile canonique), liens depuis CLAUDE.md/README.md/.claude/README.md. Un repreneur peut tenir le binôme sans accroc.
+Phase: 06.57 livrée localement (2026-06-10) — optimisation, alignement léger sur la doctrine (cosmétique, pas de refonte). PR à ouvrir.
+Phase next: migration listes drivers/caisse/tarifs/legal (mécanique) ; étapes restantes du plan d'audit (pages texte légales, utilitaires) ; messagerie lots photo (HDS)/push (VAPID)/fil général ; Phase 09 HDS + Phase 10 géoloc réelle.
+Status: 66 phases feature + 2 lots doc. Écran cockpit/optimisation aligné sur la doctrine (titres de section en kicker comme le cockpit, rythme d'espacement homogène) sans toucher structure/logique/états/dialog/cibles 44px. Plan d'audit UI : étape 5 terminée.
 Blockers: aucun
-Last activity: Phase 06.56 — lot documentaire pur. D-01 .planning/METHODE-ARCHITECTE-CHAT.md (rôles, règles d'or, maquette-avant-code, valeurs métier, GSD, boucle, limites, onboarding). D-02 .planning/PROMPT-MODELE.md (gabarit autoporteur). D-03 règle transversale valeurs métier ajoutée à doctrine-formulaires + doctrine-alignement-dashboard ; doctrine-mobile-chauffeur portée au contenu canonique. D-04 liens depuis CLAUDE.md + README.md + .claude/README.md. D-05 documentaire pur : aucun code applicatif (vérifié git status vs tip 06.55). guard-commit vert. 0 migration, 0 dépendance. DEC-135 LOCKED. PR à ouvrir.
-Précédent: 06.55 parcours chauffeur mobile (DEC-134), 06.54 form spécialisés (DEC-133), 06.53 patron de liste (DEC-132).
+Last activity: Phase 06.57 — optimisation, alignement léger. D-01 échelle d'espacement unique cohérente cockpit (comparative-view mt-8→mt-12 ; optimization-shell gap-8 pt-8→gap-12 pt-16). D-02 titres « Plan actuel »/« Plan proposé » text-base font-semibold → kicker doctrine (xs uppercase muted, comme alerts-panel). D-03 structure 2 colonnes, useOptimization, états, dialog, pastilles, cibles 44px, aria-labelledby INCHANGÉS ; pas de maquette. D-04 présentation seule (optimization-shell + comparative-view) ; valeurs métier (libellés, date FR) inchangées. typecheck+lint+build verts, 129 web. Artefact docs/showcase/06.57-optimisation-alignement/. 0 migration, 0 dépendance. DEC-136 LOCKED. PR à ouvrir.
+Précédent: 06.56 onboarding méthode (DEC-135, doc), 06.55 parcours chauffeur mobile (DEC-134), 06.54 form spécialisés (DEC-133).
 
 Progress: [██████████] 100%
 
