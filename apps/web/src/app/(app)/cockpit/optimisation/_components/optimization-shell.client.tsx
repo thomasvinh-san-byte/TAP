@@ -159,7 +159,7 @@ export function OptimizationShell({ initialRides, date }: Props): JSX.Element {
             onAdjust={adjust}
           />
 
-          <div className="flex justify-end gap-8 pt-8">
+          <div className="flex justify-end gap-12 pt-16">
             <Button
               variant="default"
               className="min-h-[44px]"
