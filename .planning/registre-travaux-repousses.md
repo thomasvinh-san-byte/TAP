@@ -25,9 +25,14 @@ EXTERNE (donnée/spec à obtenir d'un tiers).
 - **Bloque** : notifications email des alertes conformité (CdC §5.21/§5.22), récap quotidien dirigeant.
 
 ### 1.3 Push web (notifications PWA)
-- **Décision** : repoussé (branchement infra).
+- **Décision** : repoussé (branchement infra). Non câblé en 06.62 (échafaudage messagerie = point d'accès header uniquement, push explicitement hors périmètre, cf. DEC-141 D-03).
 - **Raison** : le CdC (§5.22) prévoit le push web pour la messagerie interne, mais c'est un branchement (service worker push, VAPID, stockage subscriptions). Hors phase « construction fonctionnalités ».
 - **Déblocage** : 🔍 CHOIX TECHNIQUE (web-push natif vs service) + dev dédié. 🗳 prioriser avec la messagerie (CdC §5.22).
+
+### 1.4 Messagerie interne §5.22 — reste à construire (coquille posée 06.62)
+- **Décision** : échafaudage posé (2026-06-10, DEC-141). Le point d'accès header (`MessagingButton`) + la coquille « Fil général » (EmptyState) sont en place derrière le flag `MESSAGING_ENABLED` (OFF par défaut prod). Le chat à la course (germe lot 1, `internal_message`/`ride-chat`) est fonctionnel et exposé via cet accès.
+- **Reste à construire** (chemin actif non câblé tant que le flag est OFF) : 🔍 **fil général temps réel** (hors course — nécessitera sa table + migration + RLS le jour J), 🔍 **photo** (dépend du stockage HDS, cf. §4.3 upload de scans), 🔍 **push PWA** (cf. §1.3), 🔍 **notion de « non-lu »** (compteur badge — pas de colonne read-state en base aujourd'hui).
+- **Déblocage** : 🗳 prioriser le lot messagerie complet (post-échafaudage) ; dépend de 1.3 (push) et indirectement de 1.1 HDS (photo). Activer en mettant `MESSAGING_ENABLED=true` une fois le périmètre construit.
 
 ---
 

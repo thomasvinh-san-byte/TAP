@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getAuthContext } from '@/lib/auth/get-auth-context';
 import { AppHeader } from '@/components/app-header';
+import { MessagingButton } from '@/components/messaging/messaging-button.client';
 import { Providers } from './providers.client';
 import { RideExpressOrchestrator } from './courses/_components/ride-express-orchestrator.client';
 
@@ -21,13 +22,19 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!ctx) redirect('/login');
   if (ctx.role === 'chauffeur') redirect('/conduite');
 
+  // Release toggle messagerie (DEC-141, §5.22) évalué haut dans la pile, côté
+  // serveur (pattern GEOLOC_ENABLED). OFF par défaut en prod → rien dans le
+  // header. Les brouillons sont passés au cockpit (DEC-140, §5.13).
+  const messagingEnabled = process.env.MESSAGING_ENABLED === 'true';
+
   return (
     <Providers>
       <RideExpressOrchestrator>
         <div className="bg-background flex min-h-screen flex-col">
-          {/* Brouillons de courses : indicateur du cockpit (CdC §5.13), plus
-              dans le header (réservé aux notifications §5.22). Cf. DEC-140. */}
-          <AppHeader role={ctx.role as 'dirigeant' | 'regulateur'} />
+          <AppHeader
+            role={ctx.role as 'dirigeant' | 'regulateur'}
+            extras={messagingEnabled ? <MessagingButton /> : undefined}
+          />
           <main className="mx-auto w-full max-w-[1280px] flex-1 px-24 py-24">{children}</main>
         </div>
       </RideExpressOrchestrator>
