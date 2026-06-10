@@ -12,6 +12,7 @@ import type { DriverPosition } from '../_lib/use-driver-positions';
 import type { ComplianceAlertEnriched } from '../../../(admin)/admin/conformite/_lib/get-compliance-alerts';
 import { ComplianceAlertsPanel } from '../../../(admin)/admin/conformite/_components/compliance-alerts-panel.client';
 import { AlertsPanel } from './alerts-panel.client';
+import { DraftsIndicator } from './drafts-indicator.client';
 import { CoursesTable } from './courses-table.client';
 import { DriverPositionsPanel } from './driver-positions-panel.client';
 import { NoShowAlertModal } from './no-show-alert-modal.client';
@@ -119,6 +120,7 @@ export function CockpitContent({
       </section>
       <aside className="lg:border-border flex w-full shrink-0 flex-col gap-24 lg:w-80 lg:border-l lg:pl-24">
         <AlertsPanel alerts={alerts} />
+        <DraftsIndicator />
         <ComplianceAlertsPanel alerts={complianceAlerts} variant="panel" limit={4} />
       </aside>
       {recentNoShowRide && <NoShowAlertModal ride={recentNoShowRide} onClose={dismissNoShow} />}
