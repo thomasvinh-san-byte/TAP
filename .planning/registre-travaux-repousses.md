@@ -24,6 +24,7 @@ EXTERNE (donnée/spec à obtenir d'un tiers).
 - **Raison** : aucun système d'email transactionnel dans TAP (email = seulement Supabase Auth pour invitations ; SMS = Twilio patients). Introduire un provider = dépendance + secrets + coût + sous-chantier. Repoussé tant que les alertes in-app suffisent.
 - **Déblocage** : 💳 ACHAT/CONTRAT (provider : Resend / SMTP / autre) + 🔍 choix technique. 🗳 décider quand l'email devient nécessaire (ex. alertes conformité hors-session, récap dirigeant).
 - **Bloque** : notifications email des alertes conformité (CdC §5.21/§5.22), récap quotidien dirigeant.
+- **Note 2026-06-10 (DEC-144)** : la COQUILLE est posée (flag `EMAIL_ENABLED` OFF + module central `lib/email/send.ts` no-op loggé + 1 point de déclenchement de démo dans `upsertComplianceItemAction`). Reste à construire : **choix provider + branchement `send` réel** (dans `lib/email/send.ts`), **persistance des préférences** (2 toggles récap quotidien / alertes échéances — aucune page réglages ni colonne préf n'existe → à créer), **gabarits** (templating). OFF = no-op total, aucun envoi.
 
 ### 1.3 Push web (notifications PWA)
 - **Décision** : repoussé (branchement infra). Non câblé en 06.62 (échafaudage messagerie = point d'accès header uniquement, push explicitement hors périmètre, cf. DEC-141 D-03).

@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.63 livrée localement (échafaudage upload documents conformité derrière UPLOAD_DOCS_ENABLED OFF). PR à ouvrir."
-last_updated: "2026-06-10T20:30:00.000Z"
-last_activity: Phase 06.63 (échafaudage upload documents conformité derrière release toggle UPLOAD_DOCS_ENABLED OFF ; coquille UI, PAS un mock — 0 Storage câblé, 0 migration, 0 dépendance). compliance_items.document_url existe mais aucune UI ne l'alimentait ; Supabase Storage vierge dans le repo. Garde-fou santé : tant que OFF, aucun octet vers un Storage non HDS. D-01 flag UPLOAD_DOCS_ENABLED (turbo.json + .env.example, OFF) évalué côté serveur dans les pages (chauffeurs/vehicules/conformite), threadé en prop uploadEnabled → DriversList/VehiclesList → DriverForm/VehicleForm → ComplianceFieldset (jamais process.env client). D-02 champ « Document justificatif » par slot : lien « Voir » si url legacy ; OFF = mention désactivée « Téléversement bientôt disponible (hébergement sécurisé requis) » (pas d'input file) ; ON = ComplianceDocUploadStub (vrai input file + bouton) appelant uploadComplianceDocumentAction = STUB explicite (« hébergement sécurisé HDS non configuré », pas de faux succès/URL). D-03 pas de bucket/migration (colonne existante). D-04 dissociation reportée (non triviale). Logique conformité INCHANGÉE. Registre §1.1/§4.3 maj. .env.example documenté. ComplianceFieldset 289 LOC. typecheck+lint(0 err, 8 warn)+build verts, 129 web. DEC-143 LOCKED.
-last_activity_prev: Fix DialogContent grille min-w-0 (DEC-142). Phase 06.62 échafaudage messagerie (DEC-141).
+stopped_at: "Phase 06.64 livrée localement (échafaudage notifications email derrière EMAIL_ENABLED OFF). PR à ouvrir."
+last_updated: "2026-06-10T22:00:00.000Z"
+last_activity: Phase 06.64 (échafaudage notifications email derrière release toggle EMAIL_ENABLED OFF ; coquille — module d'envoi no-op + 1 trigger, PAS un mock ; 0 provider, 0 dépendance). Email vierge dans le repo. D-01 flag EMAIL_ENABLED (turbo.json + .env.example, OFF) côté serveur. D-02 lib/email/send.ts — sendEmail({to,subject,body}) ne lève jamais : OFF { skipped } log [email:disabled] ; ON { sent:false, reason:'no-provider' } log [email:no-provider] (pas de provider câblé ; branchement = lot dédié). D-03 aucune page réglages ni colonne préf → pas de page/table créée ; préférences = reste-à-faire (registre §1.2). D-04 maybeNotifyDeadline branché dans upsertComplianceItemAction (événement existant) : notifie le dirigeant (auth.getUser().email) à ≤30 j d'échéance, best-effort try/catch, no-op OFF (rien en prod). Alertes in-app/conformité/cockpit INCHANGÉS ; package.json inchangé (0 dépendance). Registre §1.2 maj. typecheck+lint(0 err, 8 warn)+build verts, 129 web. DEC-144 LOCKED.
+last_activity_prev: Phase 06.63 échafaudage upload docs (DEC-143). Fix DialogContent min-w-0 (DEC-142).
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
@@ -16,15 +16,15 @@ last_activity_prev: Fix DialogContent grille min-w-0 (DEC-142). Phase 06.62 éch
 # densité + 06.51 form patient patron + 06.52 form véhicule/chauffeur + 06.53 patron de liste
 # + 06.54 form spécialisés + 06.55 chauffeur mobile + 06.57 optimisation alignement
 # + 06.58 drivers-list patron+découpe + 06.59 listes courtes legal+tarifs + 06.60 drawers+checkbox
-# + 06.61 brouillons cockpit + 06.62 échafaudage messagerie + 06.63 échafaudage upload docs = 72.
-# (06.40 hygiène docs ET 06.56 onboarding méthode = lots documentaires, hors compte feature ; 06.45
-# supersede 06.44 mais les 2 ont été livrées ; DEC-142 fix DialogContent = fix hors numéro de phase.)
-# Restantes réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07 abandonnée (DEC-092)
-# hors compte.
-# Dernière phase livrée : 06.63. Dernier DEC : 143 (06.63). Dernier ADR : ADR-013 (06.33).
+# + 06.61 brouillons cockpit + 06.62 échafaudage messagerie + 06.63 échafaudage upload docs
+# + 06.64 échafaudage email = 73. (06.40 hygiène docs ET 06.56 onboarding méthode = lots
+# documentaires, hors compte feature ; 06.45 supersede 06.44 mais les 2 ont été livrées ; DEC-142
+# fix DialogContent = fix hors numéro de phase.) Restantes réelles = Phase 09 (HDS) + Phase 10
+# (géoloc réelle) = 2. Phase 07 abandonnée (DEC-092) hors compte.
+# Dernière phase livrée : 06.64. Dernier DEC : 144 (06.64). Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 74
-  completed_phases: 72
+  total_phases: 75
+  completed_phases: 73
   total_plans: 89
   completed_plans: 89
   percent: 97
@@ -37,7 +37,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.63 livrée localement (échafaudage upload documents conformité derrière `UPLOAD_DOCS_ENABLED` OFF — coquille par slot, action stub, pas de Storage câblé). 72 phases feature livrées + 2 lots documentaires (06.40, 06.56) (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS (bucket Storage + RLS + `.upload()` réel — registre §1.1/§4.3) + Phase 10 géoloc réelle ; construction messagerie complète (registre §1.4) ; étapes restantes du plan d'audit (pages texte légales, utilitaires) + migration des ~14 checkboxes brutes restantes à venir.
+**Current focus:** Phase 06.64 livrée localement (échafaudage notifications email derrière `EMAIL_ENABLED` OFF — module d'envoi no-op + 1 trigger conformité). 73 phases feature livrées + 2 lots documentaires (06.40, 06.56) (cf. commentaire de comptage dans le frontmatter). 4 release toggles OFF pré-infra : GEOLOC, MESSAGING, UPLOAD_DOCS, EMAIL. Restantes : Phase 09 HDS (bucket Storage + RLS — registre §1.1/§4.3) + Phase 10 géoloc réelle ; choix provider email + `send` réel + préférences (registre §1.2) ; construction messagerie complète (registre §1.4) ; étapes restantes du plan d'audit (pages texte légales, utilitaires) + migration des ~14 checkboxes brutes restantes à venir.
 
 ## Current Position
 
@@ -46,12 +46,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.63 livrée localement (2026-06-10) — échafaudage upload documents conformité derrière UPLOAD_DOCS_ENABLED OFF. PR à ouvrir.
-Phase next: construction messagerie complète (registre §1.4) ; Phase 09 HDS (bucket Storage + RLS + .upload() réel pour upload docs — registre §1.1/§4.3) ; étapes restantes du plan d'audit (pages texte légales, utilitaires) ; migration des ~14 checkboxes brutes ; Phase 10 géoloc réelle.
-Status: 72 phases feature + 2 lots doc. Coquille upload docs conformité posée derrière flag OFF (champ par slot : OFF mention désactivée / lien legacy ; ON zone dépôt + action STUB). Pas de Storage câblé (Supabase Storage vierge). Logique conformité inchangée. 3 release toggles OFF désormais (GEOLOC, MESSAGING, UPLOAD_DOCS) — tous pré-infra.
+Phase: 06.64 livrée localement (2026-06-10) — échafaudage notifications email derrière EMAIL_ENABLED OFF. PR à ouvrir.
+Phase next: choix provider email + branchement send réel + persistance préférences + gabarits (registre §1.2) ; construction messagerie complète (registre §1.4) ; Phase 09 HDS (bucket Storage + RLS — registre §1.1/§4.3) ; étapes restantes du plan d'audit (pages texte légales, utilitaires) ; migration des ~14 checkboxes brutes ; Phase 10 géoloc réelle.
+Status: 73 phases feature + 2 lots doc. Coquille email posée derrière flag OFF : module central lib/email/send.ts (no-op loggé) + 1 trigger de démo (upsertComplianceItemAction). Pas de provider (package.json inchangé). 4 release toggles OFF pré-infra (GEOLOC, MESSAGING, UPLOAD_DOCS, EMAIL). Logique métier inchangée.
 Blockers: aucun
-Last activity: Phase 06.63 — échafaudage upload docs. D-01 flag UPLOAD_DOCS_ENABLED (turbo.json + .env.example, OFF) évalué serveur dans les pages, threadé en prop uploadEnabled jusqu'à ComplianceFieldset. D-02 champ « Document justificatif » par slot : lien « Voir » (url legacy) / OFF mention désactivée (pas d'input file) / ON ComplianceDocUploadStub (vrai input + bouton) → uploadComplianceDocumentAction STUB explicite (pas de faux succès/URL). D-03 pas de bucket/migration. D-04 dissociation reportée. Logique conformité INCHANGÉE. Registre §1.1/§4.3 maj. ComplianceFieldset 289 LOC. typecheck+lint+build verts, 129 web. 0 migration, 0 dépendance. DEC-143 LOCKED. PR à ouvrir.
-Précédent: fix DialogContent min-w-0 (DEC-142), 06.62 échafaudage messagerie (DEC-141), 06.61 brouillons cockpit (DEC-140).
+Last activity: Phase 06.64 — échafaudage email. D-01 flag EMAIL_ENABLED (turbo.json + .env.example, OFF) serveur. D-02 lib/email/send.ts sendEmail no-op : OFF { skipped } [email:disabled] ; ON { sent:false, reason:'no-provider' } [email:no-provider] ; ne lève jamais. D-03 aucune page réglages/colonne préf → pas de page/table ; préférences reste-à-faire. D-04 maybeNotifyDeadline dans upsertComplianceItemAction (échéance ≤30j → notifie dirigeant via getUser().email), best-effort, no-op OFF. Alertes/conformité/cockpit INCHANGÉS ; package.json inchangé. Registre §1.2 maj. typecheck+lint+build verts, 129 web. 0 migration, 0 dépendance. DEC-144 LOCKED. PR à ouvrir.
+Précédent: 06.63 échafaudage upload docs (DEC-143), fix DialogContent min-w-0 (DEC-142), 06.62 échafaudage messagerie (DEC-141).
 
 Progress: [██████████] 100%
 

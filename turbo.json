@@ -24,7 +24,8 @@
     "CI",
     "GEOLOC_ENABLED",
     "MESSAGING_ENABLED",
-    "UPLOAD_DOCS_ENABLED"
+    "UPLOAD_DOCS_ENABLED",
+    "EMAIL_ENABLED"
   ],
   "tasks": {
     "build": {
