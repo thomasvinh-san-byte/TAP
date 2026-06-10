@@ -197,8 +197,8 @@ ROUGES jusqu'à Phase 06 HDS. Précédent : PR #75 (docs-only) et PR #76
 
 | Dette | Job CI affecté | Diagnostic | Phase de résolution |
 |---|---|---|---|
-| D1 — ESLint v10 flat config absent | Lint (`@tap/database`, `@tap/shared`) | ESLint 10 a retiré `.eslintrc.*`, packages pas migrés vers `eslint.config.js` | Phase 06 (~30 min) |
-| D2 — SIRET Carrefour Luhn-invalide | Tests unitaires (`@tap/shared`) | `40483304800010` rejeté par contrôle Luhn dans `siretSchema` | Phase 06 (~15 min) |
+| D1 — ESLint flat config absent | Lint (`@tap/database`, `@tap/shared`) | ESLint 9+ ne lit plus `.eslintrc.*` ; le monorepo n'avait aucune config | ✅ RÉSOLU (2026-06-10) — `eslint.config.mjs` racine (ESLint 9.39.4, flat config), `pnpm lint` vert |
+| D2 — SIRET Carrefour Luhn-invalide | Tests unitaires (`@tap/shared`) | `40483304800010` (clé 0) rejeté par Luhn — c'était le FIXTURE qui était faux, pas l'algo | ✅ RÉSOLU (2026-06-10) — fixture corrigé (`...014`, clé 4) + cas négatif ajouté ; algo confirmé correct (sourcé INSEE/validinsee) |
 | D3 — pgTAP runner cassé | Tests RLS pgTAP | Drift `supabase/setup-cli@latest` — affecte aussi PR sans SQL | Phase 06 (~1-2 h diagnostic) |
 
 **Pourquoi accepter une CI rouge V1.5** :
