@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { FormSection, FormRow } from '@/components/form/form-layout';
 import type { PatientFormDefaults } from './patient-form-types';
@@ -125,12 +126,10 @@ export function PreferencesSection({ dv }: { dv: PatientFormDefaults }) {
         </select>
       </div>
       <div className="flex items-center gap-12">
-        <input
+        <Checkbox
           id="consentement_sms"
           name="consentement_sms"
-          type="checkbox"
           defaultChecked={dv.consentement_sms}
-          className="border-border h-16 w-16 rounded"
         />
         <Label htmlFor="consentement_sms">Consentement SMS</Label>
       </div>

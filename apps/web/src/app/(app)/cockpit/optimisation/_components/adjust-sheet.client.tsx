@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import type { Groupement } from '@tap/optimizer-client';
 import type { AdjustedGroupement } from '../_lib/use-optimization.client';
 
@@ -71,12 +72,10 @@ export function AdjustSheet({
             <ul className="mt-8 space-y-8">
               {groupement.ride_ids.map((rideId, i) => (
                 <li key={rideId} className="flex items-center gap-8">
-                  <input
+                  <Checkbox
                     id={`ride-${rideId}`}
-                    type="checkbox"
                     checked={selectedRides.has(rideId)}
                     onChange={() => toggleRide(rideId)}
-                    className="border-border h-16 w-16 rounded"
                   />
                   <label htmlFor={`ride-${rideId}`} className="text-sm">
                     {rideLabels[rideId] ?? `Course ${i + 1} (${rideId.slice(0, 8)})`}

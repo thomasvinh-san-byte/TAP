@@ -1,5 +1,6 @@
 'use client';
 
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Field } from '@/components/form/field';
 import { DateFieldFr } from '@/components/date-field-fr.client';
@@ -33,8 +34,7 @@ export function DpaPrefillCard({
   return (
     <div data-testid="dpa-prefill-card" className="rounded-lg border p-16">
       <div className="flex items-center gap-8">
-        <input
-          type="checkbox"
+        <Checkbox
           id={checkboxId}
           data-testid={checkboxId}
           checked={included}

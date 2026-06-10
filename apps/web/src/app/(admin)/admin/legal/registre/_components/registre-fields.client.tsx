@@ -2,6 +2,7 @@
 
 import { legalBasisLabels } from '@tap/shared';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { NumberField } from '@/components/form/number-field';
 
@@ -115,10 +116,9 @@ export function RegistreFields({ idPrefix = '', values }: RegistreFieldsProps): 
         />
       </div>
       <div className="flex items-center gap-8">
-        <input
+        <Checkbox
           id={fieldId('international_transfer')}
           name="international_transfer"
-          type="checkbox"
           defaultChecked={values?.international_transfer}
         />
         <Label htmlFor={fieldId('international_transfer')}>Transfert international</Label>
