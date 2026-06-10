@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Phase 06.57 — Optimisation : alignement léger sur la doctrine (avant / après)</title>
+    <style>
+      :root {
+        font-family: Inter, system-ui, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 32px;
+        background: #eef2f7;
+        color: #0f172a;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0 0 4px;
+      }
+      .sub {
+        color: #64748b;
+        font-size: 13px;
+        margin: 0 0 24px;
+        max-width: 940px;
+      }
+      .grid {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+      .case {
+        flex: 1 1 380px;
+      }
+      .case > p.label {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #64748b;
+        margin: 0 0 8px;
+      }
+      .panel {
+        background: #fff;
+        border: 1px solid hsl(214 32% 91%);
+        border-radius: 10px;
+        padding: 16px;
+      }
+      .cols {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+      /* titre AVANT : text-base font-semibold */
+      .t-before {
+        font-size: 16px;
+        font-weight: 600;
+        color: #0f172a;
+        margin: 0 0 8px;
+      }
+      /* titre APRÈS : kicker xs uppercase muted */
+      .t-after {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #94a3b8;
+        margin: 0 0 12px;
+      }
+      .row {
+        font-size: 12px;
+        color: #334155;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 99px;
+        background: #1e3a8a;
+        display: inline-block;
+      }
+      .gcard {
+        border: 1px solid hsl(214 32% 88%);
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 16px;
+        font-size: 12px;
+      }
+      .band {
+        border: 1px solid hsl(214 32% 88%);
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 24px;
+        font-size: 11px;
+        color: #64748b;
+        display: flex;
+        gap: 24px;
+      }
+      .apply {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 8px;
+      }
+      .apply.after {
+        margin-top: 16px;
+      }
+      .btn {
+        height: 30px;
+        padding: 0 12px;
+        border-radius: 6px;
+        background: #1e3a8a;
+        color: #fff;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+      }
+      .note {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 8px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Phase 06.57 — Optimisation : alignement léger sur la doctrine</h1>
+    <p class="sub">
+      DEC-136. L'écran cockpit/optimisation est fonctionnellement bon (PageHeader date FR, états
+      prêt/skeleton/vide/erreur, vue comparative 2 colonnes, cibles ≥44px, dialog d'application).
+      SEUL écart : cosmétique. On aligne le satellite sur la référence cockpit (R6) :
+      <b>titres de section</b> passés du <code>text-base font-semibold</code> au <b>kicker</b> (xs
+      uppercase muted, comme <code>alerts-panel</code> du cockpit) et <b>rythme d'espacement</b>
+      homogène (échelle unique). Pas de refonte : structure comparative, logique, états, dialog,
+      pastilles véhicule et cibles 44px INCHANGÉS. Valeurs métier (libellés, date FR) inchangées.
+    </p>
+
+    <div class="grid">
+      <div class="case">
+        <p class="label">Avant — titres text-base, rythme ad hoc</p>
+        <div class="panel">
+          <div class="band"><span>Taux mutualisation 42 %</span><span>Km à vide 18</span></div>
+          <div class="cols">
+            <div>
+              <p class="t-before">Plan actuel</p>
+              <div class="row">1. 08:30 · CHU Nord</div>
+              <div class="row"><span class="dot"></span> 2. 09:00 · Le Tampon</div>
+              <div class="row">3. 09:15 · Saint-Pierre</div>
+            </div>
+            <div>
+              <p class="t-before">Plan proposé</p>
+              <div class="gcard">Groupement 1 — Taxi conv. · 2 courses</div>
+              <div class="gcard">Groupement 2 — TPMR · 2 courses</div>
+            </div>
+          </div>
+          <div class="apply"><span class="btn">Appliquer les groupements acceptés</span></div>
+        </div>
+        <p class="note">Titres lourds (concurrencent le titre de page), action collée (pt-8).</p>
+      </div>
+
+      <div class="case">
+        <p class="label">Après — kicker + rythme cohérent cockpit</p>
+        <div class="panel">
+          <div class="band"><span>Taux mutualisation 42 %</span><span>Km à vide 18</span></div>
+          <div class="cols">
+            <div>
+              <p class="t-after">Plan actuel</p>
+              <div class="row">1. 08:30 · CHU Nord</div>
+              <div class="row"><span class="dot"></span> 2. 09:00 · Le Tampon</div>
+              <div class="row">3. 09:15 · Saint-Pierre</div>
+            </div>
+            <div>
+              <p class="t-after">Plan proposé</p>
+              <div class="gcard">Groupement 1 — Taxi conv. · 2 courses</div>
+              <div class="gcard">Groupement 2 — TPMR · 2 courses</div>
+            </div>
+          </div>
+          <div class="apply after"><span class="btn">Appliquer les groupements acceptés</span></div>
+        </div>
+        <p class="note">
+          Titres = kicker (le titre de page domine), respiration cohérente avant l'action (pt-16).
+          aria-labelledby + cibles 44px conservés.
+        </p>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top: 24px">
+      Touché : <code>optimization-shell.client.tsx</code> (rythme avant l'action) +
+      <code>comparative-view.tsx</code> (titres kicker, marges mt-12). Structure 2 colonnes, logique
+      d'optimisation, états, dialog d'application, pastilles véhicule, libellés tournées/véhicules,
+      date FR : INCHANGÉS. Avant/après live = preview Vercel <code>/cockpit/optimisation</code>
+      (état lancé), jour + nuit. Termine l'étape 5 du plan d'audit UI.
+    </p>
+  </body>
+</html>

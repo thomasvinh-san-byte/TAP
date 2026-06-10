@@ -64,10 +64,13 @@ export function ComparativeView({
       <div className="grid grid-cols-1 gap-24 lg:grid-cols-2">
         {/* Panneau gauche — Plan actuel (lecture seule) */}
         <section aria-labelledby="plan-actuel-title">
-          <h2 id="plan-actuel-title" className="text-base font-semibold">
+          <h2
+            id="plan-actuel-title"
+            className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
+          >
             Plan actuel
           </h2>
-          <ol className="mt-8 space-y-4">
+          <ol className="mt-12 space-y-4">
             {currentRides.map((ride, i) => {
               const groupIdx = rideToGroupIndex.get(ride.id);
               const color = groupIdx !== undefined ? getGroupColor(groupIdx) : null;
@@ -108,10 +111,13 @@ export function ComparativeView({
           aria-labelledby="plan-propose-title"
           aria-label="Plan proposé (affiché en premier sur petit écran)"
         >
-          <h2 id="plan-propose-title" className="text-base font-semibold">
+          <h2
+            id="plan-propose-title"
+            className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
+          >
             Plan proposé
           </h2>
-          <div className="mt-8 space-y-16">
+          <div className="mt-12 space-y-16">
             {proposal.groupements.map((group, i) => {
               const rideCitycodes: (string | null)[] = [];
               return (
