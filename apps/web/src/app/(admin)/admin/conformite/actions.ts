@@ -17,6 +17,7 @@ import { z } from 'zod';
 import { complianceItemUpsertSchema, type ComplianceEntityType } from '@tap/shared';
 import { requireAdminOrRegulateur } from '@/lib/auth/require-admin-or-regulateur';
 import { requireDirigeant } from '@/lib/auth/require-dirigeant';
+import { sendEmail } from '@/lib/email/send';
 
 const blockingModeSchema = z.enum(['warn', 'block']);
 
@@ -107,6 +108,7 @@ export async function upsertComplianceItemAction(raw: unknown): Promise<ActionSt
     revalidatePath('/admin/conformite');
     revalidatePath('/admin/chauffeurs');
     revalidatePath('/admin/vehicules');
+    await maybeNotifyDeadline(ctx, v.kind, payload.expires_at);
     return { success: true, id: v.id };
   }
 
@@ -124,7 +126,40 @@ export async function upsertComplianceItemAction(raw: unknown): Promise<ActionSt
   revalidatePath('/admin/conformite');
   revalidatePath('/admin/chauffeurs');
   revalidatePath('/admin/vehicules');
+  await maybeNotifyDeadline(ctx, v.kind, payload.expires_at);
   return { success: true, id: (data as { id: string }).id };
+}
+
+/**
+ * Point de déclenchement de DÉMONSTRATION de la couture email (DEC-144, D-04).
+ *
+ * Après l'enregistrement d'une échéance, si elle arrive à terme (≤ 30 j) ou est
+ * dépassée, on notifie le dirigeant via `sendEmail`. Comme `sendEmail` est un
+ * no-op tant que `EMAIL_ENABLED` est OFF, ceci ne fait RIEN en prod (log seul).
+ * Best-effort : ne lève jamais, ne bloque jamais la sauvegarde. Prouve que la
+ * couture fonctionne — pas la livraison de la feature (récap quotidien, gabarits
+ * et persistance des préférences restent à construire, registre §1.2).
+ */
+async function maybeNotifyDeadline(
+  ctx: Awaited<ReturnType<typeof requireDirigeant>>,
+  kind: string,
+  expiresAt: string | null,
+): Promise<void> {
+  if (!ctx || !expiresAt) return;
+  try {
+    const days = Math.ceil((new Date(expiresAt).getTime() - Date.now()) / 86_400_000);
+    if (Number.isNaN(days) || days > 30) return;
+    const { data } = await ctx.supabase.auth.getUser();
+    const to = data.user?.email;
+    if (!to) return;
+    await sendEmail({
+      to,
+      subject: 'Conformité : échéance à surveiller',
+      body: `Une échéance de conformité (${kind}) arrive à terme dans ${days} jour(s).`,
+    });
+  } catch {
+    // Best-effort : une notification ne doit jamais casser l'enregistrement.
+  }
 }
 
 /**
