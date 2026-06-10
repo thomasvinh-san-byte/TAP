@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.57 livrée localement (optimisation — alignement léger sur la doctrine). PR à ouvrir."
-last_updated: "2026-06-10T08:00:00.000Z"
-last_activity: Phase 06.57 (alignement cosmétique de cockpit/optimisation sur la doctrine ; logique/états/données INCHANGÉS, 0 migration, 0 dépendance). PAS une refonte : l'écran est fonctionnellement bon. SEUL écart = cosmétique. D-01 échelle d'espacement unique cohérente avec le cockpit (comparative-view mt-8→mt-12 ; optimization-shell gap-8 pt-8→gap-12 pt-16). D-02 titres « Plan actuel »/« Plan proposé » passés de text-base font-semibold au kicker doctrine (text-muted-foreground text-xs font-semibold uppercase tracking-wide, comme alerts-panel cockpit) → PageHeader redevient dominant. D-03 structure 2 colonnes, logique useOptimization, états, dialog, pastilles, cibles 44px, aria-labelledby INCHANGÉS ; pas de maquette. D-04 périmètre = optimization-shell + comparative-view (présentation seule) ; valeurs métier (libellés, date FR) inchangées. Termine l'étape 5 du plan d'audit UI. typecheck+lint(0 err, 9 warn)+build verts, 129 web. Artefact docs/showcase/06.57-optimisation-alignement/. DEC-136 LOCKED.
-last_activity_prev: Phase 06.56 (onboarding repreneur — méthode de travail versée au repo, doc pur). DEC-135 LOCKED.
+stopped_at: "Phase 06.58 livrée localement (drivers-list migration patron + découpe LOC 645→244). PR à ouvrir."
+last_updated: "2026-06-10T10:00:00.000Z"
+last_activity: Phase 06.58 (migration drivers-list sur le patron de liste 06.53 + découpe LOC ; comportement INCHANGÉ, 0 migration, 0 dépendance). Dernière liste riche non migrée + dette LOC (645>300) résolues dans le même lot (décision dirigeant). D-01 toolbar ListToolbar (filters=ViewToggle, actions=Nouveau chauffeur vue actifs ; pas de search). D-02 compteur en ListMeta sous la toolbar (logique pluriel/archivé inchangée). D-03 Pagination pageSize 50 à seuil (sous 50 → aucune barre), pas de sélecteur lignes/page. D-04 découpe : account-status-badge / driver-row-actions / drivers-empty-state / drivers-columns (factory buildDriverColumns) + driver-invitation-dialogs (5e fichier, dialogs invite/resend). Orchestrateur 645→244 LOC. Préservés : rowKey DEC-033, 4 actions DEC-029 + aria-label, valeurs métier D-06 (permis toUpperCase, badges, colonnes, tabular-nums), Server Actions, Sheet, dialogs archive/deactivate/unarchive, stopPropagation. typecheck+lint(0 err, 8 warn)+build verts, 129 web. DEC-137 LOCKED.
+last_activity_prev: Phase 06.57 (optimisation — alignement léger sur la doctrine). DEC-136 LOCKED.
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
@@ -14,14 +14,14 @@ last_activity_prev: Phase 06.56 (onboarding repreneur — méthode de travail ve
 # + 06.43 fix cible cliquable + 06.44 refonte login + 06.45 login centré + 06.46 fix focus ring
 # + 06.47 calibrage focus + 06.48 bouton auth aligné + 06.49 dashboard densité + 06.50 conformité
 # densité + 06.51 form patient patron + 06.52 form véhicule/chauffeur + 06.53 patron de liste
-# + 06.54 form spécialisés + 06.55 chauffeur mobile + 06.57 optimisation alignement = 66. (06.40
-# hygiène docs ET 06.56 onboarding méthode = lots documentaires, hors compte feature ; 06.45
-# supersede 06.44 mais les 2 ont été livrées.) Restantes réelles = Phase 09 (HDS) + Phase 10
-# (géoloc réelle) = 2. Phase 07 abandonnée (DEC-092) hors compte.
-# Dernière phase livrée : 06.57. Dernier DEC : 136 (06.57). Dernier ADR : ADR-013 (06.33).
+# + 06.54 form spécialisés + 06.55 chauffeur mobile + 06.57 optimisation alignement
+# + 06.58 drivers-list patron+découpe = 67. (06.40 hygiène docs ET 06.56 onboarding méthode = lots
+# documentaires, hors compte feature ; 06.45 supersede 06.44 mais les 2 ont été livrées.) Restantes
+# réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07 abandonnée (DEC-092) hors compte.
+# Dernière phase livrée : 06.58. Dernier DEC : 137 (06.58). Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 68
-  completed_phases: 66
+  total_phases: 69
+  completed_phases: 67
   total_plans: 89
   completed_plans: 89
   percent: 97
@@ -34,7 +34,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.57 livrée localement (optimisation — alignement léger sur la doctrine : titres en kicker + rythme cohérent cockpit, sans refonte). 66 phases feature livrées + 2 lots documentaires (06.40, 06.56) (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; migration listes drivers/caisse/tarifs/legal (mécanique) + étapes restantes du plan d'audit (pages texte légales, utilitaires) + messagerie lots photo/push/fil général à venir.
+**Current focus:** Phase 06.58 livrée localement (drivers-list migré sur le patron de liste 06.53 + découpe LOC 645→244 en 6 fichiers). 67 phases feature livrées + 2 lots documentaires (06.40, 06.56) (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; lot listes 2/2 (caisse/tarifs/legal, mécanique) + étapes restantes du plan d'audit (pages texte légales, utilitaires) + messagerie lots photo/push/fil général à venir.
 
 ## Current Position
 
@@ -43,12 +43,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.57 livrée localement (2026-06-10) — optimisation, alignement léger sur la doctrine (cosmétique, pas de refonte). PR à ouvrir.
-Phase next: migration listes drivers/caisse/tarifs/legal (mécanique) ; étapes restantes du plan d'audit (pages texte légales, utilitaires) ; messagerie lots photo (HDS)/push (VAPID)/fil général ; Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 66 phases feature + 2 lots doc. Écran cockpit/optimisation aligné sur la doctrine (titres de section en kicker comme le cockpit, rythme d'espacement homogène) sans toucher structure/logique/états/dialog/cibles 44px. Plan d'audit UI : étape 5 terminée.
+Phase: 06.58 livrée localement (2026-06-10) — drivers-list migration patron + découpe LOC. PR à ouvrir.
+Phase next: lot listes 2/2 (caisse/tarifs/legal, mécanique) ; étapes restantes du plan d'audit (pages texte légales, utilitaires) ; messagerie lots photo (HDS)/push (VAPID)/fil général ; Phase 09 HDS + Phase 10 géoloc réelle.
+Status: 67 phases feature + 2 lots doc. Toutes les listes RICHES migrées sur le patron 06.53 (drivers inclus). drivers-list découpé 645→244 LOC (6 fichiers). Plan d'audit UI : étape 5 (optimisation) terminée ; reste listes 2/2 + pages texte légales + utilitaires.
 Blockers: aucun
-Last activity: Phase 06.57 — optimisation, alignement léger. D-01 échelle d'espacement unique cohérente cockpit (comparative-view mt-8→mt-12 ; optimization-shell gap-8 pt-8→gap-12 pt-16). D-02 titres « Plan actuel »/« Plan proposé » text-base font-semibold → kicker doctrine (xs uppercase muted, comme alerts-panel). D-03 structure 2 colonnes, useOptimization, états, dialog, pastilles, cibles 44px, aria-labelledby INCHANGÉS ; pas de maquette. D-04 présentation seule (optimization-shell + comparative-view) ; valeurs métier (libellés, date FR) inchangées. typecheck+lint+build verts, 129 web. Artefact docs/showcase/06.57-optimisation-alignement/. 0 migration, 0 dépendance. DEC-136 LOCKED. PR à ouvrir.
-Précédent: 06.56 onboarding méthode (DEC-135, doc), 06.55 parcours chauffeur mobile (DEC-134), 06.54 form spécialisés (DEC-133).
+Last activity: Phase 06.58 — drivers-list migration patron + découpe. D-01 ListToolbar (filters=ViewToggle, actions=Nouveau chauffeur ; pas de search). D-02 compteur ListMeta sous la toolbar. D-03 Pagination pageSize 50 à seuil. D-04 découpe en account-status-badge / driver-row-actions / drivers-empty-state / drivers-columns (factory) + driver-invitation-dialogs ; orchestrateur 645→244 LOC. Préservés : rowKey DEC-033, 4 actions DEC-029, valeurs métier D-06, Server Actions, Sheet, dialogs, stopPropagation. typecheck+lint+build verts, 129 web. 0 migration, 0 dépendance. DEC-137 LOCKED. PR à ouvrir.
+Précédent: 06.57 optimisation alignement (DEC-136), 06.56 onboarding méthode (DEC-135, doc), 06.55 parcours chauffeur mobile (DEC-134).
 
 Progress: [██████████] 100%
 

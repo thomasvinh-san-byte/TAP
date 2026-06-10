@@ -68,13 +68,14 @@ La migration est **présentation seule**. Ne JAMAIS toucher :
 | Courses | `(app)/courses/_components/rides-list.client.tsx` | ✅ migré | « Voir plus » → pagination par plage sur `FETCH_CAP=500` borné par date du jour ; ListToolbar + ListMeta ; pageSize 50 |
 | Patients | `(app)/patients/_components/patients-list.client.tsx` | ✅ migré | ListToolbar (SegmentedControl + PatientSearch) + ListMeta + Pagination ; pageSize 25 |
 | Véhicules | `(admin)/admin/vehicules/_components/vehicles-list.client.tsx` | ✅ migré | Pagination seule (pas de recherche/filtre existant) ; pageSize 50 ; démontre le seuil (flotte courte → aucune barre) |
-| Chauffeurs | `(admin)/admin/chauffeurs/_components/*` | ⏳ à enchaîner | 645 LOC, actions `DropdownMenu` riches (4 actions DEC-029) — mécanique mais volumineux |
+| Chauffeurs | `(admin)/admin/chauffeurs/_components/*` | ✅ migré (06.58) | ListToolbar (filters=ViewToggle + actions=Nouveau chauffeur, **pas de search**) + ListMeta (compteur sous la toolbar) + Pagination seuil pageSize 50. Découpe LOC 645→244 : extraction en `account-status-badge` / `driver-row-actions` / `drivers-empty-state` / `drivers-columns` (factory) + `driver-invitation-dialogs`. 4 actions DEC-029 + rowKey DEC-033 préservés |
 | Caisse | `(app)/courses/caisse/_components/*` | ⏳ à enchaîner | mêmes composants |
 | Tarifs | `(admin)/admin/tarifs/_components/*` | ⏳ à enchaîner | mêmes composants |
 | Legal (registre, demandes, …) | `(admin)/admin/legal/*` | ⏳ à enchaîner | gel Phase 1.5 — migrer sans mise en avant |
 
-La partie restante est **mécanique** (mêmes 3 composants, même patron) et
-sans risque métier tant que D-06 est respecté. À enchaîner en lot de suivi.
+La partie restante (caisse, tarifs, legal) est **mécanique** (mêmes composants,
+même patron) et sans risque métier tant que D-06 est respecté. À enchaîner en
+lot de suivi (« lot listes 2/2 »).
 
 ## Dette tracée
 
@@ -82,3 +83,5 @@ sans risque métier tant que D-06 est respecté. À enchaîner en lot de suivi.
   CLAUDE.md §11). Pré-existant (était 360), légèrement réduit par la
   migration mais non scindé (hors périmètre 06.53). Découpe à prévoir avec
   l'extraction des colonnes / orchestrateur.
+- ~~`drivers-list.client.tsx` 645 LOC~~ → **résolu (06.58)** : découpé en 6
+  fichiers, orchestrateur ramené à 244 LOC.
