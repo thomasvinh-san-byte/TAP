@@ -5,8 +5,10 @@ import { Plus, Inbox } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { EmptyState } from '@/components/ui/empty-state';
-import { DataTable, type DataTableColumn } from '@/components/data-table';
+import { DataTable, ListMeta, Pagination, type DataTableColumn } from '@/components/data-table';
 import { RequestDrawer } from './request-drawer.client';
+
+const PAGE_SIZE = 25;
 
 type Entry = {
   id: string;
@@ -57,6 +59,8 @@ const COLUMNS: DataTableColumn<Entry>[] = [
 
 export function RequestsList({ entries }: { entries: Entry[] }) {
   const [open, setOpen] = useState(false);
+  const [page, setPage] = useState(0);
+  const paged = entries.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
 
   return (
     <>
@@ -67,9 +71,15 @@ export function RequestsList({ entries }: { entries: Entry[] }) {
         </Button>
       </div>
 
+      {entries.length > 0 && (
+        <ListMeta>
+          {entries.length} demande{entries.length > 1 ? 's' : ''} RGPD
+        </ListMeta>
+      )}
+
       <DataTable
         columns={COLUMNS}
-        rows={entries}
+        rows={paged}
         rowKey={(e) => `${e.id}:${e.status}`}
         ariaLabel="Liste des demandes de droits patients"
         emptyState={
@@ -80,6 +90,8 @@ export function RequestsList({ entries }: { entries: Entry[] }) {
           />
         }
       />
+
+      <Pagination page={page} pageSize={PAGE_SIZE} total={entries.length} onPageChange={setPage} />
 
       <RequestDrawer open={open} onOpenChange={setOpen} />
     </>

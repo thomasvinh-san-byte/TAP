@@ -140,6 +140,11 @@ EXTERNE (donnée/spec à obtenir d'un tiers).
 - **Raison** : stocker des scans (potentiellement données santé) = dépend du stockage HDS. Le champ `document_url` existe déjà (nullable), prêt à recevoir.
 - **Déblocage** : dépend de 1.1 HDS (bucket conforme).
 
+### 4.4 Caisse — toolbar NON migrée sur le patron de liste (06.59)
+- **Décision** : non migré (2026-06-10, lot listes 2/2). La caisse (`(app)/courses/caisse/_components/caisse-toolbar.client.tsx` + `caisse-table` + `caisse-summary`) garde sa toolbar dédiée.
+- **Raison** : 🔍 choix technique. La caisse a déjà une toolbar conforme (filtre date + export, propre à l'encaissement), distincte de `ListToolbar` (recherche/filtres/actions génériques). La forcer dans le patron partagé = **abstraction prématurée** : `ListToolbar` devrait absorber un cas spécial (date + export caisse) pour un seul consommateur. Toutes les autres listes (courses, patients, véhicules, chauffeurs, legal, tarifs) sont migrées ; la caisse est le seul écart, assumé.
+- **Déblocage** : **rule-of-three** — au 2ᵉ besoin réel d'une toolbar « date + export » (un autre écran que la caisse), généraliser le motif dans `ListToolbar` (ou un `ListToolbarDateExport`) et migrer la caisse à ce moment-là.
+
 ---
 
 ## 5. Dette technique notée (pas un report fonctionnel, à surveiller)

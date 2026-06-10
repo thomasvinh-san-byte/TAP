@@ -1,7 +1,10 @@
 'use client';
 
-import { DataTable, type DataTableColumn } from '@/components/data-table';
+import { useState } from 'react';
+import { DataTable, ListMeta, Pagination, type DataTableColumn } from '@/components/data-table';
 import type { TariffGridRow } from '../page';
+
+const PAGE_SIZE = 25;
 
 function formatEur(n: number): string {
   return `${n.toFixed(2).replace('.', ',')} €`;
@@ -72,18 +75,26 @@ export function TariffHistoryTable({
   activeId: string;
 }): JSX.Element {
   const rows: Row[] = grids.map((g) => ({ ...g, isActive: g.id === activeId }));
+  const [page, setPage] = useState(0);
+  const paged = rows.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
 
   return (
     <section className="space-y-12">
       <h2 className="text-muted-foreground text-sm font-semibold uppercase tracking-wide">
         Historique des grilles
       </h2>
+      {rows.length > 0 && (
+        <ListMeta>
+          {rows.length} grille{rows.length > 1 ? 's' : ''}
+        </ListMeta>
+      )}
       <DataTable
         columns={COLUMNS}
-        rows={rows}
+        rows={paged}
         rowKey={(g) => `${g.id}:${g.isActive ? 'active' : 'archived'}`}
         ariaLabel="Historique des grilles tarifaires CGSS"
       />
+      <Pagination page={page} pageSize={PAGE_SIZE} total={rows.length} onPageChange={setPage} />
     </section>
   );
 }

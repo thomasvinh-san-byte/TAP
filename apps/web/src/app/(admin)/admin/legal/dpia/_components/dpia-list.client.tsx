@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { Plus, ClipboardCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { DataTable, type DataTableColumn } from '@/components/data-table';
+import { DataTable, ListMeta, Pagination, type DataTableColumn } from '@/components/data-table';
 import { DpiaForm } from './dpia-form.client';
+
+const PAGE_SIZE = 25;
 
 type Entry = {
   id: string;
@@ -20,6 +22,8 @@ type Entry = {
 export function DpiaList({ entries }: { entries: Entry[] }) {
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const paged = entries.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
 
   const columns: DataTableColumn<Entry>[] = [
     {
@@ -76,9 +80,15 @@ export function DpiaList({ entries }: { entries: Entry[] }) {
         </Button>
       </div>
 
+      {entries.length > 0 && (
+        <ListMeta>
+          {entries.length} analyse{entries.length > 1 ? 's' : ''} d&apos;impact
+        </ListMeta>
+      )}
+
       <DataTable
         columns={columns}
-        rows={entries}
+        rows={paged}
         rowKey={(e) => `${e.id}:${e.status}`}
         ariaLabel="Liste des analyses d'impact DPIA"
         emptyState={
@@ -95,6 +105,8 @@ export function DpiaList({ entries }: { entries: Entry[] }) {
           </div>
         }
       />
+
+      <Pagination page={page} pageSize={PAGE_SIZE} total={entries.length} onPageChange={setPage} />
 
       {creating && <DpiaForm mode="create" onClose={() => setCreating(false)} />}
       {editing && <DpiaForm mode="edit" dpiaId={editing} onClose={() => setEditing(null)} />}
