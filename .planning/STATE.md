@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.66 livrée localement (primitive Tooltip Radix + adresse/patient tronqués au survol/focus). PR à ouvrir."
-last_updated: "2026-06-11T08:00:00.000Z"
-last_activity: Phase 06.66 (primitive Tooltip Radix + adresse/patient tronqués révélés au survol/focus ; 0 migration, 1 dépendance @radix-ui/react-tooltip). Le title natif (DEC-142) est insuffisant (non stylé, peu fiable clavier/lecteur d'écran). D-01 @radix-ui/react-tooltip@^1.1.2 installé (seule dépendance, cohérent Radix existant). D-02 components/ui/tooltip.tsx (shadcn — Provider/Root/Trigger/Content tokenisés bg-foreground/text-background, max-w-280 wrap, sideOffset 4, portal ; WAI-ARIA 1.2 + WCAG 1.4.13 gratuits). D-03 TooltipProvider delayDuration=400 monté au layout (app). D-04 appliqué à address-picker-field + ride-patient-picker (TooltipTrigger asChild sur span truncate tabIndex=0, Content = valeur complète, survol + focus). D-05 title natif retiré. Garde-fou : tooltip jamais seul accès (bouton Changer conservé), pas suiveur de curseur, pas généralisé. Logique pickers INCHANGÉE. Doctrine §10 maj. package.json +1 ligne. typecheck+lint(0 err, 8 warn)+build verts, 129 web. DEC-146 LOCKED.
-last_activity_prev: Phase 06.65 harmonisation checkbox (DEC-145). Phase 06.64 échafaudage email (DEC-144).
+stopped_at: "Phase 06.67 (chore CI) livrée localement (suppression du sync-types redondant de cd.yml). PR à ouvrir."
+last_updated: "2026-06-11T09:00:00.000Z"
+last_activity: Phase 06.67 (chore CI ; 0 code applicatif, 0 migration, 0 dépendance). L'historique main subissait des re-merges en boucle (06.64/06.65/06.66 re-mergées plusieurs fois) ; contenu final sain (Git déduplique) mais historique pollué + branches en vol périmées. Cause racine : DEUX mécanismes redondants de sync de packages/database/src/types.gen.ts après chaque CD — (1) cd.yml job sync-types faisait un git push origin HEAD:main direct (sans PR) → main avançait sans cesse → branches behind → re-merges ; (2) sync-types.yml crée une PR propre (peter-evans/create-pull-request@v6, delete-branch true). Décision dirigeant Chemin B : garder types.gen.ts versionné, supprimer le mécanisme redondant. D-01 job sync-types retiré de cd.yml (aucun needs ne le visait ; deploy-migrations/deploy-edge-functions intacts). D-02 sync-types.yml conservé (seul chemin de sync, par PR propre). D-03/D-04 étapes manuelles dirigeant (hors CC) : activer auto-delete head branches + fermer la PR sync orpheline éventuelle. Garde-fous : types.gen.ts reste versionné ; db:types local conservé ; ci.yml/preview-smoke.yml/setup-vercel.yml non touchés. DEC-147 LOCKED.
+last_activity_prev: Phase 06.66 primitive Tooltip (DEC-146). Phase 06.65 harmonisation checkbox (DEC-145).
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
@@ -19,9 +19,10 @@ last_activity_prev: Phase 06.65 harmonisation checkbox (DEC-145). Phase 06.64 é
 # + 06.61 brouillons cockpit + 06.62 échafaudage messagerie + 06.63 échafaudage upload docs
 # + 06.64 échafaudage email + 06.65 harmonisation checkbox + 06.66 primitive tooltip = 75. (06.40
 # hygiène docs ET 06.56 onboarding méthode = lots documentaires, hors compte feature ; 06.45 supersede
-# 06.44 mais les 2 ont été livrées ; DEC-142 fix DialogContent = fix hors numéro de phase.) Restantes
+# 06.44 mais les 2 ont été livrées ; DEC-142 fix DialogContent = fix hors numéro de phase ;
+# 06.67 chore CI = lot hors compte feature, comme 06.40/06.56.) Restantes
 # réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07 abandonnée (DEC-092) hors compte.
-# Dernière phase livrée : 06.66. Dernier DEC : 146 (06.66). Dernier ADR : ADR-013 (06.33).
+# Dernière phase livrée : 06.67 (chore CI). Dernier DEC : 147 (06.67). Dernier ADR : ADR-013 (06.33).
 progress:
   total_phases: 77
   completed_phases: 75
@@ -37,7 +38,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.66 livrée localement (primitive `ui/Tooltip` Radix + adresse/patient tronqués révélés au survol/focus ; remplace le `title` natif). 75 phases feature livrées + 2 lots documentaires (06.40, 06.56) (cf. commentaire de comptage dans le frontmatter). 4 release toggles OFF pré-infra : GEOLOC, MESSAGING, UPLOAD_DOCS, EMAIL. Restantes : Phase 09 HDS (bucket Storage + RLS — registre §1.1/§4.3) + Phase 10 géoloc réelle ; choix provider email + `send` réel + préférences (registre §1.2) ; construction messagerie complète (registre §1.4) ; étapes restantes du plan d'audit (pages texte légales, utilitaires).
+**Current focus:** Phase 06.67 (chore CI) livrée localement (suppression du job `sync-types` redondant de `cd.yml` — fin de la dérive de re-merges ; `sync-types.yml` conservé comme seul chemin de sync par PR). 75 phases feature livrées + 3 lots hors compte (06.40 hygiène, 06.56 méthode, 06.67 chore CI) (cf. commentaire de comptage dans le frontmatter). 4 release toggles OFF pré-infra : GEOLOC, MESSAGING, UPLOAD_DOCS, EMAIL. Restantes : Phase 09 HDS (bucket Storage + RLS — registre §1.1/§4.3) + Phase 10 géoloc réelle ; choix provider email + `send` réel + préférences (registre §1.2) ; construction messagerie complète (registre §1.4) ; étapes restantes du plan d'audit (pages texte légales, utilitaires).
 
 ## Current Position
 
@@ -46,12 +47,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.66 livrée localement (2026-06-11) — primitive Tooltip Radix + adresse/patient tronqués au survol/focus. PR à ouvrir.
+Phase: 06.67 (chore CI) livrée localement (2026-06-11) — suppression du sync-types redondant de cd.yml. PR à ouvrir.
 Phase next: choix provider email + send réel + préférences (registre §1.2) ; construction messagerie complète (registre §1.4) ; Phase 09 HDS (bucket Storage + RLS — registre §1.1/§4.3) ; étapes restantes du plan d'audit (pages texte légales, utilitaires) ; Phase 10 géoloc réelle.
-Status: 75 phases feature + 2 lots doc. Primitive ui/Tooltip Radix créée (WAI-ARIA 1.2 + WCAG 1.4.13) ; appliquée aux 2 pastilles tronquées (adresse, patient), remplace le title natif ; jamais seul accès (Changer conservé). Réutilisable ensuite (icônes/badges). 4 release toggles OFF pré-infra. Logique inchangée.
+Status: 75 phases feature + 3 lots hors compte (06.40, 06.56, 06.67). Job sync-types retiré de cd.yml (faisait un push direct sur main → re-merges en boucle) ; sync-types.yml conservé comme seul chemin de sync (PR propre, delete-branch). types.gen.ts reste versionné (Chemin B). 4 release toggles OFF pré-infra. Logique applicative inchangée.
 Blockers: aucun
-Last activity: Phase 06.66 — primitive Tooltip. D-01 @radix-ui/react-tooltip installé (seule dépendance). D-02 components/ui/tooltip.tsx (shadcn, tokenisé, WAI-ARIA/WCAG gratuits). D-03 TooltipProvider delayDuration=400 au layout (app). D-04 address-picker-field + ride-patient-picker (TooltipTrigger asChild span truncate tabIndex=0, Content = valeur complète, survol + focus). D-05 title natif retiré. Garde-fou : jamais seul accès (Changer), pas suiveur de curseur, pas généralisé. Logique pickers INCHANGÉE. Doctrine §10 maj. package.json +1 ligne. typecheck+lint+build verts, 129 web. 0 migration, 1 dépendance. DEC-146 LOCKED. PR à ouvrir.
-Précédent: 06.65 harmonisation checkbox (DEC-145), 06.64 échafaudage email (DEC-144), 06.63 échafaudage upload docs (DEC-143).
+Last activity: Phase 06.67 (chore CI). Cause racine : DEUX mécanismes de sync de types.gen.ts après CD — cd.yml job sync-types (push direct HEAD:main, sans PR) + sync-types.yml (PR propre). Le push direct faisait avancer main sans cesse → branches behind → re-merges (06.64/06.65/06.66 re-mergées plusieurs fois). D-01 job sync-types retiré de cd.yml (deploy-migrations/deploy-edge-functions intacts). D-02 sync-types.yml conservé. D-03/D-04 étapes manuelles dirigeant (auto-delete head branches + fermer PR sync orpheline). types.gen.ts versionné conservé ; db:types local conservé ; ci.yml/preview-smoke.yml/setup-vercel.yml non touchés. 0 code applicatif, 0 migration, 0 dépendance. DEC-147 LOCKED. PR à ouvrir.
+Précédent: 06.66 primitive Tooltip (DEC-146), 06.65 harmonisation checkbox (DEC-145), 06.64 échafaudage email (DEC-144).
 
 Progress: [██████████] 100%
 
