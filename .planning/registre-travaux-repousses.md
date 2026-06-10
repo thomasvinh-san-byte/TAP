@@ -148,17 +148,22 @@ EXTERNE (donnée/spec à obtenir d'un tiers).
 ---
 
 ## 5. Dette technique notée (pas un report fonctionnel, à surveiller)
-- **ESLint v10 flat config cassé (pré-existant, depuis Phase 04)** : ESLint 10.1.0 impose
-  le flat config ; le repo a encore des `.eslintrc.*` (V8) → `pnpm lint` rouge par défaut
-  (`@tap/shared`, `@tap/database` : config introuvable ; `apps/web` : `next lint` interactif).
-  `pnpm typecheck` reste vert. Déblocage : 🔍 PR dédiée `chore(tooling): migrate ESLint flat
-  config + Next lint setup`. (Issu de phases/04 deferred-items, fusionné 2026-06-08.)
-- **Test SIRET Luhn échoue sur fixture Carrefour (pré-existant, depuis Phase 01/01.5)** :
-  `siretSchema.parse('40483304800010')` échoue le contrôle Luhn dans
-  `packages/shared/src/validators/common.ts`. Cause probable : mauvais SIRET de test OU bug
-  `verifyLuhn`. Déblocage : 🔍 valider l'algo contre 5+ SIRET réels publics avant de toucher
-  au schema ; correctif `fix(shared): SIRET Luhn check` (≤1h). (Issu de phases/01 + 01.5
-  deferred-items, fusionné 2026-06-08.)
+- ~~**ESLint flat config**~~ → **RÉSOLU** (constaté 2026-06-10). `eslint.config.mjs` racine
+  en place (flat config ESLint 9.39.4 ; plugins `@eslint/js` / `typescript-eslint` /
+  `@next/eslint-plugin-next` / `eslint-plugin-react-hooks` ; aucun `.eslintrc.*` legacy ;
+  scripts `eslint src`). `pnpm lint` vert (0 erreur, quelques `warn` volontaires). L'ancienne
+  note parlait d'« ESLint 10.1.0 » — jamais le cas, le repo est en 9.x ; elle décrivait un
+  état pré-résolution. Dette CI V1.5 « D1 » close (cf. en-tête de `eslint.config.mjs`).
+- ~~**Test SIRET Luhn (fixture Carrefour)**~~ → **RÉSOLU** (2026-06-10, `fix/shared-siret-luhn-fixture`).
+  Diagnostic tranché et SOURCÉ : l'algorithme `verifyLuhn` (`packages/shared/src/validators/common.ts`)
+  est CORRECT (doubler les index 0-based impairs depuis la droite = spec INSEE ; vérifié contre
+  le nombre Luhn canonique `79927398713` et le SIRET valide `20003452800014` d'InseeFrLab/validinsee).
+  C'était le **fixture** qui était faux : `40483304800010` (SIREN 404833048 + NIC 0001 + clé 0)
+  n'est pas Luhn-valide ; la clé correcte est **4** (`40483304800014`). Le fixture Carrefour avait
+  déjà été retiré du test ; on a ajouté un cas valide Carrefour `40483304800014` + un cas négatif
+  de régression `40483304800010` (doit être rejeté). Algo INCHANGÉ. Suite `@tap/shared` verte
+  (124 tests). Piège connexe documenté (NON introduit) : les SIRET La Poste (SIREN 356000000) ne
+  respectent pas Luhn — hors périmètre, aucun établissement La Poste dans TAP.
 - Audit complet Server Actions row count check (DEC-041) : généralisé en conformité, à confirmer partout.
 - Imports cross-domaine profonds vers `_lib/compliance-planning` (lot 3 conformité) : à déplacer en lib neutre si retouché.
 - 4 fichiers courses > 300 lignes (address-picker, assign-modal, rides-list, ride-drawer) : hors limite CON-008, non urgents.
