@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.58 livrée localement (drivers-list migration patron + découpe LOC 645→244). PR à ouvrir."
-last_updated: "2026-06-10T10:00:00.000Z"
-last_activity: Phase 06.58 (migration drivers-list sur le patron de liste 06.53 + découpe LOC ; comportement INCHANGÉ, 0 migration, 0 dépendance). Dernière liste riche non migrée + dette LOC (645>300) résolues dans le même lot (décision dirigeant). D-01 toolbar ListToolbar (filters=ViewToggle, actions=Nouveau chauffeur vue actifs ; pas de search). D-02 compteur en ListMeta sous la toolbar (logique pluriel/archivé inchangée). D-03 Pagination pageSize 50 à seuil (sous 50 → aucune barre), pas de sélecteur lignes/page. D-04 découpe : account-status-badge / driver-row-actions / drivers-empty-state / drivers-columns (factory buildDriverColumns) + driver-invitation-dialogs (5e fichier, dialogs invite/resend). Orchestrateur 645→244 LOC. Préservés : rowKey DEC-033, 4 actions DEC-029 + aria-label, valeurs métier D-06 (permis toUpperCase, badges, colonnes, tabular-nums), Server Actions, Sheet, dialogs archive/deactivate/unarchive, stopPropagation. typecheck+lint(0 err, 8 warn)+build verts, 129 web. DEC-137 LOCKED.
-last_activity_prev: Phase 06.57 (optimisation — alignement léger sur la doctrine). DEC-136 LOCKED.
+stopped_at: "Phase 06.59 livrée localement (lot listes 2/2 — listes courtes legal+tarifs sur le patron ; caisse non migrée). PR à ouvrir."
+last_updated: "2026-06-10T12:00:00.000Z"
+last_activity: Phase 06.59 (lot listes 2/2 — généralisation patron 06.53 sur les listes courtes ; présentation seule, 0 migration, 0 dépendance). D-01 ListMeta au-dessus de chaque DataTable, libellé métier propre (DPIA analyse d'impact / DPA contrat sous-traitant / Violations / Demandes RGPD / Tarifs grille), affiché si non vide. D-02 Pagination à seuil pageSize 25 (barre masquée sous 25 lignes — voulu). D-03 tariff-history-table total=rows.length, titre « Historique des grilles » + rowKey conservés, ListMeta sous le titre. Migrés : dpia-list, dpa-list, breach-list, requests-list, tariff-history-table. Préservé D-06 : colonnes, libellés/statuts RGPD (Article 33, demandes), grilles CGSS, formats FR/974, tabular-nums, rowKey, EmptyState, données/Server Actions/drawers INCHANGÉS. Caisse NON migrée (décision sourcée : toolbar dédiée déjà conforme, abstraction prématurée ; registre §4.4, rule-of-three). Achève la migration des listes. typecheck+lint(0 err, 8 warn)+build verts, 129 web. DEC-138 LOCKED.
+last_activity_prev: Phase 06.58 (drivers-list migration patron + découpe LOC 645→244). DEC-137 LOCKED.
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
@@ -15,13 +15,14 @@ last_activity_prev: Phase 06.57 (optimisation — alignement léger sur la doctr
 # + 06.47 calibrage focus + 06.48 bouton auth aligné + 06.49 dashboard densité + 06.50 conformité
 # densité + 06.51 form patient patron + 06.52 form véhicule/chauffeur + 06.53 patron de liste
 # + 06.54 form spécialisés + 06.55 chauffeur mobile + 06.57 optimisation alignement
-# + 06.58 drivers-list patron+découpe = 67. (06.40 hygiène docs ET 06.56 onboarding méthode = lots
-# documentaires, hors compte feature ; 06.45 supersede 06.44 mais les 2 ont été livrées.) Restantes
-# réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07 abandonnée (DEC-092) hors compte.
-# Dernière phase livrée : 06.58. Dernier DEC : 137 (06.58). Dernier ADR : ADR-013 (06.33).
+# + 06.58 drivers-list patron+découpe + 06.59 listes courtes legal+tarifs = 68. (06.40 hygiène docs
+# ET 06.56 onboarding méthode = lots documentaires, hors compte feature ; 06.45 supersede 06.44 mais
+# les 2 ont été livrées.) Restantes réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07
+# abandonnée (DEC-092) hors compte.
+# Dernière phase livrée : 06.59. Dernier DEC : 138 (06.59). Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 69
-  completed_phases: 67
+  total_phases: 70
+  completed_phases: 68
   total_plans: 89
   completed_plans: 89
   percent: 97
@@ -34,7 +35,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.58 livrée localement (drivers-list migré sur le patron de liste 06.53 + découpe LOC 645→244 en 6 fichiers). 67 phases feature livrées + 2 lots documentaires (06.40, 06.56) (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; lot listes 2/2 (caisse/tarifs/legal, mécanique) + étapes restantes du plan d'audit (pages texte légales, utilitaires) + messagerie lots photo/push/fil général à venir.
+**Current focus:** Phase 06.59 livrée localement (lot listes 2/2 — listes courtes legal+tarifs sur le patron ; migration des listes terminée, caisse non migrée par décision sourcée). 68 phases feature livrées + 2 lots documentaires (06.40, 06.56) (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; étapes restantes du plan d'audit (pages texte légales, utilitaires) + messagerie lots photo/push/fil général à venir.
 
 ## Current Position
 
@@ -43,12 +44,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.58 livrée localement (2026-06-10) — drivers-list migration patron + découpe LOC. PR à ouvrir.
-Phase next: lot listes 2/2 (caisse/tarifs/legal, mécanique) ; étapes restantes du plan d'audit (pages texte légales, utilitaires) ; messagerie lots photo (HDS)/push (VAPID)/fil général ; Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 67 phases feature + 2 lots doc. Toutes les listes RICHES migrées sur le patron 06.53 (drivers inclus). drivers-list découpé 645→244 LOC (6 fichiers). Plan d'audit UI : étape 5 (optimisation) terminée ; reste listes 2/2 + pages texte légales + utilitaires.
+Phase: 06.59 livrée localement (2026-06-10) — lot listes 2/2 (listes courtes legal+tarifs). PR à ouvrir.
+Phase next: étapes restantes du plan d'audit (pages texte légales, utilitaires) ; messagerie lots photo (HDS)/push (VAPID)/fil général ; Phase 09 HDS + Phase 10 géoloc réelle.
+Status: 68 phases feature + 2 lots doc. **Migration des listes terminée** : toutes les listes sur DataTable portent le patron 06.53 (ListMeta + Pagination à seuil), seule la caisse reste hors patron (décision sourcée, toolbar dédiée). Plan d'audit UI : reste pages texte légales + utilitaires.
 Blockers: aucun
-Last activity: Phase 06.58 — drivers-list migration patron + découpe. D-01 ListToolbar (filters=ViewToggle, actions=Nouveau chauffeur ; pas de search). D-02 compteur ListMeta sous la toolbar. D-03 Pagination pageSize 50 à seuil. D-04 découpe en account-status-badge / driver-row-actions / drivers-empty-state / drivers-columns (factory) + driver-invitation-dialogs ; orchestrateur 645→244 LOC. Préservés : rowKey DEC-033, 4 actions DEC-029, valeurs métier D-06, Server Actions, Sheet, dialogs, stopPropagation. typecheck+lint+build verts, 129 web. 0 migration, 0 dépendance. DEC-137 LOCKED. PR à ouvrir.
-Précédent: 06.57 optimisation alignement (DEC-136), 06.56 onboarding méthode (DEC-135, doc), 06.55 parcours chauffeur mobile (DEC-134).
+Last activity: Phase 06.59 — lot listes 2/2 (listes courtes). D-01 ListMeta libellé métier propre (analyse d'impact/contrat sous-traitant/violation/demande RGPD/grille), affiché si non vide. D-02 Pagination à seuil pageSize 25 (barre masquée sous 25 — voulu). D-03 tariff-history-table total=rows.length, titre+rowKey conservés. Migrés : dpia/dpa/breach/requests/tariff-history. Préservé D-06 (RGPD/CGSS, colonnes, formats FR/974, rowKey, EmptyState, données/Server Actions/drawers). Caisse non migrée (registre §4.4, rule-of-three). typecheck+lint+build verts, 129 web. 0 migration, 0 dépendance. DEC-138 LOCKED. PR à ouvrir.
+Précédent: 06.58 drivers-list patron+découpe (DEC-137), 06.57 optimisation alignement (DEC-136), 06.56 onboarding méthode (DEC-135, doc).
 
 Progress: [██████████] 100%
 

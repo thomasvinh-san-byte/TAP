@@ -69,13 +69,14 @@ La migration est **présentation seule**. Ne JAMAIS toucher :
 | Patients | `(app)/patients/_components/patients-list.client.tsx` | ✅ migré | ListToolbar (SegmentedControl + PatientSearch) + ListMeta + Pagination ; pageSize 25 |
 | Véhicules | `(admin)/admin/vehicules/_components/vehicles-list.client.tsx` | ✅ migré | Pagination seule (pas de recherche/filtre existant) ; pageSize 50 ; démontre le seuil (flotte courte → aucune barre) |
 | Chauffeurs | `(admin)/admin/chauffeurs/_components/*` | ✅ migré (06.58) | ListToolbar (filters=ViewToggle + actions=Nouveau chauffeur, **pas de search**) + ListMeta (compteur sous la toolbar) + Pagination seuil pageSize 50. Découpe LOC 645→244 : extraction en `account-status-badge` / `driver-row-actions` / `drivers-empty-state` / `drivers-columns` (factory) + `driver-invitation-dialogs`. 4 actions DEC-029 + rowKey DEC-033 préservés |
-| Caisse | `(app)/courses/caisse/_components/*` | ⏳ à enchaîner | mêmes composants |
-| Tarifs | `(admin)/admin/tarifs/_components/*` | ⏳ à enchaîner | mêmes composants |
-| Legal (registre, demandes, …) | `(admin)/admin/legal/*` | ⏳ à enchaîner | gel Phase 1.5 — migrer sans mise en avant |
+| Caisse | `(app)/courses/caisse/_components/*` | ⏭️ non migré (décision sourcée) | Toolbar dédiée déjà conforme (date + export, propre à l'encaissement) ; migration = abstraction prématurée. Tracé registre travaux repoussés §4.4 (🔍, déblocage rule-of-three). |
+| Tarifs | `(admin)/admin/tarifs/_components/tariff-history-table.client.tsx` | ✅ migré (06.59) | ListMeta « N grille(s) » sous le titre « Historique des grilles » + Pagination seuil pageSize 25 ; titre + rowKey conservés |
+| Legal (dpia/dpa/breaches/requests) | `(admin)/admin/legal/*/_components/*-list.client.tsx` | ✅ migré (06.59) | ListMeta (analyse d'impact / contrat sous-traitant / violation / demande RGPD) + Pagination seuil pageSize 25 ; valeurs RGPD, colonnes, EmptyState intacts |
 
-La partie restante (caisse, tarifs, legal) est **mécanique** (mêmes composants,
-même patron) et sans risque métier tant que D-06 est respecté. À enchaîner en
-lot de suivi (« lot listes 2/2 »).
+**Migration terminée (06.59).** Toutes les listes sur `DataTable` portent le
+patron (ListMeta + Pagination à seuil), à la **seule** exception de la **caisse**
+— non migrée par décision sourcée (toolbar dédiée déjà conforme, migration =
+abstraction prématurée ; registre travaux repoussés §4.4, déblocage rule-of-three).
 
 ## Dette tracée
 
