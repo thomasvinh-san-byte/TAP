@@ -24,6 +24,8 @@ interface Props {
   initialVehicles: VehicleRow[];
   /** Map vehicle_id → prochaine date d'échéance (Phase 06.33). */
   nextComplianceByVehicleId?: Record<string, string>;
+  /** Échafaudage upload documents conformité (DEC-143, évalué serveur). */
+  uploadEnabled?: boolean;
 }
 
 type Mode = { kind: 'closed' } | { kind: 'create' } | { kind: 'edit'; vehicle: VehicleRow };
@@ -42,7 +44,11 @@ const TYPE_ICONS: Record<VehicleRow['type'], LucideIcon> = {
   ambulance: PlusCircle,
 };
 
-export function VehiclesList({ initialVehicles, nextComplianceByVehicleId }: Props): JSX.Element {
+export function VehiclesList({
+  initialVehicles,
+  nextComplianceByVehicleId,
+  uploadEnabled = false,
+}: Props): JSX.Element {
   const router = useRouter();
   const [mode, setMode] = React.useState<Mode>({ kind: 'closed' });
   const [archiveTarget, setArchiveTarget] = React.useState<VehicleRow | null>(null);
@@ -190,12 +196,15 @@ export function VehiclesList({ initialVehicles, nextComplianceByVehicleId }: Pro
             </SheetDescription>
           </SheetHeader>
 
-          {mode.kind === 'create' && <VehicleForm onSuccess={onSuccess} onCancel={close} />}
+          {mode.kind === 'create' && (
+            <VehicleForm onSuccess={onSuccess} onCancel={close} uploadEnabled={uploadEnabled} />
+          )}
           {mode.kind === 'edit' && (
             <VehicleForm
               initial={mode.vehicle}
               onSuccess={onSuccess}
               onCancel={close}
+              uploadEnabled={uploadEnabled}
               onArchive={() => setArchiveTarget(mode.vehicle)}
             />
           )}

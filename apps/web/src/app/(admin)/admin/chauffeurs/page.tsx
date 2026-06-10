@@ -110,6 +110,7 @@ export default async function ChauffeursPage(props: { searchParams?: Promise<{ v
         currentRole={role as 'dirigeant' | 'regulateur'}
         vue={vueArchives ? 'archives' : 'actifs'}
         nextComplianceByDriverId={nextComplianceByDriverId}
+        uploadEnabled={process.env.UPLOAD_DOCS_ENABLED === 'true'}
       />
     </div>
   );

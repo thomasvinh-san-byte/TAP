@@ -31,6 +31,8 @@ interface Props {
   onCancel?: () => void;
   /** Archiver (édition) — affiche le bouton destructif en bas du corps. */
   onArchive?: () => void;
+  /** Échafaudage upload documents conformité (DEC-143, évalué serveur). */
+  uploadEnabled?: boolean;
 }
 
 /**
@@ -41,7 +43,13 @@ interface Props {
  * `max-w` internes (immat, type) restent des contraintes de champ légitimes.
  * Données/validation/Server Actions inchangées.
  */
-export function VehicleForm({ initial, onSuccess, onCancel, onArchive }: Props): JSX.Element {
+export function VehicleForm({
+  initial,
+  onSuccess,
+  onCancel,
+  onArchive,
+  uploadEnabled = false,
+}: Props): JSX.Element {
   const action = initial ? updateVehicleAction.bind(null, initial.id) : createVehicleAction;
   const [state, formAction] = useFormState<ActionState, FormData>(action, {});
 
@@ -162,7 +170,11 @@ export function VehicleForm({ initial, onSuccess, onCancel, onArchive }: Props):
 
         {initial && (
           <FormSection title="Conformité">
-            <ComplianceFieldset entityType="vehicle" entityId={initial.id} />
+            <ComplianceFieldset
+              entityType="vehicle"
+              entityId={initial.id}
+              uploadEnabled={uploadEnabled}
+            />
           </FormSection>
         )}
 

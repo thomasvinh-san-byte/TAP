@@ -27,6 +27,8 @@ interface Props {
   onCancel?: () => void;
   /** Archiver (édition, dirigeant) — affiche le bouton destructif en bas du corps. */
   onArchive?: () => void;
+  /** Échafaudage upload documents conformité (DEC-143, évalué serveur). */
+  uploadEnabled?: boolean;
 }
 
 /**
@@ -36,7 +38,13 @@ interface Props {
  * checkbox tokenisée (`ui/Checkbox`), statut hors `FormSection`. Largeur =
  * celle du drawer (w-full). Données/validation/Server Actions inchangées.
  */
-export function DriverForm({ initial, onSuccess, onCancel, onArchive }: Props): JSX.Element {
+export function DriverForm({
+  initial,
+  onSuccess,
+  onCancel,
+  onArchive,
+  uploadEnabled = false,
+}: Props): JSX.Element {
   const action = initial ? updateDriverAction.bind(null, initial.id) : createDriverAction;
   const [state, formAction] = useFormState<ActionState, FormData>(action, {});
 
@@ -123,7 +131,11 @@ export function DriverForm({ initial, onSuccess, onCancel, onArchive }: Props): 
 
         {initial && (
           <FormSection title="Conformité">
-            <ComplianceFieldset entityType="driver" entityId={initial.id} />
+            <ComplianceFieldset
+              entityType="driver"
+              entityId={initial.id}
+              uploadEnabled={uploadEnabled}
+            />
           </FormSection>
         )}
 

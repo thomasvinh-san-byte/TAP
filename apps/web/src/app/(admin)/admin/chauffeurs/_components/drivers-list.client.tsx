@@ -36,6 +36,8 @@ interface Props {
   vue: Vue;
   /** Map driver_id → prochaine date d'échéance (Phase 06.33). */
   nextComplianceByDriverId?: Record<string, string>;
+  /** Échafaudage upload documents conformité (DEC-143, évalué serveur). */
+  uploadEnabled?: boolean;
 }
 
 type Mode = { kind: 'closed' } | { kind: 'create' } | { kind: 'edit'; driver: DriverRow };
@@ -47,6 +49,7 @@ export function DriversList({
   currentRole,
   vue,
   nextComplianceByDriverId,
+  uploadEnabled = false,
 }: Props): JSX.Element {
   const router = useRouter();
   const isDirigeant = currentRole === 'dirigeant';
@@ -172,12 +175,15 @@ export function DriversList({
             </SheetDescription>
           </SheetHeader>
 
-          {mode.kind === 'create' && <DriverForm onSuccess={onSuccess} onCancel={close} />}
+          {mode.kind === 'create' && (
+            <DriverForm onSuccess={onSuccess} onCancel={close} uploadEnabled={uploadEnabled} />
+          )}
           {mode.kind === 'edit' && (
             <DriverForm
               initial={mode.driver}
               onSuccess={onSuccess}
               onCancel={close}
+              uploadEnabled={uploadEnabled}
               onArchive={
                 isDirigeant && !mode.driver.archive
                   ? () => setArchiveTarget(mode.driver)
