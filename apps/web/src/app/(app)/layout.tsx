@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getAuthContext } from '@/lib/auth/get-auth-context';
 import { AppHeader } from '@/components/app-header';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { MessagingButton } from '@/components/messaging/messaging-button.client';
 import { Providers } from './providers.client';
 import { RideExpressOrchestrator } from './courses/_components/ride-express-orchestrator.client';
@@ -29,15 +30,17 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <Providers>
-      <RideExpressOrchestrator>
-        <div className="bg-background flex min-h-screen flex-col">
-          <AppHeader
-            role={ctx.role as 'dirigeant' | 'regulateur'}
-            extras={messagingEnabled ? <MessagingButton /> : undefined}
-          />
-          <main className="mx-auto w-full max-w-[1280px] flex-1 px-24 py-24">{children}</main>
-        </div>
-      </RideExpressOrchestrator>
+      <TooltipProvider delayDuration={400}>
+        <RideExpressOrchestrator>
+          <div className="bg-background flex min-h-screen flex-col">
+            <AppHeader
+              role={ctx.role as 'dirigeant' | 'regulateur'}
+              extras={messagingEnabled ? <MessagingButton /> : undefined}
+            />
+            <main className="mx-auto w-full max-w-[1280px] flex-1 px-24 py-24">{children}</main>
+          </div>
+        </RideExpressOrchestrator>
+      </TooltipProvider>
     </Providers>
   );
 }

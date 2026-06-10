@@ -91,8 +91,16 @@ Le form lui-même : `mx-auto w-full max-w-[980px] space-y-24`.
   quels que soient les enfants. Ex. `DialogContent` (grid) porte `[&>*]:min-w-0`
   (force `min-width: 0` sur ses enfants directs) → corrige les 14 modals d'un
   coup. Sourcé : CSS-Tricks « Preventing a Grid Blowout », W3C csswg, MDN.
-- Complément gratuit : `title={valeur}` sur un `<span class="truncate">` →
-  tooltip natif révélant le texte complet au survol (accessible, standard).
+- **Texte tronqué porteur d'info → primitive `ui/Tooltip` (Radix), jamais
+  `title` natif** (DEC-146). Le `title` natif est non stylé, incohérent et peu
+  fiable au clavier/lecteur d'écran. `ui/Tooltip` (Radix) est ancré au champ
+  (jamais suiveur de curseur), déclenché au survol ET au focus clavier,
+  WAI-ARIA 1.2 + WCAG 1.4.13 gratuits. `TooltipProvider` est monté une fois au
+  layout `(app)`. Wrapper : `TooltipTrigger asChild` autour du `<span
+  class="truncate" tabIndex={0}>` + `TooltipContent` = valeur complète.
+- **Le tooltip n'est JAMAIS le seul accès** à une info (sourcé Material UI /
+  Sarah Higley) : toujours un filet (ex. adresse course = bouton « Changer » qui
+  rouvre la recherche). Tooltip = confort, pas accès unique.
 
 ## Application 06.51 (patient)
 - 2 colonnes : GAUCHE Identité + Préférences ; DROITE Coordonnées + Note.
