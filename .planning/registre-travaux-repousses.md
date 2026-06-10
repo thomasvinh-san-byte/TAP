@@ -176,6 +176,16 @@ EXTERNE (donnée/spec à obtenir d'un tiers).
 - Imports cross-domaine profonds vers `_lib/compliance-planning` (lot 3 conformité) : à déplacer en lib neutre si retouché.
 - 4 fichiers courses > 300 lignes (address-picker, assign-modal, rides-list, ride-drawer) : hors limite CON-008, non urgents.
 - Déplacement physique URLs `/admin/*` → `/` (DEC-107) : refactor volontairement non fait (coût > gain).
+- **Doctrine CI sync `types.gen.ts`** (posée 2026-06-10, Phase 06.67, DEC-147) : un seul
+  chemin de sync pour un fichier généré versionné = **PR via `sync-types.yml`**, JAMAIS de
+  push direct sur `main`. L'ancien job `sync-types` de `cd.yml` faisait un `git push origin
+  HEAD:main` après chaque CD → `main` avançait sans cesse → branches en vol « behind » →
+  re-merges en boucle (06.64/06.65/06.66 re-mergées plusieurs fois ; contenu final sain car
+  Git déduplique, mais historique pollué). Job retiré (Chemin B : `types.gen.ts` reste
+  versionné, build Vercel autonome). **Chemin A envisageable plus tard** : dé-committer
+  `types.gen.ts` (gitignore) + génération au build CI/Vercel — uniquement si accès Supabase
+  (project ref + secrets) garanti en CI au moment du build ; sinon le build casse. Tant que
+  ce n'est pas garanti, on garde le fichier versionné + PR de sync.
 
 ---
 
