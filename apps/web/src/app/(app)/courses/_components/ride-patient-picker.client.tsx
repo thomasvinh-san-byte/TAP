@@ -56,7 +56,9 @@ export function PatientPickerField({ selectedLabel, onSelect, error }: Props): J
         >
           <div className="flex min-w-0 items-center gap-12">
             <InitialsAvatar name={selectedLabel} size={32} />
-            <span className="truncate font-medium">{selectedLabel}</span>
+            <span className="truncate font-medium" title={selectedLabel}>
+              {selectedLabel}
+            </span>
           </div>
           <Button
             type="button"
