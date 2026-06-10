@@ -3,6 +3,7 @@
 > SaaS de régulation, optimisation, communication patient et pilotage pour sociétés de Transport Assis Professionnalisé (TAP) et taxiteurs conventionnés CGSS à La Réunion.
 
 **Document central pour Claude Code et l'équipe : [`CLAUDE.md`](./CLAUDE.md).**
+**Méthode de travail en binôme architecte-chat + Claude Code : [`.planning/METHODE-ARCHITECTE-CHAT.md`](./.planning/METHODE-ARCHITECTE-CHAT.md)** (gabarit de prompt : [`.planning/PROMPT-MODELE.md`](./.planning/PROMPT-MODELE.md)).
 **Cahier des charges V2 (référence métier) : `docs/cahier_des_charges_saas_tap_v2.docx`.**
 
 ---

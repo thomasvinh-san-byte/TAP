@@ -1,85 +1,112 @@
-# Doctrine — parcours chauffeur mobile (PWA terrain)
+# Doctrine mobile — parcours chauffeur (PWA terrain)
 
-> Doctrine durable issue de la Phase 06.55 (DEC-134). À relire avant toute
-> évolution de l'écran chauffeur (`apps/web/src/app/(driver)/`).
+> Nature DISTINCTE du back-office régulateur : usage terrain, une main, en
+> mouvement, réseau variable. Les doctrines alignement/formulaire ne
+> s'appliquent PAS telles quelles. Sourcée. 2026-06-09.
 
-## Principe : nature DISTINCTE du back-office
+## Constat (captures + code)
 
-Le chauffeur est sur le terrain : soleil, batterie, **une seule main**, mains
-parfois occupées, réseau 3G. L'écran chauffeur n'est pas une version réduite du
-back-office régulateur — c'est un produit à part avec ses propres règles.
+- Layout `(driver)` : `<main mx-auto max-w-[640px]>` → sur DESKTOP, colonne
+  centrée + grand vide beige (artefact de visualisation ; sur vrai téléphone =
+  plein écran, OK). 640px est correct pour mobile. Ne PAS sur-corriger : c'est
+  une PWA mobile.
+- Bandeau « PWA debug · état détecté : unsupported » VISIBLE → ne doit JAMAIS
+  être en prod.
+- Bandeau géoloc très verbeux (5 lignes) en haut → mange la hauteur sur petit
+  écran.
+- Actions (Démarrer/Clôturer/Patient absent) en bas de carte → globalement bien.
+- Cartes course : liseré d'état (orange en cours, vert terminé) = bon repère
+  visuel.
 
-`(driver)` layout = `<main mx-auto max-w-[640px]>` : mobile assumé. Le « vide »
-sur grand écran est un **artefact** (la PWA est utilisée sur téléphone) — ne pas
-sur-corriger le rendu desktop.
+## Principes sourcés (mobile/PWA terrain 2025-2026)
 
-## Règles sourcées
+1. **Zone du pouce** : actions primaires dans les 2/3 inférieurs ; coins hauts =
+   nav/actions rares. Usage une main = la norme terrain.
+2. **Cibles ≥44×44px** + espacement suffisant (anti fat-finger).
+3. **Responsive PWA** : réarranger selon viewport ; mobile-first (prioriser
+   données + actions importantes). 640px max = OK mobile ; sur desktop, accepter
+   le centrage (PWA destinée au téléphone) OU tinter le fond pour ancrer (déjà
+   fait).
+4. **Mobile-first / trim** : masquer le superflu (debug), condenser les bandeaux
+   verbeux, garder l'essentiel (heure, patient, trajet, action).
+5. **Feedback tap** (toasts « Course démarrée » déjà présents = bon), états
+   offline (PWA, réseau variable) — cached-first.
+6. **Patterns natifs** : back qui restaure la position de scroll, bottom-sheet
+   pour les modales d'action (Clôturer/Absent) plutôt que modale centrée.
 
-### 1. Zone du pouce
+## Doctrine TAP mobile (règles)
 
-Actions primaires **en bas** de l'écran/carte, cible **≥ 44px** (h-11). La
-primaire (Démarrer / Clôturer) = `h-14` (56px). Les actions lourdes
-(« Patient absent », course perdue) sont **un cran moins proéminentes**
-(`h-12` outline) et **détachées** par un écart + filet (anti mis-tap, DEC-014).
+- **M1 — Largeur mobile assumée.** max-w ~640px CONSERVÉ (mobile). Sur desktop,
+  ne pas chercher à remplir : c'est une PWA téléphone. Le tint de fond ancre
+  déjà visuellement.
+- **M2 — Zéro debug en prod.** Le bandeau « PWA debug/état détecté » masqué hors
+  dev (NODE_ENV/flag). Jamais visible par un chauffeur.
+- **M3 — Bandeau géoloc condensé.** Version courte par défaut (1 ligne + « i »
+  qui déplie le détail), dismissable et mémorisé (ne pas réafficher le pavé à
+  chaque visite).
+- **M4 — Actions dans la zone du pouce.** Action primaire de course
+  (Démarrer/Clôturer) large, en bas de carte (déjà ~OK). Cibles ≥44px,
+  espacement anti-erreur. Action destructive (Patient absent) visuellement
+  distincte et un cran moins accessible.
+- **M5 — Cartes course lisibles.** Heure (gros, tabular), patient, mode·statut,
+  trajet (départ→arrivée), liseré d'état. Hiérarchie claire, scannable d'un coup
+  d'œil en mouvement. Conserver les libellés métier (Taxi conv., TPMR,
+  Programmée…).
+- **M6 — Modales d'action = bottom-sheet sur mobile.** Clôturer/Absent en
+  feuille basse (pouce) plutôt que modale centrée, si faisable sans gros
+  refactor ; sinon modale OK mais boutons en zone basse.
 
-### 2. Modales d'action → bottom-sheet (jamais boîte centrée)
+## Prochaine étape : MAQUETTE mobile (cadre téléphone ~390px)
 
-Sur mobile, une modale d'action devient un **bottom-sheet** ancré en bas : le
-pouce est déjà en bas (les actions partent du bas de carte), une boîte centrée
-oblige à remonter. Sourcé Material Design (bottom sheets) / LogRocket (mobile
-modal patterns).
+Maquette de « Ma journée » dans un cadre téléphone réel (pas étiré desktop)
+appliquant M1-M5 : bandeau géoloc condensé, pas de debug, carte course dense +
+action pouce. Validée avant implémentation. Le détail course / modales = lot
+suivant si besoin.
 
-Composant partagé : `components/ui/bottom-sheet.tsx`, construit sur **Radix
-Dialog** → focus trap, `aria-modal`, fermeture Escape + backdrop **gratuits**
-(RGAA). Ajoute poignée de glissement + **drag-to-dismiss** tactile (seuil 96px).
-Fermeture : swipe poignée, backdrop, Escape, ou boutons d'action en bas.
-`title` obligatoire (rendu `h2` Radix → accessible et ciblable par les E2E
-`getByRole('heading')`). `prefers-reduced-motion` neutralise animations +
-snap-back (règle globale `globals.css`).
+## Refs
 
-Migrés : `end-ride-modal` (Clôturer), `no-show-modal` (Patient absent).
+uxcam, droidsonroids, lollypop, nextnative (zone pouce, 44px, bottom nav),
+appinstitute/MDN (responsive PWA, mobile-first). Captures conduite. Cockpit reste
+la réf desktop ; ici doctrine SÉPARÉE (mobile).
 
-### 3. Notice RGPD par COUCHES (layered privacy notice)
+---
 
-Notice géoloc à deux couches, **sans dark pattern** (refus aussi accessible que
-le reste) :
+## MISE À JOUR (recherche sourcée) — géoloc & modales
 
-- **1re couche TOUJOURS visible** — courte mais informative : **quoi + pourquoi
-  + rétention**. Ex. « À chaque pointage, votre position est captée et liée à la
-  course. Conservée 90 j max. »
-- **« En savoir plus »** (`aria-expanded` + `aria-controls`) déplie le détail :
-  service uniquement (jamais en continu), permission refusable (le pointage
-  marche sans GPS), retrait / contact DPO.
+### M3bis — Géoloc : notice par couches, 1re couche INFORMATIVE (pas ultra-minimale)
 
-Dismiss **mémorisé** (`localStorage`) — ne pas réafficher le pavé à chaque
-visite. Fond/encadré discret conservé.
+Recherche RGPD (layered notice, IAPP/ICO/privacy patterns) : la 1re couche DOIT
+contenir qui/quoi/pourquoi, pas juste un libellé. Donc PAS « Position partagée »
+seul + i. Première couche (1-2 lignes, toujours visible) : QUOI (position captée
+aux pointages) + POURQUOI (liée à la course) + rétention (90 j) → ex. « Position
+captée à chaque pointage, liée à la course · conservée 90 j max ». Puis « En
+savoir plus » CLAIR et visible (pas caché, pas de dark pattern) qui déplie :
+service uniquement, permission refusable (le pointage marche sans GPS), retrait.
+Dismissable + mémorisé (pas de réaffichage du détail à chaque visite). Le bandeau
+ACTUEL (5 lignes) est trop long ; la v1 maquette (1 ligne) était trop courte →
+cible = 1re couche informative + détail dépliable.
 
-### 4. Pas de debug visible en prod
+### M6bis — Modales d'action = BOTTOM-SHEET sur mobile (tranché)
 
-Tout bandeau de diagnostic (« PWA debug · état détecté ») est **DEV uniquement**
-(`process.env.NODE_ENV !== 'production'` → inliné, retiré du bundle prod). Le
-prompt d'install légitime (Android/Chrome installable, iOS Safari instructions)
-reste ; l'état `unsupported` (desktop/Firefox iOS) ne rend rien.
+Recherche (Material, LogRocket, Mobbin, Plotline) : sur mobile, préférer
+bottom-sheet/plein écran aux boîtes centrées ; bottom-sheet = plus d'espace (3
+bords), scroll propre, et surtout zone du POUCE (les actions Clôturer/Absent
+partent de boutons en bas de carte → pouce déjà en bas). DONC :
 
-### 5. Clavier numérique
+- Clôturer la course (tarif + modes paiement + toggle) → bottom-sheet
+  haut/extensible. Si trop chargé avec clavier numérique ouvert → plein écran
+  (fullscreen) acceptable (formulaire nécessitant focus total). Modal cap 50%
+  puis extensible (Material).
+- Patient absent (confirmation + motif optionnel) → bottom-sheet.
+- Boutons d'action DANS la feuille en zone basse ; fermeture par swipe down +
+  backdrop + bouton explicite. Champ tarif = clavier numérique (inputmode).
+- Implémentation : si refactor lourd, étape ; à défaut, garder modale mais
+  boutons en bas. Cible = bottom-sheet.
 
-Tout champ numérique conserve un `inputMode` adapté : tarif = `"decimal"`
-(clavier chiffres), motif = texte. **Ne jamais régresser** le tarif vers
-`type="number"` ou un clavier alpha. (Audit app : le reste est déjà sain.)
+---
 
-## Carte course (anatomie)
-
-Liseré d'état 4px en haut (orange `en_cours` / vert `terminee` / neutre /
-rouge annulée) · heure `text-2xl tabular-nums` · patient · meta `mode · urgence`
-· trajet départ→arrivée dans un sous-bloc `bg-muted/50`. **Libellés métier
-conservés** : Taxi conv., TPMR, VSL, Ambulance ; Programmée, Urgente, Immédiate.
-
-## Périmètre 06.55 (présentation/ergonomie)
-
-Logique métier (`endRideAction`, no-show, capture géoloc, pointage, file
-offline Dexie) **INCHANGÉE**. Libellés métier conservés. `max-w-640` conservé.
-0 migration, 0 dépendance.
-
-## Reste à enchaîner (plan d'audit)
-
-cockpit/optimisation, pages texte légales, utilitaires.
+> Statut d'implémentation (Phase 06.55, DEC-134) : M2 (debug masqué hors dev),
+> M3bis (géoloc en couches + dismiss mémorisé), M6/M6bis (bottom-sheet partagé
+> `components/ui/bottom-sheet.tsx` sur Clôturer + Patient absent) livrés ; M4/M5
+> (carte + actions zone pouce) déjà conformes. Maquette :
+> `.planning/mockups/conduite-mobile-maquette.html`.

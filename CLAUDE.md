@@ -8,6 +8,11 @@
 > docs, les mockups ; ton sobre et factuel partout ; pas d'émojis, pas
 > de tutoiement amical, pas d'encouragements gamifiés. S'applique à
 > toute production et à tout fichier de ce dépôt.
+>
+> **Méthode de travail en binôme** : voir
+> `.planning/METHODE-ARCHITECTE-CHAT.md` — rôles (dirigeant / Claude Code /
+> architecte-chat), prompts autoporteurs, maquette-avant-code, préservation des
+> valeurs métier, audit post-merge. Gabarit de prompt : `.planning/PROMPT-MODELE.md`.
 
 ---
 

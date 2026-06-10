@@ -66,3 +66,23 @@ Le form lui-même : `mx-auto w-full max-w-[980px] space-y-24`.
 `components/form/form-layout.tsx` ; `patients/_components/patient-form*.tsx` ;
 `ui/input`, `ui/textarea`, `ui/select`. Lot suivant : appliquer le patron à
 véhicule + chauffeur.
+
+## RÈGLE TRANSVERSALE — préserver les valeurs métier du contexte (TAP/CGSS/974)
+
+Les composants et patrons partagés portent la STRUCTURE (alignement, espacement,
+mécanique). Ils ne définissent JAMAIS les VALEURS métier, qui restent propres à
+chaque écran et au contexte du projet (transport sanitaire conventionné CGSS, La
+Réunion) :
+
+- Libellés et vocabulaire métier (statuts Validée/Affectée, modes Taxi
+  conventionné/TPMR, canal SMS/Appel, permis, CGSS…) — jamais génériques.
+- Défauts métier délibérés (ex. filtre courses = aujourd'hui, « focus
+  régulatrice »).
+- Colonnes/champs spécifiques par entité.
+- Formats locaux FR/974 (dates/heures FR, téléphones 0262/0263/0692/0693, CP
+  974).
+- Tri et seuils adaptés au contexte d'usage.
+
+Un patron partagé est un CONTENANT paramétrable : il reçoit ces valeurs, il ne
+les remplace pas. Lisser ces spécificités vers du générique = régression métier,
+à refuser.
