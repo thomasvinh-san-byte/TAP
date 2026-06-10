@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { NumberField } from '@/components/form/number-field';
+import { FormSection } from '@/components/form/form-layout';
 import { DateFieldFr } from '@/components/date-field-fr.client';
 import type { TariffGridRow } from '../page';
 import { saveTariffGridAction } from '../actions';
@@ -107,24 +108,28 @@ export function TariffEditSheet({
           </SheetDescription>
         </SheetHeader>
 
-        <form action={handleSubmit} className="space-y-12 py-16">
-          <div className="space-y-4">
-            <Label htmlFor="tg-date">Date d&apos;effet</Label>
-            <DateFieldFr id="tg-date" name="date_effet" defaultValue={tomorrowIso()} required />
-          </div>
+        <form action={handleSubmit} className="space-y-24 py-16">
+          <FormSection title="Période d'application">
+            <div className="space-y-8">
+              <Label htmlFor="tg-date">Date d&apos;effet</Label>
+              <DateFieldFr id="tg-date" name="date_effet" defaultValue={tomorrowIso()} required />
+            </div>
+          </FormSection>
 
-          {fields.map((f) => (
-            <NumberField
-              key={f.name}
-              id={`tg-${f.name}`}
-              name={f.name}
-              label={f.label}
-              min={0}
-              step={f.step}
-              defaultValue={f.defaultValue}
-              required
-            />
-          ))}
+          <FormSection title="Paramètres tarifaires">
+            {fields.map((f) => (
+              <NumberField
+                key={f.name}
+                id={`tg-${f.name}`}
+                name={f.name}
+                label={f.label}
+                min={0}
+                step={f.step}
+                defaultValue={f.defaultValue}
+                required
+              />
+            ))}
+          </FormSection>
 
           {error && (
             <p role="alert" className="text-destructive text-sm">

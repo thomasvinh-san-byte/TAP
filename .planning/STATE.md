@@ -3,24 +3,24 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.53 livrée localement (patron de liste unifié — toolbar + pagination + actions). PR à ouvrir."
-last_updated: "2026-06-09T17:00:00.000Z"
-last_activity: Phase 06.53 (patron de liste unifié sur data-table ; données/validation/Server Actions/RLS INCHANGÉS, 0 migration, 0 dépendance). Toolbars bricolées (alignements items-center vs items-end) + paginations hétérogènes (courses « Voir plus » cumulatif, drivers/vehicles/patients aucune). D-01 ListToolbar+ListMeta (components/data-table/list-toolbar.tsx, server-safe) — slots search flex-1 min 260px / filters / clear / actions ml-auto ; compteur ListMeta SOUS la toolbar. D-02 Pagination (components/data-table/pagination.tsx) par PLAGE (« 1–50 sur 128 ») + Précédent/Suivant grisés en bord + lignes par page optionnel ; pagination par PAGE pas « voir plus ». D-03 règle clé : if (total <= pageSize) return null — aucune barre sous une liste courte. D-04 data-table réutilisé tel quel. D-05 migrés : courses (Voir plus → pagination par plage sur FETCH_CAP=500 borné date du jour, pageSize 50), patients (ListToolbar SegmentedControl+PatientSearch + Pagination pageSize 25 + ListMeta), véhicules (Pagination pageSize 50 seule, démontre le seuil). D-06 préservé : statuts CGSS, filtre date défaut=aujourd'hui, colonnes contextuelles, formats FR/974, pageSize par contexte, données/validation/SA/RLS inchangés, pas de bulk. drivers/caisse/tarifs/legal : mécaniques, à enchaîner. Dette tracée : rides-list reste 356 LOC (>300, pré-existant). typecheck+lint(0 err, 9 warn)+build verts, 129 web. Doctrine .planning/audit-ui-pages.md. Artefact docs/showcase/06.53-listes-patron/. DEC-132 LOCKED.
-last_activity_prev: Phase 06.52 (formulaires véhicule & chauffeur — patron de form partagé). DEC-131 LOCKED.
+stopped_at: "Phase 06.54 livrée localement (formulaires spécialisés — patron de form respectueux : tarifs, sms, legal). PR à ouvrir."
+last_updated: "2026-06-09T18:30:00.000Z"
+last_activity: Phase 06.54 (application respectueuse du patron de form 06.51 aux formulaires spécialisés ; logique/validation/Server Actions/mécaniques INCHANGÉES, 0 migration, 0 dépendance). Achève l'harmonisation des formulaires CRUD. Les formulaires spécialisés restaient en style ad hoc (space-y-12/16, classes brutes, selects h-32, textareas brutes sans anneau de focus). D-01 enveloppe harmonisée écran par écran : FormSection (groupes) / FormRow (champs liés) / FormActions (barre d'action), champs ui/* (Textarea à anneau de focus, selects natifs au gabarit Input h-10 via NATIVE_SELECT_CLASS). SMS (template-editor) : section Variables en kicker + FormActions ; insertion {{…}} (textareaRef/caret) + compteur MAX_LENGTH=160 + aperçu INCHANGÉS ; compteur annoncé aria-live + aria-describedby. Tarifs (tariff-edit-sheet) : patron DANS le Sheet (Header/Content/Footer conservés), NumberField prix/€ + simulateur (fichier séparé) intacts ; 2 sections. Legal : dpia-form (3 sections), dpo-form (FormSection+FormActions), breach-drawer (4 sections) + breach-form-fields (SelectField partagé h-32→h-10) ; libellés RGPD inchangés (DPIA, périmètre, risque résiduel, Article 33…). D-02 règle valeurs métier : structure harmonisée, valeurs (variables SMS, termes tarifaires, vocabulaire légal) conservées. D-03 mécaniques spéciales intactes ; patron 06.51 réutilisé tel quel. text-emerald-700→text-success (token). Hors périmètre : requests/registre (h-32 résiduels), cockpit/optimisation, chauffeur mobile, pages texte légales, utilitaires. Tous fichiers ≤300 LOC. typecheck+lint(0 err, 9 warn)+build verts, 129 web. Artefact docs/showcase/06.54-form-restants/. DEC-133 LOCKED.
+last_activity_prev: Phase 06.53 (patron de liste unifié — toolbar + pagination + actions). DEC-132 LOCKED.
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
 # ensuite (06.20-06.23 pré-prod + 06.24-06.39 = 50) + 06.41 messagerie + 06.42 fix overlays
 # + 06.43 fix cible cliquable + 06.44 refonte login + 06.45 login centré + 06.46 fix focus ring
 # + 06.47 calibrage focus + 06.48 bouton auth aligné + 06.49 dashboard densité + 06.50 conformité
-# densité + 06.51 form patient patron + 06.52 form véhicule/chauffeur + 06.53 patron de liste = 63.
-# (06.40 = lot d'hygiène docs, hors compte feature ; 06.45 supersede 06.44 mais les 2 ont été
-# livrées.) Restantes réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07 abandonnée
-# (DEC-092) hors compte.
-# Dernière phase livrée : 06.53. Dernier DEC : 132 (06.53). Dernier ADR : ADR-013 (06.33).
+# densité + 06.51 form patient patron + 06.52 form véhicule/chauffeur + 06.53 patron de liste
+# + 06.54 form spécialisés = 64. (06.40 = lot d'hygiène docs, hors compte feature ; 06.45 supersede
+# 06.44 mais les 2 ont été livrées.) Restantes réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle)
+# = 2. Phase 07 abandonnée (DEC-092) hors compte.
+# Dernière phase livrée : 06.54. Dernier DEC : 133 (06.54). Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 65
-  completed_phases: 63
+  total_phases: 66
+  completed_phases: 64
   total_plans: 89
   completed_plans: 89
   percent: 97
@@ -33,7 +33,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.53 livrée localement (patron de liste unifié — toolbar + pagination par seuil + actions, appliqué à courses/patients/véhicules ; data-table inchangé). 63 phases livrées (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; migration listes drivers/caisse/tarifs/legal (mécanique) + messagerie lots photo/push/fil général à venir.
+**Current focus:** Phase 06.54 livrée localement (formulaires spécialisés — patron de form respectueux : sms-templates, tarifs, legal dpia/dpo/breaches ; mécaniques métier intactes). Achève l'harmonisation des formulaires CRUD. 64 phases livrées (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; migration listes drivers/caisse/tarifs/legal (mécanique) + étapes restantes du plan d'audit (cockpit/optimisation, chauffeur mobile, pages texte légales, utilitaires) + messagerie lots photo/push/fil général à venir.
 
 ## Current Position
 
@@ -42,12 +42,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.53 livrée localement (2026-06-09) — patron de liste unifié (toolbar + pagination par seuil + actions). PR à ouvrir.
-Phase next: migration listes drivers/caisse/tarifs/legal (mécanique, mêmes composants) ; messagerie lots photo (HDS)/push (VAPID)/fil général ; Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 63 phases livrées. Patron de liste partagé (ListToolbar/ListMeta/Pagination) appliqué à courses/patients/véhicules autour du data-table existant : toolbars alignées, pagination par plage affichée SEULEMENT au-delà du seuil (total > pageSize). Données/validation/SA/RLS inchangées.
+Phase: 06.54 livrée localement (2026-06-09) — formulaires spécialisés sur le patron de form (respectueux). PR à ouvrir.
+Phase next: migration listes drivers/caisse/tarifs/legal (mécanique, mêmes composants) ; étapes restantes du plan d'audit (cockpit/optimisation, chauffeur mobile, pages texte légales, utilitaires) ; messagerie lots photo (HDS)/push (VAPID)/fil général ; Phase 09 HDS + Phase 10 géoloc réelle.
+Status: 64 phases livrées. Patron de form appliqué à TOUS les formulaires CRUD (patient/véhicule/chauffeur + sms/tarifs/legal). Application respectueuse : enveloppe harmonisée (FormSection/Row/Actions, champs ui/*) SANS toucher aux mécaniques métier (insertion SMS, compteur 160, simulateur tarifs, Sheet, libellés RGPD). Données/validation/SA inchangées.
 Blockers: aucun
-Last activity: Phase 06.53 — patron de liste unifié. D-01 ListToolbar+ListMeta (server-safe, slots search/filters/clear/actions, compteur sous la toolbar). D-02 Pagination par PLAGE (« 1–50 sur 128 ») + Précédent/Suivant grisés en bord + lignes par page optionnel, par PAGE pas « voir plus ». D-03 règle clé : total <= pageSize → null (aucune barre sous liste courte). D-04 data-table réutilisé tel quel. D-05 migrés : courses (Voir plus → plage sur FETCH_CAP=500 borné date du jour, pageSize 50), patients (pageSize 25), véhicules (pageSize 50, démontre le seuil). D-06 préservé : statuts CGSS, date défaut=aujourd'hui, colonnes, formats FR/974, pageSize par contexte, pas de bulk. drivers/caisse/tarifs/legal à enchaîner. Dette : rides-list 356 LOC (>300, pré-existant). typecheck+lint+build verts, 129 web. Doctrine .planning/audit-ui-pages.md. Artefact docs/showcase/06.53-listes-patron/. 0 migration, 0 dépendance. DEC-132 LOCKED. PR à ouvrir.
-Précédent: 06.52 form véhicule/chauffeur patron (DEC-131), 06.51 form patient patron (DEC-130), 06.50 conformité densité (DEC-129).
+Last activity: Phase 06.54 — patron de form aux formulaires spécialisés (respectueux). D-01 enveloppe : FormSection/FormRow/FormActions, Textarea (anneau focus), selects natifs h-32→h-10 (NATIVE_SELECT_CLASS). SMS : insertion {{…}} + compteur 160 + aperçu INTACTS, compteur annoncé aria-live. Tarifs : patron DANS le Sheet, NumberField prix/€ + simulateur intacts. Legal : dpia (3 sections), dpo, breaches (4 sections) + breach-form-fields ; libellés RGPD inchangés. D-02 valeurs métier préservées (variables SMS, termes tarifaires, vocabulaire légal). D-03 logique/mécaniques inchangées, patron 06.51 réutilisé tel quel. Hors périmètre : requests/registre, cockpit, chauffeur mobile, pages texte, utilitaires. ≤300 LOC. typecheck+lint+build verts, 129 web. Artefact docs/showcase/06.54-form-restants/. 0 migration, 0 dépendance. DEC-133 LOCKED. PR à ouvrir.
+Précédent: 06.53 patron de liste unifié (DEC-132), 06.52 form véhicule/chauffeur (DEC-131), 06.51 form patient (DEC-130).
 
 Progress: [██████████] 100%
 
