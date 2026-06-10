@@ -1,5 +1,6 @@
 'use client';
 
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 
 // Select natif aligné sur le gabarit `<Input>` (h-10), soumet via `name`.
@@ -45,7 +46,7 @@ export function SelectField({
 export function CheckboxField({ id, label }: { id: string; label: string }) {
   return (
     <div className="flex items-center gap-8">
-      <input id={id} name={id} type="checkbox" />
+      <Checkbox id={id} name={id} />
       <Label htmlFor={id}>{label}</Label>
     </div>
   );

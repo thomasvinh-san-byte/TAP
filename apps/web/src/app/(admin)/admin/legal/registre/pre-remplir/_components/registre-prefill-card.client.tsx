@@ -4,6 +4,7 @@ import {
   RegistreFields,
   type RegistreFieldsValues,
 } from '../../_components/registre-fields.client';
+import { Checkbox } from '@/components/ui/checkbox';
 import type { DataProcessingRegisterInput } from '@tap/shared';
 
 /**
@@ -49,8 +50,7 @@ export function RegistrePrefillCard({
   return (
     <div data-testid="prefill-card" className="rounded-lg border p-16">
       <div className="flex items-center gap-8">
-        <input
-          type="checkbox"
+        <Checkbox
           id={checkboxId}
           data-testid={checkboxId}
           checked={included}

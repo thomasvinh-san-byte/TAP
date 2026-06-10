@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { readConsent, writeConsent, type CookieChoices } from '@/lib/cookie-consent';
 
 /**
@@ -118,14 +119,13 @@ function CustomizePanel({ choices, onChange, onValidate }: PanelProps) {
   return (
     <div className="space-y-12">
       <label className="flex items-start gap-12 text-sm">
-        <input type="checkbox" checked disabled aria-label="Cookies techniques (obligatoires)" />
+        <Checkbox checked readOnly disabled aria-label="Cookies techniques (obligatoires)" />
         <span>
           <strong>Techniques</strong> : session, authentification (obligatoires).
         </span>
       </label>
       <label className="flex items-start gap-12 text-sm">
-        <input
-          type="checkbox"
+        <Checkbox
           checked={choices.analytics}
           onChange={(e) => onChange({ ...choices, analytics: e.target.checked })}
         />
@@ -134,12 +134,7 @@ function CustomizePanel({ choices, onChange, onValidate }: PanelProps) {
         </span>
       </label>
       <label className="text-muted-foreground flex items-start gap-12 text-sm">
-        <input
-          type="checkbox"
-          checked={false}
-          disabled
-          aria-label="Marketing : non utilisé en V1"
-        />
+        <Checkbox checked={false} readOnly disabled aria-label="Marketing : non utilisé en V1" />
         <span>
           <strong>Marketing</strong> : non utilisé dans cette version.
         </span>

@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { Calculator } from 'lucide-react';
 import { computeCgssFromDistance, type MajorationMotif, type TariffGrid } from '@tap/pricing';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { TimeField24 } from '@/components/time-field-24.client';
 
@@ -80,7 +81,7 @@ export function TariffSimulator({ grid }: { grid: TariffGrid }): JSX.Element {
       </div>
 
       <label className="mt-12 flex items-center gap-8 text-sm">
-        <input type="checkbox" checked={tpmr} onChange={(e) => setTpmr(e.target.checked)} />
+        <Checkbox checked={tpmr} onChange={(e) => setTpmr(e.target.checked)} />
         Véhicule TPMR
       </label>
 

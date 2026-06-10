@@ -23,6 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { deactivateDriverAction } from '../actions';
 
@@ -91,10 +92,8 @@ export function DeactivateConfirmDialog({
 
         <form onSubmit={onSubmit} className="space-y-16" noValidate>
           <div className="flex items-start gap-12">
-            <input
+            <Checkbox
               id="deactivate-confirm"
-              type="checkbox"
-              className="border-border accent-primary mt-4 h-16 w-16 rounded"
               checked={checked}
               onChange={(e) =>
                 form.setValue(

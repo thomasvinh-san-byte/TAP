@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Field } from '@/components/form/field';
@@ -64,12 +65,7 @@ export function DpoForm({ initial }: Props) {
           />
         </div>
         <div className="flex items-center gap-8">
-          <input
-            id="dpo_external"
-            name="dpo_external"
-            type="checkbox"
-            defaultChecked={initial.dpo_external}
-          />
+          <Checkbox id="dpo_external" name="dpo_external" defaultChecked={initial.dpo_external} />
           <Label htmlFor="dpo_external">DPO externe (cabinet)</Label>
         </div>
       </FormSection>
