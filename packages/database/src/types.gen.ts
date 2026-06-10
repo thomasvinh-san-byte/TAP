@@ -96,6 +96,68 @@ export type Database = {
           },
         ]
       }
+      compliance_items: {
+        Row: {
+          archive: boolean
+          archive_at: string | null
+          created_at: string
+          created_by: string | null
+          document_url: string | null
+          entity_id: string | null
+          entity_type: string
+          expires_at: string | null
+          id: string
+          issued_at: string | null
+          kind: string
+          label: string | null
+          organization_id: string
+          reference: string | null
+          updated_at: string
+        }
+        Insert: {
+          archive?: boolean
+          archive_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_url?: string | null
+          entity_id?: string | null
+          entity_type: string
+          expires_at?: string | null
+          id?: string
+          issued_at?: string | null
+          kind: string
+          label?: string | null
+          organization_id: string
+          reference?: string | null
+          updated_at?: string
+        }
+        Update: {
+          archive?: boolean
+          archive_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_url?: string | null
+          entity_id?: string | null
+          entity_type?: string
+          expires_at?: string | null
+          id?: string
+          issued_at?: string | null
+          kind?: string
+          label?: string | null
+          organization_id?: string
+          reference?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cookie_consent_log: {
         Row: {
           choices: Json
@@ -431,6 +493,67 @@ export type Database = {
           },
         ]
       }
+      driver_positions: {
+        Row: {
+          accuracy: number | null
+          captured_at: string
+          created_at: string
+          driver_id: string
+          id: string
+          lat: number
+          lng: number
+          organization_id: string
+          ride_id: string | null
+          source: string
+        }
+        Insert: {
+          accuracy?: number | null
+          captured_at?: string
+          created_at?: string
+          driver_id: string
+          id?: string
+          lat: number
+          lng: number
+          organization_id: string
+          ride_id?: string | null
+          source: string
+        }
+        Update: {
+          accuracy?: number | null
+          captured_at?: string
+          created_at?: string
+          driver_id?: string
+          id?: string
+          lat?: number
+          lng?: number
+          organization_id?: string
+          ride_id?: string | null
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_positions_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_positions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_positions_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       drivers: {
         Row: {
           actif: boolean
@@ -535,6 +658,58 @@ export type Database = {
         }
         Relationships: []
       }
+      internal_message: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          organization_id: string
+          ride_id: string
+          sender_profile_id: string
+          sender_role: Database["public"]["Enums"]["user_role"]
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          organization_id: string
+          ride_id: string
+          sender_profile_id: string
+          sender_role: Database["public"]["Enums"]["user_role"]
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          organization_id?: string
+          ride_id?: string
+          sender_profile_id?: string
+          sender_role?: Database["public"]["Enums"]["user_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internal_message_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "internal_message_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "internal_message_sender_profile_id_fkey"
+            columns: ["sender_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       legal_request_attempts: {
         Row: {
           attempted_at: string
@@ -560,6 +735,7 @@ export type Database = {
         Row: {
           adresse: string | null
           code_postal: string | null
+          compliance_blocking_mode: string
           created_at: string
           date_archivage: string | null
           date_creation: string
@@ -580,6 +756,7 @@ export type Database = {
         Insert: {
           adresse?: string | null
           code_postal?: string | null
+          compliance_blocking_mode?: string
           created_at?: string
           date_archivage?: string | null
           date_creation?: string
@@ -600,6 +777,7 @@ export type Database = {
         Update: {
           adresse?: string | null
           code_postal?: string | null
+          compliance_blocking_mode?: string
           created_at?: string
           date_archivage?: string | null
           date_creation?: string
@@ -1773,6 +1951,7 @@ export type Database = {
         }
         Returns: string
       }
+      purge_driver_positions: { Args: never; Returns: undefined }
       purge_legal_request_attempts: { Args: never; Returns: undefined }
       rgpd_anonymize_patient: {
         Args: { p_patient_id: string; p_request_id: string; p_salt: string }
