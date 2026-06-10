@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 06.61 livrée localement (brouillons repositionnés du header vers le cockpit — CdC §5.13). PR à ouvrir."
-last_updated: "2026-06-10T16:00:00.000Z"
-last_activity: Phase 06.61 (brouillons de courses repositionnés du header vers le cockpit, CdC §5.13 ; logique INCHANGÉE, 0 migration, 0 dépendance). Le DraftQueue (icône Inbox + badge) vivait dans le header (grammaire notifications) alors que §5.22 réserve cet emplacement aux notifications et §5.13 liste les brouillons comme indicateur du cockpit. D-01 <DraftQueue/> retiré du slot extras de (app)/layout.tsx (header libéré pour échafaudage messagerie 06.62) ; (driver)/layout ne le rendait pas. D-02 nouvel indicateur cockpit/_components/drafts-indicator.client.tsx — MÊME source (useQuery(['ride-drafts']) cache partagé, listDraftsAction/deleteRideDraft/dispatch RESUME → rouvre le modal comme avant), présentation panel cockpit (kicker + compteur, réf AlertsPanel), inséré dans l'aside entre AlertsPanel et ComplianceAlertsPanel, seuil discret « Aucun brouillon ». Ancien draft-queue.client.tsx (header) supprimé (plus aucune référence active). Helpers formatPreview/formatRelative déplacés tels quels. typecheck+lint(0 err, 8 warn)+build verts, 129 web. DEC-140 LOCKED.
-last_activity_prev: Phase 06.60 (primitive ui/Checkbox + refonte visuelle drawers création chauffeur & véhicule). DEC-139 LOCKED.
+stopped_at: "Phase 06.62 livrée localement (échafaudage messagerie header §5.22 derrière MESSAGING_ENABLED OFF). PR à ouvrir."
+last_updated: "2026-06-10T17:30:00.000Z"
+last_activity: Phase 06.62 (échafaudage messagerie header §5.22 derrière release toggle MESSAGING_ENABLED OFF ; coquille UI, PAS un mock — 0 conversation/push simulé, 0 migration, 0 dépendance). Germe lot 1 (internal_message ride-only) inchangé. D-01 flag MESSAGING_ENABLED (turbo.json globalEnv + .env.example, vide=OFF) évalué côté serveur dans (app)/layout.tsx (point haut ; env non-NEXT_PUBLIC → MessagingButton monté seulement si ON = OFF rien dans le header). D-02 components/messaging/messaging-button.client.tsx (icône MessageSquare, DropdownMenu au clic, aria-label, focus ring) : (a) Conversations de course = accès navigationnel /courses (germe ride-chat, pas de liste fabriquée), (b) Fil général = EmptyState honnête « Bientôt disponible » ; pas de badge non-lus (aucune notion read-state en base ; badge futur en sur-impression absolute -top-1 -right-1, corrige ml-4 de l'ancien DraftQueue). D-03 push PWA non câblé (registre §1.3). Chat à la course exposé, pas réécrit. Registre §1.3/§1.4 mis à jour. typecheck+lint(0 err, 8 warn)+build verts, 129 web. DEC-141 LOCKED.
+last_activity_prev: Phase 06.61 (brouillons repositionnés du header vers le cockpit — CdC §5.13). DEC-140 LOCKED.
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
@@ -16,13 +16,14 @@ last_activity_prev: Phase 06.60 (primitive ui/Checkbox + refonte visuelle drawer
 # densité + 06.51 form patient patron + 06.52 form véhicule/chauffeur + 06.53 patron de liste
 # + 06.54 form spécialisés + 06.55 chauffeur mobile + 06.57 optimisation alignement
 # + 06.58 drivers-list patron+découpe + 06.59 listes courtes legal+tarifs + 06.60 drawers+checkbox
-# + 06.61 brouillons cockpit = 70. (06.40 hygiène docs ET 06.56 onboarding méthode = lots
-# documentaires, hors compte feature ; 06.45 supersede 06.44 mais les 2 ont été livrées.) Restantes
-# réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07 abandonnée (DEC-092) hors compte.
-# Dernière phase livrée : 06.61. Dernier DEC : 140 (06.61). Dernier ADR : ADR-013 (06.33).
+# + 06.61 brouillons cockpit + 06.62 échafaudage messagerie = 71. (06.40 hygiène docs ET 06.56
+# onboarding méthode = lots documentaires, hors compte feature ; 06.45 supersede 06.44 mais les 2 ont
+# été livrées.) Restantes réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07 abandonnée
+# (DEC-092) hors compte.
+# Dernière phase livrée : 06.62. Dernier DEC : 141 (06.62). Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 72
-  completed_phases: 70
+  total_phases: 73
+  completed_phases: 71
   total_plans: 89
   completed_plans: 89
   percent: 97
@@ -35,7 +36,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 06.61 livrée localement (brouillons de courses repositionnés du header vers le cockpit — indicateur §5.13 ; header libéré pour la messagerie §5.22). 70 phases feature livrées + 2 lots documentaires (06.40, 06.56) (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; échafaudage messagerie header (06.62) ; étapes restantes du plan d'audit (pages texte légales, utilitaires) + migration des ~14 checkboxes brutes restantes (lot dédié) à venir.
+**Current focus:** Phase 06.62 livrée localement (échafaudage messagerie header §5.22 derrière `MESSAGING_ENABLED` OFF — point d'accès + coquille fil général, germe chat course inchangé). 71 phases feature livrées + 2 lots documentaires (06.40, 06.56) (cf. commentaire de comptage dans le frontmatter). Restantes : Phase 09 HDS + Phase 10 géoloc réelle ; construction messagerie complète (fil général temps réel, photo, push PWA, non-lus — registre §1.4) ; étapes restantes du plan d'audit (pages texte légales, utilitaires) + migration des ~14 checkboxes brutes restantes à venir.
 
 ## Current Position
 
@@ -44,12 +45,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 06.61 livrée localement (2026-06-10) — brouillons repositionnés du header vers le cockpit (CdC §5.13). PR à ouvrir.
-Phase next: échafaudage messagerie dans le header libéré (06.62, §5.22) ; étapes restantes du plan d'audit (pages texte légales, utilitaires) ; migration des ~14 checkboxes brutes (lot dédié) ; Phase 09 HDS + Phase 10 géoloc réelle.
-Status: 70 phases feature + 2 lots doc. DraftQueue déplacé du header (notifications §5.22) vers un indicateur du cockpit (§5.13), même source/cache. Header libéré pour la messagerie. Logique brouillons inchangée.
+Phase: 06.62 livrée localement (2026-06-10) — échafaudage messagerie header §5.22 derrière MESSAGING_ENABLED OFF. PR à ouvrir.
+Phase next: construction messagerie complète (fil général temps réel, photo, push PWA, non-lus — registre §1.4) ; étapes restantes du plan d'audit (pages texte légales, utilitaires) ; migration des ~14 checkboxes brutes (lot dédié) ; Phase 09 HDS + Phase 10 géoloc réelle.
+Status: 71 phases feature + 2 lots doc. Coquille messagerie posée dans le header derrière flag OFF (point d'accès MessagingButton + fil général EmptyState) ; PAS un mock (0 conversation/push simulé). Germe chat course (internal_message/ride-chat) inchangé, exposé via l'accès. Push non câblé.
 Blockers: aucun
-Last activity: Phase 06.61 — brouillons header → cockpit. D-01 <DraftQueue/> retiré du header (app)/layout. D-02 cockpit/_components/drafts-indicator.client.tsx dans l'aside (entre AlertsPanel et ComplianceAlertsPanel), MÊME source useQuery(['ride-drafts']) cache partagé + listDraftsAction/deleteRideDraft/dispatch RESUME, présentation panel (kicker+compteur), seuil discret « Aucun brouillon ». Ancien draft-queue.client.tsx supprimé. Helpers formatPreview/formatRelative déplacés. typecheck+lint+build verts, 129 web. 0 migration, 0 dépendance. DEC-140 LOCKED. PR à ouvrir.
-Précédent: 06.60 drawers+checkbox (DEC-139), 06.59 listes courtes legal+tarifs (DEC-138), 06.58 drivers-list patron+découpe (DEC-137).
+Last activity: Phase 06.62 — échafaudage messagerie. D-01 flag MESSAGING_ENABLED (turbo.json globalEnv + .env.example, OFF) évalué serveur dans (app)/layout.tsx (point haut) → MessagingButton monté seulement si ON. D-02 components/messaging/messaging-button.client.tsx (icône MessageSquare, DropdownMenu au clic) : (a) conversations course = accès /courses (germe, pas de liste fabriquée), (b) fil général EmptyState « Bientôt disponible » ; pas de badge non-lus (aucune notion en base). D-03 push non câblé (registre §1.3). Chat course exposé, pas réécrit. Registre §1.3/§1.4 maj. typecheck+lint+build verts, 129 web. 0 migration, 0 dépendance. DEC-141 LOCKED. PR à ouvrir.
+Précédent: 06.61 brouillons cockpit (DEC-140), 06.60 drawers+checkbox (DEC-139), 06.59 listes courtes legal+tarifs (DEC-138).
 
 Progress: [██████████] 100%
 
