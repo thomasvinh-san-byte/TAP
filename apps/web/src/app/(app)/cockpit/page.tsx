@@ -27,6 +27,9 @@ async function getRidesToday(
     )
     .gte('scheduled_at', `${today}T00:00:00`)
     .lte('scheduled_at', `${today}T23:59:59`)
+    // DEC-158 : exclure les courses `brouillon` (demandes groupées en attente,
+    // pas encore fermes) du cockpit.
+    .neq('status', 'brouillon')
     .order('scheduled_at');
   if (error) {
     console.error('[cockpit] Erreur chargement rides:', error);
