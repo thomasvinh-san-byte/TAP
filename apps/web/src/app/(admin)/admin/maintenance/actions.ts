@@ -18,6 +18,7 @@
 import { requireDirigeant } from '@/lib/auth/require-dirigeant';
 import { createClient } from '@/lib/supabase/server';
 import { geocodeBanSearch } from '@/lib/geocoding/ban';
+import type { TariffGrid } from '@tap/pricing';
 
 const RATE_LIMIT_MS = 1000;
 const MAX_PER_RUN = 200;
@@ -297,6 +298,85 @@ export async function recomputeTarifsAction(): Promise<RecomputeTarifsResult> {
     }
   }
 
+  // DEC-157 : recompute des courses tarifées via grille B2B ('b2b_auto') avec la
+  // grille PROPRE de leur donneur d'ordres — JAMAIS la grille CGSS de l'org. Le
+  // recompute cgss_auto ci-dessus ne les a pas touchées (filtre tarif_source).
+  const today = new Date().toISOString().slice(0, 10);
+  const b2bTarget = await supabase
+    .from('rides')
+    .select(
+      'id, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng, ' +
+        'scheduled_at, transport_mode, ordering_party_id',
+    )
+    .eq('tarif_source', 'b2b_auto')
+    .neq('payment_status', 'encaisse');
+  const b2bRides = b2bTarget.error
+    ? []
+    : ((b2bTarget.data as (TarifRideRow & { ordering_party_id: string | null })[] | null) ?? []);
+
+  // Résolution des grilles B2B par donneur en 2 requêtes (N+1 évité — DEC-156) :
+  // 1) donneurs en grille_propre, 2) leur grille active (MAX date_effet ≤ today).
+  const partyIds = Array.from(
+    new Set(b2bRides.map((r) => r.ordering_party_id).filter((x): x is string => Boolean(x))),
+  );
+  const b2bGridByParty = new Map<string, TariffGrid>();
+  if (partyIds.length > 0) {
+    const partiesRes = await supabase
+      // `as never` : colonne tariff_mode (DEC-157) absente de types.gen.ts jusqu'au resync.
+      .from('ordering_parties' as never)
+      .select('id, tariff_mode')
+      .in('id', partyIds);
+    const proprePartyIds = ((partiesRes.data as { id: string; tariff_mode: string }[] | null) ?? [])
+      .filter((p) => p.tariff_mode === 'grille_propre')
+      .map((p) => p.id);
+    if (proprePartyIds.length > 0) {
+      const gridsRes = await supabase
+        .from('ordering_party_tariff_grids' as never)
+        .select(
+          'ordering_party_id, date_effet, forfait_eur, km_inclus, prix_km_eur, ' +
+            'supplement_drom_eur, supplement_tpmr_eur, majoration_pct, ' +
+            'facteur_correction_routier, arrondi_eur',
+        )
+        .in('ordering_party_id', proprePartyIds)
+        .lte('date_effet', today)
+        .order('date_effet', { ascending: false });
+      for (const g of (gridsRes.data as (TariffGrid & { ordering_party_id: string })[] | null) ??
+        []) {
+        // 1ère rencontrée = plus récente ≤ today (ordre desc) → grille active.
+        if (!b2bGridByParty.has(g.ordering_party_id)) b2bGridByParty.set(g.ordering_party_id, g);
+      }
+    }
+  }
+
+  let b2bRecomputed = 0;
+  for (const ride of b2bRides) {
+    if (!ride.ordering_party_id) continue;
+    const grid = b2bGridByParty.get(ride.ordering_party_id);
+    if (!grid) continue; // pas de grille propre active → on ne touche pas le tarif
+    const result = computeCgssShortTrip(
+      {
+        pickup_lat: ride.pickup_lat,
+        pickup_lng: ride.pickup_lng,
+        dropoff_lat: ride.dropoff_lat,
+        dropoff_lng: ride.dropoff_lng,
+        scheduled_at: ride.scheduled_at,
+        transport_mode: ride.transport_mode as 'taxi_conventionne',
+        holidays974,
+      },
+      grid,
+    );
+    const upd = await supabase
+      .from('rides')
+      .update({ tarif_amount_eur: result.total_eur } as never)
+      .eq('id', ride.id)
+      .neq('payment_status', 'encaisse')
+      .select('id');
+    if (!upd.error && upd.data && upd.data.length > 0) b2bRecomputed++;
+  }
+
+  const totalRecomputed = recomputed + b2bRecomputed;
+  const totalCandidates = rides.length + b2bRides.length;
+
   await supabase.from('audit_logs').insert({
     organization_id: ctx.organizationId,
     actor_id: ctx.userId,
@@ -304,8 +384,13 @@ export async function recomputeTarifsAction(): Promise<RecomputeTarifsResult> {
     action: 'maintenance.recompute_tarifs',
     entity_type: 'maintenance',
     entity_id: null,
-    metadata: { recomputed, candidates: rides.length },
+    metadata: {
+      recomputed: totalRecomputed,
+      candidates: totalCandidates,
+      cgss: recomputed,
+      b2b: b2bRecomputed,
+    },
   } as never);
 
-  return { recomputed, candidates: rides.length };
+  return { recomputed: totalRecomputed, candidates: totalCandidates };
 }

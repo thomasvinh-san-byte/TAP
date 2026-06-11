@@ -38,6 +38,7 @@ export type OrderingPartyRow = {
   contact_principal_telephone: string | null;
   contact_principal_email: string | null;
   modalite_facturation: 'a_la_course' | 'hebdomadaire' | 'mensuelle';
+  tariff_mode: 'cgss_standard' | 'grille_propre';
   actif: boolean;
   created_at: string;
 };
