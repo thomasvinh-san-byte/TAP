@@ -289,6 +289,19 @@ mais le levier DÉCISIF sur la lenteur de navigation est le Lot 2.
   particulier les `count exact` du tableau de bord (KPIs) ralentiront quand les
   tables grossiront → ce sera le moment de streamer ces panneaux.
 
+### 7.3 N+1 des crons SMS — RÉSOLU (09.03, DEC-156)
+- Les crons `sms-reminders-j1` / `-j2h` faisaient 1 requête consentement (et j2h
+  1 requête idempotency) PAR course + envois/inserts séquentiels, sans
+  `maxDuration` → risque réel de timeout Vercel = rappels patients non envoyés
+  silencieusement. **Corrigé** : consentement + idempotency en 1 requête `.in()`
+  (Map/Set), envois parallélisés par lots de 10, inserts `sms_messages` groupés
+  (fallback ligne par ligne), `maxDuration = 60`. RGPD (DEC-008) + traçabilité
+  préservés. **Risque de timeout cron levé.**
+- **Autres crons** : seuls ces 2 existent (`apps/web/src/app/api/cron/`). Pas
+  d'autre motif N+1 cron à traiter. Si un nouveau cron à boucle est ajouté,
+  réutiliser le patron (helper batch `getActiveSmsConsentMap` + lots + insert
+  groupé + `maxDuration`).
+
 ---
 
 ## Synthèse — ce qui attend une DÉCISION ou un ACHAT de ta part
