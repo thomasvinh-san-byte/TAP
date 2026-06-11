@@ -237,12 +237,28 @@ par lots dédiés (aucun bloquant — le cœur tourne seul) :
   flux de calcul automatique à la création soit câblé (même statut que
   `cgss_auto`). À traiter avec la facturation B2B.
 
-### 6.3 Récapitulatif PDF périodique par donneur d'ordres — CdC §5.5
-- **Raison** : facturation centralisée = récap hebdomadaire/mensuel (selon
-  `modalite_facturation`) des courses d'un donneur d'ordres → PDF. S'appuie sur
-  l'index `(organization_id, ordering_party_id)` posé en 07.01 et le pattern PDF
-  existant (`api/admin/chauffeurs/recap/pdf`).
-- **Déblocage** : dev dédié (agrégation par période + génération PDF).
+### 6.3 Récapitulatif PDF périodique par donneur d'ordres — CdC §5.5 — RÉSOLU (07.04, DEC-159)
+- **Livré (à la demande)** : route `api/admin/donneurs-ordres/recap/pdf`
+  (params ordering_party/from/to, guard dirigeant+régulateur, isolation org,
+  courses 1 requête `.eq('ordering_party_id')` + patients `.in()` sur
+  `patients_safe`, audit log) + composant `RecapDonneurPdf` (charte PDF commune
+  `PdfDocument`/`pdfStyles`, en-tête raison sociale+SIRET, résumé, tableau,
+  total € = `tarif_amount_eur` stocké, reflète la grille B2B 07.02 sans
+  recalcul). Bouton « Récap PDF » dans la fiche donneur, période pré-remplie
+  selon `modalite_facturation` (hebdomadaire → semaine en cours ; mensuelle /
+  a_la_course → mois en cours).
+- **Reste (lot futur, dépend de EMAIL_ENABLED)** : la génération PLANIFIÉE
+  AUTOMATIQUE (CdC l.195 « automatique » : cron hebdo/mensuel selon
+  `modalite_facturation` + envoi par email au contact du donneur). Bloquée par
+  l'absence d'infra email active (échafaudage `EMAIL_ENABLED` OFF, registre §1.2).
+  À construire au branchement du provider email. Le récap à la demande couvre le
+  besoin de facturation immédiat entre-temps.
+
+> **Chaîne d'extensions B2B COMPLÈTE** (2026-06-12) : cœur référentiel 07.01
+> (DEC-148) + grille tarifaire propre 07.02 (DEC-157) + demande groupée 07.03
+> (DEC-158) + récap PDF 07.04 (DEC-159). Restent uniquement, par lots distincts :
+> contacts multiples par service (§6.4), portail self-service V1.5 (§6.5),
+> récap automatique planifié (ci-dessus, dépend de l'email).
 
 ### 6.4 Contacts opérationnels multiples par service — CdC §5.5 l.188
 - **Raison** : le cœur se limite au **contact principal** (un nom/téléphone/email
