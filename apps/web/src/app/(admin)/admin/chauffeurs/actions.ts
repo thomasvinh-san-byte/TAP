@@ -13,7 +13,7 @@
  * `archive=true` + `archive_at` + `actif=false`.
  */
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { headers } from 'next/headers';
 import { z } from 'zod';
 import {
@@ -26,6 +26,7 @@ import {
 import { requireAdminOrRegulateur } from '@/lib/auth/require-admin-or-regulateur';
 import { requireDirigeant } from '@/lib/auth/require-dirigeant';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { chauffeursTag } from './_lib/cached-queries';
 
 export type ActionState = {
   success?: boolean;
@@ -86,6 +87,8 @@ export async function createDriverAction(
 
   if (error || !data) return { error: 'Création chauffeur impossible.' };
   revalidatePath('/admin/chauffeurs');
+  // DEC-152 : purge le cache data par org (la liste reflète l'écriture aussitôt).
+  revalidateTag(chauffeursTag(ctx.organizationId));
   return { success: true, id: (data as { id: string }).id };
 }
 
@@ -125,6 +128,8 @@ export async function updateDriverAction(
   if (!data) return { error: 'Chauffeur introuvable ou archivé.' };
 
   revalidatePath('/admin/chauffeurs');
+  // DEC-152 : purge le cache data par org (la liste reflète l'écriture aussitôt).
+  revalidateTag(chauffeursTag(ctx.organizationId));
   return { success: true, id: driverId };
 }
 
@@ -217,6 +222,8 @@ export async function archiveDriverAction(
   } as never);
 
   revalidatePath('/admin/chauffeurs');
+  // DEC-152 : purge le cache data par org (la liste reflète l'écriture aussitôt).
+  revalidateTag(chauffeursTag(ctx.organizationId));
   return { success: true };
 }
 
@@ -273,6 +280,8 @@ export async function deactivateDriverAction(
   } as never);
 
   revalidatePath('/admin/chauffeurs');
+  // DEC-152 : purge le cache data par org (la liste reflète l'écriture aussitôt).
+  revalidateTag(chauffeursTag(ctx.organizationId));
   return { success: true, id: driverId };
 }
 
@@ -316,6 +325,8 @@ export async function reactivateDriverAction(driverId: string): Promise<ActionSt
   } as never);
 
   revalidatePath('/admin/chauffeurs');
+  // DEC-152 : purge le cache data par org (la liste reflète l'écriture aussitôt).
+  revalidateTag(chauffeursTag(ctx.organizationId));
   return { success: true, id: driverId };
 }
 
@@ -380,6 +391,8 @@ export async function unarchiveDriverAction(
   } as never);
 
   revalidatePath('/admin/chauffeurs');
+  // DEC-152 : purge le cache data par org (la liste reflète l'écriture aussitôt).
+  revalidateTag(chauffeursTag(ctx.organizationId));
   return { success: true, id: driverId };
 }
 
@@ -529,6 +542,8 @@ export async function inviteDriverAction(
 
   // 7. Revalidate liste chauffeurs (badge « invitation envoyée »)
   revalidatePath('/admin/chauffeurs');
+  // DEC-152 : purge le cache data par org (la liste reflète l'écriture aussitôt).
+  revalidateTag(chauffeursTag(ctx.organizationId));
 
   // 8. ActionState success
   return { success: true, id: (invitation as { id: string }).id };
@@ -602,5 +617,7 @@ export async function resendInvitationAction(invitationId: string): Promise<Acti
   if (updErr) return { error: 'Mise à jour invitation impossible.' };
 
   revalidatePath('/admin/chauffeurs');
+  // DEC-152 : purge le cache data par org (la liste reflète l'écriture aussitôt).
+  revalidateTag(chauffeursTag(ctx.organizationId));
   return { success: true, id: invitationId };
 }
