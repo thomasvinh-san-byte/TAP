@@ -17,6 +17,7 @@ import { Field } from '@/components/form/field';
 import { FormSection, FormRow } from '@/components/form/form-layout';
 import { type ActionState, createOrderingPartyAction, updateOrderingPartyAction } from '../actions';
 import { OrderingPartyTariffForm } from './ordering-party-tariff-form.client';
+import { RecapPdfButton } from './recap-pdf-button.client';
 import type { OrderingPartyRow } from '../page';
 
 const MODALITE_LABELS: Record<OrderingPartyBillingModality, string> = {
@@ -153,6 +154,16 @@ export function OrderingPartyForm({ initial, onSuccess, onCancel, onArchive }: P
               </p>
             )}
           </div>
+          {/* Récap PDF disponible uniquement en édition (besoin de l'id du
+              donneur). Période pré-remplie selon la modalité ci-dessus. */}
+          {initial && (
+            <div className="space-y-8">
+              <p className="text-muted-foreground text-xs">
+                Récapitulatif des courses sur une période, pour la facturation centralisée.
+              </p>
+              <RecapPdfButton party={initial} />
+            </div>
+          )}
         </FormSection>
 
         <FormSection title="Tarification">
