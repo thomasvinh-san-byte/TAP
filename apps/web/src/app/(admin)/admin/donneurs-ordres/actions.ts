@@ -72,7 +72,7 @@ export async function createOrderingPartyAction(
   }
 
   const { data, error } = await ctx.supabase
-    .from('ordering_parties' as never)
+    .from('ordering_parties')
     .insert({
       ...toRow(parsed.data),
       organization_id: ctx.organizationId,
@@ -108,7 +108,7 @@ export async function updateOrderingPartyAction(
   }
 
   const { error, data } = await ctx.supabase
-    .from('ordering_parties' as never)
+    .from('ordering_parties')
     .update(toRow(parsed.data) as never)
     .eq('id', partyId)
     .eq('archive', false)
@@ -133,7 +133,7 @@ export async function archiveOrderingPartyAction(partyId: string): Promise<Actio
   if (!ctx) return { error: 'Accès dirigeant requis.' };
 
   const { error, data } = await ctx.supabase
-    .from('ordering_parties' as never)
+    .from('ordering_parties')
     .update({
       archive: true,
       archive_at: new Date().toISOString(),

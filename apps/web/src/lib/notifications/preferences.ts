@@ -42,7 +42,7 @@ export async function getCockpitAlertPreferences(): Promise<CockpitAlertPreferen
     if (!user) return DEFAULT_COCKPIT_ALERT_PREFERENCES;
 
     const { data, error } = await supabase
-      .from('notification_preferences' as never)
+      .from('notification_preferences')
       .select('alert_patient_no_show, alert_sms_failed, alert_ride_delayed')
       .eq('user_id', user.id)
       .maybeSingle();
