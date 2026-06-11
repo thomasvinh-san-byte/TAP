@@ -40,7 +40,7 @@ export default async function ConformitePage() {
   const [blockingMode, itemsRes] = await Promise.all([
     getComplianceBlockingMode(),
     supabase
-      .from('compliance_items' as never)
+      .from('compliance_items')
       .select('id, entity_type, entity_id, kind, reference, expires_at')
       .eq('archive', false)
       .order('expires_at', { ascending: true, nullsFirst: false }),
@@ -67,7 +67,7 @@ export default async function ConformitePage() {
       const labels: Record<string, string> = {};
       if (driverIds.length === 0) return labels;
       const { data } = await supabase
-        .from('drivers' as never)
+        .from('drivers')
         .select('id, nom_affichage')
         .in('id', driverIds);
       for (const d of (data as { id: string; nom_affichage: string }[] | null) ?? []) {
@@ -79,7 +79,7 @@ export default async function ConformitePage() {
       const labels: Record<string, string> = {};
       if (vehicleIds.length === 0) return labels;
       const { data } = await supabase
-        .from('vehicles' as never)
+        .from('vehicles')
         .select('id, immatriculation, marque, modele')
         .in('id', vehicleIds);
       for (const v of (data as

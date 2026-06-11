@@ -27,7 +27,7 @@ async function getTarifsPageData(organizationId: string): Promise<TariffGridRow[
   const admin = createAdminClient();
 
   const { data, error } = await admin
-    .from('tariff_grids' as never)
+    .from('tariff_grids')
     .select(
       'id, date_effet, forfait_eur, km_inclus, prix_km_eur, ' +
         'supplement_drom_eur, supplement_tpmr_eur, majoration_pct, ' +

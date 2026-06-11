@@ -43,7 +43,7 @@ async function getChauffeursPageData(
   // bypassée par le service-role — le filtre org est l'unique barrière ici).
   const [driversRes, invitationsRes, complianceRes] = await Promise.all([
     admin
-      .from('drivers' as never)
+      .from('drivers')
       .select(
         'id, nom_affichage, telephone, numero_licence, type_permis, actif, archive, archive_at, archive_motif, profile_id, created_at',
       )
@@ -51,13 +51,13 @@ async function getChauffeursPageData(
       .eq('archive', vueArchives)
       .order('nom_affichage', { ascending: true }),
     admin
-      .from('driver_invitations' as never)
+      .from('driver_invitations')
       .select('id, driver_id, email, status, expires_at, created_at')
       .eq('organization_id', organizationId)
       .eq('status', 'pending')
       .order('created_at', { ascending: false }),
     admin
-      .from('compliance_items' as never)
+      .from('compliance_items')
       .select('entity_id, expires_at')
       .eq('organization_id', organizationId)
       .eq('entity_type', 'driver')

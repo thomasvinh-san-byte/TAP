@@ -137,7 +137,7 @@ export async function backfillRideGeocodingAction(): Promise<BackfillResult> {
   // régénère les rides futures avec les nouvelles coords — la cascade
   // reste maître. Ici on remplit uniquement le template.
   const recurrencesTarget = await supabase
-    .from('ride_recurrences' as never)
+    .from('ride_recurrences')
     .select('id, pickup_address, dropoff_address')
     .is('pickup_lat', null)
     .is('archived_at', null)
@@ -153,7 +153,7 @@ export async function backfillRideGeocodingAction(): Promise<BackfillResult> {
       await sleep(RATE_LIMIT_MS);
       if (!pickup && !dropoff) continue;
       const upd = await supabase
-        .from('ride_recurrences' as never)
+        .from('ride_recurrences')
         .update({
           pickup_lat: pickup?.lat ?? null,
           pickup_lng: pickup?.lng ?? null,

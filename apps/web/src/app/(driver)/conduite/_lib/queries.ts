@@ -64,7 +64,7 @@ type DriverIdRow = { id: string };
 
 async function resolveMyDriverId(ctx: AuthContext): Promise<string | null> {
   const res = await ctx.supabase
-    .from('drivers' as never)
+    .from('drivers')
     .select('id')
     .eq('profile_id', ctx.userId)
     .eq('organization_id', ctx.organizationId)

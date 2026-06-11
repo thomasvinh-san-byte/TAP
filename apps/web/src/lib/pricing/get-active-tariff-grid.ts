@@ -13,7 +13,7 @@ export async function getActiveTariffGrid(): Promise<TariffGrid | null> {
   const supabase = await createClient();
   const today = new Date().toISOString().slice(0, 10);
   const res = await supabase
-    .from('tariff_grids' as never)
+    .from('tariff_grids')
     .select(
       'forfait_eur, km_inclus, prix_km_eur, supplement_drom_eur, ' +
         'supplement_tpmr_eur, majoration_pct, facteur_correction_routier, arrondi_eur',

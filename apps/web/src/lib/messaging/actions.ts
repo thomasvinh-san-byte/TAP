@@ -62,7 +62,7 @@ export async function sendRideMessageAction(
   if (!ctx) return { error: 'Session expirée. Reconnectez-vous.' };
 
   const { data, error } = await ctx.supabase
-    .from('internal_message' as never)
+    .from('internal_message')
     .insert({
       organization_id: ctx.organizationId,
       ride_id: parsed.data.rideId,

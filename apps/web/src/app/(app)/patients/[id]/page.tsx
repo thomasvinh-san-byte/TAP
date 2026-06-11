@@ -48,7 +48,7 @@ export default async function PatientPage(props: PageProps) {
   // pour la cascade DEC-048 dans le modal édition.
   const supabase = await createClient();
   const recurrencesRes = await supabase
-    .from('ride_recurrences' as never)
+    .from('ride_recurrences')
     .select('*')
     .eq('patient_id', p.id)
     .is('archived_at', null)

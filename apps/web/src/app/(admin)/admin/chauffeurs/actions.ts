@@ -74,7 +74,7 @@ export async function createDriverAction(
   }
 
   const { data, error } = await ctx.supabase
-    .from('drivers' as never)
+    .from('drivers')
     .insert({
       ...parsed.data,
       organization_id: ctx.organizationId,
@@ -113,7 +113,7 @@ export async function updateDriverAction(
   }
 
   const { error, data } = await ctx.supabase
-    .from('drivers' as never)
+    .from('drivers')
     .update({
       ...parsed.data,
       telephone: parsed.data.telephone || null,
@@ -177,7 +177,7 @@ export async function archiveDriverAction(
   // Lecture courante pour valider état (non déjà archivé) — RLS bloque
   // automatiquement les autres orgs, donc pas besoin de check organization_id.
   const { data: current, error: fetchErr } = await ctx.supabase
-    .from('drivers' as never)
+    .from('drivers')
     .select('id, archive, nom_affichage')
     .eq('id', driverId)
     .maybeSingle();
@@ -192,7 +192,7 @@ export async function archiveDriverAction(
   // `driver_archived` avec le motif et l'acteur, pour traçabilité claire
   // côté RGPD et historique chauffeur).
   const { error: updErr } = await ctx.supabase
-    .from('drivers' as never)
+    .from('drivers')
     .update({
       archive: true,
       archive_at: new Date().toISOString(),
@@ -207,7 +207,7 @@ export async function archiveDriverAction(
   // Audit log applicatif — événement sémantique distinct du UPDATE technique.
   // Type `driver_archived` + metadata { motif, archived_by, archived_by_role }
   // pour permettre la requête « qui a archivé quoi avec quel motif ».
-  await ctx.supabase.from('audit_logs' as never).insert({
+  await ctx.supabase.from('audit_logs').insert({
     organization_id: ctx.organizationId,
     actor_id: ctx.userId,
     actor_role: ctx.role,
@@ -256,7 +256,7 @@ export async function deactivateDriverAction(
   }
 
   const { data, error } = await ctx.supabase
-    .from('drivers' as never)
+    .from('drivers')
     .update({ actif: false } as never)
     .eq('id', driverId)
     .eq('archive', false)
@@ -266,7 +266,7 @@ export async function deactivateDriverAction(
   if (error) return { error: 'Désactivation impossible.' };
   if (!data) return { error: 'Chauffeur introuvable ou déjà archivé.' };
 
-  await ctx.supabase.from('audit_logs' as never).insert({
+  await ctx.supabase.from('audit_logs').insert({
     organization_id: ctx.organizationId,
     actor_id: ctx.userId,
     actor_role: ctx.role,
@@ -301,7 +301,7 @@ export async function reactivateDriverAction(driverId: string): Promise<ActionSt
   if (!ctx) return { error: 'Accès dirigeant ou régulateur requis.' };
 
   const { data, error } = await ctx.supabase
-    .from('drivers' as never)
+    .from('drivers')
     .update({ actif: true } as never)
     .eq('id', driverId)
     .eq('archive', false)
@@ -311,7 +311,7 @@ export async function reactivateDriverAction(driverId: string): Promise<ActionSt
   if (error) return { error: 'Réactivation impossible.' };
   if (!data) return { error: 'Chauffeur introuvable ou archivé.' };
 
-  await ctx.supabase.from('audit_logs' as never).insert({
+  await ctx.supabase.from('audit_logs').insert({
     organization_id: ctx.organizationId,
     actor_id: ctx.userId,
     actor_role: ctx.role,
@@ -363,7 +363,7 @@ export async function unarchiveDriverAction(
   }
 
   const { data, error } = await ctx.supabase
-    .from('drivers' as never)
+    .from('drivers')
     .update({
       archive: false,
       archive_at: null,
@@ -377,7 +377,7 @@ export async function unarchiveDriverAction(
   if (error) return { error: 'Désarchivage impossible.' };
   if (!data) return { error: 'Chauffeur introuvable ou non archivé.' };
 
-  await ctx.supabase.from('audit_logs' as never).insert({
+  await ctx.supabase.from('audit_logs').insert({
     organization_id: ctx.organizationId,
     actor_id: ctx.userId,
     actor_role: ctx.role,
@@ -472,7 +472,7 @@ export async function inviteDriverAction(
   // 4. Vérifier driver existe + appartient à l'org du dirigeant (RLS) +
   //    actif + pas déjà rattaché à un profile_id
   const { data: driver, error: drvErr } = await ctx.supabase
-    .from('drivers' as never)
+    .from('drivers')
     .select('id, profile_id, archive, actif, organization_id')
     .eq('id', driverId)
     .maybeSingle();
@@ -520,7 +520,7 @@ export async function inviteDriverAction(
   //    `driver_invitations_insert_dirigeant`). Trigger audit AFTER INSERT
   //    écrit la ligne `driver_invited` automatiquement.
   const { data: invitation, error: insertErr } = await ctx.supabase
-    .from('driver_invitations' as never)
+    .from('driver_invitations')
     .insert({
       organization_id: ctx.organizationId,
       driver_id: driverId,
@@ -566,7 +566,7 @@ export async function resendInvitationAction(invitationId: string): Promise<Acti
 
   // 1. Fetch invitation + ownership + status
   const { data: invitation, error: fetchErr } = await ctx.supabase
-    .from('driver_invitations' as never)
+    .from('driver_invitations')
     .select('id, email, status, invited_by, expires_at')
     .eq('id', invitationId)
     .eq('invited_by', ctx.userId)
@@ -611,7 +611,7 @@ export async function resendInvitationAction(invitationId: string): Promise<Acti
   // 4. Bump expires_at à +24h (trigger émet `driver_invitation_resent`)
   const newExpiresAt = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
   const { error: updErr } = await ctx.supabase
-    .from('driver_invitations' as never)
+    .from('driver_invitations')
     .update({ expires_at: newExpiresAt } as never)
     .eq('id', invitationId);
   if (updErr) return { error: 'Mise à jour invitation impossible.' };

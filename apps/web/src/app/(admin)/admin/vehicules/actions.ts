@@ -73,7 +73,7 @@ export async function createVehicleAction(
   }
 
   const { data, error } = await ctx.supabase
-    .from('vehicles' as never)
+    .from('vehicles')
     .insert({
       ...parsed.data,
       organization_id: ctx.organizationId,
@@ -114,7 +114,7 @@ export async function updateVehicleAction(
   }
 
   const { error, data } = await ctx.supabase
-    .from('vehicles' as never)
+    .from('vehicles')
     .update({
       ...parsed.data,
       marque: parsed.data.marque || null,
@@ -143,7 +143,7 @@ export async function archiveVehicleAction(vehicleId: string): Promise<ActionSta
   if (!ctx) return { error: 'Accès dirigeant requis.' };
 
   const { error, data } = await ctx.supabase
-    .from('vehicles' as never)
+    .from('vehicles')
     .update({
       archive: true,
       archive_at: new Date().toISOString(),

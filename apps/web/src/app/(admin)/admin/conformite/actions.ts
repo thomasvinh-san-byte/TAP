@@ -33,7 +33,7 @@ export async function updateComplianceBlockingModeAction(raw: unknown): Promise<
   if (!parsed.success) return { error: 'Valeur invalide.' };
 
   const { data, error } = await ctx.supabase
-    .from('organizations' as never)
+    .from('organizations')
     .update({ compliance_blocking_mode: parsed.data } as never)
     .eq('id', ctx.organizationId)
     .select('id');
@@ -95,7 +95,7 @@ export async function upsertComplianceItemAction(raw: unknown): Promise<ActionSt
 
   if (v.id) {
     const { data, error } = await ctx.supabase
-      .from('compliance_items' as never)
+      .from('compliance_items')
       .update(payload as never)
       .eq('id', v.id)
       .eq('archive', false)
@@ -113,7 +113,7 @@ export async function upsertComplianceItemAction(raw: unknown): Promise<ActionSt
   }
 
   const { data, error } = await ctx.supabase
-    .from('compliance_items' as never)
+    .from('compliance_items')
     .insert({
       ...payload,
       organization_id: ctx.organizationId,
@@ -174,7 +174,7 @@ export async function archiveComplianceItemAction(id: string): Promise<ActionSta
   if (!ctx) return { error: 'Action réservée au dirigeant.' };
 
   const { data, error } = await ctx.supabase
-    .from('compliance_items' as never)
+    .from('compliance_items')
     .update({ archive: true, archive_at: new Date().toISOString() } as never)
     .eq('id', id)
     .eq('archive', false)
@@ -215,7 +215,7 @@ export async function listComplianceItemsForEntityAction(
   if (!ctx) return { items: [], error: 'Accès non autorisé.' };
 
   let query = ctx.supabase
-    .from('compliance_items' as never)
+    .from('compliance_items')
     .select(
       'id, entity_type, entity_id, kind, label, reference, issued_at, expires_at, document_url',
     )

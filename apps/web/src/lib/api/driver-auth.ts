@@ -38,7 +38,7 @@ export async function requireDriverFromRouteHandler(): Promise<DriverAuthResult>
   }
 
   const { data } = await ctx.supabase
-    .from('drivers' as never)
+    .from('drivers')
     .select('id')
     .eq('profile_id', ctx.userId)
     .eq('organization_id', ctx.organizationId)

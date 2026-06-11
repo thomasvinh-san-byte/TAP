@@ -80,7 +80,7 @@ export async function acceptInvitationAction(
   //    (RLS policy `driver_invitations_select_invited_or_recipient` autorise
   //    le user à voir SA propre invitation via match `email=auth.users.email`).
   const { data: invitation, error: invFetchErr } = await supabase
-    .from('driver_invitations' as never)
+    .from('driver_invitations')
     .select('id, driver_id, status, expires_at, organization_id')
     .eq('email', userEmail)
     .eq('status', 'pending')
@@ -121,7 +121,7 @@ export async function acceptInvitationAction(
   // 5. UPDATE driver_invitations → accepted (trigger audit émet
   //    `driver_invitation_accepted`). DEC-041 row count check.
   const invUpdRes = await supabase
-    .from('driver_invitations' as never)
+    .from('driver_invitations')
     .update({
       status: 'accepted',
       accepted_at: new Date().toISOString(),
@@ -137,7 +137,7 @@ export async function acceptInvitationAction(
   //    rend l'opération idempotente (race condition : double submit → la 2ᵉ
   //    requête match 0 row). DEC-041 row count check.
   const drvUpdRes = await supabase
-    .from('drivers' as never)
+    .from('drivers')
     .update({ profile_id: user.id } as never)
     .eq('id', inv.driver_id)
     .is('profile_id', null)
@@ -149,7 +149,7 @@ export async function acceptInvitationAction(
   // 7. Audit log applicatif `cgu_accepted_via_invitation` (DEC-027).
   //    Trace l'acceptation des CGU + version, indépendamment du trigger
   //    `driver_invitation_accepted` qui ne porte PAS cette info.
-  await supabase.from('audit_logs' as never).insert({
+  await supabase.from('audit_logs').insert({
     organization_id: inv.organization_id,
     actor_id: user.id,
     actor_role: 'chauffeur',

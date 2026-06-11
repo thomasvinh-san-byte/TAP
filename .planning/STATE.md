@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 08.04 (perf — extension data-cache aux référentiels) livrée localement. PR à ouvrir. Gate : test isolation 2-orgs par référentiel sur preview."
-last_updated: "2026-06-11T18:00:00.000Z"
-last_activity: Phase 08.04 (perf Lot 2 suite — extension du data-cache par org aux référentiels restants ; 0 migration, 0 dépendance). Réplique le pattern validé du pilote chauffeurs (DEC-152). Couvert 3/4 : vehicules (vehiculesTag ; 2 requêtes vehicles+compliance ; 3 actions create/update/archive), donneurs-ordres (donneursOrdresTag ; 1 requête ; 3 actions), tarifs (tarifsTag ; 1 requête tariff_grids ; 1 action saveTariffGrid). Chaque référentiel : _lib/cached-queries.ts (service-role createAdminClient + .eq('organization_id', orgId) explicite sur chaque requête ; unstable_cache clé+tag par org ; revalidate 3600) ; page requireDirigeantPage() → getCachedXxx(ctx.organizationId), force-dynamic retiré ; revalidateTag(<entité>Tag(ctx.organizationId)) dans chaque action de mutation. EXCLU sms-templates : table sms_templates GLOBALE (PK key, pas de organization_id) → pattern par-org inapplicable, laissée force-dynamic (signalé). Garde-fous identiques 08.03 : orgId dans clé+tag, filtre org explicite, orgId issu de session, service-role confiné. GATE : test isolation 2-orgs par référentiel sur preview. Chantier data-cache référentiels : 4/5 cachés. Lot 3 (Suspense) différé. typecheck+lint(0 err, 8 warn)+build verts. DEC-153 LOCKED.
-last_activity_prev: Phase 08.03 perf data-cache pilote chauffeurs (DEC-152). Phase 08.01 perf parallélisation fetchs (DEC-150).
+stopped_at: "Phase 09.01 (dette — retrait des as never sur .from()) livrée localement. PR à ouvrir."
+last_updated: "2026-06-11T20:00:00.000Z"
+last_activity: Phase 09.01 (dette — retrait des `as never` sur `.from()`, typage Supabase restauré ; 0 migration, 0 dépendance). 78 `.from('<table>' as never)` désactivaient le typage Supabase (noms colonnes/types retour non vérifiés — origine du bug cockpit drivers(prenom,nom), déjà corrigé). Client déjà typé <Database> → casts superflus. 70 retirés sur 27 fichiers, par lots de tables, typecheck vert maintenu (drivers 21, vehicles 9, compliance_items 9, ride_recurrences 7, driver_invitations 6, audit_logs 5, tariff_grids 2, ride_events 2, organizations 2, internal_message 2, idempotency_keys 2, driver_positions 2, pois_metier 1). 0 nouveau bug révélé (typecheck resté vert : requêtes déjà correctes) — valeur = PROTECTION restaurée (futurs bugs colonnes attrapés au build). 8 casts conservés : ordering_parties (6) + notification_preferences (2), tables absentes de types.gen.ts (récentes), regen impossible en sandbox (supabase CLI/Docker absents) → à retirer après resync sync-types.yml. Hors périmètre (D-04) : ~127 as never sur payloads insert/update non touchés. Jamais de as any ; types.gen.ts non modifié à la main. typecheck+lint(0 err, 8 warn)+build verts. DEC-154 LOCKED.
+last_activity_prev: Phase 08.04 perf extension data-cache référentiels (DEC-153). Phase 08.03 perf data-cache pilote chauffeurs (DEC-152).
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
@@ -21,16 +21,18 @@ last_activity_prev: Phase 08.03 perf data-cache pilote chauffeurs (DEC-152). Pha
 # + 07.01 module donneurs d'ordres B2B (cœur) + 06.68 page Réglages + préférences
 # alertes cockpit + 08.01 perf parallélisation fetchs + 08.03 perf data-cache org
 # (pilote chauffeurs ; 08.02 absorbée = constat DEC-151, non compté)
-# + 08.04 perf extension data-cache (vehicules/donneurs-ordres/tarifs) = 80. (06.40
+# + 08.04 perf extension data-cache (vehicules/donneurs-ordres/tarifs)
+# + 09.01 dette retrait as never (typage Supabase restauré) = 81. (06.40
 # hygiène docs ET 06.56 onboarding méthode = lots documentaires, hors compte feature ; 06.45 supersede
 # 06.44 mais les 2 ont été livrées ; DEC-142 fix DialogContent = fix hors numéro de phase ;
 # 06.67 chore CI = lot hors compte feature, comme 06.40/06.56.) Restantes
 # réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07 mobile native abandonnée
-# (DEC-092) hors compte ; 07.01 = module métier B2B (sans rapport avec le mobile natif).
-# Dernière phase livrée : 08.04 (perf extension data-cache référentiels). Dernier DEC : 153 (08.04). Dernier ADR : ADR-013 (06.33).
+# (DEC-092) hors compte ; 07.01 = module métier B2B et 09.01 = lot dette typage (sans rapport
+# avec la Phase 09 HDS majeure à venir).
+# Dernière phase livrée : 09.01 (dette retrait as never). Dernier DEC : 154 (09.01). Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 82
-  completed_phases: 80
+  total_phases: 83
+  completed_phases: 81
   total_plans: 89
   completed_plans: 89
   percent: 97
@@ -43,7 +45,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 08.04 (perf Lot 2 suite — extension du data-cache par org aux référentiels) livrée localement. Le pattern validé du pilote chauffeurs (DEC-152) est répliqué sur vehicules + donneurs-ordres + tarifs (cache par org, service-role filtré org, revalidateTag à l'écriture, force-dynamic retiré). sms-templates exclu (table GLOBALE sans organization_id → pattern par-org N/A, laissé dynamique). **Chantier data-cache référentiels : 4/5 cachés. GATE : test isolation 2-orgs par référentiel sur preview avant de clore.** 80 phases feature livrées + 3 lots hors compte (06.40 hygiène, 06.56 méthode, 06.67 chore CI) (cf. commentaire de comptage dans le frontmatter). 4 release toggles OFF pré-infra : GEOLOC, MESSAGING, UPLOAD_DOCS, EMAIL. Restantes : Lot 3 Suspense (différé) ; extensions B2B (registre §6) ; Phase 09 HDS (registre §1.1/§4.3) + Phase 10 géoloc réelle ; choix provider email (registre §1.2) ; messagerie complète (registre §1.4) ; étapes restantes du plan d'audit.
+**Current focus:** Phase 09.01 (dette — retrait des `as never` sur `.from()`, typage Supabase restauré) livrée localement. 70 casts retirés sur 27 fichiers (par lots de tables, typecheck vert maintenu) ; 8 conservés sur ordering_parties + notification_preferences (absentes de types.gen.ts, regen impossible en sandbox → à retirer après resync). 0 nouveau bug révélé (requêtes déjà correctes), valeur = protection de type restaurée. **GATE 08.x toujours en attente** : test isolation 2-orgs par référentiel sur preview (data-cache). 81 phases feature livrées + 3 lots hors compte (06.40 hygiène, 06.56 méthode, 06.67 chore CI) (cf. commentaire de comptage dans le frontmatter). 4 release toggles OFF pré-infra : GEOLOC, MESSAGING, UPLOAD_DOCS, EMAIL. Restantes : resync types.gen.ts → retirer les 8 derniers as never ; Lot 3 Suspense (différé) ; extensions B2B (registre §6) ; Phase 09 HDS (registre §1.1/§4.3) + Phase 10 géoloc réelle ; choix provider email (registre §1.2) ; messagerie complète (registre §1.4) ; étapes restantes du plan d'audit.
 
 ## Current Position
 
@@ -52,12 +54,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 08.04 (perf — extension data-cache aux référentiels) livrée localement (2026-06-11). PR à ouvrir. GATE : isolation 2-orgs par référentiel sur preview.
-Phase next: valider l'isolation 2-orgs (vehicules/donneurs-ordres/tarifs) sur preview ; Lot 3 Suspense (différé) ; extensions B2B (registre §6) ; choix provider email (registre §1.2) ; messagerie complète (registre §1.4) ; Phase 09 HDS ; Phase 10 géoloc.
-Status: 80 phases feature + 3 lots hors compte. Chantier data-cache référentiels 4/5 cachés (chauffeurs 08.03 ; vehicules/donneurs-ordres/tarifs 08.04). Pattern : unstable_cache clé+tag par organizationId + service-role filtré .eq('organization_id', orgId) + revalidateTag à l'écriture + force-dynamic retiré. sms-templates exclu (table globale sans organization_id). Pages restent dynamiques (cookies), seule la donnée est cachée. 4 release toggles OFF pré-infra.
-Blockers: GATE preview — test isolation 2-orgs par référentiel avant de clore le chantier (RLS bypassée dans la fonction cachée → fuite si filtre org mal threadé). Non exécutable en sandbox local (preview = vérité, CLAUDE.md §13.5).
-Last activity: Phase 08.04 (perf Lot 2 suite — extension data-cache). Réplique le pilote chauffeurs sur 3 référentiels. vehicules : _lib/cached-queries.ts (service-role, vehicles+compliance filtrés org, unstable_cache ['vehicules-page', orgId] + tag vehicules:<orgId>) ; donneurs-ordres : idem 1 requête (tag donneurs-ordres:<orgId>) ; tarifs : idem tariff_grids (tag tarifs:<orgId>). force-dynamic retiré des 3 pages (requireDirigeantPage → getCachedXxx(ctx.organizationId)). revalidateTag ajouté à chaque action de mutation (vehicules 3, donneurs-ordres 3, tarifs 1). sms-templates EXCLU : sms_templates GLOBALE (PK key, pas de organization_id) → laissée force-dynamic. Garde-fous : orgId dans clé+tag, filtre org explicite, service-role confiné. typecheck+lint(0 err, 8 warn)+build verts. 0 migration, 0 dépendance. DEC-153 LOCKED. PR à ouvrir.
-Précédent: 08.03 perf data-cache pilote chauffeurs (DEC-152), 08.01 perf parallélisation fetchs (DEC-150), 06.68 page Réglages (DEC-149).
+Phase: 09.01 (dette — retrait des as never sur .from(), typage Supabase restauré) livrée localement (2026-06-11). PR à ouvrir.
+Phase next: resync types.gen.ts (sync-types.yml) → retirer les 8 derniers as never (ordering_parties/notification_preferences) ; valider l'isolation 2-orgs data-cache sur preview (08.x) ; Lot 3 Suspense (différé) ; extensions B2B (registre §6) ; choix provider email (registre §1.2) ; messagerie complète (registre §1.4) ; Phase 09 HDS ; Phase 10 géoloc.
+Status: 81 phases feature + 3 lots hors compte. Typage Supabase restauré : 70 `.from(... as never)` retirés (27 fichiers), le client typé <Database> détecte à nouveau les mauvais noms de colonnes au build. 8 casts conservés (ordering_parties 6 + notification_preferences 2, tables hors typegen). Hors périmètre : ~127 as never sur payloads insert/update. Data-cache référentiels 4/5 (gate isolation preview en attente). 4 release toggles OFF pré-infra.
+Blockers: 2 en attente côté preview/resync — (1) GATE isolation 2-orgs data-cache (08.x) sur preview ; (2) resync types.gen.ts requis pour retirer les 8 derniers as never (regen impossible en sandbox : supabase CLI/Docker absents).
+Last activity: Phase 09.01 (dette — retrait des as never sur .from()). 78 casts désactivaient le typage Supabase ; client déjà typé <Database> → superflus. 70 retirés par lots de tables (drivers 21, vehicles 9, compliance_items 9, ride_recurrences 7, driver_invitations 6, audit_logs 5, +reste), typecheck vert maintenu. 0 nouveau bug révélé (requêtes déjà correctes ; bug cockpit déjà corrigé) — valeur = protection restaurée. 8 conservés (ordering_parties/notification_preferences absentes de types.gen.ts ; regen sandbox impossible) → à retirer après resync. Hors périmètre D-04 : ~127 as never sur payloads insert/update. Jamais de as any ; types.gen.ts non modifié à la main. typecheck+lint(0 err, 8 warn)+build verts. 0 migration, 0 dépendance. DEC-154 LOCKED. PR à ouvrir.
+Précédent: 08.04 perf extension data-cache (DEC-153), 08.03 perf data-cache pilote chauffeurs (DEC-152), 08.01 perf parallélisation fetchs (DEC-150).
 
 Progress: [██████████] 100%
 

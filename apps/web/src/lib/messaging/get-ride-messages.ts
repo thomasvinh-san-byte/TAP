@@ -16,7 +16,7 @@ export async function getRideMessages(rideId: string): Promise<RideMessage[]> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
-    .from('internal_message' as never)
+    .from('internal_message')
     .select('id, ride_id, sender_profile_id, sender_role, body, created_at')
     .eq('ride_id', rideId)
     .order('created_at', { ascending: true });

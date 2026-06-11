@@ -136,7 +136,7 @@ export async function exportRidesCsvAction(input: ExportRidesInput): Promise<Exp
   const driverLabels: Record<string, string> = {};
   if (driverIds.length > 0) {
     const { data: d } = await supabase
-      .from('drivers' as never)
+      .from('drivers')
       .select('id, nom_affichage')
       .in('id', driverIds);
     for (const row of (d as { id: string; nom_affichage: string }[] | null) ?? []) {
