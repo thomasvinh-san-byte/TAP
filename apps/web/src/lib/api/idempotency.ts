@@ -41,7 +41,7 @@ export async function withIdempotency<T extends Record<string, unknown>>(
   const { key, userId, mutationType, resourceId, supabase, fn } = params;
 
   const { data: cached, error: cachedError } = await supabase
-    .from('idempotency_keys' as never)
+    .from('idempotency_keys')
     .select('response_json')
     .eq('key', key)
     .eq('user_id', userId)
@@ -64,7 +64,7 @@ export async function withIdempotency<T extends Record<string, unknown>>(
   const result = await fn();
 
   if (result.status >= 200 && result.status < 300) {
-    await supabase.from('idempotency_keys' as never).insert({
+    await supabase.from('idempotency_keys').insert({
       key,
       user_id: userId,
       mutation_type: mutationType,

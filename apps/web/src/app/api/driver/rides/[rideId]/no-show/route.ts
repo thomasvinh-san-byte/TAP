@@ -133,7 +133,7 @@ export async function POST(
       }
 
       // INSERT ride_events pour cockpit Realtime (alerte instantanée régulatrice).
-      const { error: eventErr } = await auth.ctx.supabase.from('ride_events' as never).insert({
+      const { error: eventErr } = await auth.ctx.supabase.from('ride_events').insert({
         organization_id: currentRow.organization_id,
         ride_id: rideIdParse.data,
         event_type: 'patient_no_show',

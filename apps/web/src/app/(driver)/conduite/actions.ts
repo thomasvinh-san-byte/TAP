@@ -53,7 +53,7 @@ async function getMyDriverId(ctx: AuthContext): Promise<string | null> {
   // nightly (sync-types.yml cron 3h UTC). Cast ciblé du nom de table en
   // attendant — Supabase JS tolère les tables inconnues à l'exécution.
   const { data } = await ctx.supabase
-    .from('drivers' as never)
+    .from('drivers')
     .select('id')
     .eq('profile_id', ctx.userId)
     .eq('organization_id', ctx.organizationId)

@@ -33,7 +33,7 @@ export async function recordDriverPosition(opts: {
   if (position.lat == null || position.lng == null) return;
   if (position.accuracy != null && position.accuracy > POSITION_MAX_ACCURACY_M) return;
 
-  const { error } = await supabase.from('driver_positions' as never).insert({
+  const { error } = await supabase.from('driver_positions').insert({
     organization_id: organizationId,
     driver_id: driverId,
     ride_id: rideId,

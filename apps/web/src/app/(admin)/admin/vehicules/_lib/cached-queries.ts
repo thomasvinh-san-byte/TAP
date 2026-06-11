@@ -30,7 +30,7 @@ async function getVehiculesPageData(organizationId: string): Promise<VehiculesPa
 
   const [vehiclesRes, complianceRes] = await Promise.all([
     admin
-      .from('vehicles' as never)
+      .from('vehicles')
       .select(
         'id, immatriculation, marque, modele, type, places_assises, places_tpmr, actif, created_at',
       )
@@ -38,7 +38,7 @@ async function getVehiculesPageData(organizationId: string): Promise<VehiculesPa
       .eq('archive', false)
       .order('immatriculation', { ascending: true }),
     admin
-      .from('compliance_items' as never)
+      .from('compliance_items')
       .select('entity_id, expires_at')
       .eq('organization_id', organizationId)
       .eq('entity_type', 'vehicle')

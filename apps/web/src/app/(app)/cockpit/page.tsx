@@ -47,7 +47,7 @@ async function getCockpitRideEvents(
 ): Promise<CockpitAlert[]> {
   try {
     const { data, error } = await supabase
-      .from('ride_events' as never)
+      .from('ride_events')
       .select('id, ride_id, event_type, payload, created_at')
       .in('event_type', ['patient_no_show', 'sms_failed', 'ride_delayed'])
       .gte('created_at', `${today}T00:00:00`)
@@ -73,7 +73,7 @@ async function getDriverPositionsWithLabels(
 ): Promise<{ positions: DriverPosition[]; driverLabels: Record<string, string> }> {
   try {
     const { data: posData } = await supabase
-      .from('driver_positions' as never)
+      .from('driver_positions')
       .select('id, driver_id, ride_id, lat, lng, accuracy, captured_at, source')
       .order('captured_at', { ascending: false })
       .limit(200);
@@ -83,7 +83,7 @@ async function getDriverPositionsWithLabels(
     if (positions.length > 0) {
       const driverIds = Array.from(new Set(positions.map((p) => p.driver_id)));
       const { data: drvData } = await supabase
-        .from('drivers' as never)
+        .from('drivers')
         .select('id, nom_affichage')
         .in('id', driverIds);
       const drv = (drvData as { id: string; nom_affichage: string }[] | null) ?? [];

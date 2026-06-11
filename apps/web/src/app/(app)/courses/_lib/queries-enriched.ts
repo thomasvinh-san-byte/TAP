@@ -82,14 +82,11 @@ export async function listRidesEnriched(
       : supabase.from('patients_safe').select('id, nom, prenom').in('id', patientIds),
     driverIds.length === 0
       ? Promise.resolve({ data: [] as DriverMin[] })
-      : supabase
-          .from('drivers' as never)
-          .select('id, nom_affichage, type_permis')
-          .in('id', driverIds),
+      : supabase.from('drivers').select('id, nom_affichage, type_permis').in('id', driverIds),
     vehicleIds.length === 0
       ? Promise.resolve({ data: [] as VehicleMin[] })
       : supabase
-          .from('vehicles' as never)
+          .from('vehicles')
           .select('id, immatriculation, marque, modele, type')
           .in('id', vehicleIds),
   ]);
@@ -123,14 +120,14 @@ export async function getRideByIdEnriched(rideId: string): Promise<RideRowEnrich
     supabase.from('patients_safe').select('id, nom, prenom').eq('id', r.patient_id).maybeSingle(),
     r.driver_id
       ? supabase
-          .from('drivers' as never)
+          .from('drivers')
           .select('id, nom_affichage, type_permis')
           .eq('id', r.driver_id)
           .maybeSingle()
       : Promise.resolve({ data: null }),
     r.vehicle_id
       ? supabase
-          .from('vehicles' as never)
+          .from('vehicles')
           .select('id, immatriculation, marque, modele, type')
           .eq('id', r.vehicle_id)
           .maybeSingle()
@@ -180,7 +177,7 @@ export async function getRideAuditLog(rideId: string): Promise<RideAuditEntry[]>
 export async function listActiveDrivers(): Promise<DriverMin[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from('drivers' as never)
+    .from('drivers')
     .select('id, nom_affichage, type_permis')
     .eq('actif', true)
     .eq('archive', false)
@@ -195,7 +192,7 @@ export async function listActiveDrivers(): Promise<DriverMin[]> {
 export async function listActiveVehicles(): Promise<VehicleMin[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from('vehicles' as never)
+    .from('vehicles')
     .select('id, immatriculation, marque, modele, type')
     .eq('actif', true)
     .eq('archive', false)

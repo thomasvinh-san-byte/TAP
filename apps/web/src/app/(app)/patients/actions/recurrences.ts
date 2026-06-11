@@ -146,7 +146,7 @@ export async function createRecurrenceAction(formData: FormData): Promise<Recurr
   ]);
 
   const insertRes = await supabase
-    .from('ride_recurrences' as never)
+    .from('ride_recurrences')
     .insert({
       organization_id: ctx.organizationId,
       patient_id: input.patient_id,
@@ -295,7 +295,7 @@ export async function updateRecurrenceAction(formData: FormData): Promise<Recurr
   ]);
 
   const upRes = await supabase
-    .from('ride_recurrences' as never)
+    .from('ride_recurrences')
     .update({
       rrule_str: input.rrule_str,
       start_date: input.start_date,
@@ -367,7 +367,7 @@ export async function cancelRecurrenceAction(recurrenceId: string): Promise<Recu
   const supabase = await createClient();
 
   const before = await supabase
-    .from('ride_recurrences' as never)
+    .from('ride_recurrences')
     .select('patient_id, archived_at')
     .eq('id', idParsed.data)
     .single();
@@ -376,7 +376,7 @@ export async function cancelRecurrenceAction(recurrenceId: string): Promise<Recu
   if (beforeRow.archived_at) return { error: 'Récurrence déjà archivée.' };
 
   const upRes = await supabase
-    .from('ride_recurrences' as never)
+    .from('ride_recurrences')
     .update({ archived_at: new Date().toISOString() } as never)
     .eq('id', idParsed.data)
     .select('id');

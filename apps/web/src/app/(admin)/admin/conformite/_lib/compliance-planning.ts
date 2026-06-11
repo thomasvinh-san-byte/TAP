@@ -33,7 +33,7 @@ export interface EntityComplianceLookup {
 export async function getComplianceBlockingMode(): Promise<ComplianceBlockingMode> {
   const supabase = await createClient();
   const { data } = await supabase
-    .from('organizations' as never)
+    .from('organizations')
     .select('compliance_blocking_mode')
     .limit(1)
     .maybeSingle();
@@ -59,7 +59,7 @@ export async function getEntityComplianceLookup(
   if (vehicleIds.length > 0) wantedTypes.push('vehicle');
 
   const { data, error } = await supabase
-    .from('compliance_items' as never)
+    .from('compliance_items')
     .select('entity_type, entity_id, expires_at')
     .eq('archive', false)
     .in('entity_type', wantedTypes);

@@ -29,7 +29,7 @@ export async function getComplianceAlerts(): Promise<ComplianceAlertEnriched[]> 
   const supabase = await createClient();
 
   const itemsRes = await supabase
-    .from('compliance_items' as never)
+    .from('compliance_items')
     .select('id, entity_type, entity_id, kind, expires_at')
     .eq('archive', false);
 
@@ -59,10 +59,7 @@ export async function getComplianceAlerts(): Promise<ComplianceAlertEnriched[]> 
 
   const driverLabels: Record<string, string> = {};
   if (driverIds.length > 0) {
-    const { data } = await supabase
-      .from('drivers' as never)
-      .select('id, nom_affichage')
-      .in('id', driverIds);
+    const { data } = await supabase.from('drivers').select('id, nom_affichage').in('id', driverIds);
     for (const d of (data as { id: string; nom_affichage: string }[] | null) ?? []) {
       driverLabels[d.id] = d.nom_affichage;
     }
@@ -70,7 +67,7 @@ export async function getComplianceAlerts(): Promise<ComplianceAlertEnriched[]> 
   const vehicleLabels: Record<string, string> = {};
   if (vehicleIds.length > 0) {
     const { data } = await supabase
-      .from('vehicles' as never)
+      .from('vehicles')
       .select('id, immatriculation, marque, modele')
       .in('id', vehicleIds);
     for (const v of (data as

@@ -83,11 +83,7 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   const [driverRes, orgRes, ridesRes] = await Promise.all([
-    supabase
-      .from('drivers' as never)
-      .select('id, nom_affichage')
-      .eq('id', driverId)
-      .maybeSingle(),
+    supabase.from('drivers').select('id, nom_affichage').eq('id', driverId).maybeSingle(),
     supabase.from('organizations').select('nom').eq('id', profile.organization_id).single(),
     supabase
       .from('rides')

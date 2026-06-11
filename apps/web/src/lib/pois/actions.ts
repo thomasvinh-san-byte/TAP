@@ -44,7 +44,7 @@ export async function listPoisMetierAction(): Promise<PoiMetierMin[]> {
   const { createClient } = await import('@/lib/supabase/server');
   const supabase = await createClient();
   const res = await supabase
-    .from('pois_metier' as never)
+    .from('pois_metier')
     .select(
       'id, nom_court, nom_long, type_poi, adresse, code_postal, ville, notes_acces, actif, latitude, longitude',
     )
