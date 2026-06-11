@@ -13,7 +13,7 @@
  * `types.gen.ts`.
  */
 
-export type { Database, Json } from './types.gen';
+export type { Database, Json, Tables, TablesInsert, TablesUpdate } from './types.gen';
 
 export type UserRole = 'dirigeant' | 'regulateur' | 'chauffeur';
 

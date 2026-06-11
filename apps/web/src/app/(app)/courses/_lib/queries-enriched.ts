@@ -134,7 +134,7 @@ export async function getRideByIdEnriched(rideId: string): Promise<RideRowEnrich
       : Promise.resolve({ data: null }),
     r.ordering_party_id
       ? supabase
-          .from('ordering_parties' as never)
+          .from('ordering_parties')
           .select('id, raison_sociale')
           .eq('id', r.ordering_party_id)
           .maybeSingle()
@@ -211,7 +211,7 @@ export async function listActiveVehicles(): Promise<VehicleMin[]> {
 export async function listActiveOrderingParties(): Promise<OrderingPartyMin[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from('ordering_parties' as never)
+    .from('ordering_parties')
     .select('id, raison_sociale')
     .eq('actif', true)
     .eq('archive', false)

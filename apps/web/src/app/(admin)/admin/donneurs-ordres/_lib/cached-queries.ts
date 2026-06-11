@@ -23,10 +23,9 @@ async function getDonneursOrdresPageData(organizationId: string): Promise<Orderi
   const admin = createAdminClient();
 
   const { data, error } = await admin
-    .from('ordering_parties' as never)
+    .from('ordering_parties')
     .select(
-      'id, raison_sociale, siret, contact_principal_nom, contact_principal_telephone, ' +
-        'contact_principal_email, modalite_facturation, actif, created_at',
+      'id, raison_sociale, siret, contact_principal_nom, contact_principal_telephone, contact_principal_email, modalite_facturation, actif, created_at',
     )
     .eq('organization_id', organizationId)
     .eq('archive', false)

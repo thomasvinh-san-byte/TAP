@@ -35,7 +35,7 @@ export async function updateNotificationPreferencesAction(
   const ctx = await getAuthContext();
   if (!ctx) return { error: 'Session expirée. Reconnectez-vous.' };
 
-  const { error } = await ctx.supabase.from('notification_preferences' as never).upsert(
+  const { error } = await ctx.supabase.from('notification_preferences').upsert(
     {
       user_id: ctx.userId,
       organization_id: ctx.organizationId,
