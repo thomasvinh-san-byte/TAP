@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { LogOut, Moon, Settings, Sun } from 'lucide-react';
 import {
   DropdownMenu,
@@ -33,7 +34,7 @@ const ROLE_LABELS: Record<Role, string> = {
  * Menu utilisateur dans le coin haut-droit du shell authentifié.
  *
  * - Trigger : InitialsAvatar 32px, couleur par rôle (dirigeant/régul/chauf).
- * - Dropdown 280px : identité, toggle mode jour/nuit, paramètres (V2),
+ * - Dropdown 280px : identité, toggle mode jour/nuit, réglages (DEC-149),
  *   déconnexion. Persistance theme via localStorage clé `theme`
  *   (compatible avec le script anti-FOUC dans app/layout.tsx).
  */
@@ -81,9 +82,11 @@ export function UserMenu({ prenom, nom, email, role }: UserMenuProps): JSX.Eleme
           )}
           <span>{theme === 'dark' ? 'Mode jour' : 'Mode nuit'}</span>
         </DropdownMenuItem>
-        <DropdownMenuItem disabled className="gap-12">
-          <Settings className="h-16 w-16" aria-hidden />
-          <span>Paramètres</span>
+        <DropdownMenuItem asChild className="gap-12">
+          <Link href="/reglages">
+            <Settings className="h-16 w-16" aria-hidden />
+            <span>Réglages</span>
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <form action={signOutAction}>

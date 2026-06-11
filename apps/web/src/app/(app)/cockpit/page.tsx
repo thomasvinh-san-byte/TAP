@@ -4,6 +4,7 @@ import { CockpitContent } from './_components/cockpit-content.client';
 import type { CockpitAlert, CockpitRide } from './_lib/types';
 import type { DriverPosition } from './_lib/use-driver-positions';
 import { getComplianceAlerts } from '../../(admin)/admin/conformite/_lib/get-compliance-alerts';
+import { getCockpitAlertPreferences } from '@/lib/notifications/preferences';
 
 export const metadata = { title: 'Cockpit' };
 export const dynamic = 'force-dynamic';
@@ -86,6 +87,10 @@ export default async function CockpitPage() {
   // (conformité §5.21). Distinctes des alertes course (no-show, sms).
   const complianceAlerts = await getComplianceAlerts();
 
+  // DEC-149 : préférences d'alertes de l'utilisateur (filtrage d'affichage du
+  // panel ; défaut tout activé si aucune ligne — rétro-compatible).
+  const alertPreferences = await getCockpitAlertPreferences();
+
   return (
     <CockpitContent
       initialRides={rides}
@@ -93,6 +98,7 @@ export default async function CockpitPage() {
       initialPositions={positions}
       driverLabels={driverLabels}
       complianceAlerts={complianceAlerts}
+      alertPreferences={alertPreferences}
     />
   );
 }

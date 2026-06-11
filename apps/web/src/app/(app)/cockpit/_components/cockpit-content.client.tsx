@@ -8,6 +8,7 @@ import { PageHeader } from '@/components/page-header';
 import { useCockpitAlerts } from '../_lib/use-cockpit-alerts';
 import { useCockpitRides } from '../_lib/use-cockpit-rides';
 import type { CockpitAlert, CockpitRide } from '../_lib/types';
+import type { CockpitAlertPreferences } from '@/lib/notifications/preferences';
 import type { DriverPosition } from '../_lib/use-driver-positions';
 import type { ComplianceAlertEnriched } from '../../../(admin)/admin/conformite/_lib/get-compliance-alerts';
 import { ComplianceAlertsPanel } from '../../../(admin)/admin/conformite/_components/compliance-alerts-panel.client';
@@ -27,28 +28,38 @@ export function CockpitContent({
   initialPositions,
   driverLabels,
   complianceAlerts,
+  alertPreferences,
 }: {
   initialRides: CockpitRide[];
   initialAlerts: CockpitAlert[];
   initialPositions: DriverPosition[];
   driverLabels: Record<string, string>;
   complianceAlerts: ComplianceAlertEnriched[];
+  alertPreferences: CockpitAlertPreferences;
 }): JSX.Element {
   const { rides, status, newRideIds } = useCockpitRides(initialRides);
   const { alerts } = useCockpitAlerts(initialAlerts);
   const [dismissedNoShowIds, setDismissedNoShowIds] = useState<Set<string>>(() => new Set());
 
+  // DEC-149 : filtrage d'AFFICHAGE selon les préférences utilisateur. La
+  // détection (useCockpitAlerts, realtime) reste INCHANGÉE — on ne masque que
+  // les familles désactivées. Défaut tout activé = rétro-compatible.
+  const visibleAlerts = useMemo<CockpitAlert[]>(
+    () => alerts.filter((a) => alertPreferences[a.event_type]),
+    [alerts, alertPreferences],
+  );
+
   const recentNoShow = useMemo<CockpitAlert | null>(() => {
     const cutoff = Date.now() - NOSHOW_DETECTION_WINDOW_MS;
     return (
-      alerts.find((a) => {
+      visibleAlerts.find((a) => {
         if (a.event_type !== 'patient_no_show') return false;
         if (dismissedNoShowIds.has(a.id)) return false;
         const ts = new Date(a.created_at).getTime();
         return !Number.isNaN(ts) && ts >= cutoff;
       }) ?? null
     );
-  }, [alerts, dismissedNoShowIds]);
+  }, [visibleAlerts, dismissedNoShowIds]);
 
   const recentNoShowRide = useMemo<CockpitRide | null>(() => {
     if (!recentNoShow?.ride_id) return null;
@@ -119,7 +130,7 @@ export function CockpitContent({
         <DriverPositionsPanel initial={initialPositions} driverLabels={driverLabels} />
       </section>
       <aside className="lg:border-border flex w-full shrink-0 flex-col gap-24 lg:w-80 lg:border-l lg:pl-24">
-        <AlertsPanel alerts={alerts} />
+        <AlertsPanel alerts={visibleAlerts} />
         <DraftsIndicator />
         <ComplianceAlertsPanel alerts={complianceAlerts} variant="panel" limit={4} />
       </aside>
