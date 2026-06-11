@@ -8,11 +8,12 @@
  * en cas de doublon ; on la reformule en français lisible.
  */
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { z } from 'zod';
 import { vehicleInputSchema } from '@tap/shared';
 import { requireDirigeant } from '@/lib/auth/require-dirigeant';
 import { normalizeBrandOrModel } from '@/lib/vehicles/catalog';
+import { vehiculesTag } from './_lib/cached-queries';
 
 export type ActionState = {
   success?: boolean;
@@ -87,6 +88,8 @@ export async function createVehicleAction(
     return { error: reformulateInsertError(error?.message ?? '') };
   }
   revalidatePath('/admin/vehicules');
+  // DEC-153 : purge le cache data par org (la liste reflète l'écriture aussitôt).
+  revalidateTag(vehiculesTag(ctx.organizationId));
   return { success: true, id: (data as { id: string }).id };
 }
 
@@ -126,6 +129,8 @@ export async function updateVehicleAction(
   if (!data) return { error: 'Véhicule introuvable ou archivé.' };
 
   revalidatePath('/admin/vehicules');
+  // DEC-153 : purge le cache data par org (la liste reflète l'écriture aussitôt).
+  revalidateTag(vehiculesTag(ctx.organizationId));
   return { success: true, id: vehicleId };
 }
 
@@ -153,5 +158,7 @@ export async function archiveVehicleAction(vehicleId: string): Promise<ActionSta
     return { error: 'Véhicule introuvable : droits insuffisants.' };
   }
   revalidatePath('/admin/vehicules');
+  // DEC-153 : purge le cache data par org (la liste reflète l'écriture aussitôt).
+  revalidateTag(vehiculesTag(ctx.organizationId));
   return { success: true };
 }

@@ -1,33 +1,23 @@
-import { createClient } from '@/lib/supabase/server';
 import { OrderingPartiesList } from './_components/ordering-parties-list.client';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 import { PageHeader } from '@/components/page-header';
+import { getCachedDonneursOrdresPageData } from './_lib/cached-queries';
 
 export const metadata = { title: "Donneurs d'ordres" };
-export const dynamic = 'force-dynamic';
+// DEC-153 (perf 08.04) : data-cache par organisation (cf. _lib/cached-queries.ts).
+// Plus de force-dynamic — page dynamique (guard lit les cookies), donnée cachée
+// par org et purgée à l'écriture (revalidateTag dans actions.ts).
 
 /**
  * Page admin donneurs d'ordres B2B (CdC §5.5, DEC-148) — RSC pré-fetch.
- * Pattern miroir `/admin/vehicules`. RLS Postgres (ordering_parties_*) +
- * guard rôle dirigeant (`requireDirigeantPage`) → defense in depth.
+ * Données cachées par organisation (DEC-153) ; guard rôle dirigeant.
  *
  * Un donneur d'ordres (hôpital, clinique, EHPAD) commande des transports
  * pour ses patients/résidents. DISTINCT du prescripteur (CdC §5.5 l.186).
  */
 export default async function DonneursOrdresPage() {
-  await requireDirigeantPage();
-  const supabase = await createClient();
-  const { data: parties, error } = await supabase
-    .from('ordering_parties' as never)
-    .select(
-      'id, raison_sociale, siret, contact_principal_nom, contact_principal_telephone, ' +
-        'contact_principal_email, modalite_facturation, actif, created_at',
-    )
-    .eq('archive', false)
-    .order('raison_sociale', { ascending: true });
-  if (error) {
-    console.error('[admin/donneurs-ordres] Erreur Supabase:', error);
-  }
+  const ctx = await requireDirigeantPage();
+  const parties = await getCachedDonneursOrdresPageData(ctx.organizationId);
 
   return (
     <div className="space-y-24">
@@ -35,7 +25,7 @@ export default async function DonneursOrdresPage() {
         title="Donneurs d'ordres"
         description="Référentiel des donneurs d'ordres B2B (hôpitaux, cliniques, EHPAD) qui commandent des transports pour leurs patients."
       />
-      <OrderingPartiesList initialParties={(parties ?? []) as OrderingPartyRow[]} />
+      <OrderingPartiesList initialParties={parties} />
     </div>
   );
 }

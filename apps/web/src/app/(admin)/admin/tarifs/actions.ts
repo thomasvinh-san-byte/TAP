@@ -8,10 +8,11 @@
  * requireDirigeant + DEC-041 row count check + audit_logs (PRIC-04).
  */
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { z } from 'zod';
 import { requireDirigeant } from '@/lib/auth/require-dirigeant';
 import { createClient } from '@/lib/supabase/server';
+import { tarifsTag } from './_lib/cached-queries';
 
 export type TariffGridActionState = {
   success?: true;
@@ -103,5 +104,7 @@ export async function saveTariffGridAction(formData: FormData): Promise<TariffGr
   } as never);
 
   revalidatePath('/admin/tarifs');
+  // DEC-153 : purge le cache data par org (la grille reflète l'écriture aussitôt).
+  revalidateTag(tarifsTag(ctx.organizationId));
   return { success: true };
 }
