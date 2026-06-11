@@ -45,6 +45,7 @@ const SOURCE_LABEL: Record<string, string> = {
   manuel: 'Manuel',
   cgss_auto: 'CGSS auto',
   override: 'Override',
+  b2b_auto: 'Grille B2B',
 };
 
 interface Props {

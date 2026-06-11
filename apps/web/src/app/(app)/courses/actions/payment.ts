@@ -17,7 +17,7 @@ import { REGULATEUR_OR_DIRIGEANT, type ActionState } from './_shared';
 
 const paymentMethodSchema = z.enum(['cash', 'cb', 'cheque', 'cgss_differe']);
 const paymentStatusSchema = z.enum(['non_concerne', 'a_encaisser', 'encaisse']);
-const tarifSourceSchema = z.enum(['manuel', 'cgss_auto', 'override']);
+const tarifSourceSchema = z.enum(['manuel', 'cgss_auto', 'override', 'b2b_auto']);
 
 const updateRidePaymentInputSchema = z
   .object({

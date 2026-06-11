@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 09.03 (perf/fiabilité — N+1 crons SMS éliminé) livrée localement. PR à ouvrir."
-last_updated: "2026-06-12T08:00:00.000Z"
-last_activity: Phase 09.03 (perf/fiabilité — élimination du N+1 des crons de rappel SMS ; 0 migration, 0 dépendance). Les crons sms-reminders-j1/-j2h faisaient 1 requête consentement (et j2h 1 requête idempotency) PAR course + envois/inserts séquentiels, sans maxDuration → risque de timeout Vercel = rappels patients non envoyés silencieusement (fiabilité). D-01 règle de consentement extraite en fonction pure isConsentValid (source unique, réutilisée par hasActiveSmsConsent) + helper batch getActiveSmsConsentMap (1 requête .in('id', ids) → Map) dans @tap/sms ; DEC-008 préservé (lecture BDD fraîche, même règle exacte) ; fail-safe renforcé → cron 500 si lecture consentement échoue (aucun envoi dans le doute, pas de faux statut révoqué en masse). D-01bis idempotency j2h aussi en 1 requête (.in('ride_id', ids) → Set), anti-double-envoi préservé. D-02 envois parallélisés par lots de 10 (SEND_BATCH_SIZE), chaque envoi try/catch (équivalent allSettled) → un échec n'arrête pas les autres. D-03 traces sms_messages en insert groupé + fallback ligne par ligne (ne jamais perdre la trace d'un SMS envoyé). D-04 maxDuration=60 sur les 2 crons. Traçabilité delivery_status intégrale (skipped_consent_revoked/queued/failed + j2h skipped_idempotency). Tests : isConsentValid (4) + getActiveSmsConsentMap (4) → 19 tests @tap/sms verts, 100% stmts. typecheck+lint(0 err, 8 warn)+build verts. DEC-156 LOCKED.
-last_activity_prev: Phase 09.02 dette fin typage .from() (DEC-155). Phase 09.01 dette retrait as never .from() (DEC-154).
+stopped_at: "Phase 07.02 (grille tarifaire B2B par donneur d'ordres) livrée localement. PR à ouvrir."
+last_updated: "2026-06-12T10:00:00.000Z"
+last_activity: Phase 07.02 (grille tarifaire B2B par donneur d'ordres — extension B2B socle 1/3 ; 1 migration, 0 dépendance). CdC §5.5 l.189 : gère les 2 cas (grille CGSS org par défaut OU grille propre du donneur). Faisabilité DEC-057 : computeCgssFromDistance prend la grille en paramètre → injection sans toucher au moteur. D-01 migration 20260612000001 : enum ordering_party_tariff_mode (cgss_standard|grille_propre) + colonne ordering_parties.tariff_mode ; table ordering_party_tariff_grids (mêmes colonnes que tariff_grids, versionnée unique(ordering_party_id,date_effet), RLS par org select same_org/insert dirigeant/pas d'update-delete, pgTAP 9). D-02 helper getActiveTariffGridForOrderingParty (lib/pricing) + recompute DEC-060 traite les courses b2b_auto avec la grille du donneur (résolue par lot, N+1 évité), cgss_auto gardent grille org ; moteur INCHANGÉ. D-03 UI fiche donneur : Select tariff_mode (sauvé avec le donneur) + Sheet d'édition de grille versionnée (OrderingPartyTariffForm, portalisée) si grille_propre. D-05 tarif_source b2b_auto (contrainte rides + zod payment + label override) distinct → recompute CGSS n'écrase pas les tarifs B2B. Garde-fous : défaut cgss_standard inchangé ; RLS par org ; prescripteur ≠ donneur. Dette : tariff_mode (nouvelle colonne) hors types.gen.ts → 3 .from('ordering_parties' as never) à retirer au resync (registre §5). typecheck+lint(0 err, 8 warn)+build verts, 124 tests shared. DEC-157 LOCKED.
+last_activity_prev: Phase 09.03 perf N+1 crons SMS (DEC-156). Phase 09.02 dette fin typage .from() (DEC-155).
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
@@ -24,17 +24,18 @@ last_activity_prev: Phase 09.02 dette fin typage .from() (DEC-155). Phase 09.01 
 # + 08.04 perf extension data-cache (vehicules/donneurs-ordres/tarifs)
 # + 09.01 dette retrait as never (typage Supabase restauré)
 # + 09.02 dette fin typage .from() (payloads non typables = constat)
-# + 09.03 perf/fiabilité N+1 crons SMS = 83. (06.40
+# + 09.03 perf/fiabilité N+1 crons SMS
+# + 07.02 grille tarifaire B2B (extension donneurs d'ordres 1/3) = 84. (06.40
 # hygiène docs ET 06.56 onboarding méthode = lots documentaires, hors compte feature ; 06.45 supersede
 # 06.44 mais les 2 ont été livrées ; DEC-142 fix DialogContent = fix hors numéro de phase ;
 # 06.67 chore CI = lot hors compte feature, comme 06.40/06.56.) Restantes
 # réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07 mobile native abandonnée
 # (DEC-092) hors compte ; 07.01 = module métier B2B et 09.01 = lot dette typage (sans rapport
 # avec la Phase 09 HDS majeure à venir ; 09.02/09.03 = mêmes lots dette/perf).
-# Dernière phase livrée : 09.03 (perf N+1 crons SMS). Dernier DEC : 156 (09.03). Dernier ADR : ADR-013 (06.33).
+# Dernière phase livrée : 07.02 (grille tarifaire B2B). Dernier DEC : 157 (07.02). Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 85
-  completed_phases: 83
+  total_phases: 86
+  completed_phases: 84
   total_plans: 89
   completed_plans: 89
   percent: 97
@@ -47,7 +48,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 09.03 (perf/fiabilité — N+1 des crons de rappel SMS éliminé) livrée localement. Consentement (et idempotency j2h) chargés en 1 requête au lieu de N ; envois parallélisés par lots ; traces `sms_messages` en insert groupé (fallback ligne par ligne) ; `maxDuration = 60` → risque de timeout cron levé (rappels patients fiables). RGPD/DEC-008 et traçabilité intégrale préservés. **GATE 08.x toujours en attente** : test isolation 2-orgs data-cache sur preview. 83 phases feature livrées + 3 lots hors compte (06.40 hygiène, 06.56 méthode, 06.67 chore CI) (cf. commentaire de comptage dans le frontmatter). 4 release toggles OFF pré-infra : GEOLOC, MESSAGING, UPLOAD_DOCS, EMAIL. Restantes : lot alignement versions Supabase (débloque le typage des écritures, DEC-155) ; Lot 3 Suspense (différé) ; extensions B2B (registre §6) ; Phase 09 HDS (registre §1.1/§4.3) + Phase 10 géoloc réelle ; choix provider email (registre §1.2) ; messagerie complète (registre §1.4) ; étapes restantes du plan d'audit.
+**Current focus:** Phase 07.02 (grille tarifaire B2B par donneur d'ordres — extension B2B 1/3) livrée localement. Modèle 2 cas (grille CGSS org par défaut OU grille propre du donneur) : enum tariff_mode + table versionnée `ordering_party_tariff_grids` (RLS org) ; injection via helper + recompute DEC-060 (b2b_auto → grille donneur), moteur inchangé ; UI fiche donneur (Select + Sheet d'édition de grille) ; tarif_source `b2b_auto` distinct. **GATE 08.x toujours en attente** : test isolation 2-orgs data-cache sur preview. 84 phases feature livrées + 3 lots hors compte (06.40 hygiène, 06.56 méthode, 06.67 chore CI) (cf. commentaire de comptage dans le frontmatter). 4 release toggles OFF pré-infra : GEOLOC, MESSAGING, UPLOAD_DOCS, EMAIL. Restantes : extensions B2B 2/3 (demande groupée) + 3/3 (récap PDF) — registre §6 ; lot alignement versions Supabase (débloque le typage des écritures, DEC-155) ; Lot 3 Suspense (différé) ; Phase 09 HDS (registre §1.1/§4.3) + Phase 10 géoloc réelle ; choix provider email (registre §1.2) ; messagerie complète (registre §1.4) ; étapes restantes du plan d'audit.
 
 ## Current Position
 
@@ -56,12 +57,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 09.03 (perf/fiabilité — N+1 crons SMS éliminé) livrée localement (2026-06-12). PR à ouvrir.
-Phase next: lot alignement versions @supabase/ssr/postgrest-js (débloque le typage des payloads d'écriture, DEC-155) ; valider l'isolation 2-orgs data-cache sur preview (08.x) ; Lot 3 Suspense (différé) ; extensions B2B (registre §6) ; choix provider email (registre §1.2) ; messagerie complète (registre §1.4) ; Phase 09 HDS ; Phase 10 géoloc.
-Status: 83 phases feature + 3 lots hors compte. Crons SMS j1/j2h : N+1 consentement (et idempotency j2h) éliminés (1 requête .in() chacun), envois parallélisés par lots de 10, inserts sms_messages groupés (fallback ligne par ligne), maxDuration=60. isConsentValid (règle pure) + getActiveSmsConsentMap dans @tap/sms (19 tests verts). DEC-008 + traçabilité préservés. Dette typage .from() 100% résolue ; payloads d'écriture = never (cast requis, lot Supabase à venir). Data-cache référentiels 4/5 (gate isolation preview en attente). 4 release toggles OFF pré-infra.
-Blockers: 2 en attente — (1) GATE isolation 2-orgs data-cache (08.x) sur preview ; (2) typage des payloads d'écriture bloqué par .insert/.update/.upsert = never (skew @supabase/ssr/postgrest-js) → lot d'alignement de versions (hors 0-dépendance).
-Last activity: Phase 09.03 (perf/fiabilité — N+1 crons SMS). D-01 isConsentValid (fonction pure, source unique) + getActiveSmsConsentMap (1 requête .in() → Map) dans @tap/sms ; DEC-008 préservé (lecture fraîche, même règle) ; fail-safe → cron 500 si lecture consentement échoue. D-01bis idempotency j2h en 1 requête (Set). D-02 envois parallélisés par lots de 10 (try/catch par envoi = équivalent allSettled). D-03 traces sms_messages en insert groupé + fallback ligne par ligne (ne jamais perdre la trace d'un SMS envoyé). D-04 maxDuration=60 sur les 2 crons. Traçabilité delivery_status intégrale + idempotence préservées. hasActiveSmsConsent conservé pour autres appelants. Tests : isConsentValid (4) + getActiveSmsConsentMap (4) → 19 tests @tap/sms verts, 100% stmts. typecheck+lint(0 err, 8 warn)+build verts. 0 migration, 0 dépendance. DEC-156 LOCKED. PR à ouvrir.
-Précédent: 09.02 dette fin typage .from() (DEC-155), 09.01 dette retrait as never .from() (DEC-154), 08.04 perf extension data-cache (DEC-153).
+Phase: 07.02 (grille tarifaire B2B par donneur d'ordres) livrée localement (2026-06-12). PR à ouvrir.
+Phase next: extensions B2B 2/3 (demande groupée) + 3/3 (récap PDF périodique) — registre §6 ; lot alignement versions Supabase (typage écritures, DEC-155) ; valider l'isolation 2-orgs data-cache sur preview (08.x) ; Lot 3 Suspense (différé) ; choix provider email (registre §1.2) ; messagerie complète (registre §1.4) ; Phase 09 HDS ; Phase 10 géoloc.
+Status: 84 phases feature + 3 lots hors compte. Grille tarifaire B2B : enum tariff_mode (cgss_standard|grille_propre) + table ordering_party_tariff_grids versionnée (RLS org, pgTAP 9) ; injection via getActiveTariffGridForOrderingParty + recompute DEC-060 (b2b_auto → grille donneur, cgss_auto → grille org), moteur computeCgssFromDistance inchangé ; UI fiche donneur (Select tariff_mode + Sheet éditeur de grille) ; tarif_source b2b_auto distinct. Défaut cgss_standard = inchangé. Data-cache référentiels 4/5 (gate preview en attente). 4 release toggles OFF pré-infra.
+Blockers: 2 en attente — (1) GATE isolation 2-orgs data-cache (08.x) sur preview ; (2) typage des payloads d'écriture = never (skew @supabase/ssr/postgrest-js) → lot d'alignement de versions (hors 0-dépendance).
+Last activity: Phase 07.02 (grille tarifaire B2B, extension B2B 1/3). D-01 migration : enum ordering_party_tariff_mode + ordering_parties.tariff_mode + table ordering_party_tariff_grids (versionnée, RLS org, pgTAP 9). D-02 helper getActiveTariffGridForOrderingParty + recompute DEC-060 traite b2b_auto avec grille donneur (batché), cgss_auto grille org, moteur inchangé. D-03 UI fiche donneur : Select tariff_mode + OrderingPartyTariffForm (Sheet portalisée, grille versionnée pré-remplie). D-05 tarif_source b2b_auto (contrainte + zod payment + label override) → recompute CGSS n'écrase pas B2B. Garde-fous : défaut cgss_standard inchangé ; RLS org ; prescripteur ≠ donneur. Dette : tariff_mode hors types.gen.ts → 3 .from('ordering_parties' as never) (registre §5). typecheck+lint(0 err, 8 warn)+build verts, 124 tests shared. 1 migration, 0 dépendance. DEC-157 LOCKED. PR à ouvrir.
+Précédent: 09.03 perf N+1 crons SMS (DEC-156), 09.02 dette fin typage .from() (DEC-155), 09.01 dette retrait as never .from() (DEC-154).
 
 Progress: [██████████] 100%
 

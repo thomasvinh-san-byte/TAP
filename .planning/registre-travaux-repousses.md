@@ -173,7 +173,7 @@ EXTERNE (donnée/spec à obtenir d'un tiers).
   (124 tests). Piège connexe documenté (NON introduit) : les SIRET La Poste (SIREN 356000000) ne
   respectent pas Luhn — hors périmètre, aucun établissement La Poste dans TAP.
 - ~~**Migration des `<input type="checkbox">` bruts restants vers `ui/Checkbox`**~~ → **RÉSOLU (2026-06-10, Phase 06.65, DEC-145)**. Les 14 fichiers (16 occurrences : cookie-banner ×3, accept-invite, patient-form-sections, no-show-alert-modal, adjust-sheet, deactivate/unarchive-confirm-dialog, dpia-form, breach-form-fields, dpa-prefill-card, dpo-form, registre-fields, registre-prefill-card, tariff-simulator) migrés 1:1 sur la primitive, iso-comportement, valeurs RGPD/CGU préservées. `grep type="checkbox"` ne retourne plus que `components/ui/checkbox.tsx`. Aucune exception.
-- ~~**`as never` sur `.from()` (typage Supabase contourné)**~~ → **ENTIÈREMENT RÉSOLU (2026-06-11, Phases 09.01 DEC-154 + 09.02 DEC-155)**. 09.01 a retiré 70/78 casts ; 09.02 a retiré les 8 derniers (`ordering_parties`/`notification_preferences`, typées après le resync #323) + corrigé un bug d'inférence réel (select concaténé → `GenericStringError[]`). **0 `.from(… as never)` dans `apps/web/src`** ; les mauvais noms de colonnes/tables échouent désormais au build.
+- ~~**`as never` sur `.from()` (typage Supabase contourné)**~~ → **ENTIÈREMENT RÉSOLU (2026-06-11, Phases 09.01 DEC-154 + 09.02 DEC-155)**. 09.01 a retiré 70/78 casts ; 09.02 a retiré les 8 derniers (`ordering_parties`/`notification_preferences`, typées après le resync #323) + corrigé un bug d'inférence réel (select concaténé → `GenericStringError[]`). **0 `.from(… as never)` dans `apps/web/src`** ; les mauvais noms de colonnes/tables échouent désormais au build. **Réintroduit ponctuellement (07.02, DEC-157)** : 3 `.from('ordering_parties' as never)` sur les SELECT lisant la nouvelle colonne `tariff_mode` (absente de types.gen.ts jusqu'au prochain resync) — `donneurs-ordres/_lib/cached-queries.ts`, `lib/pricing/get-active-tariff-grid.ts`, `maintenance/actions.ts` ; à retirer au resync. La table `ordering_party_tariff_grids` (entièrement nouvelle) reste en `as never` pour la même raison.
 - **`as never` sur PAYLOADS `.insert()/.update()/.upsert()`** (~100 occurrences) → **BLOQUÉ (constat 09.02, DEC-155), cast REQUIS, pas du masquage**. Dans ce montage `@supabase/ssr` (`createServerClient<Database>`), les méthodes d'écriture résolvent leur PARAMÈTRE à **`never`** pour TOUTES les tables (vérifié sur rides, ride_draft, notification_preferences) — la lecture `.select()` est typée, l'écriture dégrade en `never` (skew de version `@supabase/ssr`/`@supabase/postgrest-js` vs le `Database` généré). Conséquence : on NE PEUT PAS passer un payload typé (`satisfies TablesInsert<…>` → « not assignable to never ») ; le `as never` est le seul moyen d'appeler l'écriture. **Déblocage = LOT DÉDIÉ** : aligner/mettre à jour `@supabase/ssr` + `@supabase/postgrest-js` (ou shim de type du client) pour restaurer le typage des écritures. L'outillage est prêt : `Tables`/`TablesInsert`/`TablesUpdate` sont déjà ré-exportés de `@tap/database` (09.02) ; une fois l'écriture re-typée, retirer les ~100 casts par lots (typecheck vert, corriger les vrais écarts révélés). Sévérité moindre que `.from()` (un payload faux est attrapé par la contrainte BDD/RLS au runtime ; un mauvais nom de colonne en select/filter, lui, échouait silencieusement — et c'est déjà corrigé).
 - Audit complet Server Actions row count check (DEC-041) : généralisé en conformité, à confirmer partout.
 - Imports cross-domaine profonds vers `_lib/compliance-planning` (lot 3 conformité) : à déplacer en lib neutre si retouché.
@@ -206,14 +206,21 @@ par lots dédiés (aucun bloquant — le cœur tourne seul) :
   lot UI + Server Action dédié.
 - **Déblocage** : dev dédié, s'appuie sur la saisie express existante (boucle).
 
-### 6.2 Grille tarifaire B2B propre — CdC §5.5 (`b2b_tariff_grid`)
-- **Raison** : chaque donneur d'ordres a une convention tarifaire propre
-  (distincte de la grille CGSS). Le moteur `packages/pricing` a été conçu avec
-  une **grille injectable** (DEC-057) — la grille B2B s'y branche sans réécrire
-  le moteur. Reste : table `b2b_tariff_grid` versionnée + sélection de grille
-  selon `ordering_party_id` au calcul de tarif.
-- **Déblocage** : dev dédié (table + RLS + intégration pricing). 🔍 modèle de
-  grille B2B (forfait, % CGSS, grille km propre ?) à cadrer avec un design partner.
+### 6.2 Grille tarifaire B2B propre — CdC §5.5 — RÉSOLU (07.02, DEC-157)
+- **Livré** : enum `ordering_party_tariff_mode` (cgss_standard|grille_propre) +
+  colonne `ordering_parties.tariff_mode` + table versionnée
+  `ordering_party_tariff_grids` (RLS org, pgTAP 9). Injection via
+  `getActiveTariffGridForOrderingParty` + recompute DEC-060 (b2b_auto → grille
+  donneur ; cgss_auto → grille org) ; moteur `computeCgssFromDistance` inchangé
+  (grille injectée, DEC-057). UI fiche donneur (Select + Sheet éditeur).
+  `tarif_source = 'b2b_auto'` distinct (le recompute CGSS n'écrase pas B2B).
+  Le modèle gère les 2 cas (CGSS standard OU grille propre) — pas de cadrage
+  conventionné/non-conventionné requis a priori.
+- **Reste éventuel (V1.5)** : aujourd'hui aucun flux applicatif ne POSE
+  `tarif_source='b2b_auto'` à la création/clôture (le tarif est `manuel` via
+  l'app chauffeur) → le recompute B2B est « prêt mais dormant » jusqu'à ce qu'un
+  flux de calcul automatique à la création soit câblé (même statut que
+  `cgss_auto`). À traiter avec la facturation B2B.
 
 ### 6.3 Récapitulatif PDF périodique par donneur d'ordres — CdC §5.5
 - **Raison** : facturation centralisée = récap hebdomadaire/mensuel (selon
