@@ -1,49 +1,24 @@
-import { createClient } from '@/lib/supabase/server';
 import { VehiclesList } from './_components/vehicles-list.client';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 import { PageHeader } from '@/components/page-header';
+import { getCachedVehiculesPageData } from './_lib/cached-queries';
 
 export const metadata = { title: 'Véhicules' };
-export const dynamic = 'force-dynamic';
+// DEC-153 (perf 08.04) : data-cache par organisation (cf. _lib/cached-queries.ts).
+// Plus de force-dynamic — la page reste dynamique (guard requireDirigeantPage lit
+// les cookies) mais la donnée est servie depuis un cache par org, purgé à
+// l'écriture (revalidateTag dans actions.ts).
 
 /**
  * Page admin véhicules (clôture-bis Passe 1) — RSC pré-fetch.
- * Pattern miroir `/admin/chauffeurs`. RLS Postgres + guard rôle dirigeant
- * dans `(admin)/layout.tsx` → defense in depth.
+ * Pattern miroir `/admin/chauffeurs`. Données cachées par organisation
+ * (DEC-153) ; guard rôle dirigeant via `requireDirigeantPage`.
  */
 export default async function VehiculesPage() {
-  await requireDirigeantPage();
-  const supabase = await createClient();
-  // DEC-150 perf : véhicules + échéances de conformité sont indépendantes →
-  // parallélisées. Supabase renvoie {data,error} sans throw → Promise.all sûr.
-  const [{ data: vehicles, error: vehiclesError }, complianceRes] = await Promise.all([
-    supabase
-      .from('vehicles' as never)
-      .select(
-        'id, immatriculation, marque, modele, type, places_assises, places_tpmr, actif, created_at',
-      )
-      .eq('archive', false)
-      .order('immatriculation', { ascending: true }),
-    // Conformité (Phase 06.33) : prochaine échéance par véhicule.
-    supabase
-      .from('compliance_items' as never)
-      .select('entity_id, expires_at')
-      .eq('entity_type', 'vehicle')
-      .eq('archive', false)
-      .not('expires_at', 'is', null)
-      .order('expires_at', { ascending: true }),
-  ]);
-  if (vehiclesError) {
-    console.error('[admin/vehicules] Erreur Supabase:', vehiclesError);
-  }
-
-  const nextComplianceByVehicleId: Record<string, string> = {};
-  for (const r of (complianceRes.data as { entity_id: string; expires_at: string }[] | null) ??
-    []) {
-    if (!nextComplianceByVehicleId[r.entity_id]) {
-      nextComplianceByVehicleId[r.entity_id] = r.expires_at;
-    }
-  }
+  const ctx = await requireDirigeantPage();
+  const { vehicles, nextComplianceByVehicleId } = await getCachedVehiculesPageData(
+    ctx.organizationId,
+  );
 
   return (
     <div className="space-y-24">
@@ -52,7 +27,7 @@ export default async function VehiculesPage() {
         description="Référentiel des véhicules de l'organisation. Une immatriculation active ne peut pas être saisie deux fois."
       />
       <VehiclesList
-        initialVehicles={(vehicles ?? []) as VehicleRow[]}
+        initialVehicles={vehicles}
         nextComplianceByVehicleId={nextComplianceByVehicleId}
         uploadEnabled={process.env.UPLOAD_DOCS_ENABLED === 'true'}
       />

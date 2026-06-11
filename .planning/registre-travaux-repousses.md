@@ -260,24 +260,32 @@ mais le levier DÉCISIF sur la lenteur de navigation est le Lot 2.
   `.eq('organization_id', orgId)` explicite. La RLS ne protège plus DANS le
   cache ; le filtre org est l'unique barrière. Service-role confiné à
   `cached-queries.ts`.
-- **GATE avant généralisation** : exécuter le **test d'isolation 2-orgs sur la
-  preview** (org A ne voit jamais les chauffeurs d'org B malgré le cache). Tant
-  que ce test n'est pas vert, NE PAS étendre. Si échec → revert chauffeurs en
-  `force-dynamic`.
-- **À généraliser APRÈS gate** : appliquer le même patron `cached-queries.ts` +
-  `revalidateTag` aux 4 autres référentiels — **vehicules**, **donneurs-ordres**,
-  **tarifs**, **sms-templates** (vérifier que chaque table requêtée a bien
-  `organization_id` avant de filtrer en service-role). Un référentiel par lot,
-  test d'isolation à chaque fois.
-- **Pages légales** : restent dynamiques (gain négligeable, blocage MDX). À
-  rouvrir seulement si on migre le rendu MDX (compilation au build).
+- **GATE (toujours en vigueur)** : test d'isolation 2-orgs sur la **preview** par
+  référentiel (org A ne voit jamais les données d'org B malgré le cache). Si
+  échec sur un référentiel → revert celui-ci en `force-dynamic`.
+- **Extension livrée (08.04, DEC-153)** : pattern répliqué sur **vehicules**,
+  **donneurs-ordres**, **tarifs** (les 3 tables ont `organization_id`, filtre
+  explicite vérifié). → **Chantier data-cache référentiels : 4/5 cachés.**
+- **sms-templates EXCLU** : la table `sms_templates` est **GLOBALE** (PK `key`,
+  PAS de `organization_id` — templates partagés entre toutes les orgs). Le patron
+  par-org est inapplicable. Laissée `force-dynamic`. Option future (faible
+  priorité) : cache GLOBAL (une entrée pour tous) — gain négligeable sur une
+  poignée de templates ; à ne faire que si la page devient un point chaud.
+- **Pages légales** : restent dynamiques (gain négligeable, blocage MDX
+  `next-mdx-remote@6`/prerender). À rouvrir seulement si on migre le rendu MDX
+  (compilation au build).
 
-### 7.2 Lot 3 — Suspense granulaire (streaming)
+### 7.2 Lot 3 — Suspense granulaire (streaming) — DIFFÉRÉ
 - **Raison** : envelopper les sous-arbres lents (panneaux cockpit, listes) dans
   `<Suspense>` permet d'envoyer le squelette immédiatement et de streamer le
-  contenu quand il arrive — perception de vitesse améliorée même si le temps
-  total est identique. Complète le Lot 1 (parallélisme) et le Lot 2 (cache).
-- **Déblocage** : dev dédié, après Lot 2 (l'arbitrage cache change le besoin).
+  contenu — perception de vitesse améliorée même à temps total constant.
+- **Statut (2026-06-11, après 08.01+08.03+08.04)** : **DIFFÉRÉ**. Gain marginal en
+  V1 — les pages lourdes sont déjà parallélisées (Lot 1) et disposent de
+  `loading.tsx` (squelettes au niveau route). Pas de surface sécurité, mais ROI
+  faible au stade actuel.
+- **Déclencheur de réévaluation** : montée des volumes de données. En
+  particulier les `count exact` du tableau de bord (KPIs) ralentiront quand les
+  tables grossiront → ce sera le moment de streamer ces panneaux.
 
 ---
 

@@ -9,10 +9,11 @@
  * écriture (defense in depth avec `requireDirigeant`).
  */
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { z } from 'zod';
 import { orderingPartyInputSchema } from '@tap/shared';
 import { requireDirigeant } from '@/lib/auth/require-dirigeant';
+import { donneursOrdresTag } from './_lib/cached-queries';
 
 export type ActionState = {
   success?: boolean;
@@ -84,6 +85,8 @@ export async function createOrderingPartyAction(
     return { error: "Création du donneur d'ordres impossible." };
   }
   revalidatePath('/admin/donneurs-ordres');
+  // DEC-153 : purge le cache data par org (la liste reflète l'écriture aussitôt).
+  revalidateTag(donneursOrdresTag(ctx.organizationId));
   return { success: true, id: (data as { id: string }).id };
 }
 
@@ -116,6 +119,8 @@ export async function updateOrderingPartyAction(
   if (!data) return { error: "Donneur d'ordres introuvable ou archivé." };
 
   revalidatePath('/admin/donneurs-ordres');
+  // DEC-153 : purge le cache data par org (la liste reflète l'écriture aussitôt).
+  revalidateTag(donneursOrdresTag(ctx.organizationId));
   return { success: true, id: partyId };
 }
 
@@ -143,5 +148,7 @@ export async function archiveOrderingPartyAction(partyId: string): Promise<Actio
     return { error: "Donneur d'ordres introuvable : droits insuffisants." };
   }
   revalidatePath('/admin/donneurs-ordres');
+  // DEC-153 : purge le cache data par org (la liste reflète l'écriture aussitôt).
+  revalidateTag(donneursOrdresTag(ctx.organizationId));
   return { success: true };
 }

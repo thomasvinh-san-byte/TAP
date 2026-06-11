@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 08.03 (perf — data-cache par org, pilote chauffeurs) livrée localement. PR à ouvrir. Gate : test isolation 2-orgs sur preview avant généralisation."
-last_updated: "2026-06-11T16:00:00.000Z"
-last_activity: Phase 08.03 (perf Lot 2 — data-cache par organisation, pilote chauffeurs ; 0 migration, 0 dépendance). Constat 08.02 (DEC-151) : cache de PAGE inapplicable — pages app authentifiées lisent cookies() → rendues dynamiquement (ISR statique = fuite inter-org) ; pages légales cassent le build statique (next-mdx-remote v6 / prerender « React Element older version »). Pivot (DEC-152) : cacher la DONNÉE par org, pas la page. D-01 chauffeurs/_lib/cached-queries.ts : unstable_cache clé ['chauffeurs-page', orgId, vue] + tag chauffeurs:<orgId> + revalidate 3600 ; getChauffeursPageData via createAdminClient (service-role, CONTOURNE RLS) avec .eq('organization_id', orgId) explicite sur les 3 requêtes (drivers/invitations/compliance — les 3 tables ont organization_id). orgId vient de la clé de cache (dérivée session via getAuthContext). D-02 force-dynamic retiré de chauffeurs/page.tsx (page reste dynamique via cookies, seule la donnée est cachée) ; filet liste vide sans session. D-03 revalidateTag(chauffeursTag(ctx.organizationId)) ajouté aux 8 actions de mutation (create/update/archive/deactivate/reactivate/unarchive/invite/resend). Trade-off sécurité assumé dirigeant : RLS bypassée dans la fonction cachée, filtre org explicite = unique barrière. GATE : test isolation 2-orgs sur preview AVANT généralisation aux 4 autres référentiels (registre §7). Partie B (légales statiques) non faite (MDX/prerender, D-B2). typecheck+lint(0 err, 8 warn)+build verts. DEC-151 + DEC-152 LOCKED.
-last_activity_prev: Phase 08.01 perf parallélisation fetchs (DEC-150). Phase 06.68 page Réglages + préférences alertes cockpit (DEC-149).
+stopped_at: "Phase 08.04 (perf — extension data-cache aux référentiels) livrée localement. PR à ouvrir. Gate : test isolation 2-orgs par référentiel sur preview."
+last_updated: "2026-06-11T18:00:00.000Z"
+last_activity: Phase 08.04 (perf Lot 2 suite — extension du data-cache par org aux référentiels restants ; 0 migration, 0 dépendance). Réplique le pattern validé du pilote chauffeurs (DEC-152). Couvert 3/4 : vehicules (vehiculesTag ; 2 requêtes vehicles+compliance ; 3 actions create/update/archive), donneurs-ordres (donneursOrdresTag ; 1 requête ; 3 actions), tarifs (tarifsTag ; 1 requête tariff_grids ; 1 action saveTariffGrid). Chaque référentiel : _lib/cached-queries.ts (service-role createAdminClient + .eq('organization_id', orgId) explicite sur chaque requête ; unstable_cache clé+tag par org ; revalidate 3600) ; page requireDirigeantPage() → getCachedXxx(ctx.organizationId), force-dynamic retiré ; revalidateTag(<entité>Tag(ctx.organizationId)) dans chaque action de mutation. EXCLU sms-templates : table sms_templates GLOBALE (PK key, pas de organization_id) → pattern par-org inapplicable, laissée force-dynamic (signalé). Garde-fous identiques 08.03 : orgId dans clé+tag, filtre org explicite, orgId issu de session, service-role confiné. GATE : test isolation 2-orgs par référentiel sur preview. Chantier data-cache référentiels : 4/5 cachés. Lot 3 (Suspense) différé. typecheck+lint(0 err, 8 warn)+build verts. DEC-153 LOCKED.
+last_activity_prev: Phase 08.03 perf data-cache pilote chauffeurs (DEC-152). Phase 08.01 perf parallélisation fetchs (DEC-150).
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
@@ -20,16 +20,17 @@ last_activity_prev: Phase 08.01 perf parallélisation fetchs (DEC-150). Phase 06
 # + 06.64 échafaudage email + 06.65 harmonisation checkbox + 06.66 primitive tooltip
 # + 07.01 module donneurs d'ordres B2B (cœur) + 06.68 page Réglages + préférences
 # alertes cockpit + 08.01 perf parallélisation fetchs + 08.03 perf data-cache org
-# (pilote chauffeurs ; 08.02 absorbée = constat DEC-151, non compté) = 79. (06.40
+# (pilote chauffeurs ; 08.02 absorbée = constat DEC-151, non compté)
+# + 08.04 perf extension data-cache (vehicules/donneurs-ordres/tarifs) = 80. (06.40
 # hygiène docs ET 06.56 onboarding méthode = lots documentaires, hors compte feature ; 06.45 supersede
 # 06.44 mais les 2 ont été livrées ; DEC-142 fix DialogContent = fix hors numéro de phase ;
 # 06.67 chore CI = lot hors compte feature, comme 06.40/06.56.) Restantes
 # réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07 mobile native abandonnée
 # (DEC-092) hors compte ; 07.01 = module métier B2B (sans rapport avec le mobile natif).
-# Dernière phase livrée : 08.03 (perf data-cache org, pilote chauffeurs). Dernier DEC : 152 (08.03). Dernier ADR : ADR-013 (06.33).
+# Dernière phase livrée : 08.04 (perf extension data-cache référentiels). Dernier DEC : 153 (08.04). Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 81
-  completed_phases: 79
+  total_phases: 82
+  completed_phases: 80
   total_plans: 89
   completed_plans: 89
   percent: 97
@@ -42,7 +43,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 08.03 (perf Lot 2 — data-cache par organisation, PILOTE chauffeurs) livrée localement. Constat 08.02 (DEC-151) : le cache de page (ISR) est inapplicable (pages app authentifiées = dynamiques via cookies → ISR fuiterait inter-org ; pages légales cassent le build statique MDX). Pivot (DEC-152) : on cache la DONNÉE par org via `unstable_cache` (clé+tag par `organizationId`) + `revalidateTag` à l'écriture ; service-role choke-point filtré explicitement par org (RLS bypassée dans la fonction cachée — trade-off assumé). **GATE : test d'isolation 2-orgs sur preview avant de généraliser aux 4 autres référentiels.** 79 phases feature livrées + 3 lots hors compte (06.40 hygiène, 06.56 méthode, 06.67 chore CI) (cf. commentaire de comptage dans le frontmatter). 4 release toggles OFF pré-infra : GEOLOC, MESSAGING, UPLOAD_DOCS, EMAIL. Restantes : généralisation data-cache aux 4 référentiels (registre §7, après gate) + Lot 3 Suspense ; extensions B2B (registre §6) ; Phase 09 HDS (registre §1.1/§4.3) + Phase 10 géoloc réelle ; choix provider email (registre §1.2) ; messagerie complète (registre §1.4) ; étapes restantes du plan d'audit.
+**Current focus:** Phase 08.04 (perf Lot 2 suite — extension du data-cache par org aux référentiels) livrée localement. Le pattern validé du pilote chauffeurs (DEC-152) est répliqué sur vehicules + donneurs-ordres + tarifs (cache par org, service-role filtré org, revalidateTag à l'écriture, force-dynamic retiré). sms-templates exclu (table GLOBALE sans organization_id → pattern par-org N/A, laissé dynamique). **Chantier data-cache référentiels : 4/5 cachés. GATE : test isolation 2-orgs par référentiel sur preview avant de clore.** 80 phases feature livrées + 3 lots hors compte (06.40 hygiène, 06.56 méthode, 06.67 chore CI) (cf. commentaire de comptage dans le frontmatter). 4 release toggles OFF pré-infra : GEOLOC, MESSAGING, UPLOAD_DOCS, EMAIL. Restantes : Lot 3 Suspense (différé) ; extensions B2B (registre §6) ; Phase 09 HDS (registre §1.1/§4.3) + Phase 10 géoloc réelle ; choix provider email (registre §1.2) ; messagerie complète (registre §1.4) ; étapes restantes du plan d'audit.
 
 ## Current Position
 
@@ -51,12 +52,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 08.03 (perf — data-cache par org, pilote chauffeurs) livrée localement (2026-06-11). PR à ouvrir. GATE : isolation 2-orgs sur preview.
-Phase next: valider l'isolation 2-orgs sur preview, puis généraliser le data-cache aux 4 autres référentiels (vehicules/donneurs-ordres/tarifs/sms-templates — registre §7) ; Lot 3 Suspense ; extensions B2B (registre §6) ; choix provider email (registre §1.2) ; messagerie complète (registre §1.4) ; Phase 09 HDS ; Phase 10 géoloc.
-Status: 79 phases feature + 3 lots hors compte. Perf Lot 2 livré en PILOTE : data-cache par org sur chauffeurs (unstable_cache clé+tag par organizationId, revalidate 3600, revalidateTag dans les 8 actions). Service-role choke-point confiné à cached-queries.ts, filtre .eq('organization_id', orgId) explicite sur les 3 requêtes. Page reste dynamique (cookies). Constat DEC-151 : cache de page inapplicable (auth=dynamique ; MDX casse le statique). 4 release toggles OFF pré-infra.
-Blockers: GATE preview — test isolation 2-orgs requis avant généralisation (RLS bypassée dans la fonction cachée → fuite si filtre org mal threadé). Non exécutable en sandbox local (preview = vérité, CLAUDE.md §13.5).
-Last activity: Phase 08.03 (perf Lot 2 — data-cache par org, pilote chauffeurs). DEC-151 constat : cache de page impossible (pages app lisent cookies → dynamiques, ISR fuiterait inter-org ; légales cassent le build statique next-mdx-remote v6). DEC-152 pivot : cache data par org. D-01 cached-queries.ts : unstable_cache clé ['chauffeurs-page', orgId, vue] + tag chauffeurs:<orgId> + revalidate 3600 ; createAdminClient (service-role) + .eq('organization_id', orgId) sur drivers/invitations/compliance (3 tables ont organization_id). D-02 force-dynamic retiré (page dynamique via cookies, donnée cachée). D-03 revalidateTag(chauffeursTag(ctx.organizationId)) dans les 8 actions de mutation. Garde-fous : orgId dans clé+tag, filtre org explicite, service-role confiné. Partie B légales non faite (MDX/prerender, D-B2). typecheck+lint(0 err, 8 warn)+build verts. 0 migration, 0 dépendance. DEC-151+152 LOCKED. PR à ouvrir.
-Précédent: 08.01 perf parallélisation fetchs (DEC-150), 06.68 page Réglages (DEC-149), 07.01 module donneurs d'ordres B2B cœur (DEC-148).
+Phase: 08.04 (perf — extension data-cache aux référentiels) livrée localement (2026-06-11). PR à ouvrir. GATE : isolation 2-orgs par référentiel sur preview.
+Phase next: valider l'isolation 2-orgs (vehicules/donneurs-ordres/tarifs) sur preview ; Lot 3 Suspense (différé) ; extensions B2B (registre §6) ; choix provider email (registre §1.2) ; messagerie complète (registre §1.4) ; Phase 09 HDS ; Phase 10 géoloc.
+Status: 80 phases feature + 3 lots hors compte. Chantier data-cache référentiels 4/5 cachés (chauffeurs 08.03 ; vehicules/donneurs-ordres/tarifs 08.04). Pattern : unstable_cache clé+tag par organizationId + service-role filtré .eq('organization_id', orgId) + revalidateTag à l'écriture + force-dynamic retiré. sms-templates exclu (table globale sans organization_id). Pages restent dynamiques (cookies), seule la donnée est cachée. 4 release toggles OFF pré-infra.
+Blockers: GATE preview — test isolation 2-orgs par référentiel avant de clore le chantier (RLS bypassée dans la fonction cachée → fuite si filtre org mal threadé). Non exécutable en sandbox local (preview = vérité, CLAUDE.md §13.5).
+Last activity: Phase 08.04 (perf Lot 2 suite — extension data-cache). Réplique le pilote chauffeurs sur 3 référentiels. vehicules : _lib/cached-queries.ts (service-role, vehicles+compliance filtrés org, unstable_cache ['vehicules-page', orgId] + tag vehicules:<orgId>) ; donneurs-ordres : idem 1 requête (tag donneurs-ordres:<orgId>) ; tarifs : idem tariff_grids (tag tarifs:<orgId>). force-dynamic retiré des 3 pages (requireDirigeantPage → getCachedXxx(ctx.organizationId)). revalidateTag ajouté à chaque action de mutation (vehicules 3, donneurs-ordres 3, tarifs 1). sms-templates EXCLU : sms_templates GLOBALE (PK key, pas de organization_id) → laissée force-dynamic. Garde-fous : orgId dans clé+tag, filtre org explicite, service-role confiné. typecheck+lint(0 err, 8 warn)+build verts. 0 migration, 0 dépendance. DEC-153 LOCKED. PR à ouvrir.
+Précédent: 08.03 perf data-cache pilote chauffeurs (DEC-152), 08.01 perf parallélisation fetchs (DEC-150), 06.68 page Réglages (DEC-149).
 
 Progress: [██████████] 100%
 

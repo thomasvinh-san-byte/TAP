@@ -1,15 +1,17 @@
 import { Receipt } from 'lucide-react';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
-import { createClient } from '@/lib/supabase/server';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/page-header';
 import type { TariffGrid } from '@tap/pricing';
 import { TariffGridCard } from './_components/tariff-grid-card.client';
 import { TariffSimulator } from './_components/tariff-simulator.client';
 import { TariffHistoryTable } from './_components/tariff-history-table.client';
+import { getCachedTarifsPageData } from './_lib/cached-queries';
 
 export const metadata = { title: 'Grille tarifaire' };
-export const dynamic = 'force-dynamic';
+// DEC-153 (perf 08.04) : data-cache par organisation (cf. _lib/cached-queries.ts).
+// Plus de force-dynamic — page dynamique (guard lit les cookies), donnée cachée
+// par org et purgée à l'écriture (revalidateTag dans actions.ts).
 
 export interface TariffGridRow extends TariffGrid {
   id: string;
@@ -17,20 +19,8 @@ export interface TariffGridRow extends TariffGrid {
 }
 
 export default async function TarifsPage(): Promise<JSX.Element> {
-  await requireDirigeantPage();
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from('tariff_grids')
-    .select(
-      'id, date_effet, forfait_eur, km_inclus, prix_km_eur, ' +
-        'supplement_drom_eur, supplement_tpmr_eur, majoration_pct, ' +
-        'facteur_correction_routier, arrondi_eur',
-    )
-    .order('date_effet', { ascending: false });
-  if (error) {
-    console.error('[admin/tarifs] Erreur Supabase:', error);
-  }
-  const grids = (data as TariffGridRow[] | null) ?? [];
+  const ctx = await requireDirigeantPage();
+  const grids = await getCachedTarifsPageData(ctx.organizationId);
   const today = new Date().toISOString().slice(0, 10);
   const activeGrid = grids.find((g) => g.date_effet <= today) ?? null;
 
