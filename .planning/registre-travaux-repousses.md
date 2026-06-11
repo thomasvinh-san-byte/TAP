@@ -235,6 +235,36 @@ par lots dédiés (aucun bloquant — le cœur tourne seul) :
 
 ---
 
+## 7. Performance — lots suivants (Lot 1 livré 08.01, DEC-150)
+
+Le **Lot 1** (parallélisation des fetchs Server Components via `Promise.all`) est
+livré (08.01). Symptôme dirigeant = « navigation entre pages lente ». Le Lot 1
+réduit le temps de RENDU serveur des pages à plusieurs requêtes indépendantes,
+mais le levier DÉCISIF sur la lenteur de navigation est le Lot 2.
+
+### 7.1 Lot 2 — audit des `force-dynamic` (levier principal de la navigation)
+- **Raison** : ~27 pages déclarent `export const dynamic = 'force-dynamic'`, ce
+  qui force un rendu serveur intégral à CHAQUE navigation (aucune mise en cache,
+  aucun prefetch utile). Beaucoup de ces pages n'ont pas besoin d'une fraîcheur
+  à la seconde (référentiels, pages légales, tableaux peu changeants). Passer ces
+  pages en statique ou `revalidate: N` (ISR) — là où la fraîcheur n'est pas
+  requise — est le changement à plus fort impact sur la VITESSE DE NAVIGATION
+  ressentie. Sourcé Next.js App Router (caching, PPR, revalidate).
+- **Précaution** : décision de cache page par page. Le cockpit et les pages
+  temps réel (alertes, positions) DOIVENT rester dynamiques. Ne PAS uniformiser.
+- **Déblocage** : 🔍 audit page par page (fraîcheur requise ? oui → dynamic ;
+  non → static/revalidate) + dev dédié. Lot SÉPARÉ du Lot 1 (décision de cache,
+  pas pur ordonnancement).
+
+### 7.2 Lot 3 — Suspense granulaire (streaming)
+- **Raison** : envelopper les sous-arbres lents (panneaux cockpit, listes) dans
+  `<Suspense>` permet d'envoyer le squelette immédiatement et de streamer le
+  contenu quand il arrive — perception de vitesse améliorée même si le temps
+  total est identique. Complète le Lot 1 (parallélisme) et le Lot 2 (cache).
+- **Déblocage** : dev dédié, après Lot 2 (l'arbitrage cache change le besoin).
+
+---
+
 ## Synthèse — ce qui attend une DÉCISION ou un ACHAT de ta part
 | Item | Type | Action attendue |
 |------|------|-----------------|

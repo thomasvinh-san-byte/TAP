@@ -14,25 +14,28 @@ export const dynamic = 'force-dynamic';
 export default async function VehiculesPage() {
   await requireDirigeantPage();
   const supabase = await createClient();
-  const { data: vehicles, error: vehiclesError } = await supabase
-    .from('vehicles' as never)
-    .select(
-      'id, immatriculation, marque, modele, type, places_assises, places_tpmr, actif, created_at',
-    )
-    .eq('archive', false)
-    .order('immatriculation', { ascending: true });
+  // DEC-150 perf : véhicules + échéances de conformité sont indépendantes →
+  // parallélisées. Supabase renvoie {data,error} sans throw → Promise.all sûr.
+  const [{ data: vehicles, error: vehiclesError }, complianceRes] = await Promise.all([
+    supabase
+      .from('vehicles' as never)
+      .select(
+        'id, immatriculation, marque, modele, type, places_assises, places_tpmr, actif, created_at',
+      )
+      .eq('archive', false)
+      .order('immatriculation', { ascending: true }),
+    // Conformité (Phase 06.33) : prochaine échéance par véhicule.
+    supabase
+      .from('compliance_items' as never)
+      .select('entity_id, expires_at')
+      .eq('entity_type', 'vehicle')
+      .eq('archive', false)
+      .not('expires_at', 'is', null)
+      .order('expires_at', { ascending: true }),
+  ]);
   if (vehiclesError) {
     console.error('[admin/vehicules] Erreur Supabase:', vehiclesError);
   }
-
-  // Conformité (Phase 06.33) : prochaine échéance par véhicule.
-  const complianceRes = await supabase
-    .from('compliance_items' as never)
-    .select('entity_id, expires_at')
-    .eq('entity_type', 'vehicle')
-    .eq('archive', false)
-    .not('expires_at', 'is', null)
-    .order('expires_at', { ascending: true });
 
   const nextComplianceByVehicleId: Record<string, string> = {};
   for (const r of (complianceRes.data as { entity_id: string; expires_at: string }[] | null) ??

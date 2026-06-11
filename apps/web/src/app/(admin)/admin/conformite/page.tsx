@@ -35,13 +35,16 @@ interface RawRow {
 export default async function ConformitePage() {
   await requireDirigeantPage();
   const supabase = await createClient();
-  const blockingMode = await getComplianceBlockingMode();
-
-  const itemsRes = await supabase
-    .from('compliance_items' as never)
-    .select('id, entity_type, entity_id, kind, reference, expires_at')
-    .eq('archive', false)
-    .order('expires_at', { ascending: true, nullsFirst: false });
+  // DEC-150 perf : mode de blocage + items de conformité sont indépendants →
+  // parallélisés.
+  const [blockingMode, itemsRes] = await Promise.all([
+    getComplianceBlockingMode(),
+    supabase
+      .from('compliance_items' as never)
+      .select('id, entity_type, entity_id, kind, reference, expires_at')
+      .eq('archive', false)
+      .order('expires_at', { ascending: true, nullsFirst: false }),
+  ]);
 
   const rows = ((itemsRes.data ?? []) as RawRow[]) ?? [];
 
@@ -56,29 +59,38 @@ export default async function ConformitePage() {
     ),
   );
 
-  const driverLabels: Record<string, string> = {};
-  if (driverIds.length > 0) {
-    const { data } = await supabase
-      .from('drivers' as never)
-      .select('id, nom_affichage')
-      .in('id', driverIds);
-    for (const d of (data as { id: string; nom_affichage: string }[] | null) ?? []) {
-      driverLabels[d.id] = d.nom_affichage;
-    }
-  }
-  const vehicleLabels: Record<string, string> = {};
-  if (vehicleIds.length > 0) {
-    const { data } = await supabase
-      .from('vehicles' as never)
-      .select('id, immatriculation, marque, modele')
-      .in('id', vehicleIds);
-    for (const v of (data as
-      | { id: string; immatriculation: string; marque: string | null; modele: string | null }[]
-      | null) ?? []) {
-      vehicleLabels[v.id] =
-        `${v.immatriculation}${v.marque ? ` · ${v.marque}` : ''}${v.modele ? ` ${v.modele}` : ''}`;
-    }
-  }
+  // DEC-150 perf : les deux lookups de libellés dépendent des `rows` (ids
+  // dérivés) mais sont indépendants ENTRE EUX → parallélisés. Chacun reste
+  // conditionnel (aucune requête si la liste d'ids est vide).
+  const [driverLabels, vehicleLabels] = await Promise.all([
+    (async (): Promise<Record<string, string>> => {
+      const labels: Record<string, string> = {};
+      if (driverIds.length === 0) return labels;
+      const { data } = await supabase
+        .from('drivers' as never)
+        .select('id, nom_affichage')
+        .in('id', driverIds);
+      for (const d of (data as { id: string; nom_affichage: string }[] | null) ?? []) {
+        labels[d.id] = d.nom_affichage;
+      }
+      return labels;
+    })(),
+    (async (): Promise<Record<string, string>> => {
+      const labels: Record<string, string> = {};
+      if (vehicleIds.length === 0) return labels;
+      const { data } = await supabase
+        .from('vehicles' as never)
+        .select('id, immatriculation, marque, modele')
+        .in('id', vehicleIds);
+      for (const v of (data as
+        | { id: string; immatriculation: string; marque: string | null; modele: string | null }[]
+        | null) ?? []) {
+        labels[v.id] =
+          `${v.immatriculation}${v.marque ? ` · ${v.marque}` : ''}${v.modele ? ` ${v.modele}` : ''}`;
+      }
+      return labels;
+    })(),
+  ]);
 
   const driverRows = rows.filter((r) => r.entity_type === 'driver');
   const vehicleRows = rows.filter((r) => r.entity_type === 'vehicle');
