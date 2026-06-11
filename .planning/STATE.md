@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 07.01 (module donneurs d'ordres B2B — cœur) livrée localement. PR à ouvrir."
-last_updated: "2026-06-11T10:00:00.000Z"
-last_activity: Phase 07.01 (module donneurs d'ordres B2B — cœur : référentiel + rattachement course ; 2 migrations, 0 dépendance). Seul élément de la liste Inclus V1 (CdC §2.1 l.74 / §5.5) absent de main. Donneur d'ordres (entité B2B qui commande le transport, convention + facturation centralisée) DISTINCT du prescripteur (CdC §5.5 l.186). D-01 table ordering_parties (raison sociale, SIRET optionnel Luhn, contact principal, modalite_facturation enum, actif/archive) calquée drivers — RLS select_same_org + write dirigeant, audit trigger ordering_party.*, pgTAP 13 assertions. D-02 colonne additive rides.ordering_party_id NULLABLE (cas nominal = transport individuel) + index partiel. D-03 référentiel front (admin)/admin/donneurs-ordres/ (page/actions CRUD/form drawer/liste) répliquant vehicules/ ; entrée nav menu Gestion. D-04 champ OPTIONNEL Donneur d'ordres dans la saisie express (picker recherche client-side, pattern PatientPicker pill+clear, listActiveOrderingPartiesAction) ; ordering_party_id ajouté à rideExpressInputSchema (uuid nullable optional), threadé create/edit (spread input) + prefill édition (getRideByIdEnriched joint raison sociale). Garde-fous : SIRET via siretSchema existant ; logique course sans donneur d'ordres INCHANGÉE ; hors lot tracés registre §6 (demande groupée, grille B2B, récap PDF, contacts par service, portail V1.5). Seed démo 3 établissements 974. typecheck+lint(0 err, 8 warn)+build verts, 124 tests shared. DEC-148 LOCKED.
-last_activity_prev: Phase 06.67 chore CI (DEC-147). Phase 06.66 primitive Tooltip (DEC-146).
+stopped_at: "Phase 06.68 (page Réglages + préférences d'alertes cockpit) livrée localement. PR à ouvrir."
+last_updated: "2026-06-11T12:00:00.000Z"
+last_activity: Phase 06.68 (page Réglages + préférences d'alertes cockpit par utilisateur, effet immédiat ; 1 migration, 0 dépendance). L'app n'avait aucune page réglages ; on la crée avec une section Notifications qui pilote les alertes in-app du cockpit existantes (valeur immédiate, pas de préférence dormante). Périmètre sourcé normes SaaS : portée par UTILISATEUR (pas org) ; pas de toggle email/push tant que le canal n'est pas branché (pas de commande inactive). D-01 table notification_preferences (PK user_id, 3 booléens alertes cockpit défaut true) — RLS user-scoped stricte (user_id = auth.uid()), lazy (aucune ligne = tous défauts, rétro-compatible), pgTAP 9 assertions. D-02 page (app)/reglages/ (3 toggles Patient absent/Échec SMS/Course en retard, sauvegarde au changement optimiste + toast via updateNotificationPreferencesAction upsert) ; aucune section email/push. D-03 effet immédiat : cockpit/page.tsx charge les prefs côté serveur (getCockpitAlertPreferences, lib/notifications/preferences.ts) → CockpitContent calcule visibleAlerts = alerts.filter(prefs[event_type]) consommé par AlertsPanel + détection no-show ; useCockpitAlerts/realtime INCHANGÉ (filtrage d'affichage). D-04 item Réglages activé dans le user-menu (avatar), remplace l'ancien Paramètres désactivé. Garde-fous : défaut tout activé ; RLS auth.uid() ; pas de moteur sur-dimensionné. Registre §1.2 persistance préférences AMORCÉE. typecheck+lint(0 err, 8 warn)+build verts. DEC-149 LOCKED.
+last_activity_prev: Phase 07.01 module donneurs d'ordres B2B cœur (DEC-148). Phase 06.67 chore CI (DEC-147).
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
@@ -18,16 +18,17 @@ last_activity_prev: Phase 06.67 chore CI (DEC-147). Phase 06.66 primitive Toolti
 # + 06.58 drivers-list patron+découpe + 06.59 listes courtes legal+tarifs + 06.60 drawers+checkbox
 # + 06.61 brouillons cockpit + 06.62 échafaudage messagerie + 06.63 échafaudage upload docs
 # + 06.64 échafaudage email + 06.65 harmonisation checkbox + 06.66 primitive tooltip
-# + 07.01 module donneurs d'ordres B2B (cœur) = 76. (06.40
+# + 07.01 module donneurs d'ordres B2B (cœur) + 06.68 page Réglages + préférences
+# alertes cockpit = 77. (06.40
 # hygiène docs ET 06.56 onboarding méthode = lots documentaires, hors compte feature ; 06.45 supersede
 # 06.44 mais les 2 ont été livrées ; DEC-142 fix DialogContent = fix hors numéro de phase ;
 # 06.67 chore CI = lot hors compte feature, comme 06.40/06.56.) Restantes
 # réelles = Phase 09 (HDS) + Phase 10 (géoloc réelle) = 2. Phase 07 mobile native abandonnée
 # (DEC-092) hors compte ; 07.01 = module métier B2B (sans rapport avec le mobile natif).
-# Dernière phase livrée : 07.01 (module B2B cœur). Dernier DEC : 148 (07.01). Dernier ADR : ADR-013 (06.33).
+# Dernière phase livrée : 06.68 (page Réglages). Dernier DEC : 149 (06.68). Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 78
-  completed_phases: 76
+  total_phases: 79
+  completed_phases: 77
   total_plans: 89
   completed_plans: 89
   percent: 97
@@ -40,7 +41,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 07.01 (module donneurs d'ordres B2B — cœur) livrée localement : référentiel `(admin)/admin/donneurs-ordres/` (CRUD calqué véhicules) + rattachement OPTIONNEL d'une course à un donneur d'ordres (CdC §5.5, dernier élément Inclus V1 absent de main). 76 phases feature livrées + 3 lots hors compte (06.40 hygiène, 06.56 méthode, 06.67 chore CI) (cf. commentaire de comptage dans le frontmatter). 4 release toggles OFF pré-infra : GEOLOC, MESSAGING, UPLOAD_DOCS, EMAIL. Restantes : extensions B2B (registre §6 : demande groupée, grille tarifaire B2B, récap PDF, contacts par service, portail V1.5) ; Phase 09 HDS (registre §1.1/§4.3) + Phase 10 géoloc réelle ; choix provider email + `send` réel + préférences (registre §1.2) ; construction messagerie complète (registre §1.4) ; étapes restantes du plan d'audit.
+**Current focus:** Phase 06.68 (page Réglages + préférences d'alertes cockpit par utilisateur) livrée localement : page `(app)/reglages/` (section Notifications, 3 toggles d'alertes cockpit, sauvegarde au changement) + effet immédiat sur l'`AlertsPanel` du cockpit (filtrage d'affichage selon préférence) + item « Réglages » dans le user-menu. Table `notification_preferences` user-scoped (PK user_id), lazy/rétro-compatible. 77 phases feature livrées + 3 lots hors compte (06.40 hygiène, 06.56 méthode, 06.67 chore CI) (cf. commentaire de comptage dans le frontmatter). 4 release toggles OFF pré-infra : GEOLOC, MESSAGING, UPLOAD_DOCS, EMAIL. Restantes : extensions B2B (registre §6) ; Phase 09 HDS (registre §1.1/§4.3) + Phase 10 géoloc réelle ; choix provider email + `send` réel + toggles email (registre §1.2, persistance préférences amorcée) ; construction messagerie complète (registre §1.4) ; étapes restantes du plan d'audit.
 
 ## Current Position
 
@@ -49,12 +50,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 07.01 (module donneurs d'ordres B2B — cœur) livrée localement (2026-06-11). PR à ouvrir.
-Phase next: extensions B2B (registre §6 : demande groupée, grille tarifaire B2B via moteur pricing DEC-057, récap PDF périodique, contacts par service, portail self-service V1.5) ; choix provider email + send réel + préférences (registre §1.2) ; construction messagerie complète (registre §1.4) ; Phase 09 HDS (registre §1.1/§4.3) ; Phase 10 géoloc réelle.
-Status: 76 phases feature + 3 lots hors compte. Module B2B cœur livré : table ordering_parties (RLS calquée drivers, audit, pgTAP 13 assertions) + rides.ordering_party_id NULLABLE ; référentiel front /admin/donneurs-ordres (CRUD) + nav Gestion ; champ optionnel donneur d'ordres dans la saisie express (picker recherche). Distinction prescripteur ≠ donneur d'ordres respectée. 4 release toggles OFF pré-infra. Logique course existante inchangée.
+Phase: 06.68 (page Réglages + préférences d'alertes cockpit) livrée localement (2026-06-11). PR à ouvrir.
+Phase next: extensions B2B (registre §6 : demande groupée, grille tarifaire B2B via moteur pricing DEC-057, récap PDF périodique, contacts par service, portail self-service V1.5) ; choix provider email + send réel + toggles email (registre §1.2) ; construction messagerie complète (registre §1.4) ; Phase 09 HDS (registre §1.1/§4.3) ; Phase 10 géoloc réelle.
+Status: 77 phases feature + 3 lots hors compte. Page Réglages créée (1re page de paramètres user) ; table notification_preferences user-scoped (RLS auth.uid(), pgTAP 9 assertions) ; 3 toggles d'alertes cockpit pilotent l'affichage de l'AlertsPanel (effet immédiat, défaut tout activé rétro-compatible) ; item Réglages dans le user-menu. Détection/temps réel des alertes inchangé. 4 release toggles OFF pré-infra.
 Blockers: aucun
-Last activity: Phase 07.01 (module donneurs d'ordres B2B — cœur). Dernier élément Inclus V1 (CdC §5.5) absent de main. D-01 table ordering_parties (raison sociale, SIRET optionnel Luhn, contact principal, modalite_facturation enum, actif/archive) calquée drivers — RLS select_same_org + write dirigeant, audit ordering_party.*, pgTAP 13. D-02 colonne additive rides.ordering_party_id NULLABLE (cas nominal = transport individuel) + index partiel. D-03 référentiel front (admin)/admin/donneurs-ordres (page/actions/form/liste) répliquant vehicules ; nav menu Gestion. D-04 champ OPTIONNEL donneur d'ordres saisie express (picker recherche, pattern PatientPicker) ; ordering_party_id threadé schema/create/edit/prefill. Garde-fous : SIRET siretSchema ; logique course sans donneur d'ordres inchangée ; hors lot tracés registre §6. Seed démo 3 établissements 974. typecheck+lint(0 err, 8 warn)+build verts, 124 tests shared. 2 migrations, 0 dépendance. DEC-148 LOCKED. PR à ouvrir.
-Précédent: 06.67 chore CI (DEC-147), 06.66 primitive Tooltip (DEC-146), 06.65 harmonisation checkbox (DEC-145).
+Last activity: Phase 06.68 (page Réglages + préférences d'alertes cockpit). D-01 table notification_preferences (PK user_id, 3 booléens défaut true) RLS user-scoped stricte (user_id = auth.uid()), lazy (aucune ligne = tous défauts), pgTAP 9. D-02 page (app)/reglages/ (section Notifications, 3 toggles, sauvegarde au changement optimiste + toast, updateNotificationPreferencesAction upsert) ; aucune section email/push (pas de commande inactive). D-03 effet immédiat : cockpit charge prefs côté serveur (getCockpitAlertPreferences) → visibleAlerts = alerts.filter(prefs[event_type]) consommé par AlertsPanel + détection no-show ; useCockpitAlerts/realtime INCHANGÉ. D-04 item Réglages dans user-menu (remplace Paramètres désactivé). Garde-fous : défaut tout activé ; RLS auth.uid() ; pas de moteur sur-dimensionné. Registre §1.2 persistance préférences amorcée. typecheck+lint(0 err, 8 warn)+build verts. 1 migration, 0 dépendance. DEC-149 LOCKED. PR à ouvrir.
+Précédent: 07.01 module donneurs d'ordres B2B cœur (DEC-148), 06.67 chore CI (DEC-147), 06.66 primitive Tooltip (DEC-146).
 
 Progress: [██████████] 100%
 
