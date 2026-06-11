@@ -9,16 +9,17 @@ import { getCockpitAlertPreferences } from '@/lib/notifications/preferences';
 export const metadata = { title: 'Cockpit' };
 export const dynamic = 'force-dynamic';
 
-export default async function CockpitPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
+type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
-  const today = new Date().toISOString().slice(0, 10);
-
-  const { data: ridesData, error: ridesError } = await supabase
+/**
+ * Courses du jour (RLS-filtrées). Erreur loggée → fallback `[]` (jamais de
+ * throw), pour entrer sans risque dans le `Promise.all`.
+ */
+async function getRidesToday(
+  supabase: SupabaseServerClient,
+  today: string,
+): Promise<CockpitRide[]> {
+  const { data, error } = await supabase
     .from('rides')
     .select(
       'id, scheduled_at, status, pickup_address, dropoff_address, ' +
@@ -27,49 +28,58 @@ export default async function CockpitPage() {
     .gte('scheduled_at', `${today}T00:00:00`)
     .lte('scheduled_at', `${today}T23:59:59`)
     .order('scheduled_at');
-
-  if (ridesError) {
-    console.error('[cockpit] Erreur chargement rides:', ridesError);
+  if (error) {
+    console.error('[cockpit] Erreur chargement rides:', error);
   }
+  // TODO(audit D+A lot 3) : ce cast écrase le typage inféré. À remplacer par un
+  // type dérivé de Database['public']['Tables']['rides']['Row'] + joins.
+  return (data as CockpitRide[] | null) ?? [];
+}
 
-  // ride_events table sera créée Wave 6. Fallback gracieux jusque-là :
-  // try/catch silencieux pour éviter de casser le cockpit si la table est
-  // absente dans l'environnement courant.
-  let alerts: CockpitAlert[] = [];
+/**
+ * Alertes course (ride_events). Table créée Wave 6 : try/catch + fallback `[]`
+ * gracieux si elle est absente de l'environnement courant (dégradation
+ * IDENTIQUE à avant — le cockpit ne casse jamais).
+ */
+async function getCockpitRideEvents(
+  supabase: SupabaseServerClient,
+  today: string,
+): Promise<CockpitAlert[]> {
   try {
-    const { data: alertsData, error: alertsError } = await supabase
+    const { data, error } = await supabase
       .from('ride_events' as never)
       .select('id, ride_id, event_type, payload, created_at')
       .in('event_type', ['patient_no_show', 'sms_failed', 'ride_delayed'])
       .gte('created_at', `${today}T00:00:00`)
       .order('created_at', { ascending: false })
       .limit(20);
-    if (alertsError) {
-      console.error('[cockpit] Erreur Supabase (alerts):', alertsError);
+    if (error) {
+      console.error('[cockpit] Erreur Supabase (alerts):', error);
     }
-    alerts = (alertsData as CockpitAlert[] | null) ?? [];
+    return (data as CockpitAlert[] | null) ?? [];
   } catch {
-    alerts = [];
+    return [];
   }
+}
 
-  // TODO(audit D+A lot 3) : ce cast écrase le typage inféré. Il a permis au
-  // bug drivers(prenom, nom) de passer typecheck (lot 1). À remplacer par un
-  // type dérivé de Database['public']['Tables']['rides']['Row'] + joins.
-  const rides = (ridesData as CockpitRide[] | null) ?? [];
-
-  // Phase 10.0 DEC-096 : dernières positions chauffeurs (prototype géoloc).
-  // Lecture best-effort : si la table n'est pas encore déployée dans
-  // l'environnement courant, on dégrade silencieusement.
-  let positions: DriverPosition[] = [];
-  let driverLabels: Record<string, string> = {};
+/**
+ * Dernières positions chauffeurs + libellés (Phase 10.0, DEC-096). Le lookup
+ * `driverLabels` DÉPEND des positions → il reste séquentiel À L'INTÉRIEUR de
+ * cette fonction (vraie dépendance), mais la fonction entière est indépendante
+ * des autres fetchs → parallélisable. try/catch + fallback gracieux préservés.
+ */
+async function getDriverPositionsWithLabels(
+  supabase: SupabaseServerClient,
+): Promise<{ positions: DriverPosition[]; driverLabels: Record<string, string> }> {
   try {
     const { data: posData } = await supabase
       .from('driver_positions' as never)
       .select('id, driver_id, ride_id, lat, lng, accuracy, captured_at, source')
       .order('captured_at', { ascending: false })
       .limit(200);
-    positions = (posData as DriverPosition[] | null) ?? [];
+    const positions = (posData as DriverPosition[] | null) ?? [];
 
+    let driverLabels: Record<string, string> = {};
     if (positions.length > 0) {
       const driverIds = Array.from(new Set(positions.map((p) => p.driver_id)));
       const { data: drvData } = await supabase
@@ -79,24 +89,43 @@ export default async function CockpitPage() {
       const drv = (drvData as { id: string; nom_affichage: string }[] | null) ?? [];
       driverLabels = Object.fromEntries(drv.map((d) => [d.id, d.nom_affichage]));
     }
+    return { positions, driverLabels };
   } catch (err) {
     console.error('[cockpit] driver_positions non disponible:', err);
+    return { positions: [], driverLabels: {} };
   }
+}
 
-  // Phase 06.34 DEC-113 : alertes dérivées d'échéances réglementaires
-  // (conformité §5.21). Distinctes des alertes course (no-show, sms).
-  const complianceAlerts = await getComplianceAlerts();
+export default async function CockpitPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
 
-  // DEC-149 : préférences d'alertes de l'utilisateur (filtrage d'affichage du
-  // panel ; défaut tout activé si aucune ligne — rétro-compatible).
-  const alertPreferences = await getCockpitAlertPreferences();
+  const today = new Date().toISOString().slice(0, 10);
+
+  // DEC-150 perf : les 5 sources sont INDÉPENDANTES → lancées en parallèle
+  // (waterfall séquentiel supprimé). Chaque fonction encapsule son propre
+  // try/catch + fallback, donc le Promise.all ne rejette jamais à cause d'une
+  // table absente (dégradation gracieuse IDENTIQUE). La seule dépendance réelle
+  // (driverLabels ← positions) reste séquentielle DANS getDriverPositionsWithLabels.
+  const [rides, alerts, positionsResult, complianceAlerts, alertPreferences] = await Promise.all([
+    getRidesToday(supabase, today),
+    getCockpitRideEvents(supabase, today),
+    getDriverPositionsWithLabels(supabase),
+    // Phase 06.34 DEC-113 : alertes d'échéances réglementaires (conformité §5.21).
+    getComplianceAlerts(),
+    // DEC-149 : préférences d'alertes du user (filtrage d'affichage du panel).
+    getCockpitAlertPreferences(),
+  ]);
 
   return (
     <CockpitContent
       initialRides={rides}
       initialAlerts={alerts}
-      initialPositions={positions}
-      driverLabels={driverLabels}
+      initialPositions={positionsResult.positions}
+      driverLabels={positionsResult.driverLabels}
       complianceAlerts={complianceAlerts}
       alertPreferences={alertPreferences}
     />

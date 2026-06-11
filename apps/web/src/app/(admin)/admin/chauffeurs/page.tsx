@@ -24,13 +24,30 @@ export default async function ChauffeursPage(props: { searchParams?: Promise<{ v
 
   const vueArchives = searchParams?.vue === 'archives';
 
-  const driversRes = await supabase
-    .from('drivers' as never)
-    .select(
-      'id, nom_affichage, telephone, numero_licence, type_permis, actif, archive, archive_at, archive_motif, profile_id, created_at',
-    )
-    .eq('archive', vueArchives)
-    .order('nom_affichage', { ascending: true });
+  // DEC-150 perf : les 3 requêtes sont INDÉPENDANTES → parallélisées (drivers /
+  // invitations en attente / échéances de conformité). Supabase renvoie
+  // {data,error} sans throw → Promise.all sûr. Tris/filtres identiques à avant.
+  const [driversRes, invitationsRes, complianceRes] = await Promise.all([
+    supabase
+      .from('drivers' as never)
+      .select(
+        'id, nom_affichage, telephone, numero_licence, type_permis, actif, archive, archive_at, archive_motif, profile_id, created_at',
+      )
+      .eq('archive', vueArchives)
+      .order('nom_affichage', { ascending: true }),
+    supabase
+      .from('driver_invitations' as never)
+      .select('id, driver_id, email, status, expires_at, created_at')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('compliance_items' as never)
+      .select('entity_id, expires_at')
+      .eq('entity_type', 'driver')
+      .eq('archive', false)
+      .not('expires_at', 'is', null)
+      .order('expires_at', { ascending: true }),
+  ]);
 
   if (driversRes.error) {
     // Erreur Supabase remontée côté serveur (visible Vercel Runtime logs).
@@ -49,13 +66,8 @@ export default async function ChauffeursPage(props: { searchParams?: Promise<{ v
 
   const drivers = driversRes.data;
 
-  // Récupère la dernière invitation pending par driver (PLAN-4 §4.7).
-  const invitationsRes = await supabase
-    .from('driver_invitations' as never)
-    .select('id, driver_id, email, status, expires_at, created_at')
-    .eq('status', 'pending')
-    .order('created_at', { ascending: false });
-
+  // Dernière invitation pending par driver (PLAN-4 §4.7) — chargée en parallèle
+  // ci-dessus (DEC-150).
   if (invitationsRes.error) {
     console.error('[admin/chauffeurs] invitations query error', {
       message: invitationsRes.error.message,
@@ -81,16 +93,8 @@ export default async function ChauffeursPage(props: { searchParams?: Promise<{ v
     invitation: invitationByDriverId.get(d.id) ?? null,
   }));
 
-  // Conformité (Phase 06.33) : prochaine échéance par chauffeur, pour
-  // afficher le badge sémantique dans la liste.
-  const complianceRes = await supabase
-    .from('compliance_items' as never)
-    .select('entity_id, expires_at')
-    .eq('entity_type', 'driver')
-    .eq('archive', false)
-    .not('expires_at', 'is', null)
-    .order('expires_at', { ascending: true });
-
+  // Conformité (Phase 06.33) : prochaine échéance par chauffeur (badge
+  // sémantique de la liste) — chargée en parallèle ci-dessus (DEC-150).
   const nextComplianceByDriverId: Record<string, string> = {};
   for (const r of (complianceRes.data as { entity_id: string; expires_at: string }[] | null) ??
     []) {

@@ -58,8 +58,9 @@ function previousMonthOf(ym: string): string {
 
 export default async function TableauDeBordPage(): Promise<JSX.Element> {
   await requireDirigeantPage();
-  const data = await getDashboardData();
-  const complianceAlerts = await getComplianceAlerts();
+  // DEC-150 perf : les deux sources sont indépendantes → parallélisées
+  // (waterfall séquentiel supprimé). L'auth (requireDirigeantPage) reste avant.
+  const [data, complianceAlerts] = await Promise.all([getDashboardData(), getComplianceAlerts()]);
 
   const periode = new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
 
