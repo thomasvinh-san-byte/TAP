@@ -731,6 +731,103 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          alert_patient_no_show: boolean
+          alert_ride_delayed: boolean
+          alert_sms_failed: boolean
+          created_at: string
+          organization_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alert_patient_no_show?: boolean
+          alert_ride_delayed?: boolean
+          alert_sms_failed?: boolean
+          created_at?: string
+          organization_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alert_patient_no_show?: boolean
+          alert_ride_delayed?: boolean
+          alert_sms_failed?: boolean
+          created_at?: string
+          organization_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ordering_parties: {
+        Row: {
+          actif: boolean
+          archive: boolean
+          archive_at: string | null
+          contact_principal_email: string | null
+          contact_principal_nom: string | null
+          contact_principal_telephone: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          modalite_facturation: Database["public"]["Enums"]["ordering_party_billing_modality"]
+          organization_id: string
+          raison_sociale: string
+          siret: string | null
+          updated_at: string
+        }
+        Insert: {
+          actif?: boolean
+          archive?: boolean
+          archive_at?: string | null
+          contact_principal_email?: string | null
+          contact_principal_nom?: string | null
+          contact_principal_telephone?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          modalite_facturation?: Database["public"]["Enums"]["ordering_party_billing_modality"]
+          organization_id: string
+          raison_sociale: string
+          siret?: string | null
+          updated_at?: string
+        }
+        Update: {
+          actif?: boolean
+          archive?: boolean
+          archive_at?: string | null
+          contact_principal_email?: string | null
+          contact_principal_nom?: string | null
+          contact_principal_telephone?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          modalite_facturation?: Database["public"]["Enums"]["ordering_party_billing_modality"]
+          organization_id?: string
+          raison_sociale?: string
+          siret?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ordering_parties_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           adresse: string | null
@@ -1453,6 +1550,7 @@ export type Database = {
           no_show_at: string | null
           no_show_motif: string | null
           notes_regulateur: string | null
+          ordering_party_id: string | null
           organization_id: string
           original_ride_id: string | null
           patient_id: string
@@ -1494,6 +1592,7 @@ export type Database = {
           no_show_at?: string | null
           no_show_motif?: string | null
           notes_regulateur?: string | null
+          ordering_party_id?: string | null
           organization_id: string
           original_ride_id?: string | null
           patient_id: string
@@ -1535,6 +1634,7 @@ export type Database = {
           no_show_at?: string | null
           no_show_motif?: string | null
           notes_regulateur?: string | null
+          ordering_party_id?: string | null
           organization_id?: string
           original_ride_id?: string | null
           patient_id?: string
@@ -1565,6 +1665,13 @@ export type Database = {
             columns: ["driver_id"]
             isOneToOne: false
             referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rides_ordering_party_id_fkey"
+            columns: ["ordering_party_id"]
+            isOneToOne: false
+            referencedRelation: "ordering_parties"
             referencedColumns: ["id"]
           },
           {
@@ -2001,6 +2108,10 @@ export type Database = {
     }
     Enums: {
       canal_contact_prefere: "sms" | "appel" | "aucun"
+      ordering_party_billing_modality:
+        | "a_la_course"
+        | "hebdomadaire"
+        | "mensuelle"
       patient_constraint_type:
         | "medical_oxygene"
         | "medical_fauteuil"
@@ -2150,6 +2261,11 @@ export const Constants = {
   public: {
     Enums: {
       canal_contact_prefere: ["sms", "appel", "aucun"],
+      ordering_party_billing_modality: [
+        "a_la_course",
+        "hebdomadaire",
+        "mensuelle",
+      ],
       patient_constraint_type: [
         "medical_oxygene",
         "medical_fauteuil",
