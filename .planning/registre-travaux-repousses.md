@@ -199,12 +199,27 @@ Le CŒUR du module (CdC §5.5, Inclus V1) est livré en 07.01 : référentiel
 un donneur d'ordres (`rides.ordering_party_id` nullable). Restent à construire,
 par lots dédiés (aucun bloquant — le cœur tourne seul) :
 
-### 6.1 Demande groupée de transport — CdC §5.5
-- **Raison** : un donneur d'ordres B2B passe souvent plusieurs courses en une
-  seule demande (sorties d'hospitalisation groupées). Le cœur ne gère que la
-  course unitaire rattachée. La saisie groupée (1 formulaire → N courses) est un
-  lot UI + Server Action dédié.
-- **Déblocage** : dev dédié, s'appuie sur la saisie express existante (boucle).
+### 6.1 Demande groupée de transport — CdC §5.5 — RÉSOLU (07.03, DEC-158)
+- **Livré** : table parent `ride_groups` (enum `ride_group_status`
+  en_attente|acceptee|refusee, RLS org : select same_org / insert+update
+  régulateur+dirigeant / pas de delete, pgTAP 11) + colonne nullable
+  `rides.ride_group_id` (NULL = course individuelle, cas nominal). Workflow porté
+  par le GROUPE (pas par `ride_status`) : création → groupe `en_attente` + N
+  courses enfants `brouillon` ; acceptation → groupe `acceptee` + courses
+  brouillon→`validee` (fermes) ; refus → groupe `refusee` + `motif_refus` +
+  courses→`annulee_regulateur`. Les courses `brouillon` sont EXCLUES du cockpit,
+  de l'optimisation et de la caisse (qui ciblent validee/terminee) — exclusion
+  ajoutée au cockpit + liste courses (optimizer/caisse filtraient déjà).
+  Les courses portent `ordering_party_id` → tarifées via la grille B2B (07.02)
+  sans recode pricing. UI `/courses/demandes-groupees` : formulaire multi-lignes
+  (réutilise les champs de la saisie express par ligne) + file d'acceptation/refus
+  (motif obligatoire). Nav : entrée régulateur + menu Gestion dirigeant.
+- **Schéma zod** : `groupedRideLineSchema` (= express sans `ordering_party_id`),
+  `rideGroupRequestSchema` (donneur + 1..50 lignes), `rideGroupRefusalSchema`.
+- **Reste éventuel (V1.5)** : édition d'une ligne avant acceptation depuis la
+  file (aujourd'hui on accepte/refuse en bloc) ; acceptation partielle
+  (sous-ensemble de lignes). Non bloquant — la régulation peut refuser puis
+  re-saisir.
 
 ### 6.2 Grille tarifaire B2B propre — CdC §5.5 — RÉSOLU (07.02, DEC-157)
 - **Livré** : enum `ordering_party_tariff_mode` (cgss_standard|grille_propre) +

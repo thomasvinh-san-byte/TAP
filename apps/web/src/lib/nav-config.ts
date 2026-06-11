@@ -42,6 +42,7 @@ const REGULATEUR_PRIMARY: NavTab[] = [
   { href: '/cockpit', label: 'Cockpit' },
   { href: '/patients', label: 'Patients' },
   { href: '/courses', label: 'Courses' },
+  { href: '/courses/demandes-groupees', label: 'Demandes groupées' },
   { href: '/courses/caisse', label: 'Caisse' },
   { href: '/admin/chauffeurs', label: 'Chauffeurs' },
 ];
@@ -82,11 +83,17 @@ const FLOTTE_GROUP: NavGroup = {
 
 const GESTION_GROUP: NavGroup = {
   label: 'Gestion',
-  activePrefixes: ['/admin/tarifs', '/admin/facturation', '/admin/donneurs-ordres'],
+  activePrefixes: [
+    '/admin/tarifs',
+    '/admin/facturation',
+    '/admin/donneurs-ordres',
+    '/courses/demandes-groupees',
+  ],
   items: [
     { href: '/admin/tarifs', label: 'Tarifs' },
     { href: '/admin/facturation', label: 'Facturation' },
     { href: '/admin/donneurs-ordres', label: "Donneurs d'ordres" },
+    { href: '/courses/demandes-groupees', label: 'Demandes groupées' },
   ],
 };
 

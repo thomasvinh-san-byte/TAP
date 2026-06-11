@@ -51,6 +51,28 @@ export const rideExpressInputSchema = z.object({
 export type RideExpressInput = z.infer<typeof rideExpressInputSchema>;
 
 /**
+ * Demande groupée B2B (DEC-158, CdC §5.5 l.191) : un donneur d'ordres commande
+ * N transports en lot ; la régulation accepte/refuse. Chaque ligne reprend les
+ * champs d'une course express SANS `ordering_party_id` (porté par le groupe).
+ */
+export const groupedRideLineSchema = rideExpressInputSchema.omit({ ordering_party_id: true });
+export type GroupedRideLine = z.infer<typeof groupedRideLineSchema>;
+
+export const rideGroupRequestSchema = z.object({
+  ordering_party_id: z.string().uuid("Donneur d'ordres requis"),
+  rides: z
+    .array(groupedRideLineSchema)
+    .min(1, 'Ajoutez au moins une course.')
+    .max(50, 'Maximum 50 courses par demande groupée.'),
+});
+export type RideGroupRequestInput = z.infer<typeof rideGroupRequestSchema>;
+
+/** Motif de refus d'une demande groupée (régulation). */
+export const rideGroupRefusalSchema = z.object({
+  motif: z.string().trim().min(1, 'Motif requis.').max(500),
+});
+
+/**
  * Brouillon de course (D-02) : tous les champs sont optionnels jusqu'au submit.
  * Persisté côté serveur dans public.ride_draft (jsonb payload).
  */

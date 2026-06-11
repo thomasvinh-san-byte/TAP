@@ -58,7 +58,11 @@ export async function listRidesEnriched(
     .eq('archive', false)
     .order('scheduled_at', { ascending: false })
     .range(offset, offset + limit - 1);
+  // DEC-158 : par défaut, exclure les courses `brouillon` (demandes groupées en
+  // attente, pas encore fermes — gérées dans /courses/demandes-groupees). Un
+  // filtre de statut explicite reste honoré.
   if (params.status) q = q.eq('status', params.status);
+  else q = q.neq('status', 'brouillon');
   if (params.transport_mode) q = q.eq('transport_mode', params.transport_mode);
   if (params.urgency) q = q.eq('urgency', params.urgency);
   if (params.date && /^\d{4}-\d{2}-\d{2}$/.test(params.date)) {
