@@ -1,10 +1,14 @@
-import { createClient } from '@/lib/supabase/server';
 import { getAuthContext } from '@/lib/auth/get-auth-context';
 import { PageHeader } from '@/components/page-header';
 import { DriversList } from './_components/drivers-list.client';
+import { getCachedChauffeursPageData } from './_lib/cached-queries';
 
 export const metadata = { title: 'Chauffeurs' };
-export const dynamic = 'force-dynamic';
+// DEC-152 (perf 08.03) : plus de `force-dynamic`. La page reste rendue
+// dynamiquement (elle lit les cookies via getAuthContext) mais les DONNÉES sont
+// servies depuis un cache PAR ORGANISATION (unstable_cache clé+tag par org,
+// cf. _lib/cached-queries.ts), purgé à chaque écriture (revalidateTag dans
+// actions.ts). Navigation accélérée, isolation inter-org préservée.
 
 /**
  * Page admin chauffeurs (Passe 2 — Phase 04, hotfix DEC-029) — RSC pré-fetch.
@@ -13,95 +17,20 @@ export const dynamic = 'force-dynamic';
  *   - `actifs` (par défaut) : chauffeurs non archivés
  *   - `archives`            : chauffeurs archivés (réservé toggle UI)
  *
- * RLS Postgres garantit le filtrage `organization_id`. Les guards rôle
- * sont posés en `(admin)/layout.tsx` (dirigeant ou régulateur).
+ * Données cachées par organisation (DEC-152). Les guards rôle sont posés en
+ * `(admin)/layout.tsx` (dirigeant ou régulateur).
  */
 export default async function ChauffeursPage(props: { searchParams?: Promise<{ vue?: string }> }) {
   const searchParams = await props.searchParams;
-  const supabase = await createClient();
   const ctx = await getAuthContext();
   const role = ctx?.role ?? 'regulateur';
-
   const vueArchives = searchParams?.vue === 'archives';
 
-  // DEC-150 perf : les 3 requêtes sont INDÉPENDANTES → parallélisées (drivers /
-  // invitations en attente / échéances de conformité). Supabase renvoie
-  // {data,error} sans throw → Promise.all sûr. Tris/filtres identiques à avant.
-  const [driversRes, invitationsRes, complianceRes] = await Promise.all([
-    supabase
-      .from('drivers' as never)
-      .select(
-        'id, nom_affichage, telephone, numero_licence, type_permis, actif, archive, archive_at, archive_motif, profile_id, created_at',
-      )
-      .eq('archive', vueArchives)
-      .order('nom_affichage', { ascending: true }),
-    supabase
-      .from('driver_invitations' as never)
-      .select('id, driver_id, email, status, expires_at, created_at')
-      .eq('status', 'pending')
-      .order('created_at', { ascending: false }),
-    supabase
-      .from('compliance_items' as never)
-      .select('entity_id, expires_at')
-      .eq('entity_type', 'driver')
-      .eq('archive', false)
-      .not('expires_at', 'is', null)
-      .order('expires_at', { ascending: true }),
-  ]);
-
-  if (driversRes.error) {
-    // Erreur Supabase remontée côté serveur (visible Vercel Runtime logs).
-    // L'UI affiche un état vide silencieux ; le log permet de diagnostiquer
-    // un schéma désaligné, un RLS qui filtre tout, ou une session perdue.
-    console.error('[admin/chauffeurs] drivers query error', {
-      message: driversRes.error.message,
-      code: driversRes.error.code,
-      details: driversRes.error.details,
-      hint: driversRes.error.hint,
-      user_role: role,
-      organization_id: ctx?.organizationId,
-      vue_archives: vueArchives,
-    });
-  }
-
-  const drivers = driversRes.data;
-
-  // Dernière invitation pending par driver (PLAN-4 §4.7) — chargée en parallèle
-  // ci-dessus (DEC-150).
-  if (invitationsRes.error) {
-    console.error('[admin/chauffeurs] invitations query error', {
-      message: invitationsRes.error.message,
-      code: invitationsRes.error.code,
-      details: invitationsRes.error.details,
-      hint: invitationsRes.error.hint,
-    });
-  }
-
-  const invitations = invitationsRes.data;
-
-  const invitationByDriverId = new Map<string, DriverInvitationRow>();
-  for (const inv of (invitations ?? []) as DriverInvitationRow[]) {
-    if (!invitationByDriverId.has(inv.driver_id)) {
-      invitationByDriverId.set(inv.driver_id, inv);
-    }
-  }
-
-  const driversWithInvitation: DriverRow[] = (
-    (drivers ?? []) as Omit<DriverRow, 'invitation'>[]
-  ).map((d) => ({
-    ...d,
-    invitation: invitationByDriverId.get(d.id) ?? null,
-  }));
-
-  // Conformité (Phase 06.33) : prochaine échéance par chauffeur (badge
-  // sémantique de la liste) — chargée en parallèle ci-dessus (DEC-150).
-  const nextComplianceByDriverId: Record<string, string> = {};
-  for (const r of (complianceRes.data as { entity_id: string; expires_at: string }[] | null) ??
-    []) {
-    if (!nextComplianceByDriverId[r.entity_id]) {
-      nextComplianceByDriverId[r.entity_id] = r.expires_at;
-    }
-  }
+  // Filet : le layout (admin) garde déjà l'accès. Sans session, liste vide
+  // (jamais de cache org sans organizationId issu de la session).
+  const { drivers, nextComplianceByDriverId } = ctx
+    ? await getCachedChauffeursPageData(ctx.organizationId, vueArchives)
+    : { drivers: [], nextComplianceByDriverId: {} };
 
   return (
     <div className="space-y-24">
@@ -110,7 +39,7 @@ export default async function ChauffeursPage(props: { searchParams?: Promise<{ v
         description="Référentiel des chauffeurs de l'organisation. Invitez le chauffeur pour lui ouvrir l'accès à l'application."
       />
       <DriversList
-        initialDrivers={driversWithInvitation}
+        initialDrivers={drivers}
         currentRole={role as 'dirigeant' | 'regulateur'}
         vue={vueArchives ? 'archives' : 'actifs'}
         nextComplianceByDriverId={nextComplianceByDriverId}
