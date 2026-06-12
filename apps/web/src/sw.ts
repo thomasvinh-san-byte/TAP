@@ -40,3 +40,54 @@ const serwist = new Serwist({
 });
 
 serwist.addEventListeners();
+
+// --------------------------------------------------------------------------
+// Notifications push (DEC-167) — AJOUTÉES au SW Serwist existant (precache /
+// offline INCHANGÉS). Affiche la notification reçue et ouvre l'app sur la
+// course concernée au clic.
+// --------------------------------------------------------------------------
+
+interface PushPayload {
+  title?: string;
+  body?: string;
+  url?: string;
+}
+
+self.addEventListener('push', (event: PushEvent) => {
+  let payload: PushPayload = {};
+  try {
+    payload = (event.data?.json() as PushPayload | undefined) ?? {};
+  } catch {
+    payload = { body: event.data?.text() };
+  }
+  const title = payload.title ?? 'TAP Réunion';
+  const url = payload.url ?? '/conduite';
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body: payload.body ?? '',
+      icon: '/icons/icon-192-any.png',
+      badge: '/icons/icon-192-any.png',
+      data: { url },
+    }),
+  );
+});
+
+self.addEventListener('notificationclick', (event: NotificationEvent) => {
+  event.notification.close();
+  const data = event.notification.data as { url?: string } | undefined;
+  const url = data?.url ?? '/conduite';
+  event.waitUntil(
+    (async () => {
+      const allClients = await self.clients.matchAll({
+        type: 'window',
+        includeUncontrolled: true,
+      });
+      for (const client of allClients) {
+        await client.focus();
+        if ('navigate' in client) await client.navigate(url);
+        return;
+      }
+      await self.clients.openWindow(url);
+    })(),
+  );
+});

@@ -27,10 +27,16 @@ EXTERNE (donnée/spec à obtenir d'un tiers).
 - **Note 2026-06-10 (DEC-144)** : la COQUILLE est posée (flag `EMAIL_ENABLED` OFF + module central `lib/email/send.ts` no-op loggé + 1 point de déclenchement de démo dans `upsertComplianceItemAction`). Reste à construire : **choix provider + branchement `send` réel** (dans `lib/email/send.ts`), **persistance des préférences** (2 toggles récap quotidien / alertes échéances — aucune page réglages ni colonne préf n'existe → à créer), **gabarits** (templating). OFF = no-op total, aucun envoi.
 - **Note 2026-06-11 (DEC-149)** : la **persistance des préférences est AMORCÉE**. La page Réglages (`(app)/reglages/`) existe désormais et la table `notification_preferences` (PK `user_id`, RLS user-scoped) est en place — extensible : les **toggles email** (récap quotidien / alertes échéances) s'ajouteront comme colonnes booléennes de cette table ET comme section de la page Réglages, AU MOMENT du branchement provider (pas avant — norme « pas de commande inactive » : on n'affiche pas un toggle email tant que l'email n'envoie rien). Le canal in-app cockpit, lui, est déjà piloté par 3 toggles fonctionnels.
 
-### 1.3 Push web (notifications PWA)
-- **Décision** : repoussé (branchement infra). Non câblé en 06.62 (échafaudage messagerie = point d'accès header uniquement, push explicitement hors périmètre, cf. DEC-141 D-03).
-- **Raison** : le CdC (§5.22) prévoit le push web pour la messagerie interne, mais c'est un branchement (service worker push, VAPID, stockage subscriptions). Hors phase « construction fonctionnalités ».
-- **Déblocage** : 🔍 CHOIX TECHNIQUE (web-push natif vs service) + dev dédié. 🗳 prioriser avec la messagerie (CdC §5.22).
+### 1.3 Push web (notifications PWA) — RÉSOLU (06.69, DEC-167)
+- **Livré** : Web Push standard (choix technique = `web-push` natif, pas de
+  service tiers). Table `push_subscriptions` (RLS user-scoped, multi-appareils) +
+  clés VAPID (secrets) + handler `push`/`notificationclick` ajouté au SW Serwist
+  (offline non régressé) + envoi `lib/push/send.ts` best-effort + préférence
+  `notification_preferences.push_enabled`. Déclenché sur affectation
+  (`assignRideAction`) et réaffectation (`reassignRidesBatchAction`).
+- **Reste éventuel** : brancher le push sur la MESSAGERIE interne (CdC §5.22)
+  quand le lot messagerie complet sera construit (MESSAGING_ENABLED) — l'infra
+  push est désormais réutilisable (`sendPushToUser`).
 
 ### 1.4 Messagerie interne §5.22 — reste à construire (coquille posée 06.62)
 - **Décision** : échafaudage posé (2026-06-10, DEC-141). Le point d'accès header (`MessagingButton`) + la coquille « Fil général » (EmptyState) sont en place derrière le flag `MESSAGING_ENABLED` (OFF par défaut prod). Le chat à la course (germe lot 1, `internal_message`/`ride-chat`) est fonctionnel et exposé via cet accès.
