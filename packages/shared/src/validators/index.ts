@@ -7,5 +7,6 @@ export * from './driver';
 export * from './driver-position';
 export * from './vehicle';
 export * from './ordering-party';
+export * from './prescriber';
 export * from './legal';
 export * from './compliance';

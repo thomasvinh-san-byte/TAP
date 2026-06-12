@@ -43,6 +43,28 @@ export const siretSchema = z
   .regex(/^[0-9]{14}$/, { message: 'SIRET : 14 chiffres requis.' })
   .refine(verifyLuhn, { message: 'SIRET invalide (échec contrôle Luhn).' });
 
+/**
+ * Identifiants prescripteur (CdG §5.4) — contrôle de FORMAT uniquement
+ * (nombre de chiffres), pas de checksum. Tous optionnels côté DB.
+ *   - RPPS : 11 chiffres (médecin, répertoire partagé des professionnels).
+ *   - ADELI : 9 chiffres (ancien identifiant professionnel de santé).
+ *   - FINESS : 9 chiffres (établissement sanitaire/médico-social).
+ */
+export const rppsSchema = z
+  .string()
+  .trim()
+  .regex(/^[0-9]{11}$/, { message: 'RPPS : 11 chiffres requis.' });
+
+export const adeliSchema = z
+  .string()
+  .trim()
+  .regex(/^[0-9]{9}$/, { message: 'ADELI : 9 chiffres requis.' });
+
+export const finessSchema = z
+  .string()
+  .trim()
+  .regex(/^[0-9]{9}$/, { message: 'FINESS : 9 chiffres requis.' });
+
 function verifyLuhn(siret: string): boolean {
   let sum = 0;
   for (let i = 0; i < siret.length; i++) {

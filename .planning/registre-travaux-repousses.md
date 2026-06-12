@@ -398,6 +398,30 @@ Restent à construire, par lots dédiés (aucun bloquant — le cœur tourne seu
 > (GEOLOC_ENABLED ON). Aucune refonte du module pur attendue — seul le point de
 > référence candidat sera enrichi.
 
+## 9. Module prescriptions (CdG §5.3) — préalable prescripteurs livré (07.05, DEC-162)
+
+Le référentiel PRESCRIPTEURS (§5.4) est livré en 07.05 : table `prescribers`
+(médecin/établissement, RPPS/ADELI/FINESS, RLS org dirigeant+régulateur, CRUD +
+data-cache). C'est le **préalable** de la gestion des prescriptions. Restent :
+
+### 9.1 Gestion des prescriptions — CdG §5.3 (lot suivant immédiat)
+- **Raison** : la prescription (bon de transport) rattache un patient, un
+  prescripteur (07.05) et des règles (nombre de trajets autorisés, période de
+  validité, ALD). `rides.prescription_id` est déjà commenté dans la migration
+  rides (l.58) — le lien course↔prescription se fera ici.
+- **Périmètre cœur (SANS scan HDS)** : table `prescriptions` (patient_id,
+  prescriber_id FK 07.05, date, nb_trajets_autorises, nb_trajets_consommes,
+  date_validite, motif/ALD), **compteur de trajets** (décrément à la création de
+  course), **alertes 80 % consommé / expiré**. PAS d'upload de scan du bon
+  (HDS-dépendant, registre §4.3) — saisie manuelle des champs.
+- **Déblocage** : dev dédié. S'appuie sur prescribers (07.05) + patients.
+
+### 9.2 Volumétrie / top prescripteurs / patients suivis — CdG l.181-184
+- **Raison** : ces vues AGRÈGENT les prescriptions (nb par prescripteur,
+  patients suivis par prescripteur) → **dépendent de §5.3** (pas de
+  prescriptions à compter tant que 9.1 n'est pas livré).
+- **Déblocage** : après 9.1, agrégations sur la table prescriptions.
+
 ---
 
 ## Synthèse — ce qui attend une DÉCISION ou un ACHAT de ta part
