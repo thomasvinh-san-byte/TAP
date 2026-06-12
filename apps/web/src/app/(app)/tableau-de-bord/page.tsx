@@ -7,6 +7,7 @@ import { deltaPercent, deltaPoints } from './_lib/delta';
 import { KpiCard, type KpiState } from './_components/kpi-card';
 import { ComplianceCard } from './_components/compliance-card';
 import { PrescriptionsCard } from './_components/prescriptions-card';
+import { CommercialTopsCard } from './_components/commercial-tops-card';
 import { SlaBadgesCard } from './_components/sla-badges-card';
 import { ExportStatsButton } from './_components/export-stats-button.client';
 import { getComplianceAlerts } from '../../(admin)/admin/conformite/_lib/get-compliance-alerts';
@@ -224,15 +225,18 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
         </div>
       </section>
 
-      {/* Rangée 3 — Prescriptions / bons de transport (CdG §5.4/§5.20, DEC-164). */}
+      {/* Rangée 3 — Prescriptions + tops commerciaux (CdG §5.20, DEC-164/165). */}
       <section className="space-y-8" aria-labelledby="bloc-prescriptions">
         <h2
           id="bloc-prescriptions"
           className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
         >
-          Prescriptions
+          Prescriptions &amp; tops commerciaux
         </h2>
-        <PrescriptionsCard prescriptions={data.prescriptions} />
+        <div className="grid items-stretch gap-12 lg:grid-cols-2">
+          <PrescriptionsCard prescriptions={data.prescriptions} />
+          <CommercialTopsCard commercial={data.commercial} />
+        </div>
       </section>
 
       {/* Rangée 4 — Conformité & échéances (2 colonnes condensées). */}
