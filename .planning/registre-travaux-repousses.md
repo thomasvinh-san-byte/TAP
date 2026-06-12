@@ -195,6 +195,16 @@ EXTERNE (donnée/spec à obtenir d'un tiers).
   `types.gen.ts` (gitignore) + génération au build CI/Vercel — uniquement si accès Supabase
   (project ref + secrets) garanti en CI au moment du build ; sinon le build casse. Tant que
   ce n'est pas garanti, on garde le fichier versionné + PR de sync.
+- **Transaction atomique pour la demande groupée** (noté 2026-06-12, suite DEC-168) :
+  `courses/actions/groups.ts` `createRideGroupAction` reconnaît « pas de transaction
+  multi-table » — il insère le groupe puis les N courses, et en cas d'échec des
+  courses COMPENSE manuellement (marque le groupe `refusee`). Best-effort correct
+  mais non atomique (une panne entre les 2 inserts laisse un état partiel rare).
+  **Candidat** : RPC Postgres transactionnelle (`create_ride_group(...)` en
+  plpgsql, BEGIN/COMMIT implicite) qui crée groupe + courses en une transaction.
+  Lot suivant si jugé utile — non bloquant (la compensation couvre le cas courant).
+  NB : l'anti-TOCTOU DEC-168 (optimistic locking sur les TRANSITIONS de statut)
+  est un sujet distinct, déjà traité.
 
 ---
 

@@ -71,15 +71,21 @@ export async function assignRideAction(
     vehicle_id: parsed.data.vehicleId ?? null,
     updated_by: ctx.userId,
   };
-  // DEC-041 row count check.
+  // DEC-041 row count check + DEC-168 compare-and-set : `.eq('status','validee')`
+  // dans le WHERE rend l'affectation atomique (anti-TOCTOU). Si un autre
+  // régulateur vient d'affecter la course, le statut n'est plus `validee` →
+  // 0 ligne → refus explicite (pas d'écrasement silencieux).
   const upd = await ctx.supabase
     .from('rides')
     .update(update as never)
     .eq('id', parsed.data.rideId)
+    .eq('status', 'validee')
     .select('id');
   if (upd.error) return { error: 'Assignation impossible.' };
   if (!upd.data || upd.data.length === 0) {
-    return { error: 'Assignation refusée : droits insuffisants ou course absente.' };
+    return {
+      error: 'Cette course vient d’être affectée par un autre régulateur. Actualisez la liste.',
+    };
   }
 
   // DEC-167 : notification push au chauffeur (best-effort — n'échoue jamais).
@@ -190,15 +196,18 @@ export async function unassignRideAction(rideId: string): Promise<ActionState> {
     vehicle_id: null,
     updated_by: ctx.userId,
   };
-  // DEC-041 row count check.
+  // DEC-041 row count check + DEC-168 compare-and-set (`.eq('status','assignee')`).
   const upd = await ctx.supabase
     .from('rides')
     .update(update as never)
     .eq('id', parsed.data)
+    .eq('status', 'assignee')
     .select('id');
   if (upd.error) return { error: 'Désassignation impossible.' };
   if (!upd.data || upd.data.length === 0) {
-    return { error: 'Désassignation refusée : droits insuffisants ou course absente.' };
+    return {
+      error: 'Le statut de cette course a changé entre-temps. Actualisez la liste.',
+    };
   }
 
   revalidatePath('/courses');
