@@ -67,6 +67,33 @@ export interface DashboardPrescriptions {
   topPrescripteurs: TopPrescripteur[];
 }
 
+/** Top patient en CA (CdG §5.20 l.502, DEC-165). */
+export interface TopPatient {
+  patient_id: string;
+  label: string;
+  ca_eur: number;
+  count: number;
+}
+
+/** Top donneur d'ordres B2B en CA (CdG §5.20 l.504, DEC-165). */
+export interface TopDonneur {
+  ordering_party_id: string;
+  label: string;
+  ca_eur: number;
+  count: number;
+}
+
+/**
+ * Tops commerciaux du mois (DEC-165). CA = MÊME définition que `getCaMois`
+ * (status='terminee' + payment_status='encaisse', bornes `ended_at`) → les tops
+ * sont une PARTITION du CA mensuel, garantissant la cohérence (somme des
+ * tops = caMois ; chaque top ≤ caMois).
+ */
+export interface DashboardCommercial {
+  topPatients: TopPatient[];
+  topDonneurs: TopDonneur[];
+}
+
 export interface DashboardData {
   coursesAFacturer: number;
   moisCourant: string; // YYYY-MM — mois compté par coursesAFacturer (drill-down)
@@ -78,6 +105,7 @@ export interface DashboardData {
   chauffeurs: DashboardChauffeurs;
   conformite: DashboardConformite;
   prescriptions: DashboardPrescriptions;
+  commercial: DashboardCommercial;
   // Wave 1 Phase 06.11 — A4 comparatif N vs N-1
   caMoisPrec: CaisseTotals;
   volMoisPrec: number;
@@ -333,6 +361,102 @@ async function getPrescriptions(supabase: Supabase): Promise<DashboardPrescripti
   };
 }
 
+/**
+ * Tops commerciaux du mois (CdG §5.20 l.502/504, DEC-165) — Top 10 patients +
+ * Top 5 donneurs B2B par CA. Agrégation PURE LECTURE. **1 requête courses** (même
+ * définition CA que `getCaMois` : terminee + encaisse, bornes `ended_at` → les
+ * tops partitionnent le CA mensuel) → agrégation en mémoire → libellés en 2
+ * `.in()` (patients_safe RGPD + ordering_parties). RLS scope l'org. Anti-N+1.
+ */
+async function getCommercialTops(
+  supabase: Supabase,
+  moisStart: string,
+  moisEnd: string,
+): Promise<DashboardCommercial> {
+  const empty: DashboardCommercial = { topPatients: [], topDonneurs: [] };
+  const res = await supabase
+    .from('rides')
+    .select('patient_id, ordering_party_id, tarif_amount_eur')
+    .eq('status', 'terminee')
+    .eq('payment_status', 'encaisse')
+    .gte('ended_at', moisStart)
+    .lt('ended_at', moisEnd);
+  if (res.error) {
+    console.error('[dashboard/commercial] read error', res.error.message);
+    return empty;
+  }
+  const rows =
+    (res.data as
+      | { patient_id: string; ordering_party_id: string | null; tarif_amount_eur: number | null }[]
+      | null) ?? [];
+
+  const byPatient = new Map<string, { ca: number; count: number }>();
+  const byDonneur = new Map<string, { ca: number; count: number }>();
+  for (const r of rows) {
+    const amount = Number(r.tarif_amount_eur ?? 0);
+    const pAcc = byPatient.get(r.patient_id) ?? { ca: 0, count: 0 };
+    pAcc.ca += amount;
+    pAcc.count += 1;
+    byPatient.set(r.patient_id, pAcc);
+    if (r.ordering_party_id) {
+      const dAcc = byDonneur.get(r.ordering_party_id) ?? { ca: 0, count: 0 };
+      dAcc.ca += amount;
+      dAcc.count += 1;
+      byDonneur.set(r.ordering_party_id, dAcc);
+    }
+  }
+
+  const topPatientsRaw = [...byPatient.entries()].sort((a, b) => b[1].ca - a[1].ca).slice(0, 10);
+  const topDonneursRaw = [...byDonneur.entries()].sort((a, b) => b[1].ca - a[1].ca).slice(0, 5);
+
+  // Libellés en 2 requêtes `.in()` (patients_safe RGPD + ordering_parties).
+  const [patientsRes, donneursRes] = await Promise.all([
+    topPatientsRaw.length > 0
+      ? supabase
+          .from('patients_safe')
+          .select('id, nom, prenom')
+          .in(
+            'id',
+            topPatientsRaw.map(([id]) => id),
+          )
+      : Promise.resolve({ data: [] as { id: string; nom: string; prenom: string }[] }),
+    topDonneursRaw.length > 0
+      ? supabase
+          .from('ordering_parties')
+          .select('id, raison_sociale')
+          .in(
+            'id',
+            topDonneursRaw.map(([id]) => id),
+          )
+      : Promise.resolve({ data: [] as { id: string; raison_sociale: string }[] }),
+  ]);
+
+  const patientLabels = new Map<string, string>();
+  for (const p of (patientsRes.data as { id: string; nom: string; prenom: string }[] | null) ??
+    []) {
+    patientLabels.set(p.id, `${p.nom} ${p.prenom}`.trim());
+  }
+  const donneurLabels = new Map<string, string>();
+  for (const d of (donneursRes.data as { id: string; raison_sociale: string }[] | null) ?? []) {
+    donneurLabels.set(d.id, d.raison_sociale);
+  }
+
+  return {
+    topPatients: topPatientsRaw.map(([id, v]) => ({
+      patient_id: id,
+      label: patientLabels.get(id) ?? 'Patient',
+      ca_eur: v.ca,
+      count: v.count,
+    })),
+    topDonneurs: topDonneursRaw.map(([id, v]) => ({
+      ordering_party_id: id,
+      label: donneurLabels.get(id) ?? "Donneur d'ordres",
+      ca_eur: v.ca,
+      count: v.count,
+    })),
+  };
+}
+
 /** Agrégat complet du tableau de bord — appelé par le Server Component. */
 export async function getDashboardData(): Promise<DashboardData> {
   const supabase = await createClient();
@@ -357,6 +481,8 @@ export async function getDashboardData(): Promise<DashboardData> {
     conformite,
     // DEC-164 — KPIs prescriptions / bons de transport.
     prescriptions,
+    // DEC-165 — tops commerciaux (Top 10 patients CA + Top 5 donneurs B2B).
+    commercial,
     // A4 comparatif N vs N-1
     caMoisPrec,
     volMoisPrec,
@@ -381,6 +507,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     getChauffeurs(supabase),
     getConformite(supabase),
     getPrescriptions(supabase),
+    getCommercialTops(supabase, moisStart, moisEnd),
     getCaMois(supabase, precStart, precEnd),
     countRides(supabase, precStart, precEnd),
     getIncidents(supabase, precStart, precEnd),
@@ -411,6 +538,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     chauffeurs,
     conformite,
     prescriptions,
+    commercial,
     caMoisPrec,
     volMoisPrec,
     incidentsPrec,

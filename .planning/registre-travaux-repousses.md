@@ -432,14 +432,21 @@ data-cache). C'est le **préalable** de la gestion des prescriptions. Restent :
   proches seuil, dans la card prescriptions du dashboard. Mêmes chiffres/source
   que les alertes prescriptions du cockpit (07.06).
 
-### 9.4 KPIs 5.20 restants — lots suivants (NON construits en 07.07)
-- **Raison** : le périmètre 07.07 se limite aux KPIs qui consomment les
-  prescriptions. Restent les autres KPIs du §5.20, par lots dédiés :
-  top patients (CA / volume), **top donneurs B2B** (courses par
-  `ordering_party_id` — consomme le module B2B 07.01, candidat lot suivant
-  cohérent), taux d'occupation véhicule, marge / coût au km, encours impayés,
-  litiges CGSS.
-- **Déblocage** : dev dédié par KPI, agrégations sur `rides` / facturation.
+### 9.4 KPIs 5.20 restants — lots suivants
+- **Tops commerciaux — RÉSOLU (07.08, DEC-165)** : Top 10 patients CA + Top 5
+  donneurs B2B (CA encaissé du mois, même définition que `getCaMois` → partition
+  exacte du CA mensuel), card dédiée du dashboard, RGPD `patients_safe`, anti-N+1.
+- **Restent (par lots dédiés)** :
+  - **Commerciaux légers** : panier moyen, écart prévisionnel/réalisé,
+    répartition récurrentes/ponctuelles (agrégations `rides`, lot suivant
+    possible).
+  - **Économiques** : marge, **coût au km PARAMÉTRABLE**, encours impayés —
+    nécessitent un PARAMÉTRAGE des coûts (chantier à part : modèle de coûts +
+    saisie dirigeant avant de pouvoir calculer marge/coût km).
+  - **Opérationnels** : taux d'occupation véhicule, productivité chauffeur,
+    litiges CGSS (`ride_dispute`).
+- **Déblocage** : dev dédié par KPI ; les économiques attendent le paramétrage
+  des coûts.
 
 ---
 
