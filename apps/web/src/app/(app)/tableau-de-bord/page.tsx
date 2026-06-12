@@ -120,6 +120,12 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
 
   const taux = tauxState(data.incidents.taux);
 
+  // DEC-166 — Panier moyen / course (CdG §5.20 l.501) : DÉRIVÉ, pas de requête.
+  // Périmètre COHÉRENT : CA encaissé ÷ courses encaissées (caMois.count = nombre
+  // de courses terminées+encaissées, même ensemble que caMois.total_eur).
+  // Division par zéro gérée (0 course → 0 €).
+  const panierMoyen = data.caMois.count > 0 ? data.caMois.total_eur / data.caMois.count : 0;
+
   // Wave 1 Phase 06.11 — A4 : comparatif N vs N-1 (pattern Stripe Balance).
   const moisPrecLibelle = moisEnClair(previousMonthOf(data.moisCourant));
   const caDelta = deltaPercent(data.caMois.total_eur, data.caMoisPrec.total_eur);
@@ -168,7 +174,7 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
         >
           Activité du mois
         </h2>
-        <div className="grid grid-cols-2 items-stretch gap-12 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 items-stretch gap-12 sm:grid-cols-3 lg:grid-cols-7">
           <KpiCard
             variant="simple"
             label="CA du mois"
@@ -184,6 +190,14 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
             deltaSign="positive"
             previousLabel={moisPrecLibelle}
             previousValue={eur.format(data.caMoisPrec.total_eur)}
+          />
+          <KpiCard
+            variant="simple"
+            label="Panier moyen / course"
+            value={eur.format(panierMoyen)}
+            context={`sur ${data.caMois.count} course${data.caMois.count > 1 ? 's' : ''} encaissée${
+              data.caMois.count > 1 ? 's' : ''
+            }`}
           />
           <KpiCard
             variant="simple"

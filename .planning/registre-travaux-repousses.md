@@ -436,17 +436,23 @@ data-cache). C'est le **préalable** de la gestion des prescriptions. Restent :
 - **Tops commerciaux — RÉSOLU (07.08, DEC-165)** : Top 10 patients CA + Top 5
   donneurs B2B (CA encaissé du mois, même définition que `getCaMois` → partition
   exacte du CA mensuel), card dédiée du dashboard, RGPD `patients_safe`, anti-N+1.
+- **Panier moyen / course — RÉSOLU (07.09, DEC-166)** : CA encaissé ÷ courses
+  encaissées (`caMois.total_eur / caMois.count`), dérivé sans requête, périmètre
+  cohérent. KpiCard rangée Activité du mois.
 - **Restent (par lots dédiés)** :
-  - **Commerciaux légers** : panier moyen, écart prévisionnel/réalisé,
-    répartition récurrentes/ponctuelles (agrégations `rides`, lot suivant
-    possible).
+  - **Écart prévisionnel/réalisé** — PRÉALABLE : construire le CA PRÉVISIONNEL
+    (tarification des courses futures planifiées), chantier dédié.
+  - **Répartition récurrentes/ponctuelles** — PRÉALABLE : activer
+    `rides.ride_recurrence_id` (actuellement commenté dans la migration rides) ;
+    petit lot préalable, puis agrégation count par présence du lien récurrence.
   - **Économiques** : marge, **coût au km PARAMÉTRABLE**, encours impayés —
     nécessitent un PARAMÉTRAGE des coûts (chantier à part : modèle de coûts +
     saisie dirigeant avant de pouvoir calculer marge/coût km).
   - **Opérationnels** : taux d'occupation véhicule, productivité chauffeur,
     litiges CGSS (`ride_dispute`).
 - **Déblocage** : dev dédié par KPI ; les économiques attendent le paramétrage
-  des coûts.
+  des coûts ; écart prévu/réalisé attend le CA prévisionnel ; récurrentes/
+  ponctuelles attend l'activation de `rides.ride_recurrence_id`.
 
 ---
 

@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 07.08 (tops commerciaux dirigeant — Top patients CA + Top donneurs B2B) livrée localement. PR à ouvrir."
-last_updated: "2026-06-13T04:00:00.000Z"
-last_activity: Phase 07.08 (tops commerciaux dirigeant — Top 10 patients CA + Top 5 donneurs B2B ; 0 migration, 0 dépendance). Complète les KPIs commerciaux du dirigeant (CdG §5.20 l.502/504), même pattern que 07.07. D-01 bloc DashboardCommercial (queries-dashboard) : topPatients[] (Top 10 par CA : patient_id, label, ca_eur, count) + topDonneurs[] (Top 5 par CA, courses avec ordering_party_id). D-02 getCommercialTops : 1 select courses → agrégation mémoire (somme tarif_amount_eur + count par patient_id → top 10 ; par ordering_party_id non null → top 5) → libellés en 2 .in() (patients_safe RGPD pour les 10, ordering_parties pour les 5) ; ajouté au Promise.all existant du dashboard (parallélisé), fallback gracieux, anti-N+1. D-03 CA = MÊME définition que getCaMois (status='terminee' + payment_status='encaisse', bornes ended_at) → les tops PARTITIONNENT le CA mensuel (somme tops = caMois, chaque top ≤ caMois) : cohérence garantie. D-04 card commercial-tops-card.tsx (Top patients 10 + Top donneurs 5, montants Intl €, états vides honnêtes) en rangée « Prescriptions & tops commerciaux » (2 colonnes avec la card prescriptions). Garde-fous : RGPD patients_safe UNIQUEMENT ; cohérence CA (réutilise getCaMois) ; pas de N+1 ; RLS org ; courses sans donneur exclues du top donneurs (comptent dans top patients) ; agrégation seule (0 mutation). Dette : prescriptions hors types.gen.ts → as never (DEC-155). typecheck+lint(0 err, 8 warn)+build verts. Suite registre §9.4 : panier moyen, écart prévu/réalisé, KPIs économiques (marge/coût km paramétrables), occupation/productivité. DEC-165 LOCKED.
-last_activity_prev: Phase 07.07 KPIs prescriptions (DEC-164). Phase 07.06 prescriptions/bons de transport (DEC-163).
+stopped_at: "Phase 07.09 (KPI panier moyen par course) livrée localement. PR à ouvrir."
+last_updated: "2026-06-13T06:00:00.000Z"
+last_activity: Phase 07.09 (KPI panier moyen par course — CdG §5.20 l.501 ; 0 migration, 0 dépendance, 0 requête). Trivial, DÉRIVÉ de deux valeurs déjà dans DashboardData. D-01 panierMoyen = caMois.count > 0 ? caMois.total_eur / caMois.count : 0, calculé dans le Server Component tableau-de-bord/page.tsx. D-02 cohérence du périmètre (seul piège) : numérateur ET dénominateur sur le MÊME ensemble caMois (CA encaissé terminee+encaisse) ; caMois.count (déjà calculé par getCaMois) = courses ENCAISSÉES → panier = CA encaissé ÷ courses encaissées, pas ÷ toutes les courses. D-03 KpiCard « Panier moyen / course » (eur.format) rangée Activité du mois (grid 6→7 cols), contexte « sur N courses encaissées ». Division par zéro gérée (0 course → 0 €). Garde-fous : cohérence num/dénom ; 0 requête ; pas de NaN/Infinity. typecheck+lint(0 err, 8 warn)+build verts. Suite registre §9.4 : écart prévu/réalisé (préalable CA prévisionnel) + récurrentes/ponctuelles (préalable activer rides.ride_recurrence_id) + KPIs économiques (paramétrage coûts). DEC-166 LOCKED.
+last_activity_prev: Phase 07.08 tops commerciaux dirigeant (DEC-165). Phase 07.07 KPIs prescriptions (DEC-164).
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
@@ -33,7 +33,8 @@ last_activity_prev: Phase 07.07 KPIs prescriptions (DEC-164). Phase 07.06 prescr
 # + 07.05 référentiel prescripteurs (CdG §5.4, préalable des prescriptions)
 # + 07.06 prescriptions/bons de transport (compteur + alertes, sans scan)
 # + 07.07 KPIs prescriptions (top prescripteurs + bons par statut)
-# + 07.08 tops commerciaux dirigeant (top patients CA + top donneurs B2B) = 92. (06.40
+# + 07.08 tops commerciaux dirigeant (top patients CA + top donneurs B2B)
+# + 07.09 KPI panier moyen par course = 93. (06.40
 # hygiène docs ET 06.56 onboarding méthode = lots documentaires, hors compte feature ; 06.45 supersede
 # 06.44 mais les 2 ont été livrées ; DEC-142 fix DialogContent = fix hors numéro de phase ;
 # 06.67 chore CI = lot hors compte feature, comme 06.40/06.56.) Restantes
@@ -41,12 +42,12 @@ last_activity_prev: Phase 07.07 KPIs prescriptions (DEC-164). Phase 07.06 prescr
 # (DEC-092) hors compte ; 07.01 = module métier B2B et 09.01 = lot dette typage (sans rapport
 # avec la Phase 09 HDS majeure à venir ; 09.02/09.03 = mêmes lots dette/perf). 10.01 =
 # replanification dynamique cœur (item V1.5 §11.3), distinct de la Phase 10 géoloc réelle HDS.
-# Dernière phase livrée : 07.08 (tops commerciaux dirigeant). Dernier DEC : 165 (07.08). Dernier ADR : ADR-013 (06.33).
+# Dernière phase livrée : 07.09 (KPI panier moyen). Dernier DEC : 166 (07.09). Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 94
-  completed_phases: 92
-  total_plans: 97
-  completed_plans: 97
+  total_phases: 95
+  completed_phases: 93
+  total_plans: 98
+  completed_plans: 98
   percent: 98
 ---
 
@@ -57,7 +58,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 07.08 (tops commerciaux dirigeant — Top 10 patients CA + Top 5 donneurs B2B) livrée localement. Bloc `DashboardCommercial` au tableau de bord, CA aligné sur `getCaMois` (les tops partitionnent le CA mensuel), RGPD `patients_safe`, anti-N+1 (1 requête + 2 `.in()`), card dédiée. CdG §5.20 l.502/504. **GATE 08.x toujours en attente** : test isolation 2-orgs data-cache sur preview. 92 phases feature livrées + 3 lots hors compte (06.40 hygiène, 06.56 méthode, 06.67 chore CI) (cf. commentaire de comptage dans le frontmatter). 4 release toggles OFF pré-infra : GEOLOC, MESSAGING, UPLOAD_DOCS, EMAIL. Restantes : KPIs 5.20 restants (registre §9.4 — panier moyen, écart prévu/réalisé, KPIs économiques marge/coût km paramétrables, occupation/productivité, litiges) ; lots suivants replanification (registre §8) ; lot alignement versions Supabase (débloque le typage des écritures, DEC-155) ; Lot 3 Suspense (différé) ; Phase 09 HDS (registre §1.1/§4.3 — débloque le scan des bons + précision géoloc replanification) + Phase 10 géoloc réelle ; choix provider email (registre §1.2) ; messagerie complète (registre §1.4) ; contacts donneurs multiples (registre §6.4) + portail self-service V1.5 (§6.5) ; étapes restantes du plan d'audit.
+**Current focus:** Phase 07.09 (KPI panier moyen par course) livrée localement. KPI dérivé sans requête (CA encaissé ÷ courses encaissées = caMois.total_eur / caMois.count, périmètre cohérent), KpiCard rangée Activité du mois. CdG §5.20 l.501. **GATE 08.x toujours en attente** : test isolation 2-orgs data-cache sur preview. 93 phases feature livrées + 3 lots hors compte (06.40 hygiène, 06.56 méthode, 06.67 chore CI) (cf. commentaire de comptage dans le frontmatter). 4 release toggles OFF pré-infra : GEOLOC, MESSAGING, UPLOAD_DOCS, EMAIL. Restantes : KPIs 5.20 restants (registre §9.4 — écart prévu/réalisé [préalable CA prévisionnel], récurrentes/ponctuelles [préalable activer rides.ride_recurrence_id], KPIs économiques marge/coût km paramétrables, occupation/productivité, litiges) ; lots suivants replanification (registre §8) ; lot alignement versions Supabase (débloque le typage des écritures, DEC-155) ; Lot 3 Suspense (différé) ; Phase 09 HDS (registre §1.1/§4.3 — débloque le scan des bons + précision géoloc replanification) + Phase 10 géoloc réelle ; choix provider email (registre §1.2) ; messagerie complète (registre §1.4) ; contacts donneurs multiples (registre §6.4) + portail self-service V1.5 (§6.5) ; étapes restantes du plan d'audit.
 
 ## Current Position
 
@@ -66,12 +67,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 07.08 (tops commerciaux dirigeant — Top patients CA + Top donneurs B2B) livrée localement (2026-06-12). PR à ouvrir.
-Phase next: KPIs 5.20 restants (registre §9.4 — panier moyen, écart prévu/réalisé, KPIs économiques marge/coût km paramétrables, occupation/productivité, litiges) ; lots suivants replanification (registre §8) ; lot alignement versions Supabase (typage écritures, DEC-155) ; valider l'isolation 2-orgs data-cache sur preview (08.x) ; Lot 3 Suspense (différé) ; choix provider email (registre §1.2) ; messagerie complète (registre §1.4) ; contacts donneurs multiples (§6.4) ; portail self-service V1.5 (§6.5) ; Phase 09 HDS ; Phase 10 géoloc.
-Status: 92 phases feature + 3 lots hors compte. Tops commerciaux : bloc DashboardCommercial (topPatients Top 10 par CA + topDonneurs Top 5 par CA) ; getCommercialTops = 1 select courses + 2 libellés .in() (patients_safe + ordering_parties), anti-N+1, ajouté au Promise.all dashboard ; CA = même définition que getCaMois (terminee+encaisse, ended_at) → tops partitionnent le CA mensuel ; card commercial-tops-card en rangée 2 colonnes avec prescriptions. Agrégation pure lecture. RGPD patients_safe. Data-cache référentiels 5/6 (gate preview en attente). 4 release toggles OFF pré-infra.
+Phase: 07.09 (KPI panier moyen par course) livrée localement (2026-06-12). PR à ouvrir.
+Phase next: KPIs 5.20 restants (registre §9.4 — écart prévu/réalisé [préalable CA prévisionnel], récurrentes/ponctuelles [préalable activer rides.ride_recurrence_id], KPIs économiques marge/coût km paramétrables, occupation/productivité, litiges) ; lots suivants replanification (registre §8) ; lot alignement versions Supabase (typage écritures, DEC-155) ; valider l'isolation 2-orgs data-cache sur preview (08.x) ; Lot 3 Suspense (différé) ; choix provider email (registre §1.2) ; messagerie complète (registre §1.4) ; contacts donneurs multiples (§6.4) ; portail self-service V1.5 (§6.5) ; Phase 09 HDS ; Phase 10 géoloc.
+Status: 93 phases feature + 3 lots hors compte. Panier moyen : KPI dérivé sans requête (caMois.total_eur / caMois.count = CA encaissé ÷ courses encaissées, périmètre cohérent, division par zéro gérée) ; KpiCard rangée Activité du mois. Agrégation/dérivation pure. Data-cache référentiels 5/6 (gate preview en attente). 4 release toggles OFF pré-infra.
 Blockers: 2 en attente — (1) GATE isolation 2-orgs data-cache (08.x) sur preview ; (2) typage des payloads d'écriture = never (skew @supabase/ssr/postgrest-js) → lot d'alignement de versions (hors 0-dépendance).
-Last activity: Phase 07.08 (tops commerciaux dirigeant §5.20 l.502/504). D-01 bloc DashboardCommercial (queries-dashboard) : topPatients[] (Top 10 par CA : patient_id, label, ca_eur, count) + topDonneurs[] (Top 5 par CA, ordering_party_id non null). D-02 getCommercialTops : 1 select courses → agrégation mémoire (somme tarif_amount_eur + count par patient → top 10 ; par donneur → top 5) → libellés en 2 .in() (patients_safe RGPD + ordering_parties) ; ajouté au Promise.all dashboard, anti-N+1, fallback gracieux. D-03 CA = MÊME définition que getCaMois (terminee+encaisse, ended_at) → tops partitionnent le CA mensuel (cohérence garantie). D-04 card commercial-tops-card.tsx (Top patients 10 + Top donneurs 5, montants €, états vides honnêtes) en rangée 2 colonnes avec prescriptions. Garde-fous : RGPD patients_safe UNIQUEMENT ; cohérence CA ; pas de N+1 ; RLS org ; courses sans donneur exclues du top donneurs ; agrégation seule. typecheck+lint(0 err, 8 warn)+build verts. 0 migration, 0 dépendance. Suite registre §9.4. DEC-165 LOCKED. PR à ouvrir.
-Précédent: 07.07 KPIs prescriptions (DEC-164), 07.06 prescriptions/bons de transport (DEC-163), 07.05 référentiel prescripteurs (DEC-162).
+Last activity: Phase 07.09 (KPI panier moyen §5.20 l.501). D-01 panierMoyen = caMois.count > 0 ? caMois.total_eur / caMois.count : 0, calculé dans le Server Component tableau-de-bord/page.tsx (0 requête). D-02 cohérence du périmètre (seul piège) : num ET dénom sur le MÊME ensemble caMois (CA encaissé) ; caMois.count = courses encaissées → CA encaissé ÷ courses encaissées, pas ÷ toutes courses. D-03 KpiCard « Panier moyen / course » (eur.format) rangée Activité du mois (grid 6→7), contexte « sur N courses encaissées ». Division par zéro gérée. Garde-fous : cohérence num/dénom ; 0 requête ; pas de NaN/Infinity. typecheck+lint(0 err, 8 warn)+build verts. 0 migration, 0 dépendance. Suite registre §9.4. DEC-166 LOCKED. PR à ouvrir.
+Précédent: 07.08 tops commerciaux dirigeant (DEC-165), 07.07 KPIs prescriptions (DEC-164), 07.06 prescriptions/bons de transport (DEC-163).
 
 Progress: [██████████] 100%
 
