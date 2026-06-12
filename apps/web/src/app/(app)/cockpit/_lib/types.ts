@@ -24,7 +24,11 @@ export interface CockpitRide {
   driver: CockpitDriverName | null;
 }
 
-export type CockpitAlertType = 'patient_no_show' | 'sms_failed' | 'ride_delayed';
+export type CockpitAlertType =
+  | 'patient_no_show'
+  | 'sms_failed'
+  | 'ride_delayed'
+  | 'driver_incident';
 
 export interface CockpitAlert {
   id: string;

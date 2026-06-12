@@ -216,3 +216,51 @@ export async function endRideAction(
   revalidatePath('/conduite');
   return { success: true, id: parsed.data.rideId };
 }
+
+// --------------------------------------------------------------------------
+// reportBreakdownAction — signalement panne véhicule (DEC-160, CdG l.364-365)
+// Crée un driver_incident type 'panne_vehicule' sur le driver du chauffeur
+// authentifié. La régulation est alertée et peut réaffecter les courses.
+// --------------------------------------------------------------------------
+
+const reportBreakdownSchema = z.object({
+  nature: z.string().trim().min(1, 'Décrivez la panne.').max(500),
+  lieu: z.string().trim().max(200).optional(),
+});
+
+export async function reportBreakdownAction(
+  args: z.infer<typeof reportBreakdownSchema>,
+): Promise<ActionState> {
+  const parsed = reportBreakdownSchema.safeParse(args);
+  if (!parsed.success) {
+    return { error: parsed.error.errors[0]?.message ?? 'Saisie invalide.' };
+  }
+  const ctx = await getAuthContext();
+  if (!ctx) return { error: 'Session expirée. Reconnectez-vous.' };
+  if (ctx.role !== 'chauffeur') {
+    return { error: 'Seul un chauffeur peut signaler une panne.' };
+  }
+  const myDriverId = await getMyDriverId(ctx);
+  if (!myDriverId) {
+    return { error: "Votre compte n'est pas relié à un profil chauffeur." };
+  }
+
+  const ins = await ctx.supabase
+    .from('driver_incidents')
+    .insert({
+      organization_id: ctx.organizationId,
+      driver_id: myDriverId,
+      type: 'panne_vehicule',
+      nature: parsed.data.nature,
+      lieu: parsed.data.lieu || null,
+      created_by: ctx.userId,
+    } as never)
+    .select('id');
+  if (ins.error) return { error: 'Signalement impossible. Réessayez.' };
+  if (!ins.data || ins.data.length === 0) {
+    return { error: 'Signalement refusé. Contactez la régulation.' };
+  }
+
+  revalidatePath('/conduite');
+  return { success: true };
+}

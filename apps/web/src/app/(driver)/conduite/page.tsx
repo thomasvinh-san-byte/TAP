@@ -4,6 +4,7 @@ import { listMyRidesUpcoming, type RideForDriverWithBucket } from './_lib/querie
 import { RideCard } from './_components/ride-card.client';
 import { ActivationToast } from './_components/activation-toast.client';
 import { GeolocConsentBanner } from './_components/geoloc-consent-banner.client';
+import { ReportBreakdownButton } from './_components/report-breakdown-button.client';
 
 export const metadata = { title: 'Ma journée' };
 export const dynamic = 'force-dynamic';
@@ -34,6 +35,9 @@ export default async function ConduitePage() {
           <p className="text-muted-foreground max-w-[320px] text-base">
             Vos prochaines courses apparaîtront ici dès qu&apos;elles vous seront assignées.
           </p>
+          <div className="w-full max-w-[320px] pt-12">
+            <ReportBreakdownButton />
+          </div>
         </div>
       </>
     );
@@ -58,6 +62,8 @@ export default async function ConduitePage() {
 
         {today.length > 0 && <RideCluster label="Aujourd'hui" rides={today} />}
         {tomorrow.length > 0 && <RideCluster label="Demain" rides={tomorrow} />}
+
+        <ReportBreakdownButton />
       </div>
     </>
   );

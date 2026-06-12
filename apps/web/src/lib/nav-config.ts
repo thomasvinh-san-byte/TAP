@@ -43,6 +43,7 @@ const REGULATEUR_PRIMARY: NavTab[] = [
   { href: '/patients', label: 'Patients' },
   { href: '/courses', label: 'Courses' },
   { href: '/courses/demandes-groupees', label: 'Demandes groupées' },
+  { href: '/replanification', label: 'Replanification' },
   { href: '/courses/caisse', label: 'Caisse' },
   { href: '/admin/chauffeurs', label: 'Chauffeurs' },
 ];

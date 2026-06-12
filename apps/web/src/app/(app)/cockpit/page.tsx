@@ -66,6 +66,36 @@ async function getCockpitRideEvents(
 }
 
 /**
+ * Incidents chauffeur ouverts (DEC-160) remontés comme alertes cockpit. Mappés
+ * sur la forme `CockpitAlert` (event_type 'driver_incident'). try/catch +
+ * fallback `[]` (table récente, ne casse jamais). La poussée temps réel des
+ * incidents est un lot suivant (registre) — ici alimentation au chargement.
+ */
+async function getDriverIncidentAlerts(supabase: SupabaseServerClient): Promise<CockpitAlert[]> {
+  try {
+    const { data, error } = await supabase
+      .from('driver_incidents')
+      .select('id, type, started_at')
+      .is('resolved_at', null)
+      .order('started_at', { ascending: false })
+      .limit(20);
+    if (error) {
+      console.error('[cockpit] Erreur Supabase (incidents):', error);
+      return [];
+    }
+    return ((data as { id: string; type: string; started_at: string }[] | null) ?? []).map((i) => ({
+      id: `incident-${i.id}`,
+      ride_id: null,
+      event_type: 'driver_incident' as const,
+      payload: { incident_type: i.type },
+      created_at: i.started_at,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Dernières positions chauffeurs + libellés (Phase 10.0, DEC-096). Le lookup
  * `driverLabels` DÉPEND des positions → il reste séquentiel À L'INTÉRIEUR de
  * cette fonction (vraie dépendance), mais la fonction entière est indépendante
@@ -113,15 +143,21 @@ export default async function CockpitPage() {
   // try/catch + fallback, donc le Promise.all ne rejette jamais à cause d'une
   // table absente (dégradation gracieuse IDENTIQUE). La seule dépendance réelle
   // (driverLabels ← positions) reste séquentielle DANS getDriverPositionsWithLabels.
-  const [rides, alerts, positionsResult, complianceAlerts, alertPreferences] = await Promise.all([
-    getRidesToday(supabase, today),
-    getCockpitRideEvents(supabase, today),
-    getDriverPositionsWithLabels(supabase),
-    // Phase 06.34 DEC-113 : alertes d'échéances réglementaires (conformité §5.21).
-    getComplianceAlerts(),
-    // DEC-149 : préférences d'alertes du user (filtrage d'affichage du panel).
-    getCockpitAlertPreferences(),
-  ]);
+  const [rides, rideAlerts, incidentAlerts, positionsResult, complianceAlerts, alertPreferences] =
+    await Promise.all([
+      getRidesToday(supabase, today),
+      getCockpitRideEvents(supabase, today),
+      // DEC-160 : incidents chauffeur ouverts remontés comme alertes cockpit.
+      getDriverIncidentAlerts(supabase),
+      getDriverPositionsWithLabels(supabase),
+      // Phase 06.34 DEC-113 : alertes d'échéances réglementaires (conformité §5.21).
+      getComplianceAlerts(),
+      // DEC-149 : préférences d'alertes du user (filtrage d'affichage du panel).
+      getCockpitAlertPreferences(),
+    ]);
+
+  // Incidents d'abord (les plus critiques pour la régulation), puis ride_events.
+  const alerts = [...incidentAlerts, ...rideAlerts];
 
   return (
     <CockpitContent

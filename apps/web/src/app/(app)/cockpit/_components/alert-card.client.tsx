@@ -1,12 +1,13 @@
 'use client';
 
-import { AlertTriangle, Clock, MessageSquareWarning } from 'lucide-react';
+import { AlertTriangle, Clock, MessageSquareWarning, Wrench } from 'lucide-react';
 import type { CockpitAlert, CockpitAlertType } from '../_lib/types';
 
 const TITLES: Record<CockpitAlertType, string> = {
   patient_no_show: 'Patient absent',
   sms_failed: 'SMS non délivré',
   ride_delayed: 'Course en retard',
+  driver_incident: 'Chauffeur indisponible',
 };
 
 function iconFor(type: CockpitAlertType): JSX.Element {
@@ -15,6 +16,8 @@ function iconFor(type: CockpitAlertType): JSX.Element {
     return <AlertTriangle aria-hidden className={`${cls} text-destructive`} />;
   if (type === 'sms_failed')
     return <MessageSquareWarning aria-hidden className={`${cls} text-destructive`} />;
+  if (type === 'driver_incident')
+    return <Wrench aria-hidden className={`${cls} text-destructive`} />;
   return <Clock aria-hidden className={`${cls} text-amber-600`} />;
 }
 
