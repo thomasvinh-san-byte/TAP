@@ -88,12 +88,14 @@ const GESTION_GROUP: NavGroup = {
     '/admin/tarifs',
     '/admin/facturation',
     '/admin/donneurs-ordres',
+    '/admin/prescripteurs',
     '/courses/demandes-groupees',
   ],
   items: [
     { href: '/admin/tarifs', label: 'Tarifs' },
     { href: '/admin/facturation', label: 'Facturation' },
     { href: '/admin/donneurs-ordres', label: "Donneurs d'ordres" },
+    { href: '/admin/prescripteurs', label: 'Prescripteurs' },
     { href: '/courses/demandes-groupees', label: 'Demandes groupées' },
   ],
 };
