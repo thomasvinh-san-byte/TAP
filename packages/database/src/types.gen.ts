@@ -436,6 +436,60 @@ export type Database = {
           },
         ]
       }
+      driver_incidents: {
+        Row: {
+          created_at: string
+          created_by: string
+          driver_id: string
+          id: string
+          lieu: string | null
+          nature: string | null
+          organization_id: string
+          resolved_at: string | null
+          started_at: string
+          type: Database["public"]["Enums"]["driver_incident_type"]
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          driver_id: string
+          id?: string
+          lieu?: string | null
+          nature?: string | null
+          organization_id: string
+          resolved_at?: string | null
+          started_at?: string
+          type: Database["public"]["Enums"]["driver_incident_type"]
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          driver_id?: string
+          id?: string
+          lieu?: string | null
+          nature?: string | null
+          organization_id?: string
+          resolved_at?: string | null
+          started_at?: string
+          type?: Database["public"]["Enums"]["driver_incident_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_incidents_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_incidents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       driver_invitations: {
         Row: {
           accepted_at: string | null
@@ -784,6 +838,7 @@ export type Database = {
           organization_id: string
           raison_sociale: string
           siret: string | null
+          tariff_mode: Database["public"]["Enums"]["ordering_party_tariff_mode"]
           updated_at: string
         }
         Insert: {
@@ -800,6 +855,7 @@ export type Database = {
           organization_id: string
           raison_sociale: string
           siret?: string | null
+          tariff_mode?: Database["public"]["Enums"]["ordering_party_tariff_mode"]
           updated_at?: string
         }
         Update: {
@@ -816,11 +872,78 @@ export type Database = {
           organization_id?: string
           raison_sociale?: string
           siret?: string | null
+          tariff_mode?: Database["public"]["Enums"]["ordering_party_tariff_mode"]
           updated_at?: string
         }
         Relationships: [
           {
             foreignKeyName: "ordering_parties_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ordering_party_tariff_grids: {
+        Row: {
+          arrondi_eur: number
+          created_at: string
+          created_by: string | null
+          date_effet: string
+          facteur_correction_routier: number
+          forfait_eur: number
+          id: string
+          km_inclus: number
+          majoration_pct: number
+          ordering_party_id: string
+          organization_id: string
+          prix_km_eur: number
+          supplement_drom_eur: number
+          supplement_tpmr_eur: number
+        }
+        Insert: {
+          arrondi_eur?: number
+          created_at?: string
+          created_by?: string | null
+          date_effet: string
+          facteur_correction_routier: number
+          forfait_eur: number
+          id?: string
+          km_inclus: number
+          majoration_pct: number
+          ordering_party_id: string
+          organization_id: string
+          prix_km_eur: number
+          supplement_drom_eur: number
+          supplement_tpmr_eur: number
+        }
+        Update: {
+          arrondi_eur?: number
+          created_at?: string
+          created_by?: string | null
+          date_effet?: string
+          facteur_correction_routier?: number
+          forfait_eur?: number
+          id?: string
+          km_inclus?: number
+          majoration_pct?: number
+          ordering_party_id?: string
+          organization_id?: string
+          prix_km_eur?: number
+          supplement_drom_eur?: number
+          supplement_tpmr_eur?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ordering_party_tariff_grids_ordering_party_id_fkey"
+            columns: ["ordering_party_id"]
+            isOneToOne: false
+            referencedRelation: "ordering_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ordering_party_tariff_grids_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -1406,6 +1529,54 @@ export type Database = {
           },
         ]
       }
+      ride_groups: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          motif_refus: string | null
+          ordering_party_id: string
+          organization_id: string
+          status: Database["public"]["Enums"]["ride_group_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          motif_refus?: string | null
+          ordering_party_id: string
+          organization_id: string
+          status?: Database["public"]["Enums"]["ride_group_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          motif_refus?: string | null
+          ordering_party_id?: string
+          organization_id?: string
+          status?: Database["public"]["Enums"]["ride_group_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_groups_ordering_party_id_fkey"
+            columns: ["ordering_party_id"]
+            isOneToOne: false
+            referencedRelation: "ordering_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ride_groups_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ride_recurrence_exceptions: {
         Row: {
           created_at: string
@@ -1563,6 +1734,7 @@ export type Database = {
           pickup_lat: number | null
           pickup_lng: number | null
           pickup_postal_code: string | null
+          ride_group_id: string | null
           ride_recurrence_id: string | null
           scheduled_at: string
           started_at: string | null
@@ -1605,6 +1777,7 @@ export type Database = {
           pickup_lat?: number | null
           pickup_lng?: number | null
           pickup_postal_code?: string | null
+          ride_group_id?: string | null
           ride_recurrence_id?: string | null
           scheduled_at: string
           started_at?: string | null
@@ -1647,6 +1820,7 @@ export type Database = {
           pickup_lat?: number | null
           pickup_lng?: number | null
           pickup_postal_code?: string | null
+          ride_group_id?: string | null
           ride_recurrence_id?: string | null
           scheduled_at?: string
           started_at?: string | null
@@ -1700,6 +1874,13 @@ export type Database = {
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rides_ride_group_id_fkey"
+            columns: ["ride_group_id"]
+            isOneToOne: false
+            referencedRelation: "ride_groups"
             referencedColumns: ["id"]
           },
           {
@@ -2108,10 +2289,12 @@ export type Database = {
     }
     Enums: {
       canal_contact_prefere: "sms" | "appel" | "aucun"
+      driver_incident_type: "panne_vehicule" | "indisponible"
       ordering_party_billing_modality:
         | "a_la_course"
         | "hebdomadaire"
         | "mensuelle"
+      ordering_party_tariff_mode: "cgss_standard" | "grille_propre"
       patient_constraint_type:
         | "medical_oxygene"
         | "medical_fauteuil"
@@ -2121,6 +2304,7 @@ export type Database = {
         | "horaire_apres_midi"
         | "accompagnement_obligatoire"
         | "autre"
+      ride_group_status: "en_attente" | "acceptee" | "refusee"
       ride_status:
         | "brouillon"
         | "validee"
@@ -2261,11 +2445,13 @@ export const Constants = {
   public: {
     Enums: {
       canal_contact_prefere: ["sms", "appel", "aucun"],
+      driver_incident_type: ["panne_vehicule", "indisponible"],
       ordering_party_billing_modality: [
         "a_la_course",
         "hebdomadaire",
         "mensuelle",
       ],
+      ordering_party_tariff_mode: ["cgss_standard", "grille_propre"],
       patient_constraint_type: [
         "medical_oxygene",
         "medical_fauteuil",
@@ -2276,6 +2462,7 @@ export const Constants = {
         "accompagnement_obligatoire",
         "autre",
       ],
+      ride_group_status: ["en_attente", "acceptee", "refusee"],
       ride_status: [
         "brouillon",
         "validee",
