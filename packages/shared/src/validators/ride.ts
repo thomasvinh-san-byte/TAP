@@ -47,6 +47,10 @@ export const rideExpressInputSchema = z.object({
   // Donneur d'ordres B2B (CdC §5.5, DEC-148) — OPTIONNEL. NULL = transport
   // prescrit individuel (cas nominal). Ne JAMAIS rendre obligatoire.
   ordering_party_id: z.string().uuid().nullable().optional(),
+  // Prescription / bon de transport (CdG §5.3, DEC-163) — OPTIONNEL. NULL =
+  // course non conventionnée. L'obligation conventionnée est gérée par
+  // AVERTISSEMENT UI, pas par contrainte bloquante.
+  prescription_id: z.string().uuid().nullable().optional(),
 });
 export type RideExpressInput = z.infer<typeof rideExpressInputSchema>;
 

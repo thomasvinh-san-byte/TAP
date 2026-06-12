@@ -34,6 +34,8 @@ export type RideRow = Database['public']['Tables']['rides']['Row'] & {
   payment_received_at?: string | null;
   // Donneur d'ordres B2B (DEC-148) — absent de types.gen.ts jusqu'à régen.
   ordering_party_id?: string | null;
+  // Prescription / bon de transport (DEC-163) — absent de types.gen.ts jusqu'à régen.
+  prescription_id?: string | null;
 };
 export type RideDraftRow = Database['public']['Tables']['ride_draft']['Row'];
 export type RideTransportMode = Database['public']['Enums']['ride_transport_mode'];

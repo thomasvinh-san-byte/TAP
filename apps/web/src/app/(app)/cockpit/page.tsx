@@ -4,6 +4,7 @@ import { CockpitContent } from './_components/cockpit-content.client';
 import type { CockpitAlert, CockpitRide } from './_lib/types';
 import type { DriverPosition } from './_lib/use-driver-positions';
 import { getComplianceAlerts } from '../../(admin)/admin/conformite/_lib/get-compliance-alerts';
+import { getPrescriptionAlerts } from './_lib/get-prescription-alerts';
 import { getCockpitAlertPreferences } from '@/lib/notifications/preferences';
 
 export const metadata = { title: 'Cockpit' };
@@ -143,18 +144,27 @@ export default async function CockpitPage() {
   // try/catch + fallback, donc le Promise.all ne rejette jamais à cause d'une
   // table absente (dégradation gracieuse IDENTIQUE). La seule dépendance réelle
   // (driverLabels ← positions) reste séquentielle DANS getDriverPositionsWithLabels.
-  const [rides, rideAlerts, incidentAlerts, positionsResult, complianceAlerts, alertPreferences] =
-    await Promise.all([
-      getRidesToday(supabase, today),
-      getCockpitRideEvents(supabase, today),
-      // DEC-160 : incidents chauffeur ouverts remontés comme alertes cockpit.
-      getDriverIncidentAlerts(supabase),
-      getDriverPositionsWithLabels(supabase),
-      // Phase 06.34 DEC-113 : alertes d'échéances réglementaires (conformité §5.21).
-      getComplianceAlerts(),
-      // DEC-149 : préférences d'alertes du user (filtrage d'affichage du panel).
-      getCockpitAlertPreferences(),
-    ]);
+  const [
+    rides,
+    rideAlerts,
+    incidentAlerts,
+    positionsResult,
+    complianceAlerts,
+    prescriptionAlerts,
+    alertPreferences,
+  ] = await Promise.all([
+    getRidesToday(supabase, today),
+    getCockpitRideEvents(supabase, today),
+    // DEC-160 : incidents chauffeur ouverts remontés comme alertes cockpit.
+    getDriverIncidentAlerts(supabase),
+    getDriverPositionsWithLabels(supabase),
+    // Phase 06.34 DEC-113 : alertes d'échéances réglementaires (conformité §5.21).
+    getComplianceAlerts(),
+    // DEC-163 : alertes prescriptions (seuil 80 % / épuisé / expiré / renouvellement).
+    getPrescriptionAlerts(),
+    // DEC-149 : préférences d'alertes du user (filtrage d'affichage du panel).
+    getCockpitAlertPreferences(),
+  ]);
 
   // Incidents d'abord (les plus critiques pour la régulation), puis ride_events.
   const alerts = [...incidentAlerts, ...rideAlerts];
@@ -166,6 +176,7 @@ export default async function CockpitPage() {
       initialPositions={positionsResult.positions}
       driverLabels={positionsResult.driverLabels}
       complianceAlerts={complianceAlerts}
+      prescriptionAlerts={prescriptionAlerts}
       alertPreferences={alertPreferences}
     />
   );

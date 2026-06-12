@@ -18,6 +18,7 @@ import { useDuplicateCheck } from './use-duplicate-check.client';
 import { DuplicateBanner } from './duplicate-banner.client';
 import { PatientPickerField } from './ride-patient-picker.client';
 import { OrderingPartyPickerField } from './ride-ordering-party-picker.client';
+import { PrescriptionPickerField } from './ride-prescription-picker.client';
 import { AddressOrPOIPicker } from './address-or-poi-picker.client';
 import {
   DateTimeFields,
@@ -92,6 +93,7 @@ export function RideExpressModal(props: Props): JSX.Element {
       urgency: r.urgency as Urgency,
       notes_regulateur: r.notes_regulateur ?? undefined,
       ordering_party_id: r.ordering_party_id ?? null,
+      prescription_id: (r as { prescription_id?: string | null }).prescription_id ?? null,
     }),
   );
 
@@ -225,6 +227,12 @@ export function RideExpressModal(props: Props): JSX.Element {
             selectedLabel={orderingPartyLabel}
             onSelect={handleOrderingPartySelect}
             error={fieldErrors.ordering_party_id}
+          />
+
+          <PrescriptionPickerField
+            patientId={form.patient_id}
+            selectedId={form.prescription_id ?? null}
+            onSelect={(id) => updateField('prescription_id', id)}
           />
 
           <DateTimeFields

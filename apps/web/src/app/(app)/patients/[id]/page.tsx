@@ -7,8 +7,13 @@ import { maskNir } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/server';
 import type { RideRecurrence } from '@/types/recurrence';
 import { getPatientById } from '../queries';
+import type { PatientPrescriptionRow } from '../actions';
 import { PatientNirDisplay } from '../_components/patient-nir-display.client';
 import { RecurrencesSection } from './_components/recurrences-section.client';
+import {
+  PrescriptionsSection,
+  type PrescriberOption,
+} from './_components/prescriptions-section.client';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -71,6 +76,28 @@ export default async function PatientPage(props: PageProps) {
     );
   }
 
+  // Prescriptions du patient (CdG §5.3, DEC-163) + prescripteurs actifs (picker).
+  const [prescriptionsRes, prescribersRes] = await Promise.all([
+    supabase
+      .from('prescriptions' as never)
+      .select(
+        'id, numero, date_prescription, prescriber_id, finess, motif, type_transport, ' +
+          'trajets_autorises, trajets_consommes, date_expiration, statut, created_at',
+      )
+      .eq('patient_id', p.id)
+      .order('date_prescription', { ascending: false }),
+    supabase
+      .from('prescribers')
+      .select('id, nom, prenom')
+      .eq('actif', true)
+      .eq('archive', false)
+      .order('nom', { ascending: true }),
+  ]);
+  const prescriptions = (prescriptionsRes.data as PatientPrescriptionRow[] | null) ?? [];
+  const prescribers: PrescriberOption[] = (
+    (prescribersRes.data as { id: string; nom: string; prenom: string | null }[] | null) ?? []
+  ).map((pr) => ({ id: pr.id, label: [pr.nom, pr.prenom].filter(Boolean).join(' ') }));
+
   return (
     <div className="space-y-24">
       <PageHeader
@@ -107,6 +134,12 @@ export default async function PatientPage(props: PageProps) {
       </section>
 
       <RecurrencesSection patientId={p.id} recurrences={recurrences} futureCounts={futureCounts} />
+
+      <PrescriptionsSection
+        patientId={p.id}
+        prescriptions={prescriptions}
+        prescribers={prescribers}
+      />
 
       <section className="space-y-8">
         <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
