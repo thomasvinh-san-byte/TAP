@@ -12,6 +12,8 @@ import type { CockpitAlertPreferences } from '@/lib/notifications/preferences';
 import type { DriverPosition } from '../_lib/use-driver-positions';
 import type { ComplianceAlertEnriched } from '../../../(admin)/admin/conformite/_lib/get-compliance-alerts';
 import { ComplianceAlertsPanel } from '../../../(admin)/admin/conformite/_components/compliance-alerts-panel.client';
+import type { PrescriptionAlertEnriched } from '../_lib/get-prescription-alerts';
+import { PrescriptionAlertsPanel } from './prescription-alerts-panel.client';
 import { AlertsPanel } from './alerts-panel.client';
 import { DraftsIndicator } from './drafts-indicator.client';
 import { CoursesTable } from './courses-table.client';
@@ -28,6 +30,7 @@ export function CockpitContent({
   initialPositions,
   driverLabels,
   complianceAlerts,
+  prescriptionAlerts,
   alertPreferences,
 }: {
   initialRides: CockpitRide[];
@@ -35,6 +38,7 @@ export function CockpitContent({
   initialPositions: DriverPosition[];
   driverLabels: Record<string, string>;
   complianceAlerts: ComplianceAlertEnriched[];
+  prescriptionAlerts: PrescriptionAlertEnriched[];
   alertPreferences: CockpitAlertPreferences;
 }): JSX.Element {
   const { rides, status, newRideIds } = useCockpitRides(initialRides);
@@ -136,6 +140,7 @@ export function CockpitContent({
         <AlertsPanel alerts={visibleAlerts} />
         <DraftsIndicator />
         <ComplianceAlertsPanel alerts={complianceAlerts} variant="panel" limit={4} />
+        <PrescriptionAlertsPanel alerts={prescriptionAlerts} />
       </aside>
       {recentNoShowRide && <NoShowAlertModal ride={recentNoShowRide} onClose={dismissNoShow} />}
     </div>

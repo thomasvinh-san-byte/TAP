@@ -404,23 +404,31 @@ Le référentiel PRESCRIPTEURS (§5.4) est livré en 07.05 : table `prescribers`
 (médecin/établissement, RPPS/ADELI/FINESS, RLS org dirigeant+régulateur, CRUD +
 data-cache). C'est le **préalable** de la gestion des prescriptions. Restent :
 
-### 9.1 Gestion des prescriptions — CdG §5.3 (lot suivant immédiat)
-- **Raison** : la prescription (bon de transport) rattache un patient, un
-  prescripteur (07.05) et des règles (nombre de trajets autorisés, période de
-  validité, ALD). `rides.prescription_id` est déjà commenté dans la migration
-  rides (l.58) — le lien course↔prescription se fera ici.
-- **Périmètre cœur (SANS scan HDS)** : table `prescriptions` (patient_id,
-  prescriber_id FK 07.05, date, nb_trajets_autorises, nb_trajets_consommes,
-  date_validite, motif/ALD), **compteur de trajets** (décrément à la création de
-  course), **alertes 80 % consommé / expiré**. PAS d'upload de scan du bon
-  (HDS-dépendant, registre §4.3) — saisie manuelle des champs.
-- **Déblocage** : dev dédié. S'appuie sur prescribers (07.05) + patients.
+### 9.1 Gestion des prescriptions — CdG §5.3 — RÉSOLU (07.06, DEC-163)
+- **Livré (logique, SANS scan)** : table `prescriptions` (patient + prescriber
+  07.05, numero, date, trajets_autorises/consommes, date_expiration, statut
+  active/epuisee/expiree) + `rides.prescription_id` nullable + **compteur de
+  trajets idempotent** (trigger Postgres `rides_prescription_counter`, delta sur
+  transition de l'état consommateur) + **alertes** (80 %/épuisé/expiré/
+  renouvellement, pur `derivePrescriptionAlerts` + Vitest, cockpit + fiche
+  patient) + saisie structurée (fiche patient) + picker express avec
+  avertissement non bloquant. RLS org dirigeant+régulateur, pgTAP 14.
+- **Reste (dépend HDS — Phase 09)** : scan/upload du bon (PDF/image → bucket HDS)
+  + archivage horodaté avec checksum (préparation SCOR V3). `document_url` est
+  PRÉVU (colonne posée, NULL) mais aucun Storage câblé — comme l'échafaudage
+  upload conformité (§4.3). À débloquer au HDS.
 
-### 9.2 Volumétrie / top prescripteurs / patients suivis — CdG l.181-184
+### 9.2 Volumétrie / top prescripteurs / patients suivis — CdG l.181-184 (débloqué par 07.06)
 - **Raison** : ces vues AGRÈGENT les prescriptions (nb par prescripteur,
-  patients suivis par prescripteur) → **dépendent de §5.3** (pas de
-  prescriptions à compter tant que 9.1 n'est pas livré).
-- **Déblocage** : après 9.1, agrégations sur la table prescriptions.
+  patients suivis par prescripteur). La table `prescriptions` (07.06) existe
+  désormais → **constructible** (lot suivant).
+- **Déblocage** : dev dédié — agrégations `group by prescriber_id` sur
+  `prescriptions`, branchées sur la fiche prescripteur (07.05).
+
+### 9.3 KPIs conformité bons — CdG §5.20 (débloqué par 07.06)
+- **Raison** : tableau de bord conformité « bons en attente / expirés / épuisés »
+  → s'appuie sur `prescriptions.statut` + `derivePrescriptionAlerts` (07.06).
+- **Déblocage** : dev dédié — agréger les statuts par org (dashboard dirigeant).
 
 ---
 
