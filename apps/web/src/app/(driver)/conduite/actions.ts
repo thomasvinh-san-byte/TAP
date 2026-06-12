@@ -114,11 +114,12 @@ export async function startRideAction(rideId: string): Promise<ActionState> {
     .from('rides')
     .update(update as never)
     .eq('id', parsed.data)
+    .eq('status', 'assignee')
     .select('id');
   if (error) return { error: 'Démarrage course impossible.' };
   if (!updated || updated.length === 0) {
     return {
-      error: 'Course non modifiée : vérifiez que vous êtes bien le chauffeur assigné.',
+      error: 'Course non démarrée : son statut a changé (déjà démarrée ou réaffectée). Actualisez.',
     };
   }
 
@@ -205,11 +206,12 @@ export async function endRideAction(
     .from('rides')
     .update(update as never)
     .eq('id', parsed.data.rideId)
+    .eq('status', 'en_cours')
     .select('id');
   if (error) return { error: 'Clôture course impossible.' };
   if (!updated || updated.length === 0) {
     return {
-      error: 'Course non modifiée : vérifiez que vous êtes bien le chauffeur assigné.',
+      error: 'Clôture impossible : le statut de la course a changé. Actualisez.',
     };
   }
 
