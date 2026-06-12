@@ -18,6 +18,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { getAuthContext } from '@/lib/auth/get-auth-context';
+import { notifyReassignedPatients } from './_lib/notify-reaffectation';
 
 const ROLES_REGULATION = ['regulateur', 'dirigeant'] as const;
 
@@ -121,13 +122,17 @@ export async function reassignRidesBatchAction(
   }
 
   let reassigned = 0;
+  // DEC-161 : courses dont le chauffeur a EFFECTIVEMENT changé → SMS patient.
+  // Idempotence : si l'action est rejouée avec le même chauffeur, driver_id ne
+  // change pas → pas de course ici → pas de SMS en double.
+  const changedRideIds: string[] = [];
   for (const item of parsed.data) {
     const { data: current } = await ctx.supabase
       .from('rides')
-      .select('status')
+      .select('status, driver_id')
       .eq('id', item.rideId)
       .maybeSingle();
-    const row = current as { status: string } | null;
+    const row = current as { status: string; driver_id: string | null } | null;
     if (!row || !['validee', 'assignee'].includes(row.status)) continue;
 
     const upd = await ctx.supabase
@@ -141,12 +146,19 @@ export async function reassignRidesBatchAction(
       .eq('id', item.rideId)
       .in('status', ['validee', 'assignee'])
       .select('id');
-    if (!upd.error && upd.data && upd.data.length > 0) reassigned += 1;
+    if (!upd.error && upd.data && upd.data.length > 0) {
+      reassigned += 1;
+      if (row.driver_id !== item.driverId) changedRideIds.push(item.rideId);
+    }
   }
 
   if (reassigned === 0) {
     return { error: 'Aucune course réaffectée (statuts non éligibles ou droits insuffisants).' };
   }
+
+  // DEC-161 : SMS aux patients impactés — BEST-EFFORT, APRÈS commit. Un échec
+  // d'envoi ne rollback JAMAIS la réaffectation (déjà persistée).
+  await notifyReassignedPatients(changedRideIds, ctx.organizationId);
 
   revalidatePath('/replanification');
   revalidatePath('/cockpit');

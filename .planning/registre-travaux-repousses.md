@@ -348,12 +348,18 @@ régulation) + proposition de réaffectation scorée (Haversine + charge, SANS
 géoloc HDS) validable manuellement/en lot sur `/replanification`, alerte cockpit.
 Restent à construire, par lots dédiés (aucun bloquant — le cœur tourne seul) :
 
-### 8.1 SMS automatiques aux patients impactés — CdG l.368
-- **Raison** : quand une course est réaffectée (ou annulée pour débordement), le
-  patient devrait être prévenu (nouveau chauffeur / nouvel horaire). Dépend du
-  **flux SMS** (`packages/sms`) ET du consentement patient (CLAUDE.md §6).
-- **Déblocage** : à câbler dans `reassignRidesBatchAction` quand le flux SMS de
-  notification ponctuelle est prêt (aujourd'hui : rappels J-1/J-2h seulement).
+### 8.1 SMS automatiques aux patients impactés — CdG l.368 — RÉSOLU (10.02, DEC-161)
+- **Livré** : template `reaffectation` (seed additif idempotent) + helper
+  best-effort `notifyReassignedPatients` branché dans `reassignRidesBatchAction`
+  APRÈS commit, pour les courses dont le chauffeur a effectivement changé.
+  Réutilise le socle SMS 09.03 (consentement RGPD `getActiveSmsConsentMap` +
+  `isConsentValid`, `sendSms`, trace `sms_messages` queued/skipped/failed, envois
+  par lots). Client service-role (sms_messages sans policy INSERT authenticated),
+  requêtes filtrées org. Ne rollback jamais la réaffectation. ETA non promis sans
+  géoloc HDS (horaire programmé maintenu).
+- **Reste éventuel** : SMS lors d'une ANNULATION pour débordement (course « non
+  réaffectable ») — aujourd'hui non envoyé (pas d'auto-annulation, cf. D-05 de
+  10.01). À traiter si un flux d'annulation explicite est ajouté.
 
 ### 8.2 Réaffectation 100 % automatique (sans validation)
 - **Raison** : le cœur PROPOSE et la régulation VALIDE (garde-fou métier). Une
@@ -375,6 +381,16 @@ Restent à construire, par lots dédiés (aucun bloquant — le cœur tourne seu
   chargement / refresh** (alerte `driver_incident`). La poussée Realtime
   (subscription `driver_incidents` comme `ride_events`) est un raffinement.
 - **Déblocage** : étendre `use-cockpit-alerts` à une 2ᵉ subscription.
+
+### 8.6 Affecter au plus proche pour une demande immédiate — CdG l.358-362
+- **Raison** : cas voisin de la réaffectation — pour une course URGENTE/immédiate
+  saisie en direct, proposer le chauffeur disponible le plus proche (même moteur
+  de score Haversine + charge que 10.01). Le module pur `lib/replanning/reassign.ts`
+  (`proposeReassignments`) est **directement réutilisable** : il suffit de
+  l'appeler depuis la saisie express (urgence immediate) avec la course en cours
+  de création comme entrée unique.
+- **Déblocage** : dev dédié (brancher le scoring sur la saisie express urgente).
+  Montera aussi en précision avec la géoloc HDS.
 
 > **Note précision** : le score « chauffeur le plus proche » utilise en V1 des
 > points connus (pickups des courses, dépôt). Il **montera en précision avec la
