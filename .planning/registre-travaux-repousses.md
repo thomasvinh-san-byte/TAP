@@ -418,17 +418,28 @@ data-cache). C'est le **préalable** de la gestion des prescriptions. Restent :
   PRÉVU (colonne posée, NULL) mais aucun Storage câblé — comme l'échafaudage
   upload conformité (§4.3). À débloquer au HDS.
 
-### 9.2 Volumétrie / top prescripteurs / patients suivis — CdG l.181-184 (débloqué par 07.06)
-- **Raison** : ces vues AGRÈGENT les prescriptions (nb par prescripteur,
-  patients suivis par prescripteur). La table `prescriptions` (07.06) existe
-  désormais → **constructible** (lot suivant).
-- **Déblocage** : dev dédié — agrégations `group by prescriber_id` sur
-  `prescriptions`, branchées sur la fiche prescripteur (07.05).
+### 9.2 Top prescripteurs + bons par statut — CdG §5.4/§5.20 — RÉSOLU (07.07, DEC-164)
+- **Livré** : bloc `DashboardPrescriptions` (tableau de bord dirigeant) — bons
+  actifs / proches seuil 80 % / épuisés / expirés + Top 5 prescripteurs (par
+  nombre de prescriptions), card dédiée. Agrégation pure lecture, parallélisée
+  dans le `Promise.all` du dashboard, anti-N+1 (1 select + libellés en `.in()`).
+- **Reste éventuel** : « patients suivis par prescripteur » (l.184) — agrégation
+  fiche-prescripteur, non construite (lot mineur si demandé) ; volumétrie par
+  période (mois N vs N-1) si besoin.
 
-### 9.3 KPIs conformité bons — CdG §5.20 (débloqué par 07.06)
-- **Raison** : tableau de bord conformité « bons en attente / expirés / épuisés »
-  → s'appuie sur `prescriptions.statut` + `derivePrescriptionAlerts` (07.06).
-- **Déblocage** : dev dédié — agréger les statuts par org (dashboard dirigeant).
+### 9.3 KPIs conformité bons — CdG §5.20 — RÉSOLU (07.07, DEC-164)
+- **Livré** : comptes bons par statut (en attente=actifs / expirés / épuisés) +
+  proches seuil, dans la card prescriptions du dashboard. Mêmes chiffres/source
+  que les alertes prescriptions du cockpit (07.06).
+
+### 9.4 KPIs 5.20 restants — lots suivants (NON construits en 07.07)
+- **Raison** : le périmètre 07.07 se limite aux KPIs qui consomment les
+  prescriptions. Restent les autres KPIs du §5.20, par lots dédiés :
+  top patients (CA / volume), **top donneurs B2B** (courses par
+  `ordering_party_id` — consomme le module B2B 07.01, candidat lot suivant
+  cohérent), taux d'occupation véhicule, marge / coût au km, encours impayés,
+  litiges CGSS.
+- **Déblocage** : dev dédié par KPI, agrégations sur `rides` / facturation.
 
 ---
 
