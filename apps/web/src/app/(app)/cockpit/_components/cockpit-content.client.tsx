@@ -44,8 +44,11 @@ export function CockpitContent({
   // DEC-149 : filtrage d'AFFICHAGE selon les préférences utilisateur. La
   // détection (useCockpitAlerts, realtime) reste INCHANGÉE — on ne masque que
   // les familles désactivées. Défaut tout activé = rétro-compatible.
+  // DEC-160 : `driver_incident` n'a pas (encore) de préférence dédiée → affiché
+  // par défaut (`!== false`). Les 3 familles historiques restent filtrables.
   const visibleAlerts = useMemo<CockpitAlert[]>(
-    () => alerts.filter((a) => alertPreferences[a.event_type]),
+    () =>
+      alerts.filter((a) => (alertPreferences as Record<string, boolean>)[a.event_type] !== false),
     [alerts, alertPreferences],
   );
 

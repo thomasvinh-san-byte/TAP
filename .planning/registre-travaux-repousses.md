@@ -340,6 +340,48 @@ mais le levier DÉCISIF sur la lenteur de navigation est le Lot 2.
   réutiliser le patron (helper batch `getActiveSmsConsentMap` + lots + insert
   groupé + `maxDuration`).
 
+## 8. Replanification dynamique — lots suivants (cœur livré 10.01, DEC-160)
+
+Le CŒUR (CdG §5.14 l.363-374, V1.5 §11.3) est livré en 10.01 : table
+`driver_incidents` (panne signalée PWA chauffeur / indisponibilité déclarée
+régulation) + proposition de réaffectation scorée (Haversine + charge, SANS
+géoloc HDS) validable manuellement/en lot sur `/replanification`, alerte cockpit.
+Restent à construire, par lots dédiés (aucun bloquant — le cœur tourne seul) :
+
+### 8.1 SMS automatiques aux patients impactés — CdG l.368
+- **Raison** : quand une course est réaffectée (ou annulée pour débordement), le
+  patient devrait être prévenu (nouveau chauffeur / nouvel horaire). Dépend du
+  **flux SMS** (`packages/sms`) ET du consentement patient (CLAUDE.md §6).
+- **Déblocage** : à câbler dans `reassignRidesBatchAction` quand le flux SMS de
+  notification ponctuelle est prêt (aujourd'hui : rappels J-1/J-2h seulement).
+
+### 8.2 Réaffectation 100 % automatique (sans validation)
+- **Raison** : le cœur PROPOSE et la régulation VALIDE (garde-fou métier). Une
+  bascule « auto-réaffecter sans intervention » est un sur-ensemble optionnel
+  (mode confiance), à n'activer qu'après usage terrain du mode proposé.
+- **Déblocage** : décision dirigeant après retour design partner.
+
+### 8.3 Suivi atelier / résolution de panne détaillée — CdG l.369
+- **Raison** : `driver_incidents` trace ouverture/résolution (resolved_at). Le
+  suivi détaillé (garage, devis, retour prévu, coût) est un lot maintenance
+  distinct (s'appuierait sur le module maintenance véhicule existant).
+
+### 8.4 Recalcul ETA / embouteillage — CdG l.375+
+- **Raison** : recalcul d'horaires d'arrivée en cas d'aléa trafic. Dépend d'un
+  service de routing temps réel (OSRM, registre §4.1) — hors périmètre actuel.
+
+### 8.5 Poussée temps réel des incidents au cockpit
+- **Raison** : les incidents ouverts sont aujourd'hui remontés au cockpit **au
+  chargement / refresh** (alerte `driver_incident`). La poussée Realtime
+  (subscription `driver_incidents` comme `ride_events`) est un raffinement.
+- **Déblocage** : étendre `use-cockpit-alerts` à une 2ᵉ subscription.
+
+> **Note précision** : le score « chauffeur le plus proche » utilise en V1 des
+> points connus (pickups des courses, dépôt). Il **montera en précision avec la
+> géoloc HDS** (position live du chauffeur) une fois la Phase 09 HDS livrée
+> (GEOLOC_ENABLED ON). Aucune refonte du module pur attendue — seul le point de
+> référence candidat sera enrichi.
+
 ---
 
 ## Synthèse — ce qui attend une DÉCISION ou un ACHAT de ta part
