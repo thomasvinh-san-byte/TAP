@@ -18,6 +18,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { getAuthContext } from '@/lib/auth/get-auth-context';
+import { sendPushToDriver } from '@/lib/push/send';
 import { notifyReassignedPatients } from './_lib/notify-reaffectation';
 
 const ROLES_REGULATION = ['regulateur', 'dirigeant'] as const;
@@ -126,6 +127,8 @@ export async function reassignRidesBatchAction(
   // Idempotence : si l'action est rejouée avec le même chauffeur, driver_id ne
   // change pas → pas de course ici → pas de SMS en double.
   const changedRideIds: string[] = [];
+  // DEC-167 : nb de courses réaffectées par NOUVEAU chauffeur (notification push).
+  const reassignedByDriver = new Map<string, number>();
   for (const item of parsed.data) {
     const { data: current } = await ctx.supabase
       .from('rides')
@@ -148,7 +151,10 @@ export async function reassignRidesBatchAction(
       .select('id');
     if (!upd.error && upd.data && upd.data.length > 0) {
       reassigned += 1;
-      if (row.driver_id !== item.driverId) changedRideIds.push(item.rideId);
+      if (row.driver_id !== item.driverId) {
+        changedRideIds.push(item.rideId);
+        reassignedByDriver.set(item.driverId, (reassignedByDriver.get(item.driverId) ?? 0) + 1);
+      }
     }
   }
 
@@ -159,6 +165,18 @@ export async function reassignRidesBatchAction(
   // DEC-161 : SMS aux patients impactés — BEST-EFFORT, APRÈS commit. Un échec
   // d'envoi ne rollback JAMAIS la réaffectation (déjà persistée).
   await notifyReassignedPatients(changedRideIds, ctx.organizationId);
+
+  // DEC-167 : notification push aux nouveaux chauffeurs (best-effort), 1 par
+  // chauffeur (groupée) pour ne pas spammer.
+  await Promise.all(
+    [...reassignedByDriver.entries()].map(([driverId, count]) =>
+      sendPushToDriver(driverId, ctx.organizationId, {
+        title: 'Course réaffectée',
+        body: `${count} course${count > 1 ? 's' : ''} vous ${count > 1 ? 'ont' : 'a'} été réaffectée${count > 1 ? 's' : ''}.`,
+        url: '/conduite',
+      }),
+    ),
+  );
 
   revalidatePath('/replanification');
   revalidatePath('/cockpit');

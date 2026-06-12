@@ -18,6 +18,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { getAuthContext as getAuthContextWithRole } from '@/lib/auth/get-auth-context';
+import { sendPushToDriver } from '@/lib/push/send';
 import { checkAssignmentCompliance } from '../../../(admin)/admin/conformite/_lib/compliance-planning';
 import { REGULATEUR_OR_DIRIGEANT, type ActionState } from './_shared';
 
@@ -42,10 +43,10 @@ export async function assignRideAction(
   // Vérif statut courant : transition validee → assignee uniquement.
   const { data: current } = await ctx.supabase
     .from('rides')
-    .select('status')
+    .select('status, scheduled_at')
     .eq('id', parsed.data.rideId)
     .single();
-  const currentRow = current as { status: string } | null;
+  const currentRow = current as { status: string; scheduled_at: string } | null;
   if (!currentRow) return { error: 'Course introuvable.' };
   if (currentRow.status !== 'validee') {
     return {
@@ -80,6 +81,18 @@ export async function assignRideAction(
   if (!upd.data || upd.data.length === 0) {
     return { error: 'Assignation refusée : droits insuffisants ou course absente.' };
   }
+
+  // DEC-167 : notification push au chauffeur (best-effort — n'échoue jamais).
+  const heure = new Date(currentRow.scheduled_at).toLocaleTimeString('fr-FR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Indian/Reunion',
+  });
+  await sendPushToDriver(parsed.data.driverId, ctx.organizationId, {
+    title: 'Nouvelle course',
+    body: `Une course vous a été affectée à ${heure}.`,
+    url: `/conduite/${parsed.data.rideId}`,
+  });
 
   revalidatePath('/courses');
   return { success: true, id: parsed.data.rideId };

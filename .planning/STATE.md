@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Phase 07.09 (KPI panier moyen par course) livrée localement. PR à ouvrir."
-last_updated: "2026-06-13T06:00:00.000Z"
-last_activity: Phase 07.09 (KPI panier moyen par course — CdG §5.20 l.501 ; 0 migration, 0 dépendance, 0 requête). Trivial, DÉRIVÉ de deux valeurs déjà dans DashboardData. D-01 panierMoyen = caMois.count > 0 ? caMois.total_eur / caMois.count : 0, calculé dans le Server Component tableau-de-bord/page.tsx. D-02 cohérence du périmètre (seul piège) : numérateur ET dénominateur sur le MÊME ensemble caMois (CA encaissé terminee+encaisse) ; caMois.count (déjà calculé par getCaMois) = courses ENCAISSÉES → panier = CA encaissé ÷ courses encaissées, pas ÷ toutes les courses. D-03 KpiCard « Panier moyen / course » (eur.format) rangée Activité du mois (grid 6→7 cols), contexte « sur N courses encaissées ». Division par zéro gérée (0 course → 0 €). Garde-fous : cohérence num/dénom ; 0 requête ; pas de NaN/Infinity. typecheck+lint(0 err, 8 warn)+build verts. Suite registre §9.4 : écart prévu/réalisé (préalable CA prévisionnel) + récurrentes/ponctuelles (préalable activer rides.ride_recurrence_id) + KPIs économiques (paramétrage coûts). DEC-166 LOCKED.
-last_activity_prev: Phase 07.08 tops commerciaux dirigeant (DEC-165). Phase 07.07 KPIs prescriptions (DEC-164).
+stopped_at: "Phase 06.69 (notifications push PWA chauffeur) livrée localement. PR à ouvrir."
+last_updated: "2026-06-13T08:00:00.000Z"
+last_activity: Phase 06.69 (notifications push PWA chauffeur — trou V1 CdG l.71 ; 1 migration, 1 dépendance web-push). Web Push standard, AUCUNE dépendance HDS/géoloc ; VAPID = secrets à générer (pas de provider). D-01 migration 20260612000007 : table push_subscriptions (org, user_id, endpoint unique, p256dh, auth, user_agent, last_used_at) RLS user-scoped (un user ne gère QUE ses abonnements, multi-appareils) + colonne notification_preferences.push_enabled (défaut true) ; pgTAP 9. D-02 VAPID : NEXT_PUBLIC_VAPID_PUBLIC_KEY (client) / VAPID_PRIVATE_KEY (secret serveur) / VAPID_SUBJECT ; turbo.json globalEnv + .env.example (génération npx web-push generate-vapid-keys). D-03 EnablePushButton sur /conduite : permission demandée AU CLIC (jamais à froid) → pushManager.subscribe → savePushSubscriptionAction (upsert RLS own) ; désabonnement unsubscribe + deletePushSubscriptionAction. D-04 listeners push/notificationclick AJOUTÉS au SW Serwist existant (precache/offline INCHANGÉS) → affiche notif + focus/navigate sur la course. D-05 lib/push/send.ts (web-push) : sendPushToUser/sendPushToDriver (résout drivers.profile_id), client service-role NON typé filtré user+org (push_subscriptions RLS user-scoped), respecte push_enabled, nettoie subs 404/410, no-op sans clés VAPID. D-06 déclenché best-effort : assignRideAction (« Nouvelle course à HH:MM ») + reassignRidesBatchAction (push groupé par nouveau chauffeur). Un échec push ne rollback/n'échoue JAMAIS l'action métier (pattern 10.02). Garde-fous : VAPID_PRIVATE_KEY jamais exposée ; permission au bon moment ; RLS own + org ; nettoyage subs morts ; respect push_enabled ; SW offline non régressé ; best-effort. typecheck+lint(0 err)+build verts (SW bundlé). pgTAP 9. Comble registre §1.3. DEC-167 LOCKED.
+last_activity_prev: Phase 07.09 KPI panier moyen (DEC-166). Phase 07.08 tops commerciaux dirigeant (DEC-165).
 # Comptage des phases (recompté 2026-06-08) : la roadmap est vivante, le dénominateur
 # fixe historique « 38 » est obsolète. completed_phases = identifiants de phase numérotés
 # marqués [x] dans ROADMAP — socle produit+technique (30) + phases individuelles livrées
@@ -34,7 +34,8 @@ last_activity_prev: Phase 07.08 tops commerciaux dirigeant (DEC-165). Phase 07.0
 # + 07.06 prescriptions/bons de transport (compteur + alertes, sans scan)
 # + 07.07 KPIs prescriptions (top prescripteurs + bons par statut)
 # + 07.08 tops commerciaux dirigeant (top patients CA + top donneurs B2B)
-# + 07.09 KPI panier moyen par course = 93. (06.40
+# + 07.09 KPI panier moyen par course
+# + 06.69 notifications push PWA chauffeur (trou V1, sans HDS) = 94. (06.40
 # hygiène docs ET 06.56 onboarding méthode = lots documentaires, hors compte feature ; 06.45 supersede
 # 06.44 mais les 2 ont été livrées ; DEC-142 fix DialogContent = fix hors numéro de phase ;
 # 06.67 chore CI = lot hors compte feature, comme 06.40/06.56.) Restantes
@@ -42,12 +43,12 @@ last_activity_prev: Phase 07.08 tops commerciaux dirigeant (DEC-165). Phase 07.0
 # (DEC-092) hors compte ; 07.01 = module métier B2B et 09.01 = lot dette typage (sans rapport
 # avec la Phase 09 HDS majeure à venir ; 09.02/09.03 = mêmes lots dette/perf). 10.01 =
 # replanification dynamique cœur (item V1.5 §11.3), distinct de la Phase 10 géoloc réelle HDS.
-# Dernière phase livrée : 07.09 (KPI panier moyen). Dernier DEC : 166 (07.09). Dernier ADR : ADR-013 (06.33).
+# Dernière phase livrée : 06.69 (push PWA chauffeur). Dernier DEC : 167 (06.69). Dernier ADR : ADR-013 (06.33).
 progress:
-  total_phases: 95
-  completed_phases: 93
-  total_plans: 98
-  completed_plans: 98
+  total_phases: 96
+  completed_phases: 94
+  total_plans: 99
+  completed_plans: 99
   percent: 98
 ---
 
@@ -58,7 +59,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 2026-05-14)
 
 **Core value:** La régulatrice doit avoir envie d'utiliser l'outil 8 h/jour, 220 j/an, sans jamais le subir.
-**Current focus:** Phase 07.09 (KPI panier moyen par course) livrée localement. KPI dérivé sans requête (CA encaissé ÷ courses encaissées = caMois.total_eur / caMois.count, périmètre cohérent), KpiCard rangée Activité du mois. CdG §5.20 l.501. **GATE 08.x toujours en attente** : test isolation 2-orgs data-cache sur preview. 93 phases feature livrées + 3 lots hors compte (06.40 hygiène, 06.56 méthode, 06.67 chore CI) (cf. commentaire de comptage dans le frontmatter). 4 release toggles OFF pré-infra : GEOLOC, MESSAGING, UPLOAD_DOCS, EMAIL. Restantes : KPIs 5.20 restants (registre §9.4 — écart prévu/réalisé [préalable CA prévisionnel], récurrentes/ponctuelles [préalable activer rides.ride_recurrence_id], KPIs économiques marge/coût km paramétrables, occupation/productivité, litiges) ; lots suivants replanification (registre §8) ; lot alignement versions Supabase (débloque le typage des écritures, DEC-155) ; Lot 3 Suspense (différé) ; Phase 09 HDS (registre §1.1/§4.3 — débloque le scan des bons + précision géoloc replanification) + Phase 10 géoloc réelle ; choix provider email (registre §1.2) ; messagerie complète (registre §1.4) ; contacts donneurs multiples (registre §6.4) + portail self-service V1.5 (§6.5) ; étapes restantes du plan d'audit.
+**Current focus:** Phase 06.69 (notifications push PWA chauffeur) livrée localement. Trou V1 comblé (CdG l.71) : table push_subscriptions (RLS user-scoped, pgTAP 9) + clés VAPID + handler push/notificationclick ajouté au SW Serwist (offline non régressé) + envoi web-push best-effort sur affectation/réaffectation + préférence push_enabled + EnablePushButton sur /conduite (permission au clic). Web Push standard, sans HDS. **GATE 08.x toujours en attente** : test isolation 2-orgs data-cache sur preview. 94 phases feature livrées + 3 lots hors compte (06.40 hygiène, 06.56 méthode, 06.67 chore CI) (cf. commentaire de comptage dans le frontmatter). 4 release toggles OFF pré-infra : GEOLOC, MESSAGING, UPLOAD_DOCS, EMAIL. **VAPID = secrets à générer** (npx web-push generate-vapid-keys → Vercel) pour activer le push en prod. Restantes : KPIs 5.20 restants (registre §9.4 — écart prévu/réalisé [préalable CA prévisionnel], récurrentes/ponctuelles [préalable activer rides.ride_recurrence_id], KPIs économiques marge/coût km paramétrables, occupation/productivité, litiges) ; lots suivants replanification (registre §8) ; lot alignement versions Supabase (débloque le typage des écritures, DEC-155) ; Lot 3 Suspense (différé) ; Phase 09 HDS (registre §1.1/§4.3 — débloque le scan des bons + précision géoloc replanification) + Phase 10 géoloc réelle ; choix provider email (registre §1.2) ; messagerie complète (registre §1.4 — réutilisera l'infra push) ; contacts donneurs multiples (registre §6.4) + portail self-service V1.5 (§6.5) ; étapes restantes du plan d'audit.
 
 ## Current Position
 
@@ -67,12 +68,12 @@ See: .planning/PROJECT.md (updated 2026-05-06) + .planning/VISION.md (créé 202
 **Optimizer status** : `OPTIMIZER_USE_MOCK=true` en production et preview (décision dirigeant 2026-06-03). Le mock produit des groupements 2-par-2 cohérents avec le contrat zod, l'enrichissement Wave 4 fonctionne (libellés véhicules, adresses lisibles). Réactivation vrai solveur reportée à Phase 06.12 candidate (renumérotée depuis 06.11, cf. DEC-085).
 **Géocodage** : pipeline UI→DB fonctionnel depuis Phase 04.7 (DEC-044), scellé par tests Vitest PR #211. Les courses créées via UI avec sélection BAN/Géoplateforme persistent leurs 6 colonnes lat/lng/citycode.
 
-Phase: 07.09 (KPI panier moyen par course) livrée localement (2026-06-12). PR à ouvrir.
-Phase next: KPIs 5.20 restants (registre §9.4 — écart prévu/réalisé [préalable CA prévisionnel], récurrentes/ponctuelles [préalable activer rides.ride_recurrence_id], KPIs économiques marge/coût km paramétrables, occupation/productivité, litiges) ; lots suivants replanification (registre §8) ; lot alignement versions Supabase (typage écritures, DEC-155) ; valider l'isolation 2-orgs data-cache sur preview (08.x) ; Lot 3 Suspense (différé) ; choix provider email (registre §1.2) ; messagerie complète (registre §1.4) ; contacts donneurs multiples (§6.4) ; portail self-service V1.5 (§6.5) ; Phase 09 HDS ; Phase 10 géoloc.
-Status: 93 phases feature + 3 lots hors compte. Panier moyen : KPI dérivé sans requête (caMois.total_eur / caMois.count = CA encaissé ÷ courses encaissées, périmètre cohérent, division par zéro gérée) ; KpiCard rangée Activité du mois. Agrégation/dérivation pure. Data-cache référentiels 5/6 (gate preview en attente). 4 release toggles OFF pré-infra.
+Phase: 06.69 (notifications push PWA chauffeur) livrée localement (2026-06-12). PR à ouvrir.
+Phase next: générer les clés VAPID (secrets Vercel) pour activer le push en prod ; KPIs 5.20 restants (registre §9.4 — écart prévu/réalisé [préalable CA prévisionnel], récurrentes/ponctuelles [préalable activer rides.ride_recurrence_id], KPIs économiques, occupation/productivité, litiges) ; lots suivants replanification (registre §8) ; lot alignement versions Supabase (typage écritures, DEC-155) ; valider l'isolation 2-orgs data-cache sur preview (08.x) ; Lot 3 Suspense (différé) ; choix provider email (registre §1.2) ; messagerie complète (registre §1.4) ; contacts donneurs multiples (§6.4) ; portail self-service V1.5 (§6.5) ; Phase 09 HDS ; Phase 10 géoloc.
+Status: 94 phases feature + 3 lots hors compte. Push PWA chauffeur : table push_subscriptions (RLS user-scoped, multi-appareils, pgTAP 9) + notification_preferences.push_enabled ; clés VAPID (turbo.json + .env.example) ; SW Serwist étendu (push/notificationclick, offline non régressé) ; lib/push/send.ts web-push (sendPushToUser/Driver, service-role filtré, nettoie 404/410, no-op sans clés) ; EnablePushButton /conduite (permission au clic) ; déclenché best-effort sur assignRideAction + reassignRidesBatchAction. Comble registre §1.3. Data-cache référentiels 5/6 (gate preview en attente). 4 release toggles OFF pré-infra.
 Blockers: 2 en attente — (1) GATE isolation 2-orgs data-cache (08.x) sur preview ; (2) typage des payloads d'écriture = never (skew @supabase/ssr/postgrest-js) → lot d'alignement de versions (hors 0-dépendance).
-Last activity: Phase 07.09 (KPI panier moyen §5.20 l.501). D-01 panierMoyen = caMois.count > 0 ? caMois.total_eur / caMois.count : 0, calculé dans le Server Component tableau-de-bord/page.tsx (0 requête). D-02 cohérence du périmètre (seul piège) : num ET dénom sur le MÊME ensemble caMois (CA encaissé) ; caMois.count = courses encaissées → CA encaissé ÷ courses encaissées, pas ÷ toutes courses. D-03 KpiCard « Panier moyen / course » (eur.format) rangée Activité du mois (grid 6→7), contexte « sur N courses encaissées ». Division par zéro gérée. Garde-fous : cohérence num/dénom ; 0 requête ; pas de NaN/Infinity. typecheck+lint(0 err, 8 warn)+build verts. 0 migration, 0 dépendance. Suite registre §9.4. DEC-166 LOCKED. PR à ouvrir.
-Précédent: 07.08 tops commerciaux dirigeant (DEC-165), 07.07 KPIs prescriptions (DEC-164), 07.06 prescriptions/bons de transport (DEC-163).
+Last activity: Phase 06.69 (push PWA chauffeur, trou V1 CdG l.71). D-01 migration 20260612000007 : table push_subscriptions (RLS user-scoped, endpoint unique, multi-appareils) + notification_preferences.push_enabled ; pgTAP 9. D-02 VAPID (NEXT_PUBLIC_VAPID_PUBLIC_KEY/VAPID_PRIVATE_KEY/VAPID_SUBJECT) turbo.json + .env.example. D-03 EnablePushButton /conduite (permission au clic) → savePushSubscriptionAction ; désabonnement. D-04 push/notificationclick ajoutés au SW Serwist (offline INCHANGÉ). D-05 lib/push/send.ts web-push (sendPushToUser/Driver, service-role filtré user+org, respecte push_enabled, nettoie 404/410, no-op sans clés). D-06 best-effort sur assignRideAction + reassignRidesBatchAction (groupé par chauffeur) — n'échoue jamais l'action. Garde-fous : clé privée jamais exposée ; permission au bon moment ; RLS own+org ; nettoyage subs morts ; SW offline non régressé ; best-effort. typecheck+lint(0 err)+build verts (SW bundlé). pgTAP 9. 1 migration, 1 dépendance (web-push). Comble registre §1.3. DEC-167 LOCKED. PR à ouvrir.
+Précédent: 07.09 KPI panier moyen (DEC-166), 07.08 tops commerciaux dirigeant (DEC-165), 07.07 KPIs prescriptions (DEC-164).
 
 Progress: [██████████] 100%
 
