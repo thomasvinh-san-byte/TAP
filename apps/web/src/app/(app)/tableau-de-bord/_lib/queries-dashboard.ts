@@ -51,6 +51,22 @@ export interface DashboardConformite {
   derniereMaj: string | null;
 }
 
+/** Top prescripteur (CdG §5.4/§5.20, DEC-164) — par nombre de prescriptions. */
+export interface TopPrescripteur {
+  prescriber_id: string;
+  label: string;
+  count: number;
+}
+
+/** KPIs prescriptions / bons de transport (CdG §5.20, DEC-164). */
+export interface DashboardPrescriptions {
+  bonsActifs: number;
+  bonsProchesSeuil: number; // actifs à ≥ 80 % de consommation (aligné alerte 07.06)
+  bonsEpuises: number;
+  bonsExpires: number;
+  topPrescripteurs: TopPrescripteur[];
+}
+
 export interface DashboardData {
   coursesAFacturer: number;
   moisCourant: string; // YYYY-MM — mois compté par coursesAFacturer (drill-down)
@@ -61,6 +77,7 @@ export interface DashboardData {
   incidents: DashboardIncidents;
   chauffeurs: DashboardChauffeurs;
   conformite: DashboardConformite;
+  prescriptions: DashboardPrescriptions;
   // Wave 1 Phase 06.11 — A4 comparatif N vs N-1
   caMoisPrec: CaisseTotals;
   volMoisPrec: number;
@@ -235,6 +252,87 @@ async function getConformite(supabase: Supabase): Promise<DashboardConformite> {
   };
 }
 
+/**
+ * KPIs prescriptions / bons de transport (CdG §5.4/§5.20, DEC-164) — agrégation
+ * PURE LECTURE (ne touche NI le compteur NI le statut 07.06). Comptes par statut
+ * + bons proches du seuil 80 % + Top 5 prescripteurs, en 1 select (puis libellés
+ * des 5 en 1 `.in()`, anti-N+1). RLS Postgres scope l'org. Fallback gracieux.
+ */
+async function getPrescriptions(supabase: Supabase): Promise<DashboardPrescriptions> {
+  const empty: DashboardPrescriptions = {
+    bonsActifs: 0,
+    bonsProchesSeuil: 0,
+    bonsEpuises: 0,
+    bonsExpires: 0,
+    topPrescripteurs: [],
+  };
+  const res = await supabase
+    .from('prescriptions' as never)
+    .select('statut, prescriber_id, trajets_autorises, trajets_consommes')
+    .limit(5000);
+  if (res.error) {
+    console.error('[dashboard/prescriptions] read error', res.error.message);
+    return empty;
+  }
+  const rows =
+    (res.data as
+      | {
+          statut: string;
+          prescriber_id: string | null;
+          trajets_autorises: number;
+          trajets_consommes: number;
+        }[]
+      | null) ?? [];
+
+  let bonsActifs = 0;
+  let bonsProchesSeuil = 0;
+  let bonsEpuises = 0;
+  let bonsExpires = 0;
+  const byPrescriber = new Map<string, number>();
+  for (const r of rows) {
+    if (r.statut === 'active') {
+      bonsActifs += 1;
+      if (r.trajets_autorises > 0 && r.trajets_consommes / r.trajets_autorises >= 0.8) {
+        bonsProchesSeuil += 1;
+      }
+    } else if (r.statut === 'epuisee') {
+      bonsEpuises += 1;
+    } else if (r.statut === 'expiree') {
+      bonsExpires += 1;
+    }
+    if (r.prescriber_id) {
+      byPrescriber.set(r.prescriber_id, (byPrescriber.get(r.prescriber_id) ?? 0) + 1);
+    }
+  }
+
+  const top = [...byPrescriber.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const labels = new Map<string, string>();
+  if (top.length > 0) {
+    const { data } = await supabase
+      .from('prescribers')
+      .select('id, nom, prenom')
+      .in(
+        'id',
+        top.map(([id]) => id),
+      );
+    for (const p of (data as { id: string; nom: string; prenom: string | null }[] | null) ?? []) {
+      labels.set(p.id, [p.nom, p.prenom].filter(Boolean).join(' '));
+    }
+  }
+
+  return {
+    bonsActifs,
+    bonsProchesSeuil,
+    bonsEpuises,
+    bonsExpires,
+    topPrescripteurs: top.map(([id, count]) => ({
+      prescriber_id: id,
+      label: labels.get(id) ?? 'Prescripteur',
+      count,
+    })),
+  };
+}
+
 /** Agrégat complet du tableau de bord — appelé par le Server Component. */
 export async function getDashboardData(): Promise<DashboardData> {
   const supabase = await createClient();
@@ -257,6 +355,8 @@ export async function getDashboardData(): Promise<DashboardData> {
     incidents,
     chauffeurs,
     conformite,
+    // DEC-164 — KPIs prescriptions / bons de transport.
+    prescriptions,
     // A4 comparatif N vs N-1
     caMoisPrec,
     volMoisPrec,
@@ -280,6 +380,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     getIncidents(supabase, moisStart, moisEnd),
     getChauffeurs(supabase),
     getConformite(supabase),
+    getPrescriptions(supabase),
     getCaMois(supabase, precStart, precEnd),
     countRides(supabase, precStart, precEnd),
     getIncidents(supabase, precStart, precEnd),
@@ -309,6 +410,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     incidents,
     chauffeurs,
     conformite,
+    prescriptions,
     caMoisPrec,
     volMoisPrec,
     incidentsPrec,
