@@ -792,6 +792,7 @@ export type Database = {
           alert_sms_failed: boolean
           created_at: string
           organization_id: string
+          push_enabled: boolean
           updated_at: string
           user_id: string
         }
@@ -801,6 +802,7 @@ export type Database = {
           alert_sms_failed?: boolean
           created_at?: string
           organization_id: string
+          push_enabled?: boolean
           updated_at?: string
           user_id: string
         }
@@ -810,6 +812,7 @@ export type Database = {
           alert_sms_failed?: boolean
           created_at?: string
           organization_id?: string
+          push_enabled?: boolean
           updated_at?: string
           user_id?: string
         }
@@ -1376,6 +1379,166 @@ export type Database = {
           },
         ]
       }
+      prescribers: {
+        Row: {
+          actif: boolean
+          adeli: string | null
+          adresse: string | null
+          archive: boolean
+          archive_at: string | null
+          contact_email: string | null
+          contact_telephone: string | null
+          created_at: string
+          created_by: string | null
+          finess: string | null
+          id: string
+          nom: string
+          organization_id: string
+          prenom: string | null
+          rpps: string | null
+          specialite: string | null
+          type: Database["public"]["Enums"]["prescriber_type"]
+          updated_at: string
+        }
+        Insert: {
+          actif?: boolean
+          adeli?: string | null
+          adresse?: string | null
+          archive?: boolean
+          archive_at?: string | null
+          contact_email?: string | null
+          contact_telephone?: string | null
+          created_at?: string
+          created_by?: string | null
+          finess?: string | null
+          id?: string
+          nom: string
+          organization_id: string
+          prenom?: string | null
+          rpps?: string | null
+          specialite?: string | null
+          type?: Database["public"]["Enums"]["prescriber_type"]
+          updated_at?: string
+        }
+        Update: {
+          actif?: boolean
+          adeli?: string | null
+          adresse?: string | null
+          archive?: boolean
+          archive_at?: string | null
+          contact_email?: string | null
+          contact_telephone?: string | null
+          created_at?: string
+          created_by?: string | null
+          finess?: string | null
+          id?: string
+          nom?: string
+          organization_id?: string
+          prenom?: string | null
+          rpps?: string | null
+          specialite?: string | null
+          type?: Database["public"]["Enums"]["prescriber_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prescribers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      prescriptions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          date_expiration: string | null
+          date_prescription: string
+          document_url: string | null
+          finess: string | null
+          id: string
+          motif: string | null
+          numero: string
+          organization_id: string
+          patient_id: string
+          prescriber_id: string | null
+          statut: Database["public"]["Enums"]["prescription_status"]
+          trajets_autorises: number
+          trajets_consommes: number
+          type_transport: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          date_expiration?: string | null
+          date_prescription: string
+          document_url?: string | null
+          finess?: string | null
+          id?: string
+          motif?: string | null
+          numero: string
+          organization_id: string
+          patient_id: string
+          prescriber_id?: string | null
+          statut?: Database["public"]["Enums"]["prescription_status"]
+          trajets_autorises: number
+          trajets_consommes?: number
+          type_transport?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          date_expiration?: string | null
+          date_prescription?: string
+          document_url?: string | null
+          finess?: string | null
+          id?: string
+          motif?: string | null
+          numero?: string
+          organization_id?: string
+          patient_id?: string
+          prescriber_id?: string | null
+          statut?: Database["public"]["Enums"]["prescription_status"]
+          trajets_autorises?: number
+          trajets_consommes?: number
+          type_transport?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prescriptions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescriptions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescriptions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "prescriptions_prescriber_id_fkey"
+            columns: ["prescriber_id"]
+            isOneToOne: false
+            referencedRelation: "prescribers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           actif: boolean
@@ -1425,6 +1588,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          id: string
+          last_used_at: string | null
+          organization_id: string
+          p256dh: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          last_used_at?: string | null
+          organization_id: string
+          p256dh: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          last_used_at?: string | null
+          organization_id?: string
+          p256dh?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_subscriptions_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -1734,6 +1941,7 @@ export type Database = {
           pickup_lat: number | null
           pickup_lng: number | null
           pickup_postal_code: string | null
+          prescription_id: string | null
           ride_group_id: string | null
           ride_recurrence_id: string | null
           scheduled_at: string
@@ -1777,6 +1985,7 @@ export type Database = {
           pickup_lat?: number | null
           pickup_lng?: number | null
           pickup_postal_code?: string | null
+          prescription_id?: string | null
           ride_group_id?: string | null
           ride_recurrence_id?: string | null
           scheduled_at: string
@@ -1820,6 +2029,7 @@ export type Database = {
           pickup_lat?: number | null
           pickup_lng?: number | null
           pickup_postal_code?: string | null
+          prescription_id?: string | null
           ride_group_id?: string | null
           ride_recurrence_id?: string | null
           scheduled_at?: string
@@ -1874,6 +2084,13 @@ export type Database = {
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rides_prescription_id_fkey"
+            columns: ["prescription_id"]
+            isOneToOne: false
+            referencedRelation: "prescriptions"
             referencedColumns: ["id"]
           },
           {
@@ -2241,6 +2458,10 @@ export type Database = {
       }
       purge_driver_positions: { Args: never; Returns: undefined }
       purge_legal_request_attempts: { Args: never; Returns: undefined }
+      recompute_prescription_status: {
+        Args: { p_id: string }
+        Returns: undefined
+      }
       rgpd_anonymize_patient: {
         Args: { p_patient_id: string; p_request_id: string; p_salt: string }
         Returns: undefined
@@ -2304,6 +2525,8 @@ export type Database = {
         | "horaire_apres_midi"
         | "accompagnement_obligatoire"
         | "autre"
+      prescriber_type: "medecin" | "etablissement"
+      prescription_status: "active" | "epuisee" | "expiree"
       ride_group_status: "en_attente" | "acceptee" | "refusee"
       ride_status:
         | "brouillon"
@@ -2462,6 +2685,8 @@ export const Constants = {
         "accompagnement_obligatoire",
         "autre",
       ],
+      prescriber_type: ["medecin", "etablissement"],
+      prescription_status: ["active", "epuisee", "expiree"],
       ride_group_status: ["en_attente", "acceptee", "refusee"],
       ride_status: [
         "brouillon",
