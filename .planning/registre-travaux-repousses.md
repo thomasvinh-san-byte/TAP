@@ -629,9 +629,27 @@ est listée aujourd'hui).
 
 > **Audit transversal des effets de bord météo CLOS** : B1 (affichage, 12.04,
 > DEC-173), B2 (compteur de remboursement prescriptions — CRITIQUE, 12.05,
-> DEC-174), B3 (cohérence ride_group, 12.06, DEC-175). Le **couplage manuel
-> app ↔ trigger SQL** sur les statuts d'annulation (cf. ci-dessus) reste le seul
-> point de vigilance permanent à chaque nouveau statut `ride_status`.
+> DEC-174), B3 (cohérence ride_group, 12.06, DEC-175).
+
+### Couplage app ↔ trigger SQL — PROTÉGÉ PAR TEST CI (09.05, DEC-176)
+
+Le couplage manuel `RIDE_CANCELLED_STATUSES` (@tap/shared) ↔ array `cancelled`
+du trigger `rides_prescription_counter` n'est **plus un point de vigilance
+manuel** : le test `packages/shared/src/validators/__tests__/cancelled-statuses-sync.test.ts`
+lit la migration la plus récente, extrait l'array et **casse la CI** (`pnpm test`)
+si elle diverge de `RIDE_CANCELLED_STATUSES ∪ {'brouillon'}`. Toute désynchro est
+attrapée avant le merge.
+
+**Workflow lors d'un futur ajout de statut d'annulation** : ajouter la valeur (1)
+à `RIDE_CANCELLED_STATUSES` ET (2) à l'array `cancelled` du trigger via une
+nouvelle migration `create or replace function` — le test devient vert quand les
+deux sont faits, rouge sinon. Le « workflow checklist » de §12 reste valable pour
+les maps de labels/couleurs **positives** (badges, PDF, unions de type) qui, elles,
+ne sont pas couvertes par ce test.
+
+**Pattern réutilisable** : si un autre couplage SQL↔TS émerge (autre constante
+dupliquée dans une fonction/trigger SQL), reproduire ce test (lecture du SQL le
+plus récent + assertion d'ensemble + échec explicite si introuvable).
 
 ---
 

@@ -20,6 +20,12 @@ export type RideUrgency = z.infer<typeof rideUrgencySchema>;
  * jamais ré-énumérer en dur. Un nouvel ajout d'enum (ex. `annulee_meteo` en
  * 12.01) faussait sinon le taux d'annulation du tableau de bord pendant un
  * épisode cyclonique. 4 valeurs alignées sur l'enum Postgres `ride_status`.
+ *
+ * COUPLAGE SQL (DEC-176) : tout ajout/retrait d'un statut d'annulation doit être
+ * répercuté dans le trigger Postgres prescription (array `cancelled` de
+ * `rides_prescription_counter`, qui inclut aussi `brouillon`). Le test
+ * `cancelled-statuses-sync.test.ts` vérifie l'alignement et casse la CI en cas
+ * de divergence — le couplage n'est plus une vigilance manuelle.
  */
 export const RIDE_CANCELLED_STATUSES = [
   'annulee_regulateur',
