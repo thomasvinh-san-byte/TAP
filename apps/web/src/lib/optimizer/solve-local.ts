@@ -184,6 +184,94 @@ function orderGroupNearestNeighbor(
   return { order, kmAVide };
 }
 
+// --------------------------------------------------------------------------
+// Conformité — détour réglementaire du transport partagé (DEC-169)
+// --------------------------------------------------------------------------
+//
+// Décret n°2025-202 du 28/02/2025 (postérieur au CdG) : pour un transport
+// partagé conventionné, le détour ne doit pas dépasser 10 km par personne À
+// PARTIR DE LA 2ᵉ, dans la limite de 30 km au TOTAL. Au-delà, le transport
+// partagé n'est PAS remboursable par la CGSS. Source : Service-Public.fr
+// (décret 2025-202), ameli.fr.
+//
+// Approximation V1 : distances Haversine × facteur de correction (cohérent avec
+// le reste du solveur, qui n'a pas de routing réel). La précision exacte montera
+// avec le routing/géoloc HDS — la contrainte reste une borne PRUDENTE en V1.
+// NB : le solveur ordonne aujourd'hui les passages en séquence pickup→dropoff
+// par patient (détour ≈ 0) ; ce filtre est un garde-fou de conformité qui mord
+// dès que la route entrelace réellement les prises en charge.
+
+/** Détour maximal par personne (km), dès la 2ᵉ — décret 2025-202. */
+export const DETOUR_MAX_PAR_PERSONNE_KM = 10;
+/** Détour cumulé maximal du groupement (km) — décret 2025-202. */
+export const DETOUR_MAX_TOTAL_KM = 30;
+
+export interface DetourStop {
+  rideId: string;
+  kind: 'pickup' | 'dropoff';
+}
+
+export interface DetourCheck {
+  /** false = groupement non remboursable (dépasse une limite du décret). */
+  compliant: boolean;
+  totalDetourKm: number;
+  perRideDetourKm: Record<string, number>;
+}
+
+/**
+ * Vérifie la conformité du détour d'un groupement ORDONNÉ vis-à-vis du décret
+ * 2025-202. `stops` = séquence réelle de passage (pickup/dropoff de chaque
+ * course). Le 1ᵉʳ patient pris en charge (1ᵉʳ `pickup` de la séquence) est la
+ * RÉFÉRENCE : exempt de la limite individuelle et exclu du total (« à partir de
+ * la 2ᵉ personne »).
+ */
+export function checkRegulatoryDetour(
+  rides: ReadonlyArray<RideNode>,
+  stops: ReadonlyArray<DetourStop>,
+  correctionFactor: number,
+): DetourCheck {
+  const rideById = new Map(rides.map((r) => [r.id, r] as const));
+  const coordOf = (s: DetourStop): readonly [number, number] => {
+    const r = rideById.get(s.rideId)!;
+    return s.kind === 'pickup' ? r.pickup : r.dropoff;
+  };
+
+  // Distance cumulée le long de la séquence (cum[i] = km du stop 0 au stop i).
+  const cum: number[] = [0];
+  for (let i = 1; i < stops.length; i += 1) {
+    const a = coordOf(stops[i - 1]!);
+    const b = coordOf(stops[i]!);
+    cum.push(cum[i - 1]! + haversineKm(a[0], a[1], b[0], b[1]) * correctionFactor);
+  }
+
+  const firstPickupRideId = stops.find((s) => s.kind === 'pickup')?.rideId;
+
+  const perRideDetourKm: Record<string, number> = {};
+  let totalDetourKm = 0;
+  let compliant = true;
+
+  for (const r of rides) {
+    const pIdx = stops.findIndex((s) => s.rideId === r.id && s.kind === 'pickup');
+    const dIdx = stops.findIndex((s) => s.rideId === r.id && s.kind === 'dropoff');
+    if (pIdx === -1 || dIdx === -1 || dIdx < pIdx) continue;
+    const inRoute = cum[dIdx]! - cum[pIdx]!;
+    const direct =
+      haversineKm(r.pickup[0], r.pickup[1], r.dropoff[0], r.dropoff[1]) * correctionFactor;
+    const detour = Math.max(0, inRoute - direct);
+    perRideDetourKm[r.id] = Math.round(detour * 100) / 100;
+    if (r.id === firstPickupRideId) continue; // 1ᵉʳ patient = référence (exempt).
+    totalDetourKm += detour;
+    if (detour > DETOUR_MAX_PAR_PERSONNE_KM) compliant = false;
+  }
+  if (totalDetourKm > DETOUR_MAX_TOTAL_KM) compliant = false;
+
+  return {
+    compliant,
+    totalDetourKm: Math.round(totalDetourKm * 100) / 100,
+    perRideDetourKm,
+  };
+}
+
 /**
  * Apparie les courses 2 par 2 (extensible à n si capacité véhicule OK) sur un
  * véhicule compatible. Greedy : on prend la première course non assignée, on
@@ -209,6 +297,8 @@ function buildGroupings(
   const assignedVehicles = new Set<string>();
   const groupements: Groupement[] = [];
   let kmAVideTotal = 0;
+  // DEC-169 — traçabilité : nb de groupements écartés pour détour réglementaire.
+  let ecartesDetour = 0;
   const windows = rides.map((r) => timeWindow(r.scheduled_at, r.urgency));
 
   for (let i = 0; i < rides.length; i += 1) {
@@ -261,8 +351,24 @@ function buildGroupings(
       }
     }
 
-    assignedVehicles.add(chosenVehicle.id);
     const { order, kmAVide } = orderGroupNearestNeighbor(group, depot, correctionFactor);
+
+    // DEC-169 — conformité détour (décret 2025-202) AVANT de committer le
+    // groupement. `order` = [pickup, dropoff] par course → stops dérivés. Si le
+    // détour dépasse les limites, le partage n'est pas remboursable : on REJETTE
+    // le groupement entier (option a, déterministe) → les courses redeviennent
+    // individuelles (retirées de `used`, sans consommer de véhicule).
+    const stops: DetourStop[] = order.map((rideId, idx) => ({
+      rideId,
+      kind: idx % 2 === 0 ? 'pickup' : 'dropoff',
+    }));
+    if (!checkRegulatoryDetour(group, stops, correctionFactor).compliant) {
+      group.forEach((g) => used.delete(g.id));
+      ecartesDetour += 1;
+      continue;
+    }
+
+    assignedVehicles.add(chosenVehicle.id);
 
     // Gain km à vide : distance approximative des courses séparées (2 trajets
     // depuis le dépôt vers chaque pickup) − km à vide réel du groupement.
@@ -284,6 +390,13 @@ function buildGroupings(
     kmAVideTotal += kmAVide;
   }
 
+  if (ecartesDetour > 0) {
+    // D-04 : transparence sans bloquer (le détour réglementaire a écarté des
+    // groupements qui auraient été non remboursables par la CGSS).
+    console.info(
+      `[solveLocal] ${ecartesDetour} groupement(s) écarté(s) : détour réglementaire (décret 2025-202).`,
+    );
+  }
   const ridesIsolees = rides.filter((r) => !used.has(r.id)).map((r) => r.id);
   return {
     groupements,
