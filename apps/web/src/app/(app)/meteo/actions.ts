@@ -112,7 +112,16 @@ const cancelBatchSchema = z.object({
   zone: z.string().trim().max(120).optional(),
 });
 
-type CancelledRide = { id: string; patient_id: string | null; driver_id: string | null };
+type CancelledRide = {
+  id: string;
+  patient_id: string | null;
+  driver_id: string | null;
+  ride_group_id: string | null;
+};
+
+// Statuts d'une course encore ACTIVE (ni brouillon ni annulée) — survivant d'un
+// groupe après annulation météo (DEC-175). Liste positive volontaire.
+const ACTIVE_RIDE_STATUSES = ['validee', 'assignee', 'en_cours', 'terminee'] as const;
 
 /** UPDATE en masse des courses du jour → `annulee_meteo` (compare-and-set statut). */
 async function cancelRides(
@@ -129,9 +138,53 @@ async function cancelRides(
     .in('status', ['validee', 'assignee']);
   if (zone) query = query.ilike('pickup_city', `%${zone}%`);
 
-  const upd = await query.select('id, patient_id, driver_id');
+  const upd = await query.select('id, patient_id, driver_id, ride_group_id');
   if (upd.error) return { error: 'Annulation des courses impossible.' };
   return { rides: (upd.data as unknown as CancelledRide[] | null) ?? [] };
+}
+
+/**
+ * Cohérence des demandes groupées impactées (DEC-175, fix B3) — BEST-EFFORT.
+ * Un `ride_group` `acceptee` dont TOUTES les courses sont désormais annulées
+ * passe `annulee` ; s'il reste ≥1 course active (ex. hors zone météo) il reste
+ * `acceptee`. Anti-N+1 : une requête d'agrégation pour les survivants, un seul
+ * UPDATE groupé. Un échec ne rollback JAMAIS l'annulation (déjà committée).
+ */
+async function reconcileWeatherGroups(ctx: AuthContext, rides: CancelledRide[]): Promise<void> {
+  try {
+    const groupIds = Array.from(
+      new Set(rides.map((r) => r.ride_group_id).filter((x): x is string => Boolean(x))),
+    );
+    if (groupIds.length === 0) return; // no-op : aucune course groupée touchée.
+
+    const survRes = await ctx.supabase
+      .from('rides')
+      .select('ride_group_id')
+      .in('ride_group_id', groupIds)
+      .in('status', [...ACTIVE_RIDE_STATUSES]);
+    if (survRes.error) {
+      console.error('[meteo groups] lecture survivants échouée:', survRes.error.message);
+      return;
+    }
+    const withSurvivors = new Set(
+      ((survRes.data as { ride_group_id: string | null }[] | null) ?? [])
+        .map((r) => r.ride_group_id)
+        .filter((x): x is string => Boolean(x)),
+    );
+    const fullyCancelled = groupIds.filter((id) => !withSurvivors.has(id));
+    if (fullyCancelled.length === 0) return; // tous les groupes ont des survivants.
+
+    const upd = await ctx.supabase
+      .from('ride_groups')
+      .update({ status: 'annulee' } as never)
+      .in('id', fullyCancelled)
+      .eq('status', 'acceptee'); // ne touche que les groupes actifs.
+    if (upd.error) {
+      console.error('[meteo groups] mise à jour des groupes échouée:', upd.error.message);
+    }
+  } catch (err) {
+    console.error('[meteo groups] échec global (best-effort, annulation conservée):', err);
+  }
 }
 
 /** Notifie chauffeurs impactés (push groupé par chauffeur), best-effort. */
@@ -181,9 +234,12 @@ export async function cancelRidesBatchWeatherAction(
     ctx.organizationId,
   );
   await notifyDrivers(ctx, rides, parsed.data.date);
+  // DEC-175 (B3) : cohérence des demandes groupées entièrement annulées.
+  await reconcileWeatherGroups(ctx, rides);
 
   revalidatePath('/meteo');
   revalidatePath('/cockpit');
   revalidatePath('/courses');
+  revalidatePath('/courses/demandes-groupees');
   return { success: true, cancelled: rides.length };
 }
