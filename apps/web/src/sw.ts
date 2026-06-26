@@ -7,15 +7,18 @@
  * Stratégies cache :
  *   - /api/driver/* → NetworkOnly (mutations JAMAIS cachées, retry
  *     géré côté client via sync engine Wave 4)
+ *   - navigation /cockpit → NetworkFirst (mode dégradé régulateur DEC-177 :
+ *     la page se charge hors-ligne ; la consultation lecture-seule est servie
+ *     depuis le miroir Dexie avec péremption 4h)
  *   - Default → defaultCache Serwist (StaleWhileRevalidate pour
  *     navigation /conduite/* + CacheFirst pour /_next/static/*)
  *
- * Refs : PLAN-3, DEC-019.
+ * Refs : PLAN-3, DEC-019, DEC-177.
  */
 
 import { defaultCache } from '@serwist/next/worker';
 import type { PrecacheEntry, SerwistGlobalConfig } from 'serwist';
-import { NetworkOnly, Serwist } from 'serwist';
+import { NetworkFirst, NetworkOnly, Serwist } from 'serwist';
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -34,6 +37,14 @@ const serwist = new Serwist({
     {
       matcher: ({ url }) => url.pathname.startsWith('/api/driver/'),
       handler: new NetworkOnly(),
+    },
+    {
+      // Navigation cockpit régulateur cachée pour la consultation hors-ligne
+      // (DEC-177). NetworkFirst : en ligne = page fraîche ; hors-ligne = dernier
+      // document servi (le contenu lecture-seule vient du miroir Dexie).
+      matcher: ({ url, request }) =>
+        request.mode === 'navigate' && url.pathname.startsWith('/cockpit'),
+      handler: new NetworkFirst({ cacheName: 'regulateur-cockpit-pages' }),
     },
     ...defaultCache,
   ],

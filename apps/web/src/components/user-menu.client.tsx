@@ -14,6 +14,7 @@ import { InitialsAvatar } from '@/components/ui/initials-avatar';
 import { useTheme } from '@/lib/use-theme.client';
 import { cn } from '@/lib/utils';
 import { signOutAction } from '@/app/(auth)/actions';
+import { clearRegulateurMirror } from '@/lib/offline/regulateur-db';
 
 type Role = 'dirigeant' | 'regulateur' | 'chauffeur';
 
@@ -91,7 +92,13 @@ export function UserMenu({ prenom, nom, email, role }: UserMenuProps): JSX.Eleme
         <DropdownMenuSeparator />
         <form action={signOutAction}>
           <DropdownMenuItem asChild>
-            <button type="submit" className="text-destructive focus:text-destructive w-full gap-12">
+            <button
+              type="submit"
+              // RGPD (DEC-177) : purge le miroir de consultation hors-ligne
+              // (contacts patient en cache local) avant la déconnexion.
+              onClick={() => void clearRegulateurMirror()}
+              className="text-destructive focus:text-destructive w-full gap-12"
+            >
               <LogOut className="h-16 w-16" aria-hidden />
               <span>Déconnexion</span>
             </button>

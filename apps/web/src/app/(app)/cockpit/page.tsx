@@ -7,6 +7,7 @@ import { getComplianceAlerts } from '../../(admin)/admin/conformite/_lib/get-com
 import { getPrescriptionAlerts } from './_lib/get-prescription-alerts';
 import { getCockpitAlertPreferences } from '@/lib/notifications/preferences';
 import { getActiveWeatherAlert } from '../meteo/_lib/queries';
+import { OfflineGate } from './_components/offline-gate.client';
 
 export const metadata = { title: 'Cockpit' };
 export const dynamic = 'force-dynamic';
@@ -174,15 +175,17 @@ export default async function CockpitPage() {
   const alerts = [...incidentAlerts, ...rideAlerts];
 
   return (
-    <CockpitContent
-      initialRides={rides}
-      initialAlerts={alerts}
-      initialPositions={positionsResult.positions}
-      driverLabels={positionsResult.driverLabels}
-      complianceAlerts={complianceAlerts}
-      prescriptionAlerts={prescriptionAlerts}
-      alertPreferences={alertPreferences}
-      weatherAlert={weatherAlert}
-    />
+    <OfflineGate>
+      <CockpitContent
+        initialRides={rides}
+        initialAlerts={alerts}
+        initialPositions={positionsResult.positions}
+        driverLabels={positionsResult.driverLabels}
+        complianceAlerts={complianceAlerts}
+        prescriptionAlerts={prescriptionAlerts}
+        alertPreferences={alertPreferences}
+        weatherAlert={weatherAlert}
+      />
+    </OfflineGate>
   );
 }
