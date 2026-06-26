@@ -653,6 +653,25 @@ plus récent + assertion d'ensemble + échec explicite si introuvable).
 
 ---
 
+## 13. Mode dégradé 5.24 — COMPLET (chauffeur + régulateur livré 13.01, DEC-177)
+
+CdG §5.24. **Chauffeur** : écriture hors-ligne (démarrage/clôture course) + file
+de mutations + sync différée (`lib/offline/`, Phase 04.9). **Régulateur — RÉSOLU
+(13.01)** : consultation hors-ligne du planning J/J+1 en LECTURE SEULE (store
+Dexie dédié `tap-regulateur-offline` avec contacts, péremption 4h stricte, SW
+NetworkFirst `/cockpit`, RGPD cache vidé à la déconnexion). Distinction assumée :
+le régulateur n'écrit PAS hors-ligne (pas de `PendingMutation`).
+
+> **Trous V1 fonctionnels majeurs : aucun restant sans préalable.** Restent des
+> chantiers à PRÉALABLE (KPIs économiques marge/coût km — nécessite un modèle de
+> coûts ; écart prévu/réalisé — nécessite le CA prévisionnel ; récurrentes/
+> ponctuelles — activer `rides.ride_recurrence_id` ; occupation/productivité/
+> litiges — cf. §9.4) et des blocages BUSINESS/INFRA (HDS §1.1 → scans bons +
+> géoloc réelle ; email §1.2 ; Lomaco §2.1 ; FEC §2.2 ; CTI §2.4) + extensions
+> tracées (§10/§11 météo & accompagnant, T4 2FA §10.2).
+
+---
+
 ## Synthèse — ce qui attend une DÉCISION ou un ACHAT de ta part
 | Item | Type | Action attendue |
 |------|------|-----------------|
