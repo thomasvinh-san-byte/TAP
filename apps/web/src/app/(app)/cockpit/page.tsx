@@ -6,6 +6,7 @@ import type { DriverPosition } from './_lib/use-driver-positions';
 import { getComplianceAlerts } from '../../(admin)/admin/conformite/_lib/get-compliance-alerts';
 import { getPrescriptionAlerts } from './_lib/get-prescription-alerts';
 import { getCockpitAlertPreferences } from '@/lib/notifications/preferences';
+import { getActiveWeatherAlert } from '../meteo/_lib/queries';
 
 export const metadata = { title: 'Cockpit' };
 export const dynamic = 'force-dynamic';
@@ -152,6 +153,7 @@ export default async function CockpitPage() {
     complianceAlerts,
     prescriptionAlerts,
     alertPreferences,
+    weatherAlert,
   ] = await Promise.all([
     getRidesToday(supabase, today),
     getCockpitRideEvents(supabase, today),
@@ -164,6 +166,8 @@ export default async function CockpitPage() {
     getPrescriptionAlerts(),
     // DEC-149 : préférences d'alertes du user (filtrage d'affichage du panel).
     getCockpitAlertPreferences(),
+    // DEC-170 : bandeau « mode alerte météo actif » si un épisode est en cours.
+    getActiveWeatherAlert(),
   ]);
 
   // Incidents d'abord (les plus critiques pour la régulation), puis ride_events.
@@ -178,6 +182,7 @@ export default async function CockpitPage() {
       complianceAlerts={complianceAlerts}
       prescriptionAlerts={prescriptionAlerts}
       alertPreferences={alertPreferences}
+      weatherAlert={weatherAlert}
     />
   );
 }
