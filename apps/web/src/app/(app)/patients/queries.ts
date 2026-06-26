@@ -229,3 +229,26 @@ export async function getPatientById(id: string) {
   if (error || !data) throw new Error('Patient introuvable');
   return data;
 }
+
+/**
+ * Référent légal d'un patient (DEC-172) — lecture des 4 colonnes pour le
+ * pré-remplissage du formulaire d'édition. Lit la table base (colonnes non
+ * sensibles, RLS-scopée) car la vue patients_safe ne les expose pas encore.
+ * `as never` : colonnes absentes de types.gen.ts jusqu'au resync (DEC-155).
+ */
+export type PatientReferentFields = {
+  referent_nom: string | null;
+  referent_lien: string | null;
+  referent_telephone: string | null;
+  referent_type: 'parental' | 'tutelle' | null;
+};
+
+export async function getPatientReferentFields(id: string): Promise<PatientReferentFields | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from('patients' as never)
+    .select('referent_nom, referent_lien, referent_telephone, referent_type')
+    .eq('id' as never, id as never)
+    .maybeSingle();
+  return (data as PatientReferentFields | null) ?? null;
+}

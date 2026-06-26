@@ -3,7 +3,7 @@ import { PageHeader } from '@/components/page-header';
 import { PatientForm } from '../../_components/patient-form.client';
 import { PatientFormConstraints } from '../../_components/patient-form-constraints.client';
 import { updatePatientAction } from '../../actions';
-import { getPatientById } from '../../queries';
+import { getPatientById, getPatientReferentFields } from '../../queries';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -43,6 +43,7 @@ export default async function EditPatientPage(props: PageProps) {
 
   const action = updatePatientAction.bind(null, p.id);
   const activeNote = p.patient_operational_note?.[0]?.content ?? '';
+  const referent = await getPatientReferentFields(p.id);
 
   return (
     <div className="space-y-32">
@@ -62,6 +63,10 @@ export default async function EditPatientPage(props: PageProps) {
           canal_contact_prefere: p.canal_contact_prefere,
           consentement_sms: p.consentement_sms,
           notes_operationnelles: activeNote,
+          referent_nom: referent?.referent_nom ?? undefined,
+          referent_lien: referent?.referent_lien ?? undefined,
+          referent_telephone: referent?.referent_telephone ?? undefined,
+          referent_type: referent?.referent_type ?? undefined,
         }}
         submitLabel="Enregistrer"
       />

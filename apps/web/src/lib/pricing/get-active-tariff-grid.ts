@@ -16,7 +16,8 @@ export async function getActiveTariffGrid(): Promise<TariffGrid | null> {
     .from('tariff_grids')
     .select(
       'forfait_eur, km_inclus, prix_km_eur, supplement_drom_eur, ' +
-        'supplement_tpmr_eur, majoration_pct, facteur_correction_routier, arrondi_eur',
+        'supplement_tpmr_eur, supplement_accompagnant_eur, majoration_pct, ' +
+        'facteur_correction_routier, arrondi_eur',
     )
     .lte('date_effet', today)
     .order('date_effet', { ascending: false })

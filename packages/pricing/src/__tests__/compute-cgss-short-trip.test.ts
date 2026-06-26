@@ -13,6 +13,7 @@ const GRID: TariffGrid = {
   prix_km_eur: 1.22,
   supplement_drom_eur: 3.0,
   supplement_tpmr_eur: 30.0,
+  supplement_accompagnant_eur: 5.0,
   majoration_pct: 50,
   facteur_correction_routier: 1.4,
   arrondi_eur: 0.05,
@@ -145,6 +146,46 @@ describe('computeCgssShortTrip', () => {
     // 2026-06-01 23h UTC = 2026-06-02 03h Réunion → nuit (03h < 8h).
     const r = computeCgssShortTrip(baseInput({ scheduled_at: '2026-06-01T23:00:00.000Z' }), GRID);
     expect(r.majoration_motif).toBe('nuit');
+  });
+
+  it('13. accompagnant payant → supplément de la grille ajouté (DEC-172)', () => {
+    const r = computeCgssShortTrip(
+      baseInput({
+        dropoff_lat: DROPOFF_SHORT.lat,
+        dropoff_lng: DROPOFF_SHORT.lng,
+        accompagnant_payant: true,
+      }),
+      GRID,
+    );
+    expect(r.supplement_accompagnant_eur).toBe(5);
+    expect(r.total_eur).toBe(21); // 13 forfait + 3 DROM + 5 accompagnant
+  });
+
+  it('14. accompagnant NON payant → supplément 0 (gratuit)', () => {
+    const r = computeCgssShortTrip(
+      baseInput({
+        dropoff_lat: DROPOFF_SHORT.lat,
+        dropoff_lng: DROPOFF_SHORT.lng,
+        accompagnant_payant: false,
+      }),
+      GRID,
+    );
+    expect(r.supplement_accompagnant_eur).toBe(0);
+    expect(r.total_eur).toBe(16); // 13 forfait + 3 DROM
+  });
+
+  it('15. accompagnant payant mais grille sans supplément → 0 (dégradation B2B)', () => {
+    const { supplement_accompagnant_eur: _omit, ...gridSansAccompagnant } = GRID;
+    const r = computeCgssShortTrip(
+      baseInput({
+        dropoff_lat: DROPOFF_SHORT.lat,
+        dropoff_lng: DROPOFF_SHORT.lng,
+        accompagnant_payant: true,
+      }),
+      gridSansAccompagnant,
+    );
+    expect(r.supplement_accompagnant_eur).toBe(0);
+    expect(r.total_eur).toBe(16);
   });
 });
 

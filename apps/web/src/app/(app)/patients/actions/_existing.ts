@@ -49,6 +49,10 @@ function parsePatientForm(formData: FormData) {
     consentement_sms: raw.consentement_sms === 'on',
     consentement_sms_at: raw.consentement_sms === 'on' ? new Date().toISOString() : undefined,
     notes_operationnelles: raw.notes_operationnelles?.trim() || undefined,
+    referent_nom: raw.referent_nom?.trim() || undefined,
+    referent_lien: raw.referent_lien?.trim() || undefined,
+    referent_telephone: raw.referent_telephone?.trim() || undefined,
+    referent_type: raw.referent_type || undefined,
     archive: false,
   });
 }
@@ -128,6 +132,10 @@ export async function createPatientAction(
       canal_contact_prefere: data.canal_contact_prefere,
       consentement_sms: data.consentement_sms,
       consentement_sms_at: data.consentement_sms_at ?? null,
+      referent_nom: data.referent_nom ?? null,
+      referent_lien: data.referent_lien ?? null,
+      referent_telephone: data.referent_telephone ?? null,
+      referent_type: data.referent_type ?? null,
       archive: false,
       created_by: user.id,
     } as never)
@@ -191,6 +199,10 @@ export async function updatePatientAction(
     canal_contact_prefere: data.canal_contact_prefere,
     consentement_sms: data.consentement_sms,
     consentement_sms_at: data.consentement_sms_at ?? null,
+    referent_nom: data.referent_nom ?? null,
+    referent_lien: data.referent_lien ?? null,
+    referent_telephone: data.referent_telephone ?? null,
+    referent_type: data.referent_type ?? null,
     updated_by: user.id,
   };
 

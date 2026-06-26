@@ -20,6 +20,8 @@ import { PatientPickerField } from './ride-patient-picker.client';
 import { OrderingPartyPickerField } from './ride-ordering-party-picker.client';
 import { PrescriptionPickerField } from './ride-prescription-picker.client';
 import { AddressOrPOIPicker } from './address-or-poi-picker.client';
+import { AccompagnantField } from './ride-accompagnant-field.client';
+import { MinorReferentWarning } from './minor-referent-warning.client';
 import {
   DateTimeFields,
   ModeUrgencyFields,
@@ -94,6 +96,9 @@ export function RideExpressModal(props: Props): JSX.Element {
       notes_regulateur: r.notes_regulateur ?? undefined,
       ordering_party_id: r.ordering_party_id ?? null,
       prescription_id: (r as { prescription_id?: string | null }).prescription_id ?? null,
+      accompagnant: r.accompagnant ?? false,
+      accompagnant_payant: r.accompagnant_payant ?? false,
+      accompagnant_identite: r.accompagnant_identite ?? undefined,
     }),
   );
 
@@ -222,6 +227,8 @@ export function RideExpressModal(props: Props): JSX.Element {
             error={fieldErrors.patient_id}
           />
 
+          <MinorReferentWarning patientId={form.patient_id} />
+
           <OrderingPartyPickerField
             selectedId={form.ordering_party_id ?? null}
             selectedLabel={orderingPartyLabel}
@@ -286,6 +293,21 @@ export function RideExpressModal(props: Props): JSX.Element {
             value={form.notes_regulateur ?? ''}
             onChange={(v) => updateField('notes_regulateur', v)}
             onBlur={() => void autosave.flushSave(form)}
+          />
+
+          <AccompagnantField
+            present={form.accompagnant ?? false}
+            payant={form.accompagnant_payant ?? false}
+            identite={form.accompagnant_identite ?? ''}
+            onPresentChange={(v) => {
+              updateField('accompagnant', v);
+              if (!v) {
+                updateField('accompagnant_payant', false);
+                updateField('accompagnant_identite', undefined);
+              }
+            }}
+            onPayantChange={(v) => updateField('accompagnant_payant', v)}
+            onIdentiteChange={(v) => updateField('accompagnant_identite', v)}
           />
 
           {!isEditMode && (

@@ -71,6 +71,12 @@ export function TariffEditSheet({
       defaultValue: current.supplement_tpmr_eur,
     },
     {
+      name: 'supplement_accompagnant_eur',
+      label: 'Supplément accompagnant (€)',
+      step: 0.01,
+      defaultValue: current.supplement_accompagnant_eur ?? 0,
+    },
+    {
       name: 'majoration_pct',
       label: 'Majoration (%)',
       step: 1,

@@ -33,6 +33,10 @@ export type RideSubmitFormState = {
   ordering_party_id?: string | null;
   /** Prescription / bon de transport (DEC-163) — optionnel, null = non conventionné */
   prescription_id?: string | null;
+  /** Accompagnant (DEC-172) — présence, facturation, identité libre */
+  accompagnant?: boolean;
+  accompagnant_payant?: boolean;
+  accompagnant_identite?: string;
 };
 
 export function useRideSubmit(args: {
@@ -65,6 +69,10 @@ export function useRideSubmit(args: {
         notes_regulateur: next.notes_regulateur,
         ordering_party_id: next.ordering_party_id ?? null,
         prescription_id: next.prescription_id ?? null,
+        accompagnant: next.accompagnant ?? false,
+        // Si pas d'accompagnant, jamais payant (cohérence) ni identité.
+        accompagnant_payant: next.accompagnant ? (next.accompagnant_payant ?? false) : false,
+        accompagnant_identite: next.accompagnant ? next.accompagnant_identite : undefined,
       });
       if (!validation.success) {
         const flat = validation.error.flatten().fieldErrors;

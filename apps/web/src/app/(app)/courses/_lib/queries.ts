@@ -36,6 +36,10 @@ export type RideRow = Database['public']['Tables']['rides']['Row'] & {
   ordering_party_id?: string | null;
   // Prescription / bon de transport (DEC-163) — absent de types.gen.ts jusqu'à régen.
   prescription_id?: string | null;
+  // Accompagnant (DEC-172) — absent de types.gen.ts jusqu'à régen.
+  accompagnant?: boolean | null;
+  accompagnant_payant?: boolean | null;
+  accompagnant_identite?: string | null;
 };
 export type RideDraftRow = Database['public']['Tables']['ride_draft']['Row'];
 export type RideTransportMode = Database['public']['Enums']['ride_transport_mode'];

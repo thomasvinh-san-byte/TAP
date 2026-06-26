@@ -30,8 +30,8 @@ async function getTarifsPageData(organizationId: string): Promise<TariffGridRow[
     .from('tariff_grids')
     .select(
       'id, date_effet, forfait_eur, km_inclus, prix_km_eur, ' +
-        'supplement_drom_eur, supplement_tpmr_eur, majoration_pct, ' +
-        'facteur_correction_routier, arrondi_eur',
+        'supplement_drom_eur, supplement_tpmr_eur, supplement_accompagnant_eur, ' +
+        'majoration_pct, facteur_correction_routier, arrondi_eur',
     )
     .eq('organization_id', organizationId)
     .order('date_effet', { ascending: false });

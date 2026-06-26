@@ -9,6 +9,7 @@ import {
   CoordinatesSection,
   IdentitySection,
   PreferencesSection,
+  ReferentLegalSection,
   type PatientFormDefaults,
 } from './patient-form-sections.client';
 import type { ActionState } from '../actions';
@@ -52,6 +53,7 @@ export function PatientForm({ action, defaultValues = {}, submitLabel }: Props) 
         </FormColumn>
         <FormColumn>
           <CoordinatesSection dv={dv} />
+          <ReferentLegalSection dv={dv} />
           <PatientFormNote defaultValue={dv.notes_operationnelles} />
         </FormColumn>
       </FormColumns>
