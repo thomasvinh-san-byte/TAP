@@ -3,6 +3,7 @@ export * from './patient';
 export * from './patient-constraint';
 export * from './patient-note';
 export * from './ride';
+export * from './ride-state-machine';
 export * from './driver';
 export * from './driver-position';
 export * from './vehicle';

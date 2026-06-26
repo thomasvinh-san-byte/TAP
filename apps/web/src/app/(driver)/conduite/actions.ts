@@ -28,6 +28,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { canTransition } from '@tap/shared';
 import { getAuthContext, type AuthContext } from '@/lib/auth/get-auth-context';
 
 export type ActionState = {
@@ -96,7 +97,8 @@ export async function startRideAction(rideId: string): Promise<ActionState> {
   if (currentRow.driver_id !== myDriverId) {
     return { error: 'Cette course ne vous est pas affectée.' };
   }
-  if (currentRow.status !== 'assignee') {
+  // DEC-178 : transition assignee → en_cours via la machine à états centralisée.
+  if (!canTransition(currentRow.status, 'en_cours')) {
     return {
       error:
         "Démarrage impossible : la course n'est pas en attente (statut : " +
@@ -179,7 +181,8 @@ export async function endRideAction(
   if (currentRow.driver_id !== myDriverId) {
     return { error: 'Cette course ne vous est pas affectée.' };
   }
-  if (currentRow.status !== 'en_cours') {
+  // DEC-178 : transition en_cours → terminee via la machine à états centralisée.
+  if (!canTransition(currentRow.status, 'terminee')) {
     return {
       error:
         "Clôture impossible : la course n'est pas en cours (statut : " + currentRow.status + ').',

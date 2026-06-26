@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { driverPositionInputSchema } from '@tap/shared';
+import { driverPositionInputSchema, canTransition } from '@tap/shared';
 import { requireDriverFromRouteHandler } from '@/lib/api/driver-auth';
 import { recordDriverPosition } from '@/lib/geoloc/record-position';
 import { withIdempotency } from '@/lib/api/idempotency';
@@ -91,7 +91,8 @@ export async function POST(req: NextRequest, props: { params: Promise<{ rideId: 
           body: { error: 'Cette course ne vous est pas affectée.' },
         };
       }
-      if (currentRow.status !== 'en_cours') {
+      // DEC-178 : transition en_cours → terminee via la machine à états centralisée.
+      if (!canTransition(currentRow.status, 'terminee')) {
         return {
           status: 409,
           body: {

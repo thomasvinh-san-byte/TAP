@@ -17,6 +17,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { RIDE_MODIFIABLE_STATUSES, isModifiableStatus } from '@tap/shared';
 import { getAuthContext } from '@/lib/auth/get-auth-context';
 import { sendPushToDriver } from '@/lib/push/send';
 import { notifyReassignedPatients } from './_lib/notify-reaffectation';
@@ -136,7 +137,8 @@ export async function reassignRidesBatchAction(
       .eq('id', item.rideId)
       .maybeSingle();
     const row = current as { status: string; driver_id: string | null } | null;
-    if (!row || !['validee', 'assignee'].includes(row.status)) continue;
+    // DEC-178 : réaffectation seulement sur une course encore modifiable.
+    if (!row || !isModifiableStatus(row.status)) continue;
 
     const upd = await ctx.supabase
       .from('rides')
@@ -147,7 +149,7 @@ export async function reassignRidesBatchAction(
         updated_by: ctx.userId,
       } as never)
       .eq('id', item.rideId)
-      .in('status', ['validee', 'assignee'])
+      .in('status', [...RIDE_MODIFIABLE_STATUSES])
       .select('id');
     if (!upd.error && upd.data && upd.data.length > 0) {
       reassigned += 1;

@@ -16,7 +16,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { rideExpressInputSchema } from '@tap/shared';
+import { rideExpressInputSchema, RIDE_MODIFIABLE_STATUSES } from '@tap/shared';
 import { getAuthContext } from '@/lib/auth/get-auth-context';
 import type { ActionState } from './_shared';
 import { REGULATEUR_OR_DIRIGEANT } from './_shared';
@@ -47,7 +47,8 @@ export async function updateRideAction(
       updated_by: ctx.userId,
     } as never)
     .eq('id', parsed.data.rideId)
-    .in('status', ['validee', 'assignee'])
+    // DEC-178 : statuts modifiables avant démarrage (machine à états centralisée).
+    .in('status', [...RIDE_MODIFIABLE_STATUSES])
     .select('id')
     .maybeSingle();
 

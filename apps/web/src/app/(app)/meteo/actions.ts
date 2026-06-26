@@ -18,6 +18,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { ACTIVE_RIDE_STATUSES, RIDE_MODIFIABLE_STATUSES } from '@tap/shared';
 import { getAuthContext, type AuthContext } from '@/lib/auth/get-auth-context';
 import { sendPushToDriver } from '@/lib/push/send';
 import { notifyWeatherCancellation } from './_lib/notify-weather';
@@ -119,10 +120,6 @@ type CancelledRide = {
   ride_group_id: string | null;
 };
 
-// Statuts d'une course encore ACTIVE (ni brouillon ni annulée) — survivant d'un
-// groupe après annulation météo (DEC-175). Liste positive volontaire.
-const ACTIVE_RIDE_STATUSES = ['validee', 'assignee', 'en_cours', 'terminee'] as const;
-
 /** UPDATE en masse des courses du jour → `annulee_meteo` (compare-and-set statut). */
 async function cancelRides(
   ctx: AuthContext,
@@ -135,7 +132,8 @@ async function cancelRides(
     .update({ status: 'annulee_meteo', cancel_motif: motif, updated_by: ctx.userId } as never)
     .gte('scheduled_at', `${date}T00:00:00`)
     .lte('scheduled_at', `${date}T23:59:59`)
-    .in('status', ['validee', 'assignee']);
+    // DEC-178 : sources légales d'une annulation (machine à états centralisée).
+    .in('status', [...RIDE_MODIFIABLE_STATUSES]);
   if (zone) query = query.ilike('pickup_city', `%${zone}%`);
 
   const upd = await query.select('id, patient_id, driver_id, ride_group_id');

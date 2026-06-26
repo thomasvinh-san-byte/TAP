@@ -672,6 +672,39 @@ le régulateur n'écrit PAS hors-ligne (pas de `PendingMutation`).
 
 ---
 
+## 14. Cycle de vie des courses — centralisé + testé (09.06, DEC-178)
+
+Les transitions de statut (`brouillon → validee → assignee → en_cours → terminee`
++ branches d'annulation) sont désormais une **machine à états unique testée**
+(`packages/shared/src/validators/ride-state-machine.ts` : `RIDE_TRANSITIONS`,
+`canTransition`, `RIDE_MODIFIABLE_STATUSES`, `ACTIVE_RIDE_STATUSES`). Toutes les
+actions (assign/unassign, conduite + api driver start/end, cancel, edit, météo,
+reassign, assignVehicle) en dérivent leur règle. **Pour tout futur statut ou
+transition** : éditer la table + les tests ; les actions suivent automatiquement.
+
+**Points TRACÉS pour validation / durcissement ultérieur** (comportement V1
+inchangé — non corrigés dans ce lot) :
+- **`annulee_chauffeur`** : valeur d'enum `ride_status` SANS aucun producteur
+  (aucune action ne l'écrit). Terminal sans arête entrante dans la machine. À
+  câbler si une annulation côté chauffeur devient un besoin métier, sinon
+  candidat à retrait d'enum.
+- **`cancelRideForNoShowAction` (cockpit) → `annulee_patient`** : ne vérifie PAS
+  le statut source (pas de compare-and-set sur `status`). Fonctionne sur n'importe
+  quel statut. Candidat durcissement : guarder via `canTransition(current,
+  'annulee_patient')`. Laissé tel quel (ne pas changer le comportement dans un
+  lot de centralisation).
+- **6 filtres `['validee','assignee']` de LECTURE** (crons reminders J1/J2h,
+  `recurrences.ts`, `patients/[id]/page.tsx`, `replanification/_lib/queries.ts`,
+  backfill géoloc `maintenance/actions.ts`) : ce sont des filtres de SÉLECTION
+  (pas des transitions). Ils pourraient adopter `RIDE_MODIFIABLE_STATUSES` pour
+  une cohérence totale, mais hors scope « transitions » — lot court optionnel.
+
+**Note** : le statut de GROUPE (`ride_group_status` : en_attente/acceptee/refusee/
+annulee) reste géré dans `groups.ts` + `meteo` uniquement (faible dispersion) —
+non couvert par cette machine (centrée sur `ride_status`).
+
+---
+
 ## Synthèse — ce qui attend une DÉCISION ou un ACHAT de ta part
 | Item | Type | Action attendue |
 |------|------|-----------------|
