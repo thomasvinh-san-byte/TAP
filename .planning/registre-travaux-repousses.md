@@ -593,6 +593,29 @@ n'est PAS tenu à jour avec les migrations récentes ; la source canonique reste
 > **`brouillon`** vérifié au passage : géré là où il importe (maps PDF donneurs,
 > `ride-badges`, exclusion cockpit `neq('status','brouillon')`).
 
+### Couplage app ↔ trigger SQL sur les statuts annulés (fix 12.05, DEC-174)
+
+**Effet de bord le plus grave de la série** : le trigger SQL de comptage des
+trajets de prescription (`rides_prescription_counter`) listait les statuts
+annulés EN DUR, sans `annulee_meteo` → une course annulée pour météo restait
+consommatrice → **trajet non rendu au patient = donnée de remboursement CGSS
+faussée** (pas un simple affichage comme 12.04). Corrigé par migration
+`20260613000004` (array aligné + recompute rétroactif).
+
+**Point de vigilance permanent** : le SQL **ne peut pas** importer la constante
+TS `RIDE_CANCELLED_STATUSES` (@tap/shared). L'array `cancelled` du trigger est
+donc un **duplicata manuel** à garder synchronisé. **Tout nouveau statut
+d'annulation `ride_status` doit être ajouté AUX DEUX endroits** :
+1. `RIDE_CANCELLED_STATUSES` (`packages/shared/src/validators/ride.ts`) ;
+2. l'array `cancelled` de `rides_prescription_counter` (via une nouvelle
+   migration `create or replace function`).
+
+**Leçon générale** : les listes de statuts « négatives » (à exclure / annuler)
+en dur sont la source des effets de bord d'ajout d'enum. Audit fait — le trigger
+prescription était le SEUL array de statuts annulés en SQL (l'index partiel de
+`rides_execution` est une liste POSITIVE de statuts actifs, correcte). À
+re-vérifier à chaque nouvelle fonction/trigger SQL touchant `ride_status`.
+
 ---
 
 ## Synthèse — ce qui attend une DÉCISION ou un ACHAT de ta part

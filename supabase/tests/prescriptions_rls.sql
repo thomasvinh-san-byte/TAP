@@ -12,7 +12,7 @@
 
 begin;
 
-select plan(14);
+select plan(16);
 
 insert into public.organizations (id, nom, ville, code_postal)
 values
@@ -178,6 +178,24 @@ update public.rides set status = 'annulee_regulateur', updated_by = 'aaaaaaaa-aa
 select is((select trajets_consommes from public.prescriptions
   where id = '99999999-0000-0000-0000-000000000001'), 4,
   'Idempotent : ré-écrire le même statut ne change pas le compteur');
+
+-- DEC-174 : une annulation MÉTÉO rend aussi le trajet (statut annulee_meteo
+-- inclus dans l'array `cancelled`). R2 consommatrice puis annulée météo.
+insert into public.rides (id, organization_id, patient_id, scheduled_at, pickup_address,
+  dropoff_address, status, prescription_id, created_by, updated_by)
+values ('60000000-0000-0000-0000-000000000002', '11111111-1111-1111-1111-111111111111',
+  '70000000-0000-0000-0000-0000000000a1', now(), 'A', 'B', 'validee',
+  '99999999-0000-0000-0000-000000000001',
+  'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa');
+select is((select trajets_consommes from public.prescriptions
+  where id = '99999999-0000-0000-0000-000000000001'), 5,
+  'Compteur +1 après une nouvelle course consommatrice (avant annulation météo)');
+
+update public.rides set status = 'annulee_meteo'
+  where id = '60000000-0000-0000-0000-000000000002';
+select is((select trajets_consommes from public.prescriptions
+  where id = '99999999-0000-0000-0000-000000000001'), 4,
+  'annulee_meteo rend le trajet au patient (DEC-174 : -1 a l''annulation meteo)');
 
 select * from finish();
 rollback;
