@@ -616,6 +616,23 @@ prescription était le SEUL array de statuts annulés en SQL (l'index partiel de
 `rides_execution` est une liste POSITIVE de statuts actifs, correcte). À
 re-vérifier à chaque nouvelle fonction/trigger SQL touchant `ride_status`.
 
+### Cohérence `ride_group` lors d'une annulation météo (fix 12.06, DEC-175) — B3
+
+**Effet de bord 12.01 (gravité faible)** : l'annulation en lot météo ignorait
+`ride_group_id` → une demande groupée B2B `acceptee` dont toutes les courses
+passent `annulee_meteo` restait `acceptee` (groupe fantôme : actif sans aucune
+course active). Corrigé : statut `annulee` ajouté à `ride_group_status` (migration
+`20260613000005`) + `reconcileWeatherGroups` (anti-N+1, best-effort) qui passe
+`annulee` les groupes sans course survivante (survie partielle → reste
+`acceptee`). Aucune map UI de statut groupe à étendre (seule la file `en_attente`
+est listée aujourd'hui).
+
+> **Audit transversal des effets de bord météo CLOS** : B1 (affichage, 12.04,
+> DEC-173), B2 (compteur de remboursement prescriptions — CRITIQUE, 12.05,
+> DEC-174), B3 (cohérence ride_group, 12.06, DEC-175). Le **couplage manuel
+> app ↔ trigger SQL** sur les statuts d'annulation (cf. ci-dessus) reste le seul
+> point de vigilance permanent à chaque nouveau statut `ride_status`.
+
 ---
 
 ## Synthèse — ce qui attend une DÉCISION ou un ACHAT de ta part
