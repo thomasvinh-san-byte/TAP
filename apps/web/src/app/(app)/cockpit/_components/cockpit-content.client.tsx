@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, CloudLightning } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/page-header';
+import type { WeatherAlert } from '../../meteo/_lib/queries';
 import { useCockpitAlerts } from '../_lib/use-cockpit-alerts';
 import { useCockpitRides } from '../_lib/use-cockpit-rides';
 import type { CockpitAlert, CockpitRide } from '../_lib/types';
@@ -32,6 +33,7 @@ export function CockpitContent({
   complianceAlerts,
   prescriptionAlerts,
   alertPreferences,
+  weatherAlert,
 }: {
   initialRides: CockpitRide[];
   initialAlerts: CockpitAlert[];
@@ -40,6 +42,7 @@ export function CockpitContent({
   complianceAlerts: ComplianceAlertEnriched[];
   prescriptionAlerts: PrescriptionAlertEnriched[];
   alertPreferences: CockpitAlertPreferences;
+  weatherAlert: WeatherAlert | null;
 }): JSX.Element {
   const { rides, status, newRideIds } = useCockpitRides(initialRides);
   const { alerts } = useCockpitAlerts(initialAlerts);
@@ -106,43 +109,62 @@ export function CockpitContent({
   }
 
   return (
-    <div className="flex flex-col gap-16 lg:flex-row lg:items-stretch lg:gap-24">
-      <section className="min-w-0 flex-1 space-y-16">
-        <PageHeader
-          title="Ma journée"
-          description={
-            <>
-              {rides.length} course{rides.length > 1 ? 's' : ''} planifiée
-              {rides.length > 1 ? 's' : ''} aujourd&apos;hui
-            </>
-          }
-          actions={
-            <>
-              <Button
-                asChild
-                variant="default"
-                className="min-h-[44px]"
-                data-testid="optimize-day-btn"
-              >
-                <Link href={`/cockpit/optimisation?date=${new Date().toISOString().slice(0, 10)}`}>
-                  <Sparkles className="mr-8 h-16 w-16" aria-hidden />
-                  Optimiser la journée
-                </Link>
-              </Button>
-              <RealtimeStatusBadge status={status} />
-            </>
-          }
-        />
-        <CoursesTable rides={rides} newRideIds={newRideIds} />
-        <DriverPositionsPanel initial={initialPositions} driverLabels={driverLabels} />
-      </section>
-      <aside className="lg:border-border flex w-full shrink-0 flex-col gap-24 lg:w-80 lg:border-l lg:pl-24">
-        <AlertsPanel alerts={visibleAlerts} />
-        <DraftsIndicator />
-        <ComplianceAlertsPanel alerts={complianceAlerts} variant="panel" limit={4} />
-        <PrescriptionAlertsPanel alerts={prescriptionAlerts} />
-      </aside>
-      {recentNoShowRide && <NoShowAlertModal ride={recentNoShowRide} onClose={dismissNoShow} />}
+    <div className="space-y-16">
+      {weatherAlert && (
+        <div
+          role="status"
+          className="border-destructive/40 bg-destructive/10 text-destructive flex items-center gap-12 rounded-lg border px-16 py-12 text-sm font-semibold"
+        >
+          <CloudLightning className="h-16 w-16 shrink-0" aria-hidden />
+          <span>
+            Mode alerte météo actif — {weatherAlert.motif}
+            {weatherAlert.zone ? ` (zone ${weatherAlert.zone})` : ''}.
+          </span>
+          <Link href="/meteo" className="ml-auto shrink-0 underline">
+            Gérer
+          </Link>
+        </div>
+      )}
+      <div className="flex flex-col gap-16 lg:flex-row lg:items-stretch lg:gap-24">
+        <section className="min-w-0 flex-1 space-y-16">
+          <PageHeader
+            title="Ma journée"
+            description={
+              <>
+                {rides.length} course{rides.length > 1 ? 's' : ''} planifiée
+                {rides.length > 1 ? 's' : ''} aujourd&apos;hui
+              </>
+            }
+            actions={
+              <>
+                <Button
+                  asChild
+                  variant="default"
+                  className="min-h-[44px]"
+                  data-testid="optimize-day-btn"
+                >
+                  <Link
+                    href={`/cockpit/optimisation?date=${new Date().toISOString().slice(0, 10)}`}
+                  >
+                    <Sparkles className="mr-8 h-16 w-16" aria-hidden />
+                    Optimiser la journée
+                  </Link>
+                </Button>
+                <RealtimeStatusBadge status={status} />
+              </>
+            }
+          />
+          <CoursesTable rides={rides} newRideIds={newRideIds} />
+          <DriverPositionsPanel initial={initialPositions} driverLabels={driverLabels} />
+        </section>
+        <aside className="lg:border-border flex w-full shrink-0 flex-col gap-24 lg:w-80 lg:border-l lg:pl-24">
+          <AlertsPanel alerts={visibleAlerts} />
+          <DraftsIndicator />
+          <ComplianceAlertsPanel alerts={complianceAlerts} variant="panel" limit={4} />
+          <PrescriptionAlertsPanel alerts={prescriptionAlerts} />
+        </aside>
+        {recentNoShowRide && <NoShowAlertModal ride={recentNoShowRide} onClose={dismissNoShow} />}
+      </div>
     </div>
   );
 }

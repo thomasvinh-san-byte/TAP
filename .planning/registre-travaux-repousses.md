@@ -480,6 +480,34 @@ data-cache). C'est le **préalable** de la gestion des prescriptions. Restent :
 
 ---
 
+## 10. Mode alerte météo / cyclone — extensions (cœur livré 12.01, DEC-170)
+
+Trou V1 critique (CdG l.380-385, US-REG-09). **T1 (cœur) — RÉSOLU (12.01,
+DEC-170)** : table dédiée `weather_alerts` (un seul épisode actif/org, index
+unique partiel, RLS forcée), statut `ride_status = annulee_meteo`,
+`setWeatherAlertAction` + bandeau cockpit, `cancelRidesBatchWeatherAction`
+(annulation masse jour/zone, compare-and-set `validee`/`assignee`), SMS
+`annulation_meteo` best-effort (socle 09.03/10.02) + push chauffeurs groupé
+(06.69). Route `/meteo` (régulateur). pgTAP 12.
+
+### 10.1 Replanification météo J+1/J+2 (report automatique)
+- **Raison** : après une journée annulée pour cyclone, reporter automatiquement
+  les courses récurrentes (dialyse) sur les jours suivants au lieu de les
+  ressaisir. Réutilisera le socle replanification (10.01, `proposeReassignments`)
+  et la génération de récurrences (`packages/recurrence`).
+- **Déblocage** : lot dédié ; dépend d'une règle métier de report (J+1 ? créneaux
+  disponibles ? priorités dialyse) à cadrer avec un design partner.
+
+### 10.2 Autres trous V1 restants (hors météo, à planifier)
+- **T2 — accompagnant patient** : modéliser la présence d'un accompagnant
+  (place supplémentaire, impact mutualisation/capacité). Lot métier dédié.
+- **T3 — incidents mineurs course** : typologie d'incidents légers (retard
+  patient, adresse erronée) distincte des pannes chauffeur (10.01). Lot dédié.
+- **T4 — 2FA dirigeant/régulateur** : authentification à deux facteurs optionnelle
+  (CLAUDE.md §6, déjà prévue désactivée pour le chauffeur). Lot sécurité dédié.
+
+---
+
 ## Synthèse — ce qui attend une DÉCISION ou un ACHAT de ta part
 | Item | Type | Action attendue |
 |------|------|-----------------|

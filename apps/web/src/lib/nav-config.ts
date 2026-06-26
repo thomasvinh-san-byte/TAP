@@ -44,6 +44,7 @@ const REGULATEUR_PRIMARY: NavTab[] = [
   { href: '/courses', label: 'Courses' },
   { href: '/courses/demandes-groupees', label: 'Demandes groupées' },
   { href: '/replanification', label: 'Replanification' },
+  { href: '/meteo', label: 'Météo' },
   { href: '/courses/caisse', label: 'Caisse' },
   { href: '/admin/chauffeurs', label: 'Chauffeurs' },
 ];
