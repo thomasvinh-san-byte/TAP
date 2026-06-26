@@ -148,6 +148,14 @@ EXTERNE (donnée/spec à obtenir d'un tiers).
 - **Décision** : Phase 06 (DEC-058). V1.5 = monopatient.
 - **Raison** : transport partagé = feature à part entière (UI courses groupées + abattements -23/-35/-37 %).
 - **Déblocage** : 🗳 prioriser ; chantier dédié.
+- **Conformité détour (T5) — RÉSOLU (11.01, DEC-169)** : le décret n°2025-202
+  du 28/02/2025 (détour ≤10 km/pers dès la 2ᵉ, ≤30 km total, sinon non
+  remboursable CGSS) est désormais appliqué par le solveur — un groupement non
+  conforme n'est pas proposé (`checkRegulatoryDetour`). **Précision** : la V1
+  utilise Haversine × correction (borne PRUDENTE) ; la précision EXACTE du détour
+  dépendra du **routing réel** (OSRM/distance routière, §4.1, post-HDS) — à
+  rebrancher sur le routing quand il sera disponible. Le pricing partagé
+  (abattements) reste à construire séparément.
 
 ### 4.3 Upload de scans (document_url conformité, bons de transport)
 - **Décision** : coquille UI posée (2026-06-10, DEC-143, flag `UPLOAD_DOCS_ENABLED` OFF) ; branchement Storage différé (bucket HDS).
