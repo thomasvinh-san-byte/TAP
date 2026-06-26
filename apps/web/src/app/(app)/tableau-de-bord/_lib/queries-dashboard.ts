@@ -1,4 +1,5 @@
 import 'server-only';
+import { RIDE_CANCELLED_STATUSES } from '@tap/shared';
 import { createClient } from '@/lib/supabase/server';
 import {
   getCoursesFacturables,
@@ -23,7 +24,8 @@ import { getSlaRules, type SlaRule } from './sla-status';
  * Caisse/Facturation — ce sont des comptes directs sur `rides` / `drivers`.
  */
 
-const STATUTS_ANNULEE = ['annulee_regulateur', 'annulee_patient', 'annulee_chauffeur'];
+// DEC-173 : source unique (inclut annulee_meteo) — plus d'énumération en dur.
+const STATUTS_ANNULEE: readonly string[] = RIDE_CANCELLED_STATUSES;
 
 export interface DashboardVolume {
   aujourdhui: number;
@@ -201,7 +203,7 @@ async function getIncidents(
       .select('id', { count: 'exact', head: true })
       .gte('scheduled_at', start)
       .lt('scheduled_at', end)
-      .in('status', STATUTS_ANNULEE),
+      .in('status', [...STATUTS_ANNULEE]),
     supabase
       .from('rides')
       .select('id', { count: 'exact', head: true })

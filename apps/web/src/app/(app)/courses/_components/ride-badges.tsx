@@ -21,6 +21,7 @@ export const STATUS_LABEL: Record<string, string> = {
   annulee_regulateur: 'Annulée',
   annulee_patient: 'Annulée (patient)',
   annulee_chauffeur: 'Annulée (chauffeur)',
+  annulee_meteo: 'Annulée (météo)',
   brouillon: 'Brouillon',
 };
 

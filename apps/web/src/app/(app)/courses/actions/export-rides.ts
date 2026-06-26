@@ -36,6 +36,7 @@ const exportSchema = z
         'annulee_regulateur',
         'annulee_patient',
         'annulee_chauffeur',
+        'annulee_meteo',
       ])
       .optional(),
     transportMode: z.enum(['taxi_conventionne', 'tpmr', 'vsl', 'ambulance']).optional(),
@@ -61,6 +62,7 @@ const STATUS_LABELS: Record<string, string> = {
   annulee_regulateur: 'Annulée (régulateur)',
   annulee_patient: 'Annulée (patient)',
   annulee_chauffeur: 'Annulée (chauffeur)',
+  annulee_meteo: 'Annulée (météo)',
 };
 
 const MODE_LABELS: Record<string, string> = {

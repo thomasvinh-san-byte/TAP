@@ -28,7 +28,8 @@ export type DriverRideStatus =
   | 'terminee'
   | 'annulee_regulateur'
   | 'annulee_patient'
-  | 'annulee_chauffeur';
+  | 'annulee_chauffeur'
+  | 'annulee_meteo';
 
 export type RideForDriverList = {
   id: string;

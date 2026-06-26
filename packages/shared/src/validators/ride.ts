@@ -15,6 +15,21 @@ export const rideUrgencySchema = z.enum(['programmee', 'urgente', 'immediate']);
 export type RideUrgency = z.infer<typeof rideUrgencySchema>;
 
 /**
+ * Statuts d'annulation d'une course (DEC-173). SOURCE UNIQUE — toute logique qui
+ * compte / filtre / affiche les courses annulées DOIT importer cette constante,
+ * jamais ré-énumérer en dur. Un nouvel ajout d'enum (ex. `annulee_meteo` en
+ * 12.01) faussait sinon le taux d'annulation du tableau de bord pendant un
+ * épisode cyclonique. 4 valeurs alignées sur l'enum Postgres `ride_status`.
+ */
+export const RIDE_CANCELLED_STATUSES = [
+  'annulee_regulateur',
+  'annulee_patient',
+  'annulee_chauffeur',
+  'annulee_meteo',
+] as const;
+export type RideCancelledStatus = (typeof RIDE_CANCELLED_STATUSES)[number];
+
+/**
  * Saisie express d'une course (CDC v2 § 5.8, DEC-005, D-08).
  * Cible : < 30 secondes pour la régulatrice (mesuré E2E SAIS-01).
  *

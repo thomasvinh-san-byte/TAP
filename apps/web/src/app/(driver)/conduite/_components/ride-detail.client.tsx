@@ -16,6 +16,7 @@ const STATUS_BAR: Record<string, string> = {
   annulee_regulateur: 'bg-destructive/60',
   annulee_patient: 'bg-destructive/60',
   annulee_chauffeur: 'bg-destructive/60',
+  annulee_meteo: 'bg-destructive/60',
 };
 
 function joinAddress(street: string, postal: string | null, city: string | null): string {
