@@ -498,13 +498,67 @@ unique partiel, RLS forcée), statut `ride_status = annulee_meteo`,
 - **Déblocage** : lot dédié ; dépend d'une règle métier de report (J+1 ? créneaux
   disponibles ? priorités dialyse) à cadrer avec un design partner.
 
-### 10.2 Autres trous V1 restants (hors météo, à planifier)
-- **T2 — accompagnant patient** : modéliser la présence d'un accompagnant
-  (place supplémentaire, impact mutualisation/capacité). Lot métier dédié.
-- **T3 — incidents mineurs course** : typologie d'incidents légers (retard
-  patient, adresse erronée) distincte des pannes chauffeur (10.01). Lot dédié.
+### 10.2 Autres trous V1 issus des user stories — statut
+- **T2 — accompagnant** : RÉSOLU (12.03, DEC-172). Cf. §11.
+- **T3 — mineur / sous tutelle + référent légal** : RÉSOLU (12.03, DEC-172,
+  logique sans scan). Cf. §11.
 - **T4 — 2FA dirigeant/régulateur** : authentification à deux facteurs optionnelle
-  (CLAUDE.md §6, déjà prévue désactivée pour le chauffeur). Lot sécurité dédié.
+  (CLAUDE.md §6, CdG l.128, déjà prévue désactivée pour le chauffeur). Supabase
+  Auth supporte le TOTP nativement (`config.toml [auth.mfa.totp]`). MIS DE CÔTÉ
+  par décision (prompt 12.02 interrompu) — lot sécurité dédié à reprendre :
+  enrôlement QR dans les réglages, challenge AAL2 au login, guard serveur
+  defense-in-depth ; 0 dépendance externe.
+
+---
+
+## 11. Accompagnant + mineur/référent légal — suites (logique livrée 12.03, DEC-172)
+
+Deux trous V1 connexes (US-REG-10). **T2 accompagnant — RÉSOLU** : colonnes
+`rides.accompagnant/accompagnant_payant/accompagnant_identite`, bloc de saisie,
+coût appliqué via la grille CGSS (`tariff_grids.supplement_accompagnant_eur`,
+moteur inchangé). **T3 mineur/tutelle — RÉSOLU (sans scan)** : référent légal
+patient + statut mineur dérivé de date_naissance + avertissement non bloquant à
+la saisie course.
+
+### 11.1 Règle de tarif accompagnant — validation métier
+- **À valider** : CPAM rembourse l'accompagnant « au même taux que le patient ».
+  La V1 implémente un SUPPLÉMENT paramétrable (terme additif soumis à la
+  majoration), **pas** un doublement du forfait. Confirmer avec un design partner
+  / la CGSS si la règle exacte est un forfait, un doublement, ou un %.
+- **Déblocage** : retour métier ; le moteur est déjà paramétrable (changer la
+  formule = lot court si doublement requis).
+
+### 11.2 Supplément accompagnant sur grille B2B
+- **Raison** : `ordering_party_tariff_grids` n'a pas la colonne
+  `supplement_accompagnant_eur` → le moteur retombe sur 0 pour les courses B2B
+  (dégradation gracieuse). Ajouter la colonne + le champ aux formulaires/validators
+  B2B si un donneur d'ordres facture l'accompagnant.
+- **Déblocage** : lot court symétrique à la grille CGSS, sur demande.
+
+### 11.3 Place accompagnant dans la capacité véhicule / mutualisation
+- **Raison** : un accompagnant occupe une place assise. Le solveur
+  (`solve-local.ts`, contrat `@tap/optimizer-client`) ne décrémente pas encore la
+  capacité pour l'accompagnant. À brancher quand la mutualisation serrera les
+  capacités (post-HDS routing réel).
+- **Déblocage** : étendre le contrat optimizer (nb passagers par course) ; lot
+  dédié.
+
+### 11.4 Scans autorisation parentale / jugement de tutelle (dépend HDS)
+- **Raison** : la colonne `patients.referent_document_url` est prévue mais reste
+  NULL — aucun Storage câblé. Le scan dépend du HDS, comme les bons de transport
+  (§4.3). À activer en Phase 09 (HDS).
+- **Déblocage** : Phase 09 HDS (Storage compatible santé).
+
+### 11.5 Affichage du référent dans le drawer patient
+- **Raison** : le drawer patient lit `patients_safe` (vue sans les colonnes
+  référent, non modifiée pour ne pas casser la fonction `search_patients`). Le
+  référent est saisissable et pré-rempli en édition, mais pas affiché en lecture
+  seule dans le drawer. Exposer le référent sur `patients_safe` (CREATE OR REPLACE,
+  colonnes en fin) au prochain resync de types.
+- **Déblocage** : lot court (vue + resync types.gen.ts).
+
+> **Tous les trous V1 issus des user stories sont désormais traités** sauf T4
+> (2FA, §10.2), mis de côté par décision.
 
 ---
 

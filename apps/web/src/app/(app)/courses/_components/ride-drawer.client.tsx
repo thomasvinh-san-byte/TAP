@@ -263,6 +263,9 @@ export function RideDrawer({ rideId, open, onOpenChange, onRequestAssign }: Prop
                       scheduled_at: ride.scheduled_at,
                       transport_mode: ride.transport_mode as TransportMode,
                       holidays974,
+                      accompagnant_payant:
+                        (ride as { accompagnant_payant?: boolean | null }).accompagnant_payant ??
+                        false,
                     },
                     tariffGrid,
                   )}

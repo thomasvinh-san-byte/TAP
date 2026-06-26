@@ -109,6 +109,51 @@ export function CoordinatesSection({ dv }: { dv: PatientFormDefaults }) {
   );
 }
 
+export function ReferentLegalSection({ dv }: { dv: PatientFormDefaults }) {
+  return (
+    <FormSection title="Référent légal (mineur / sous tutelle)">
+      <FormRow>
+        <div className="space-y-8">
+          <Label htmlFor="referent_nom">Nom du référent</Label>
+          <Input id="referent_nom" name="referent_nom" defaultValue={dv.referent_nom} />
+        </div>
+        <div className="space-y-8">
+          <Label htmlFor="referent_lien">Lien (parent, tuteur…)</Label>
+          <Input id="referent_lien" name="referent_lien" defaultValue={dv.referent_lien} />
+        </div>
+      </FormRow>
+      <FormRow>
+        <div className="space-y-8">
+          <Label htmlFor="referent_telephone">Téléphone du référent</Label>
+          <Input
+            id="referent_telephone"
+            name="referent_telephone"
+            defaultValue={dv.referent_telephone}
+            autoComplete="tel"
+          />
+        </div>
+        <div className="space-y-8">
+          <Label htmlFor="referent_type">Type d&apos;autorité</Label>
+          <select
+            id="referent_type"
+            name="referent_type"
+            defaultValue={dv.referent_type ?? ''}
+            className={NATIVE_SELECT_CLASS}
+          >
+            <option value="">—</option>
+            <option value="parental">Autorité parentale</option>
+            <option value="tutelle">Tutelle</option>
+          </select>
+        </div>
+      </FormRow>
+      <p className="text-muted-foreground text-sm">
+        Obligatoire pour un patient mineur ou sous tutelle. Le scan de l&apos;autorisation /
+        jugement sera ajouté ultérieurement.
+      </p>
+    </FormSection>
+  );
+}
+
 export function PreferencesSection({ dv }: { dv: PatientFormDefaults }) {
   return (
     <FormSection title="Préférences">

@@ -29,6 +29,10 @@ export function TariffGridCard({ grid }: { grid: TariffGridRow }): JSX.Element {
     { label: 'Prix au km (974)', value: `${formatEur(grid.prix_km_eur)}/km` },
     { label: 'Supplément DROM', value: formatEur(grid.supplement_drom_eur) },
     { label: 'Supplément TPMR', value: formatEur(grid.supplement_tpmr_eur) },
+    {
+      label: 'Supplément accompagnant',
+      value: formatEur(grid.supplement_accompagnant_eur ?? 0),
+    },
     { label: 'Majoration nuit/we/férié', value: `${grid.majoration_pct} %` },
     {
       label: 'Facteur de correction routier',

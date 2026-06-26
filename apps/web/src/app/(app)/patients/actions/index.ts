@@ -15,3 +15,4 @@ export * from './get-ride-defaults';
 export * from './archive';
 export * from './recurrences';
 export * from './prescriptions';
+export * from './referent-status';

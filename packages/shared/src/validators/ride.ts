@@ -51,6 +51,11 @@ export const rideExpressInputSchema = z.object({
   // course non conventionnée. L'obligation conventionnée est gérée par
   // AVERTISSEMENT UI, pas par contrainte bloquante.
   prescription_id: z.string().uuid().nullable().optional(),
+  // Accompagnant (CdG l.293, DEC-172) — OPTIONNEL. `accompagnant_payant`
+  // n'a de sens que si `accompagnant` ; le coût est appliqué via la grille.
+  accompagnant: z.boolean().default(false),
+  accompagnant_payant: z.boolean().default(false),
+  accompagnant_identite: z.string().trim().max(120).optional(),
 });
 export type RideExpressInput = z.infer<typeof rideExpressInputSchema>;
 

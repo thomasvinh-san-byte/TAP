@@ -86,6 +86,14 @@ export const patientSchema = z
     consentement_sms: z.boolean().default(false),
     consentement_sms_at: z.string().datetime({ offset: true }).optional(),
     notes_operationnelles: z.string().trim().max(500).optional(),
+    // Référent légal (DEC-172, T3) — obligatoire pour un mineur / sous tutelle,
+    // contrôlé par AVERTISSEMENT à la saisie (pas par contrainte bloquante).
+    // Tous optionnels en base (rétrocompat). Téléphone non restreint à la
+    // Réunion (un tuteur peut résider en métropole).
+    referent_nom: z.string().trim().max(80).optional(),
+    referent_lien: z.string().trim().max(80).optional(),
+    referent_telephone: z.string().trim().max(30).optional(),
+    referent_type: z.enum(['parental', 'tutelle']).optional(),
     archive: z.boolean().default(false),
   })
   .refine((data) => !data.consentement_sms || Boolean(data.consentement_sms_at), {

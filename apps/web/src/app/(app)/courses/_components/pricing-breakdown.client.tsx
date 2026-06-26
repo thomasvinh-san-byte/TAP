@@ -96,6 +96,15 @@ export function PricingBreakdown({ pricing, editable, onOverride }: Props): JSX.
           </div>
         )}
 
+        {pricing.supplement_accompagnant_eur > 0 && (
+          <div className="flex items-center justify-between">
+            <dt className="text-muted-foreground">Supplément accompagnant</dt>
+            <dd className="font-mono tabular-nums">
+              +{formatEur(pricing.supplement_accompagnant_eur)}
+            </dd>
+          </div>
+        )}
+
         {pricing.majoration_eur > 0 && pricing.majoration_motif !== null && (
           <div className="flex items-center justify-between">
             <dt className="text-muted-foreground">

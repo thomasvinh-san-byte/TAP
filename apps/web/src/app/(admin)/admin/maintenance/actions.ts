@@ -236,6 +236,7 @@ interface TarifRideRow {
   dropoff_lng: number | null;
   scheduled_at: string;
   transport_mode: string;
+  accompagnant_payant?: boolean | null;
 }
 
 export async function recomputeTarifsAction(): Promise<RecomputeTarifsResult> {
@@ -263,7 +264,8 @@ export async function recomputeTarifsAction(): Promise<RecomputeTarifsResult> {
   const target = await supabase
     .from('rides')
     .select(
-      'id, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng, ' + 'scheduled_at, transport_mode',
+      'id, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng, ' +
+        'scheduled_at, transport_mode, accompagnant_payant',
     )
     .eq('tarif_source', 'cgss_auto')
     .neq('payment_status', 'encaisse');
@@ -283,6 +285,7 @@ export async function recomputeTarifsAction(): Promise<RecomputeTarifsResult> {
         scheduled_at: ride.scheduled_at,
         transport_mode: ride.transport_mode as 'taxi_conventionne',
         holidays974,
+        accompagnant_payant: ride.accompagnant_payant ?? false,
       },
       grid,
     );
@@ -306,7 +309,7 @@ export async function recomputeTarifsAction(): Promise<RecomputeTarifsResult> {
     .from('rides')
     .select(
       'id, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng, ' +
-        'scheduled_at, transport_mode, ordering_party_id',
+        'scheduled_at, transport_mode, accompagnant_payant, ordering_party_id',
     )
     .eq('tarif_source', 'b2b_auto')
     .neq('payment_status', 'encaisse');
@@ -362,6 +365,7 @@ export async function recomputeTarifsAction(): Promise<RecomputeTarifsResult> {
         scheduled_at: ride.scheduled_at,
         transport_mode: ride.transport_mode as 'taxi_conventionne',
         holidays974,
+        accompagnant_payant: ride.accompagnant_payant ?? false,
       },
       grid,
     );

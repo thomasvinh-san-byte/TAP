@@ -34,7 +34,8 @@ const RIDE_COLUMNS =
   'archive, created_at, updated_at, created_by, updated_by, ' +
   'driver_id, vehicle_id, started_at, ended_at, ' +
   'tarif_amount_eur, tarif_source, payment_status, payment_method, ' +
-  'payment_received_at, ordering_party_id, prescription_id';
+  'payment_received_at, ordering_party_id, prescription_id, ' +
+  'accompagnant, accompagnant_payant, accompagnant_identite';
 
 export async function listRidesEnriched(
   params: {

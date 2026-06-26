@@ -59,6 +59,9 @@ export type PrefillRide = {
   urgency: string;
   notes_regulateur: string | null;
   ordering_party_id?: string | null;
+  accompagnant?: boolean | null;
+  accompagnant_payant?: boolean | null;
+  accompagnant_identite?: string | null;
   patient?: { prenom: string; nom: string } | null;
   ordering_party?: { id: string; raison_sociale: string } | null;
 };

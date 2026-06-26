@@ -18,4 +18,8 @@ export interface PatientFormDefaults {
   canal_contact_prefere?: 'sms' | 'appel' | 'aucun';
   consentement_sms?: boolean;
   notes_operationnelles?: string;
+  referent_nom?: string;
+  referent_lien?: string;
+  referent_telephone?: string;
+  referent_type?: 'parental' | 'tutelle';
 }

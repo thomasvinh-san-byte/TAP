@@ -26,6 +26,12 @@ export interface TariffGrid {
   prix_km_eur: number;
   supplement_drom_eur: number;
   supplement_tpmr_eur: number;
+  /**
+   * Supplément accompagnant payant (DEC-172). Optionnel : les grilles qui ne
+   * le portent pas (ex. grilles B2B avant extension) → supplément neutre 0.
+   * AUCUNE valeur hardcodée — vient de la grille (0 = « non configuré »).
+   */
+  supplement_accompagnant_eur?: number;
   majoration_pct: number;
   facteur_correction_routier: number;
   arrondi_eur: number;
@@ -41,6 +47,8 @@ export interface PricingInput {
   transport_mode: TransportMode;
   /** Jours fériés 974 au format YYYY-MM-DD (table holidays_974, DEC-059). */
   holidays974: Set<string>;
+  /** Accompagnant facturé (DEC-172) → applique le supplément de la grille. */
+  accompagnant_payant?: boolean;
 }
 
 export interface PricingResult {
@@ -52,6 +60,7 @@ export interface PricingResult {
   km_total_eur: number | null;
   supplement_drom_eur: number;
   supplement_tpmr_eur: number;
+  supplement_accompagnant_eur: number;
   majoration_pct: number;
   majoration_motif: MajorationMotif;
   majoration_eur: number;
@@ -124,6 +133,7 @@ export function computeCgssFromDistance(
     scheduled_at: string;
     transport_mode: TransportMode;
     holidays974: Set<string>;
+    accompagnant_payant?: boolean;
   },
   grid: TariffGrid,
 ): PricingResult {
@@ -141,26 +151,28 @@ export function computeCgssFromDistance(
 
   const supplement_drom_eur = grid.supplement_drom_eur;
   const supplement_tpmr_eur = params.transport_mode === 'tpmr' ? grid.supplement_tpmr_eur : 0;
+  // DEC-172 : supplément accompagnant payant, paramétré dans la grille (0 si
+  // non configuré). Soumis à la majoration comme les autres suppléments.
+  const supplement_accompagnant_eur = params.accompagnant_payant
+    ? (grid.supplement_accompagnant_eur ?? 0)
+    : 0;
 
   const majoration_motif = resolveMajorationMotif(
     toReunionLocal(params.scheduled_at),
     params.holidays974,
   );
   const baseMajorable =
-    grid.forfait_eur + (km_total_eur ?? 0) + supplement_drom_eur + supplement_tpmr_eur;
+    grid.forfait_eur +
+    (km_total_eur ?? 0) +
+    supplement_drom_eur +
+    supplement_tpmr_eur +
+    supplement_accompagnant_eur;
   const majoration_pct = majoration_motif ? grid.majoration_pct : 0;
   const majoration_eur = majoration_motif
     ? roundTo((baseMajorable * majoration_pct) / 100, grid.arrondi_eur)
     : 0;
 
-  const total_eur = roundTo(
-    grid.forfait_eur +
-      (km_total_eur ?? 0) +
-      supplement_drom_eur +
-      supplement_tpmr_eur +
-      majoration_eur,
-    grid.arrondi_eur,
-  );
+  const total_eur = roundTo(baseMajorable + majoration_eur, grid.arrondi_eur);
 
   return {
     forfait_eur: grid.forfait_eur,
@@ -171,6 +183,7 @@ export function computeCgssFromDistance(
     km_total_eur,
     supplement_drom_eur,
     supplement_tpmr_eur,
+    supplement_accompagnant_eur,
     majoration_pct,
     majoration_motif,
     majoration_eur,
@@ -202,6 +215,7 @@ export function computeCgssShortTrip(input: PricingInput, grid: TariffGrid): Pri
       scheduled_at: input.scheduled_at,
       transport_mode: input.transport_mode,
       holidays974: input.holidays974,
+      accompagnant_payant: input.accompagnant_payant,
     },
     grid,
   );
