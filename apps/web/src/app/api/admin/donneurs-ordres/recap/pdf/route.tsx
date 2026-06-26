@@ -30,6 +30,7 @@ const STATUS_LABELS: Record<string, string> = {
   annulee_regulateur: 'Annulée',
   annulee_patient: 'Annulée',
   annulee_chauffeur: 'Annulée',
+  annulee_meteo: 'Annulée (météo)',
 };
 
 interface RawRow {

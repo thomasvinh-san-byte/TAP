@@ -562,6 +562,39 @@ la saisie course.
 
 ---
 
+## 12. Leçon — cohérence des valeurs d'enum `ride_status` (fix 12.04, DEC-173)
+
+**Effet de bord observé (12.01 → corrigé 12.04)** : l'ajout de la valeur
+`annulee_meteo` à l'enum `ride_status` n'avait pas été propagé aux endroits qui
+ré-énuméraient « en dur » les statuts d'annulation → le taux d'annulation du
+tableau de bord excluait les annulations météo (faux pendant un cyclone).
+
+**Remède de fond** : constante partagée `RIDE_CANCELLED_STATUSES`
+(`@tap/shared`, `validators/ride.ts`). RÈGLE : **tout filtre/affichage des
+courses annulées DOIT importer cette constante** ; ne jamais ré-énumérer à 3
+valeurs.
+
+**Pour tout futur ajout de valeur à `ride_status`** (checklist) :
+- mettre à jour la constante partagée concernée (`RIDE_CANCELLED_STATUSES` ou
+  une nouvelle si autre famille) ;
+- vérifier les maps de labels/couleurs : `ride-badges.tsx` (régulateur),
+  `conduite/ride-card` + `ride-detail` (chauffeur), `export-rides.ts`, les deux
+  PDF recap (`chauffeurs`, `donneurs-ordres`) ;
+- vérifier les filtres z.enum (export) et les unions de type (`DriverRideStatus`) ;
+- NE PAS toucher les sites d'ÉCRITURE d'un statut précis (`groups`, `cockpit`,
+  `cancel`) — ils sont volontairement explicites.
+
+**`apps/web/src/lib/setup-sql.ts`** = snapshot Phase 0/1 FROZEN (ne contient ni
+`weather_alerts`, ni `ride_groups`, ni les colonnes accompagnant/référent). Il
+n'est PAS tenu à jour avec les migrations récentes ; la source canonique reste
+`supabase/migrations/*` (CLAUDE.md §13.5). À retirer ou régénérer un jour si le
+`/setup` local doit refléter l'état réel.
+
+> **`brouillon`** vérifié au passage : géré là où il importe (maps PDF donneurs,
+> `ride-badges`, exclusion cockpit `neq('status','brouillon')`).
+
+---
+
 ## Synthèse — ce qui attend une DÉCISION ou un ACHAT de ta part
 | Item | Type | Action attendue |
 |------|------|-----------------|
