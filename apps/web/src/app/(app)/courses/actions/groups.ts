@@ -107,7 +107,8 @@ export async function acceptRideGroupAction(groupId: string): Promise<ActionStat
     return { error: 'Demande déjà traitée ou introuvable.' };
   }
 
-  // Courses enfants brouillon → validee (deviennent fermes).
+  // Courses enfants brouillon → validee (deviennent fermes). DEC-178 : arête
+  // déclarée dans la machine à états ; `.eq('status','brouillon')` = atomicité.
   const r = await ctx.supabase
     .from('rides')
     .update({ status: 'validee' } as never)
@@ -146,7 +147,8 @@ export async function refuseRideGroupAction(
     return { error: 'Demande déjà traitée ou introuvable.' };
   }
 
-  // Courses enfants brouillon → annulee_regulateur (traçabilité).
+  // Courses enfants brouillon → annulee_regulateur (traçabilité). DEC-178 :
+  // arête déclarée dans la machine ; `.eq('status','brouillon')` = atomicité.
   const r = await ctx.supabase
     .from('rides')
     .update({ status: 'annulee_regulateur' } as never)

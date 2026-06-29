@@ -17,6 +17,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { canTransition, isModifiableStatus } from '@tap/shared';
 import { getAuthContext as getAuthContextWithRole } from '@/lib/auth/get-auth-context';
 import { sendPushToDriver } from '@/lib/push/send';
 import { checkAssignmentCompliance } from '../../../(admin)/admin/conformite/_lib/compliance-planning';
@@ -48,7 +49,8 @@ export async function assignRideAction(
     .single();
   const currentRow = current as { status: string; scheduled_at: string } | null;
   if (!currentRow) return { error: 'Course introuvable.' };
-  if (currentRow.status !== 'validee') {
+  // DEC-178 : transition validee → assignee via la machine à états centralisée.
+  if (!canTransition(currentRow.status, 'assignee')) {
     return {
       error: "Cette course n'est plus assignable (statut : " + currentRow.status + ').',
     };
@@ -136,7 +138,8 @@ export async function assignVehicleAction(
     .single();
   const currentRow = current as { status: string } | null;
   if (!currentRow) return { error: 'Course introuvable.' };
-  if (!['validee', 'assignee'].includes(currentRow.status)) {
+  // DEC-178 : un véhicule ne se (ré)affecte que sur une course encore modifiable.
+  if (!isModifiableStatus(currentRow.status)) {
     return {
       error: 'Affectation de véhicule impossible : statut ' + currentRow.status + '.',
     };
@@ -181,7 +184,10 @@ export async function unassignRideAction(rideId: string): Promise<ActionState> {
     .single();
   const currentRow = current as { status: string } | null;
   if (!currentRow) return { error: 'Course introuvable.' };
-  if (currentRow.status !== 'assignee') {
+  // DEC-178 : seule arête de désescalade vers `validee` (assignee → validee).
+  // Source unique explicite (brouillon → validee est l'acceptation de groupe,
+  // sémantiquement distincte) ; atomicité via `.eq('status','assignee')`.
+  if (!canTransition(currentRow.status, 'validee') || currentRow.status === 'brouillon') {
     return {
       error:
         "Désaffectation impossible : la course n'est pas en statut affectée (statut : " +
