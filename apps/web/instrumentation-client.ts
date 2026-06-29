@@ -13,17 +13,19 @@
 
 import * as Sentry from '@sentry/nextjs';
 import { sentryBeforeSend } from '@/lib/sentry/scrub';
+import { getClientAppEnv, isProdClientAppEnv } from '@/lib/app-env';
 
 const DSN = process.env.NEXT_PUBLIC_SENTRY_DSN;
 
 if (DSN) {
   Sentry.init({
     dsn: DSN,
-    environment: process.env.NEXT_PUBLIC_VERCEL_ENV ?? process.env.NODE_ENV,
+    // OVH-02 : environnement client découplé de l'hébergeur (repli NEXT_PUBLIC_VERCEL_ENV → NODE_ENV).
+    environment: getClientAppEnv(),
     enabled: process.env.NODE_ENV === 'production',
     sendDefaultPii: false,
     // Sampling : 100% en preview, 10% en prod (cf. DSN par env).
-    tracesSampleRate: process.env.NEXT_PUBLIC_VERCEL_ENV === 'production' ? 0.1 : 1.0,
+    tracesSampleRate: isProdClientAppEnv() ? 0.1 : 1.0,
     // Replay laissé OFF par défaut (cf. PII santé). Pour activer un jour :
     // integrations: [Sentry.replayIntegration({ maskAllText: true, blockAllMedia: true })],
     integrations: [],
