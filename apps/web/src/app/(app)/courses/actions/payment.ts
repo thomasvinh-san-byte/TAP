@@ -79,5 +79,8 @@ export async function updateRidePaymentAction(
   }
 
   revalidatePath('/courses');
+  // CAISSE-01 : rafraîchit la vue « à encaisser » (une course encaissée doit en
+  // disparaître) et le journal encaissé.
+  revalidatePath('/courses/caisse');
   return { success: true, id: parsed.data.rideId };
 }
