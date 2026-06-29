@@ -39,6 +39,7 @@ export {
   listActiveOrderingPartiesAction,
   getActiveTariffGridAction,
   getAssignmentComplianceContextAction,
+  getRideDriverPreferencesAction,
 } from './list';
 export { exportRidesCsvAction } from './export-rides';
 export type { ExportRidesInput, ExportRidesResult } from './export-rides';
