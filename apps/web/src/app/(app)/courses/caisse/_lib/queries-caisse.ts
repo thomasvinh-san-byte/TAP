@@ -117,3 +117,64 @@ export async function listRidesEncaissees(
 
   return { rows, totals };
 }
+
+// CAISSE-01 : l'encours « à encaisser » est un STOCK (créances en attente), pas
+// le journal d'un jour. Borné à 12 mois (`ended_at`), cohérent avec le KPI
+// encours du tableau de bord (KPI-02) — au-delà, c'est un traitement comptable.
+const AENCAISSER_WINDOW_DAYS = 365;
+
+export interface AEncaisserFilters {
+  driverId?: string;
+}
+
+export interface AEncaisserResult {
+  rows: CaisseRow[];
+  total_eur: number;
+  count: number;
+}
+
+/**
+ * Courses RESTANT à encaisser (CAISSE-01) — `status='terminee'` ET
+ * `payment_status='a_encaisser'`. Stock cumulé (fenêtre 12 mois), trié par
+ * ancienneté croissante (`ended_at` asc — les plus vieilles créances d'abord,
+ * les plus à risque). Pas de ventilation par mode (la course n'a pas encore de
+ * mode de paiement). Mêmes jointures patient/chauffeur que `listRidesEncaissees`.
+ */
+export async function listRidesAEncaisser(filters: AEncaisserFilters): Promise<AEncaisserResult> {
+  const supabase = await createClient();
+  const since = new Date(Date.now() - AENCAISSER_WINDOW_DAYS * 86_400_000).toISOString();
+
+  let q = supabase
+    .from('rides')
+    .select(
+      `id, scheduled_at, ended_at,
+       tarif_amount_eur, payment_method, payment_status, payment_received_at,
+       patient:patients!inner(nom, prenom),
+       driver:drivers(nom_affichage)`,
+    )
+    .eq('status', 'terminee')
+    .eq('payment_status', 'a_encaisser')
+    .gte('ended_at', since)
+    .order('ended_at', { ascending: true });
+
+  if (filters.driverId) q = q.eq('driver_id', filters.driverId);
+
+  const res = await q;
+  if (res.error || !res.data) return { rows: [], total_eur: 0, count: 0 };
+
+  const rows: CaisseRow[] = (res.data as unknown as RawRow[]).map((r) => ({
+    id: r.id,
+    scheduled_at: r.scheduled_at,
+    ended_at: r.ended_at,
+    tarif_amount_eur: r.tarif_amount_eur,
+    payment_method: r.payment_method,
+    payment_status: r.payment_status,
+    payment_received_at: r.payment_received_at,
+    patient_nom: r.patient?.nom ?? '',
+    patient_prenom: r.patient?.prenom ?? '',
+    driver_nom: r.driver?.nom_affichage ?? '',
+  }));
+
+  const total_eur = rows.reduce((acc, r) => acc + Number(r.tarif_amount_eur ?? 0), 0);
+  return { rows, total_eur, count: rows.length };
+}

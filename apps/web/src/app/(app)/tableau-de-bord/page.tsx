@@ -219,7 +219,7 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
             context={`${data.encoursImpaye.count} course${
               data.encoursImpaye.count > 1 ? 's' : ''
             } à encaisser`}
-            action={{ href: '/courses/caisse', label: 'Encaisser' }}
+            action={{ href: '/courses/caisse?vue=a_encaisser', label: 'Encaisser' }}
           />
           <KpiCard
             variant="simple"

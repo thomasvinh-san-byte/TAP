@@ -3,6 +3,7 @@ import { PageHeader } from '@/components/page-header';
 import { listActiveDriversAction } from '../actions';
 import {
   listRidesEncaissees,
+  listRidesAEncaisser,
   type CaisseFilters,
   type CaisseSortColumn,
   type CaisseSortDir,
@@ -10,12 +11,14 @@ import {
 } from './_lib/queries-caisse';
 import { CaisseSummary } from './_components/caisse-summary.client';
 import { CaisseTable } from './_components/caisse-table.client';
-import { CaisseToolbar } from './_components/caisse-toolbar.client';
+import { CaisseTableAEncaisser } from './_components/caisse-table-a-encaisser.client';
+import { CaisseToolbar, type CaisseVue } from './_components/caisse-toolbar.client';
 
 export const metadata = { title: 'Caisse' };
 
 interface PageProps {
   searchParams: Promise<{
+    vue?: string;
     date?: string;
     driver_id?: string;
     payment_method?: string;
@@ -23,6 +26,8 @@ interface PageProps {
     dir?: string;
   }>;
 }
+
+const eur = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
 
 const VALID_SORTS: CaisseSortColumn[] = ['date', 'tarif'];
 const VALID_DIRS: CaisseSortDir[] = ['asc', 'desc'];
@@ -35,6 +40,7 @@ function todayIso(): string {
 export default async function CaissePage(props: PageProps) {
   const searchParams = await props.searchParams;
   await requireAdminOrRegulateurPage();
+  const vue: CaisseVue = searchParams.vue === 'a_encaisser' ? 'a_encaisser' : 'encaissees';
   const date = /^\d{4}-\d{2}-\d{2}$/.test(searchParams.date ?? '')
     ? (searchParams.date as string)
     : todayIso();
@@ -56,10 +62,31 @@ export default async function CaissePage(props: PageProps) {
     dir,
   };
 
-  const [{ rows, totals }, drivers] = await Promise.all([
-    listRidesEncaissees(filters),
-    listActiveDriversAction(),
-  ]);
+  const drivers = await listActiveDriversAction();
+
+  if (vue === 'a_encaisser') {
+    const { rows, total_eur, count } = await listRidesAEncaisser({
+      driverId: searchParams.driver_id,
+    });
+    return (
+      <div className="max-w-[1280px] space-y-24">
+        <PageHeader
+          title="Caisse"
+          description="Courses terminées restant à encaisser. Plus anciennes d'abord."
+        />
+        <CaisseToolbar vue={vue} date={date} drivers={drivers} filters={filters} />
+        <div className="border-border bg-muted/20 flex items-baseline gap-12 rounded-md border p-16">
+          <span className="text-2xl font-semibold tabular-nums">{eur.format(total_eur)}</span>
+          <span className="text-muted-foreground text-sm tabular-nums">
+            à encaisser · {count} course{count > 1 ? 's' : ''}
+          </span>
+        </div>
+        <CaisseTableAEncaisser rows={rows} />
+      </div>
+    );
+  }
+
+  const { rows, totals } = await listRidesEncaissees(filters);
 
   return (
     <div className="max-w-[1280px] space-y-24">
@@ -67,7 +94,7 @@ export default async function CaissePage(props: PageProps) {
         title="Caisse"
         description="Encaissements de la journée. Total et détail par course."
       />
-      <CaisseToolbar date={date} drivers={drivers} filters={filters} />
+      <CaisseToolbar vue={vue} date={date} drivers={drivers} filters={filters} />
       <CaisseSummary totals={totals} />
       <CaisseTable rows={rows} sort={sort} dir={dir} date={date} />
     </div>
