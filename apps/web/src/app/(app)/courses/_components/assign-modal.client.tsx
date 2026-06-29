@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { AlertCircle, AlertTriangle, CarTaxiFront, Search } from 'lucide-react';
+import { AlertCircle, AlertTriangle, CarTaxiFront, Search, Star, UserX } from 'lucide-react';
 import { isCompatible } from '@tap/shared';
 import {
   Dialog,
@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 import {
   assignRideAction,
   getAssignmentComplianceContextAction,
+  getRideDriverPreferencesAction,
   listActiveDriversAction,
   listActiveVehiclesAction,
 } from '../actions';
@@ -36,6 +37,13 @@ interface Props {
 
 function normalize(s: string): string {
   return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+/** Ordre d'affichage : préféré en tête, évité en bas (PATIENT-02). */
+function preferenceRank(kind: 'prefere' | 'evite' | undefined): number {
+  if (kind === 'prefere') return 0;
+  if (kind === 'evite') return 2;
+  return 1;
 }
 
 /**
@@ -92,6 +100,19 @@ export function AssignModal({ rideId, open, onOpenChange }: Props): JSX.Element 
     enabled: open,
     staleTime: 60_000,
   });
+  // PATIENT-02 : préférences chauffeur du patient de la course (préféré /
+  // évité). Lecture seule, ne touche ni le solveur ni l'assignation.
+  const preferencesQuery = useQuery({
+    queryKey: ['ride-driver-preferences', rideId],
+    queryFn: () => getRideDriverPreferencesAction(rideId as string),
+    enabled: open && !!rideId,
+    staleTime: 60_000,
+  });
+  const driverPreferenceById = React.useMemo(
+    () => preferencesQuery.data?.byDriverId ?? {},
+    [preferencesQuery.data],
+  );
+
   const complianceMode = complianceQuery.data?.mode ?? 'warn';
   const driverComplianceById: Record<string, EntityComplianceState> =
     complianceQuery.data?.lookup.byDriverId ?? {};
@@ -117,26 +138,41 @@ export function AssignModal({ rideId, open, onOpenChange }: Props): JSX.Element 
   //   incompatibles ensuite avec badge destructive
   const filteredDrivers = React.useMemo(() => {
     const matched = nq ? drivers.filter((d) => normalize(d.nom_affichage).includes(nq)) : drivers;
+    // Tri secondaire commun : préféré en tête, évité en bas, puis nom.
+    const byPreferenceThenName = (
+      a: { id: string; nom_affichage: string },
+      b: { id: string; nom_affichage: string },
+    ): number => {
+      const rank =
+        preferenceRank(driverPreferenceById[a.id]) - preferenceRank(driverPreferenceById[b.id]);
+      if (rank !== 0) return rank;
+      return a.nom_affichage.localeCompare(b.nom_affichage, 'fr');
+    };
     if (!selectedVehicle) {
-      return matched.map((d) => ({ ...d, compatible: true as const }));
+      return matched.map((d) => ({ ...d, compatible: true as const })).sort(byPreferenceThenName);
     }
     const withCompat = matched.map((d) => ({
       ...d,
       compatible: isCompatible({ driver: d, vehicle: selectedVehicle }),
     }));
     if (showCompatibleOnly) {
-      return withCompat.filter((d) => d.compatible);
+      return withCompat.filter((d) => d.compatible).sort(byPreferenceThenName);
     }
     return [...withCompat].sort((a, b) => {
       if (a.compatible !== b.compatible) return a.compatible ? -1 : 1;
-      return a.nom_affichage.localeCompare(b.nom_affichage, 'fr');
+      return byPreferenceThenName(a, b);
     });
-  }, [drivers, nq, selectedVehicle, showCompatibleOnly]);
+  }, [drivers, nq, selectedVehicle, showCompatibleOnly, driverPreferenceById]);
 
   const selectedIncompatible =
     selectedDriver !== null &&
     selectedVehicle !== null &&
     !isCompatible({ driver: selectedDriver, vehicle: selectedVehicle });
+
+  // PATIENT-02 : chauffeur sélectionné marqué « à éviter » pour ce patient.
+  // Avertissement franchissable — n'empêche JAMAIS l'assignation.
+  const selectedAvoided =
+    selectedDriver !== null && driverPreferenceById[selectedDriver.id] === 'evite';
 
   // Phase 06.35 DEC-114 : flags conformité sélection courante.
   const selectedDriverState = selectedDriverId ? driverComplianceById[selectedDriverId] : null;
@@ -270,6 +306,7 @@ export function AssignModal({ rideId, open, onOpenChange }: Props): JSX.Element 
                   const driverState = driverComplianceById[d.id];
                   const driverNonConforme = driverState ? isPlanningBlocking(driverState) : false;
                   const blockedRow = complianceMode === 'block' && driverNonConforme;
+                  const preference = driverPreferenceById[d.id];
                   return (
                     <li key={d.id}>
                       <button
@@ -293,6 +330,24 @@ export function AssignModal({ rideId, open, onOpenChange }: Props): JSX.Element 
                       >
                         <InitialsAvatar name={d.nom_affichage} role="chauffeur" size={24} />
                         <span className="min-w-0 flex-1 truncate text-sm">{d.nom_affichage}</span>
+                        {preference === 'prefere' && (
+                          <span
+                            className="border-success/30 bg-success/10 text-success inline-flex items-center gap-4 rounded-md border px-8 py-2 text-[11px] font-medium"
+                            aria-label="Préféré du patient"
+                          >
+                            <Star className="h-12 w-12 shrink-0" aria-hidden />
+                            <span>Préféré</span>
+                          </span>
+                        )}
+                        {preference === 'evite' && (
+                          <span
+                            className="border-warning/30 bg-warning/10 text-warning inline-flex items-center gap-4 rounded-md border px-8 py-2 text-[11px] font-medium"
+                            aria-label="À éviter pour ce patient"
+                          >
+                            <UserX className="h-12 w-12 shrink-0" aria-hidden />
+                            <span>À éviter</span>
+                          </span>
+                        )}
                         {driverNonConforme && (
                           <span
                             className="text-destructive inline-flex items-center gap-4 text-xs"
@@ -343,6 +398,20 @@ export function AssignModal({ rideId, open, onOpenChange }: Props): JSX.Element 
               <p className="text-foreground text-sm">
                 Ce chauffeur n'a pas le permis requis pour ce véhicule. Confirmez en connaissance de
                 cause.
+              </p>
+            </div>
+          )}
+
+          {selectedAvoided && (
+            <div
+              role="alert"
+              aria-live="polite"
+              className="bg-warning/10 border-warning/30 flex items-start gap-12 rounded-md border px-16 py-12"
+            >
+              <UserX className="text-warning mt-2 h-16 w-16 shrink-0" aria-hidden />
+              <p className="text-foreground text-sm">
+                Ce chauffeur est marqué « à éviter » pour ce patient. Vous pouvez tout de même
+                l'assigner si nécessaire.
               </p>
             </div>
           )}

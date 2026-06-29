@@ -17,3 +17,4 @@ export * from './recurrences';
 export * from './prescriptions';
 export * from './referent-status';
 export * from './incidents';
+export * from './driver-preferences';

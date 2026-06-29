@@ -95,6 +95,27 @@ export async function getAssignmentComplianceContextAction() {
 }
 
 /**
+ * PATIENT-02 — préférences chauffeur du patient d'une course, pour décorer le
+ * modal d'assignation (préféré mis en avant, évité = avertissement
+ * franchissable). Retourne un lookup driverId → kind. Lecture seule, ne touche
+ * NI le solveur NI `assignRideAction` : purement informatif.
+ */
+export async function getRideDriverPreferencesAction(
+  rideId: string,
+): Promise<{ byDriverId: Record<string, 'prefere' | 'evite'> }> {
+  const empty = { byDriverId: {} as Record<string, 'prefere' | 'evite'> };
+  if (!z.string().uuid().safeParse(rideId).success) return empty;
+  const { createClient } = await import('@/lib/supabase/server');
+  const { getDriverPreferenceLookupForPatient } =
+    await import('../../patients/[id]/_lib/driver-preferences');
+  const supabase = await createClient();
+  const { data } = await supabase.from('rides').select('patient_id').eq('id', rideId).maybeSingle();
+  const patientId = (data as { patient_id: string } | null)?.patient_id;
+  if (!patientId) return empty;
+  return { byDriverId: await getDriverPreferenceLookupForPatient(patientId) };
+}
+
+/**
  * Grille tarifaire active + jours fériés 974 pour le calcul pricing
  * côté client (Phase 05.5 — `computeCgssShortTrip` prend la grille en
  * paramètre, DEC-057). Consommé par RideDrawer via useQuery.

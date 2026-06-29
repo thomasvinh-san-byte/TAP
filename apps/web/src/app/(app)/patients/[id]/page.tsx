@@ -16,6 +16,9 @@ import {
 } from './_components/prescriptions-section.client';
 import { PatientIncidentsSection } from './_components/patient-incidents-section.client';
 import { getPatientIncidents } from './_lib/incidents';
+import { PatientDriverPreferencesSection } from './_components/patient-driver-preferences-section.client';
+import { getPatientDriverPreferences } from './_lib/driver-preferences';
+import { listActiveDrivers } from '../../courses/_lib/queries';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -121,6 +124,13 @@ export default async function PatientPage(props: PageProps) {
     }`,
   }));
 
+  // Préférences chauffeur (PATIENT-02) + référentiel chauffeurs actifs.
+  const [driverPreferences, activeDrivers] = await Promise.all([
+    getPatientDriverPreferences(p.id),
+    listActiveDrivers(),
+  ]);
+  const driverOptions = activeDrivers.map((d) => ({ id: d.id, label: d.nom_affichage }));
+
   return (
     <div className="space-y-24">
       <PageHeader
@@ -173,6 +183,13 @@ export default async function PatientPage(props: PageProps) {
           tone: incidentsRecap.tone,
         }}
         rideOptions={rideOptions}
+      />
+
+      <PatientDriverPreferencesSection
+        patientId={p.id}
+        prefere={driverPreferences.prefere}
+        evite={driverPreferences.evite}
+        driverOptions={driverOptions}
       />
 
       <section className="space-y-8">
