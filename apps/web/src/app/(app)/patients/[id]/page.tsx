@@ -14,6 +14,8 @@ import {
   PrescriptionsSection,
   type PrescriberOption,
 } from './_components/prescriptions-section.client';
+import { PatientIncidentsSection } from './_components/patient-incidents-section.client';
+import { getPatientIncidents } from './_lib/incidents';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -98,6 +100,27 @@ export default async function PatientPage(props: PageProps) {
     (prescribersRes.data as { id: string; nom: string; prenom: string | null }[] | null) ?? []
   ).map((pr) => ({ id: pr.id, label: [pr.nom, pr.prenom].filter(Boolean).join(' ') }));
 
+  // Incidents patient (PATIENT-01) + courses récentes pour rattacher un incident.
+  const [incidentsRecap, ridesRes] = await Promise.all([
+    getPatientIncidents(p.id),
+    supabase
+      .from('rides')
+      .select('id, scheduled_at, dropoff_address')
+      .eq('patient_id', p.id)
+      .order('scheduled_at', { ascending: false })
+      .limit(30),
+  ]);
+  const rideOptions = (
+    (ridesRes.data as
+      | { id: string; scheduled_at: string; dropoff_address: string | null }[]
+      | null) ?? []
+  ).map((r) => ({
+    id: r.id,
+    label: `${new Date(r.scheduled_at).toLocaleDateString('fr-FR')}${
+      r.dropoff_address ? ` → ${r.dropoff_address}` : ''
+    }`,
+  }));
+
   return (
     <div className="space-y-24">
       <PageHeader
@@ -139,6 +162,17 @@ export default async function PatientPage(props: PageProps) {
         patientId={p.id}
         prescriptions={prescriptions}
         prescribers={prescribers}
+      />
+
+      <PatientIncidentsSection
+        patientId={p.id}
+        recap={{
+          incidents: incidentsRecap.incidents,
+          countsByType: incidentsRecap.countsByType,
+          windowTotal: incidentsRecap.windowTotal,
+          tone: incidentsRecap.tone,
+        }}
+        rideOptions={rideOptions}
       />
 
       <section className="space-y-8">
