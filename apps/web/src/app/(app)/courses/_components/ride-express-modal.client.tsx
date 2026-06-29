@@ -16,6 +16,8 @@ import { useRideSubmit, type RideSubmitFormState } from './use-ride-submit.clien
 import { useSmartDefaults } from './use-smart-defaults.client';
 import { useDuplicateCheck } from './use-duplicate-check.client';
 import { DuplicateBanner } from './duplicate-banner.client';
+import { useRecurrenceSuggestion } from './use-recurrence-suggestion.client';
+import { RecurrenceBanner } from './recurrence-banner.client';
 import { PatientPickerField } from './ride-patient-picker.client';
 import { OrderingPartyPickerField } from './ride-ordering-party-picker.client';
 import { PrescriptionPickerField } from './ride-prescription-picker.client';
@@ -70,6 +72,8 @@ export function RideExpressModal(props: Props): JSX.Element {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   // B3 — détection doublon non-bloquante (D-B3-1..5).
   const dup = useDuplicateCheck();
+  // EXPRESS-02 — suggestion de récurrence non bloquante (CdG §5.8).
+  const recurrence = useRecurrenceSuggestion();
 
   const autosave = useRideAutosave<FormState>({
     isEditMode,
@@ -187,6 +191,7 @@ export function RideExpressModal(props: Props): JSX.Element {
     draftIdRef: autosave.draftIdRef,
     onSuccess: () => {
       dup.reset(); // D-B3-5 : reset AVANT onClose
+      recurrence.reset();
       props.onClose();
     },
     onRestore: setForm,
@@ -209,6 +214,15 @@ export function RideExpressModal(props: Props): JSX.Element {
     },
     [runSubmit, dup.duplicateConfirmed],
   );
+
+  // EXPRESS-02 — suggestion récurrence : se recalcule dès que patient + créneau
+  // sont renseignés (informatif, n'empêche jamais la saisie).
+  const recurrenceRunCheck = recurrence.runCheck;
+  const formPatientId = form.patient_id;
+  const formScheduledAt = form.scheduled_at;
+  useEffect(() => {
+    void recurrenceRunCheck(formPatientId, formScheduledAt);
+  }, [recurrenceRunCheck, formPatientId, formScheduledAt]);
 
   return (
     <Dialog open onOpenChange={handleOpenChange}>
@@ -324,6 +338,13 @@ export function RideExpressModal(props: Props): JSX.Element {
               dup.confirm();
               void runSubmit(true); // bypass explicite (state lu au render suivant)
             }}
+          />
+
+          {/* Suggestion récurrence (informatif, distinct du doublon) — EXPRESS-02. */}
+          <RecurrenceBanner
+            patientLabel={patientLabel}
+            suggestions={recurrence.suggestions}
+            onDismiss={recurrence.reset}
           />
 
           <DialogFooter>

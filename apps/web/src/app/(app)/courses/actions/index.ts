@@ -20,6 +20,8 @@ export type { ActionState } from './_shared';
 export { createRideAction, upsertRideDraft, deleteRideDraft, listDraftsAction } from './create';
 export { updateRideAction } from './edit';
 export { checkDuplicateRideAction } from './check-duplicate';
+export { checkRecurrenceSuggestionAction } from './check-recurrence';
+export type { RecurrenceMatch } from './check-recurrence';
 export { cancelRideAction } from './cancel';
 export { assignRideAction, unassignRideAction, assignVehicleAction } from './assignment';
 export { updateRidePaymentAction } from './payment';
