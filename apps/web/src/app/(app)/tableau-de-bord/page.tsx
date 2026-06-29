@@ -174,17 +174,16 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
         >
           Activité du mois
         </h2>
-        <div className="grid grid-cols-2 items-stretch gap-12 sm:grid-cols-3 lg:grid-cols-7">
+        {/* KPI-01 : ~6 cartes de poids égal. Vrais KPIs (CA encaissé, panier
+            moyen, no-show à seuil) en tête ; volumes bruts en tendance (delta)
+            puis « Aujourd'hui » en fin de bloc (le moins actionnable). La carte
+            « CA du mois » dupliquée a été fusionnée dans « CA encaissé du mois ». */}
+        <div className="grid grid-cols-2 items-stretch gap-12 sm:grid-cols-3 lg:grid-cols-6">
           <KpiCard
             variant="simple"
-            label="CA du mois"
+            label="CA encaissé du mois"
             value={eur.format(data.caMois.total_eur)}
             context={ventilationContext}
-          />
-          <KpiCard
-            variant="simple"
-            label="CA encaissé"
-            value={eur.format(data.caMois.total_eur)}
             delta={caDelta}
             deltaUnit="%"
             deltaSign="positive"
@@ -198,22 +197,6 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
             context={`sur ${data.caMois.count} course${data.caMois.count > 1 ? 's' : ''} encaissée${
               data.caMois.count > 1 ? 's' : ''
             }`}
-          />
-          <KpiCard
-            variant="simple"
-            label="Volume du mois"
-            value={String(data.volume.mois)}
-            delta={volDelta}
-            deltaUnit="%"
-            deltaSign="positive"
-            previousLabel={moisPrecLibelle}
-            previousValue={String(data.volMoisPrec)}
-          />
-          <KpiCard
-            variant="simple"
-            label="Aujourd'hui"
-            value={String(data.volume.aujourdhui)}
-            context={`7 derniers jours : ${data.volume.semaine}`}
           />
           <KpiCard
             variant="simple"
@@ -232,9 +215,26 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
           />
           <KpiCard
             variant="simple"
+            label="Volume du mois"
+            value={String(data.volume.mois)}
+            delta={volDelta}
+            deltaUnit="%"
+            deltaSign="positive"
+            previousLabel={moisPrecLibelle}
+            previousValue={String(data.volMoisPrec)}
+          />
+          <KpiCard
+            variant="simple"
             label="Chauffeurs"
             value={`${data.chauffeurs.actifsAvecCourse} / ${data.chauffeurs.totalActifs}`}
             context={`actifs aujourd'hui · ~${data.chauffeurs.moyenneParChauffeur}/chauffeur`}
+          />
+          {/* Volume brut le moins actionnable → fin de bloc (KPI-01). */}
+          <KpiCard
+            variant="simple"
+            label="Aujourd'hui"
+            value={String(data.volume.aujourdhui)}
+            context={`7 derniers jours : ${data.volume.semaine}`}
           />
         </div>
       </section>
