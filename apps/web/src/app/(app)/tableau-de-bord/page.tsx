@@ -40,6 +40,22 @@ function tauxState(taux: number): { state: KpiState; label: string } {
   return { state: 'succes', label: 'sous le seuil de 10 %' };
 }
 
+// KPI-02 — seuils d'encours impayé (€). Pas de référence métier universelle pour
+// le transport sanitaire 974 → valeurs nommées À VALIDER avec le dirigeant
+// (plutôt qu'un chiffre magique enfoui). Le calibrage se fera à l'usage.
+const ENCOURS_ATTENTION_EUR = 500;
+const ENCOURS_ALERTE_EUR = 1500;
+
+function encoursState(total: number): { state: KpiState; label: string } {
+  if (total >= ENCOURS_ALERTE_EUR) {
+    return { state: 'alerte', label: `au-dessus de ${ENCOURS_ALERTE_EUR} €` };
+  }
+  if (total >= ENCOURS_ATTENTION_EUR) {
+    return { state: 'attention', label: `au-dessus de ${ENCOURS_ATTENTION_EUR} €` };
+  }
+  return { state: 'succes', label: 'sous le seuil de vigilance' };
+}
+
 function plural(n: number, sing: string, plur: string): string {
   return `${n} ${n > 1 ? plur : sing}`;
 }
@@ -119,6 +135,7 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
       : undefined;
 
   const taux = tauxState(data.incidents.taux);
+  const encours = encoursState(data.encoursImpaye.total_eur);
 
   // DEC-166 — Panier moyen / course (CdG §5.20 l.501) : DÉRIVÉ, pas de requête.
   // Périmètre COHÉRENT : CA encaissé ÷ courses encaissées (caMois.count = nombre
@@ -178,7 +195,7 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
             moyen, no-show à seuil) en tête ; volumes bruts en tendance (delta)
             puis « Aujourd'hui » en fin de bloc (le moins actionnable). La carte
             « CA du mois » dupliquée a été fusionnée dans « CA encaissé du mois ». */}
-        <div className="grid grid-cols-2 items-stretch gap-12 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="grid grid-cols-2 items-stretch gap-12 sm:grid-cols-3 lg:grid-cols-7">
           <KpiCard
             variant="simple"
             label="CA encaissé du mois"
@@ -189,6 +206,20 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
             deltaSign="positive"
             previousLabel={moisPrecLibelle}
             previousValue={eur.format(data.caMoisPrec.total_eur)}
+          />
+          {/* KPI-02 — trésorerie à risque : stock cumulé (12 mois) des courses
+              dues non encaissées. Placé en tête du cluster financier ; seuil/état
+              déclenchant une relance d'encaissement. */}
+          <KpiCard
+            variant="simple"
+            label="Encours impayé"
+            value={eur.format(data.encoursImpaye.total_eur)}
+            state={encours.state}
+            stateLabel={encours.label}
+            context={`${data.encoursImpaye.count} course${
+              data.encoursImpaye.count > 1 ? 's' : ''
+            } à encaisser`}
+            action={{ href: '/courses/caisse', label: 'Encaisser' }}
           />
           <KpiCard
             variant="simple"

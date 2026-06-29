@@ -98,6 +98,8 @@ export interface DashboardData {
   facturesIncompletes: number;
   noShowsRecents: number;
   caMois: CaisseTotals;
+  // KPI-02 — encours impayé (STOCK cumulé, distinct du CA encaissé mensuel).
+  encoursImpaye: DashboardEncours;
   volume: DashboardVolume;
   incidents: DashboardIncidents;
   chauffeurs: DashboardChauffeurs;
@@ -184,6 +186,43 @@ async function getCaMois(supabase: Supabase, start: string, end: string): Promis
       return acc;
     },
     { total_eur: 0, count: 0, by_method: {} },
+  );
+}
+
+/** Encours impayé — KPI-02. Stock de créances dues mais non encaissées. */
+export interface DashboardEncours {
+  total_eur: number;
+  count: number;
+}
+
+/**
+ * Encours impayé (KPI-02) — somme des `tarif_amount_eur` des courses
+ * `status='terminee'` ET `payment_status='a_encaisser'` (dues, pas encore
+ * encaissées). Ensembles DISJOINTS du CA encaissé (`payment_status='encaisse'`)
+ * et de `non_concerne` (CGSS pur, exclu) → aucune course comptée deux fois.
+ *
+ * C'est un STOCK qui s'accumule : NON borné au mois courant. Borné à une fenêtre
+ * de 12 mois (`ended_at`) pour la perf — au-delà, une créance non encaissée
+ * relève d'un traitement comptable, pas du pilotage quotidien. Même posture
+ * d'indexation que `getCaMois` (pas d'index dédié `(status, payment_status)` à
+ * ce jour — candidat lot d'index si le volume grandit).
+ */
+async function getEncoursImpaye(supabase: Supabase, since: string): Promise<DashboardEncours> {
+  const empty: DashboardEncours = { total_eur: 0, count: 0 };
+  const res = await supabase
+    .from('rides')
+    .select('tarif_amount_eur')
+    .eq('status', 'terminee')
+    .eq('payment_status', 'a_encaisser')
+    .gte('ended_at', since);
+  if (res.error || !res.data) return empty;
+  return (res.data as { tarif_amount_eur: number | null }[]).reduce<DashboardEncours>(
+    (acc, r) => {
+      acc.total_eur += Number(r.tarif_amount_eur ?? 0);
+      acc.count += 1;
+      return acc;
+    },
+    { total_eur: 0, count: 0 },
   );
 }
 
@@ -440,6 +479,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     facturesIncompletes,
     noShowsRes,
     caMois,
+    encoursImpaye,
     volAujourdhui,
     volSemaine,
     volMois,
@@ -467,6 +507,8 @@ export async function getDashboardData(): Promise<DashboardData> {
       .select('id', { count: 'exact', head: true })
       .gte('no_show_at', isoDaysAgo(7)),
     getCaMois(supabase, moisStart, moisEnd),
+    // KPI-02 — encours impayé : stock cumulé sur 12 mois (≠ CA mensuel).
+    getEncoursImpaye(supabase, isoDaysAgo(365)),
     countRides(supabase, jour.start, jour.end),
     countRides(supabase, isoDaysAgo(7)),
     countRides(supabase, moisStart, moisEnd),
@@ -500,6 +542,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     facturesIncompletes,
     noShowsRecents: noShowsRes.count ?? 0,
     caMois,
+    encoursImpaye,
     volume: { aujourdhui: volAujourdhui, semaine: volSemaine, mois: volMois },
     incidents,
     chauffeurs,
