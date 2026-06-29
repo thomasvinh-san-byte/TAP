@@ -178,3 +178,95 @@ export async function listRidesAEncaisser(filters: AEncaisserFilters): Promise<A
   const total_eur = rows.reduce((acc, r) => acc + Number(r.tarif_amount_eur ?? 0), 0);
   return { rows, total_eur, count: rows.length };
 }
+
+/** Modes de paiement agrégés dans le rapport de caisse (CAISSE-02). */
+export const CAISSE_REPORT_METHODS = ['cash', 'cb', 'cheque', 'cgss_differe'] as const;
+
+export interface CaisseDriverReportRow {
+  driver_id: string;
+  driver_nom: string;
+  count: number;
+  total_eur: number;
+  /** Ventilation par mode (clés de CAISSE_REPORT_METHODS). */
+  by_method: Record<string, number>;
+}
+
+export interface CaisseDriverReport {
+  rows: CaisseDriverReportRow[];
+  total: { count: number; total_eur: number; by_method: Record<string, number> };
+}
+
+interface ReportRawRow {
+  tarif_amount_eur: number | null;
+  payment_method: string | null;
+  driver_id: string | null;
+  driver: { nom_affichage: string } | null;
+}
+
+/**
+ * Rapport de caisse agrégé PAR CHAUFFEUR sur une période (CdG §5.19, CAISSE-02).
+ * Courses `status='terminee'` + `payment_status='encaisse'`, bornes `ended_at` ∈
+ * [from, to] (jours inclus). Pour chaque chauffeur : total encaissé, nombre de
+ * courses, ventilation par mode (cash/cb/cheque/cgss_differe). + un total général
+ * (somme de toutes les lignes). Filtre optionnel `driverId` (rapport mono-chauffeur).
+ *
+ * Une course encaissée SANS `driver_id` est regroupée sous « — » (jamais perdue).
+ * Perf : même posture d'index que `listRidesEncaissees` (filtre status +
+ * payment_status + ended_at) ; plage bornée à 12 mois côté action.
+ */
+export async function getCaisseReportByDriver(
+  from: string,
+  to: string,
+  driverId?: string,
+): Promise<CaisseDriverReport> {
+  const supabase = await createClient();
+  const start = new Date(`${from}T00:00:00.000Z`).toISOString();
+  const end = new Date(`${to}T23:59:59.999Z`).toISOString();
+
+  let q = supabase
+    .from('rides')
+    .select(
+      `tarif_amount_eur, payment_method, driver_id,
+       driver:drivers(nom_affichage)`,
+    )
+    .eq('status', 'terminee')
+    .eq('payment_status', 'encaisse')
+    .gte('ended_at', start)
+    .lte('ended_at', end);
+  if (driverId) q = q.eq('driver_id', driverId);
+
+  const emptyTotal = { count: 0, total_eur: 0, by_method: {} as Record<string, number> };
+  const res = await q;
+  if (res.error || !res.data) return { rows: [], total: emptyTotal };
+
+  const byDriver = new Map<string, CaisseDriverReportRow>();
+  const total = { count: 0, total_eur: 0, by_method: {} as Record<string, number> };
+
+  for (const r of res.data as unknown as ReportRawRow[]) {
+    const key = r.driver_id ?? '—';
+    const amount = Number(r.tarif_amount_eur ?? 0);
+    const method = r.payment_method ?? 'inconnu';
+    const acc =
+      byDriver.get(key) ??
+      ({
+        driver_id: key,
+        driver_nom: r.driver?.nom_affichage ?? '—',
+        count: 0,
+        total_eur: 0,
+        by_method: {},
+      } satisfies CaisseDriverReportRow);
+    acc.count += 1;
+    acc.total_eur += amount;
+    acc.by_method[method] = (acc.by_method[method] ?? 0) + amount;
+    byDriver.set(key, acc);
+
+    total.count += 1;
+    total.total_eur += amount;
+    total.by_method[method] = (total.by_method[method] ?? 0) + amount;
+  }
+
+  const rows = [...byDriver.values()].sort((a, b) =>
+    a.driver_nom.localeCompare(b.driver_nom, 'fr'),
+  );
+  return { rows, total };
+}
