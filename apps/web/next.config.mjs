@@ -1,5 +1,10 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { withSentryConfig } from '@sentry/nextjs';
 import withSerwistInit from '@serwist/next';
+
+// ESM : pas de `__dirname` natif. __dirname = apps/web (dossier de ce fichier).
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * Serwist wrapper — Phase 04.9 Wave 3 PWA chauffeur.
@@ -21,6 +26,11 @@ const withSerwist = withSerwistInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  // OVH-01 : build conteneurisable (HDS à terme). Inerte sur Vercel qui ignore
+  // `output`. `outputFileTracingRoot` = racine monorepo (apps/web → ../../)
+  // pour que le standalone embarque bien les packages workspace @tap/* tracés.
+  output: 'standalone',
+  outputFileTracingRoot: path.join(__dirname, '../../'),
   // D-07 Phase 06.9 : `typedRoutes` est stable en Next 15.5 et a quitté
   // `experimental`. Active la génération de types de routes ; si friction
   // de build sur des href dynamiques non typés, repasser à false.
