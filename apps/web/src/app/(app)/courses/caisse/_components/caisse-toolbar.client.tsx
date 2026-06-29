@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { DateFieldFr } from '@/components/date-field-fr.client';
 import { exportCaisseCsvAction } from '../../actions';
+import { CaisseReportButton } from './caisse-report-button.client';
 import type { CaisseFilters } from '../_lib/queries-caisse';
 
 /**
@@ -163,6 +164,9 @@ export function CaisseToolbar({ vue, date, drivers, filters }: Props): JSX.Eleme
           </Button>
         )}
       </div>
+
+      {/* Rapport agrégé par chauffeur sur une période (CAISSE-02, CdG §5.19). */}
+      {!aEncaisser && <CaisseReportButton driverId={filters.driverId} />}
     </div>
   );
 }
