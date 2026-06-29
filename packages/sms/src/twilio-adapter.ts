@@ -20,17 +20,9 @@ import 'server-only';
  * importé par erreur côté client.
  */
 
-export interface SendSmsParams {
-  to: string;
-  body: string;
-  statusCallback?: string;
-}
+import type { SendSmsParams, SendSmsResult } from './sms-types';
 
-export interface SendSmsResult {
-  sid: string;
-}
-
-export async function sendSms(params: SendSmsParams): Promise<SendSmsResult> {
+export async function sendSmsViaTwilio(params: SendSmsParams): Promise<SendSmsResult> {
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
   const authToken = process.env.TWILIO_AUTH_TOKEN;
   const fromNumber = process.env.TWILIO_PHONE_NUMBER;
