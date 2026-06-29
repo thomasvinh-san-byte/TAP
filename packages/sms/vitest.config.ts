@@ -13,9 +13,18 @@ export default defineConfig({
         statements: 80,
       },
       include: ['src/**/*.ts'],
-      // twilio-adapter exclu : wrapper externe pur (test integration manuel
-      // avec compte Twilio sandbox uniquement).
-      exclude: ['src/index.ts', 'src/**/__tests__/**', 'src/twilio-adapter.ts'],
+      // Adapters `server-only` exclus : wrappers fournisseur (Twilio / souverain)
+      // + dispatcher, testables seulement en intégration manuelle (compte
+      // fournisseur), pas en unitaire dans l'environnement node de vitest.
+      // sms-types = types purs (aucun code exécutable). OVH-03.
+      exclude: [
+        'src/index.ts',
+        'src/**/__tests__/**',
+        'src/twilio-adapter.ts',
+        'src/sms-adapter.ts',
+        'src/sovereign-adapter.ts',
+        'src/sms-types.ts',
+      ],
     },
   },
 });
