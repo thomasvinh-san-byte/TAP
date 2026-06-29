@@ -3,9 +3,12 @@
 /**
  * Server Action de détection de doublons de course (Phase 03.1 / B3).
  *
- * Critères (D-B3-2, CONTEXT.md) :
+ * Critères (CdG §5.8 ; révise D-B3-2 qui figeait ±30 min — EXPRESS-01) :
  *   - même `patient_id`
- *   - `scheduled_at` dans la fenêtre [scheduledAt − 30 min, scheduledAt + 30 min]
+ *   - `scheduled_at` dans la fenêtre [scheduledAt − 2 h, scheduledAt + 2 h]
+ *     (±2h, conforme au cahier des charges §5.8 « course similaire à ±2h » ;
+ *     filet plus large pour les créneaux imprécis — faux positifs assumés car
+ *     la détection est NON bloquante : la régulatrice tranche)
  *   - `archive = false`
  *   - `status ∈ {validee, assignee, en_cours, terminee}` (exclut les
  *     courses annulées et brouillons)
@@ -36,7 +39,8 @@ export type DuplicateRide = {
   status: string;
 };
 
-const WINDOW_MS = 30 * 60 * 1000;
+// CdG §5.8 : fenêtre ±2h (révise D-B3-2 ±30 min — EXPRESS-01).
+const WINDOW_MS = 2 * 60 * 60 * 1000;
 const ACTIVE_STATUSES = ['validee', 'assignee', 'en_cours', 'terminee'] as const;
 
 export async function checkDuplicateRideAction(

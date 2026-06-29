@@ -47,7 +47,7 @@ design partners). Chaque requirement mappe vers exactement une phase.
 - [ ] **SAIS-06** : Création de course écrit dans `audit_logs` (cf. DEC-010)
 - [x] **SAIS-07** : Smart defaults mode + urgence depuis dernière course patient (Phase 03.1) — pré-remplissage silencieux quand le formulaire est encore aux défauts V1.
 - [ ] **SAIS-08** : Chips date rapides 4 valeurs chrono.fr-compatibles (Phase 03.1) — `demain 8h`, `demain 14h`, `lundi 9h`, `dans 30 minutes`.
-- [ ] **SAIS-09** : Détection doublon ±30 min non-bloquante avec bypass (Phase 03.1) — banner amber + bouton « Créer quand même ».
+- [ ] **SAIS-09** : Détection doublon ±2h non-bloquante avec bypass (Phase 03.1 ; fenêtre alignée §5.8 — EXPRESS-01, révise D-B3-2 ±30 min) — banner amber + bouton « Créer quand même ».
 - [ ] **SAIS-10** : Re-seed défense en profondeur patients démo (Phase 03.1, NFR-001) — tél `02 62 99 90 XX` / `06 92 99 90 XX`, adresse `9XXX ...`.
 
 ### Tarification CGSS (PRIC)
