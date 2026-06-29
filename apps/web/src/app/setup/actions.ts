@@ -31,7 +31,11 @@ interface CheckResult {
 }
 
 function getConnectionString(): string | null {
-  const raw = process.env.POSTGRES_URL_NON_POOLING ?? process.env.POSTGRES_URL ?? null;
+  const raw =
+    process.env.DATABASE_URL ?? // neutre (OVH, self-host) — prioritaire
+    process.env.POSTGRES_URL_NON_POOLING ?? // injecté par l'intégration Vercel (repli)
+    process.env.POSTGRES_URL ??
+    null;
   if (!raw) return null;
 
   // Retire sslmode de l'URL pour laisser l'objet ssl du Client gagner.
@@ -59,7 +63,10 @@ function newClient(connectionString: string, timeoutMs: number) {
 export async function checkDatabaseState(): Promise<CheckResult> {
   const connectionString = getConnectionString();
   if (!connectionString) {
-    return { state: 'fresh', reason: 'POSTGRES_URL_NON_POOLING absent' };
+    return {
+      state: 'fresh',
+      reason: 'Aucune URL de connexion (DATABASE_URL / POSTGRES_URL absent)',
+    };
   }
 
   const client = newClient(connectionString, 5_000);
@@ -108,12 +115,23 @@ export async function checkDatabaseReady(): Promise<{
 }
 
 export async function initializeDatabase(): Promise<SetupResult> {
+  // OVH-05 — verrou de SÉCURITÉ côté serveur : l'init crée des données de démo,
+  // elle ne doit JAMAIS être atteignable en production HDS. OFF par défaut ; à
+  // poser explicitement (DEMO_SETUP_ENABLED=true) en dev/démo uniquement.
+  if (process.env.DEMO_SETUP_ENABLED !== 'true') {
+    return {
+      ok: false,
+      error:
+        'Initialisation démo désactivée (DEMO_SETUP_ENABLED OFF). En production, la base est ' +
+        "provisionnée et migrée par l'équipe, pas via ce bouton.",
+    };
+  }
+
   const connectionString = getConnectionString();
   if (!connectionString) {
     return {
       ok: false,
-      error:
-        "Connexion Postgres non configurée. Installer l'intégration Vercel ↔ Supabase d'abord.",
+      error: 'Connexion Postgres non configurée (définir DATABASE_URL).',
     };
   }
 
