@@ -18,3 +18,4 @@ export * from './prescriptions';
 export * from './referent-status';
 export * from './incidents';
 export * from './driver-preferences';
+export * from './prescription-renewal';

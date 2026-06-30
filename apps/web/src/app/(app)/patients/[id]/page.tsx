@@ -166,7 +166,14 @@ export default async function PatientPage(props: PageProps) {
         </p>
       </section>
 
-      <RecurrencesSection patientId={p.id} recurrences={recurrences} futureCounts={futureCounts} />
+      <RecurrencesSection
+        patientId={p.id}
+        recurrences={recurrences}
+        futureCounts={futureCounts}
+        prescriptionOptions={prescriptions
+          .filter((pr) => pr.statut === 'active')
+          .map((pr) => ({ id: pr.id, numero: pr.numero }))}
+      />
 
       <PrescriptionsSection
         patientId={p.id}

@@ -20,6 +20,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { createPrescriptionAction, type PatientPrescriptionRow } from '../../actions';
+import { PrescriptionRenewalButton } from './prescription-renewal-button.client';
 
 export interface PrescriberOption {
   id: string;
@@ -97,14 +98,17 @@ export function PrescriptionsSection({
                     </div>
                   </div>
                 </div>
-                <Badge
-                  variant={
-                    tone === 'active' ? 'secondary' : tone === 'warn' ? 'outline' : 'destructive'
-                  }
-                  className="text-xs"
-                >
-                  {isExpired(p) && p.statut !== 'expiree' ? 'Expirée' : STATUT_LABELS[p.statut]}
-                </Badge>
+                <div className="flex shrink-0 items-center gap-8">
+                  <Badge
+                    variant={
+                      tone === 'active' ? 'secondary' : tone === 'warn' ? 'outline' : 'destructive'
+                    }
+                    className="text-xs"
+                  >
+                    {isExpired(p) && p.statut !== 'expiree' ? 'Expirée' : STATUT_LABELS[p.statut]}
+                  </Badge>
+                  <PrescriptionRenewalButton prescriptionId={p.id} />
+                </div>
               </li>
             );
           })}

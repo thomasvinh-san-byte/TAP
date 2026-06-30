@@ -68,6 +68,8 @@ const baseSchema = z.object({
   dropoff_citycode: z.string().max(10).optional().nullable(),
   transport_mode: z.enum(['vsl', 'taxi_conventionne', 'tpmr']),
   urgency: z.enum(['normale', 'prioritaire']).default('normale'),
+  // RENOUVELLEMENT-01 (§5.3) : bon de transport rattaché à la série (optionnel).
+  prescription_id: z.string().uuid().optional().nullable(),
 });
 
 const createSchema = baseSchema;
@@ -92,6 +94,7 @@ const BASE_KEYS = [
   ...COORD_KEYS,
   'transport_mode',
   'urgency',
+  'prescription_id',
 ];
 
 function pickFormData(formData: FormData, keys: string[]): Record<string, unknown> {
@@ -163,6 +166,7 @@ export async function createRecurrenceAction(formData: FormData): Promise<Recurr
       dropoff_citycode: dropoffCoords.citycode,
       transport_mode: input.transport_mode,
       urgency: input.urgency,
+      prescription_id: input.prescription_id ?? null,
       created_by: ctx.userId,
     } as never)
     .select('id')
@@ -310,6 +314,7 @@ export async function updateRecurrenceAction(formData: FormData): Promise<Recurr
       dropoff_citycode: dropoffCoords.citycode,
       transport_mode: input.transport_mode,
       urgency: input.urgency,
+      prescription_id: input.prescription_id ?? null,
     } as never)
     .eq('id', id)
     .select('id');

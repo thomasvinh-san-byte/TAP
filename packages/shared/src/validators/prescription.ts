@@ -73,15 +73,21 @@ function daysUntil(dateIso: string, today: Date): number {
 
 /**
  * Dérive une alerte par prescription (la plus urgente). `expiree` > `epuisee` >
- * `renouvellement` (patient récurrent proche de l'échéance) > `seuil_80`.
- * Une prescription sans alerte n'apparaît pas dans le résultat.
+ * `renouvellement` > `seuil_80`. Une prescription sans alerte n'apparaît pas.
+ *
+ * RENOUVELLEMENT-01 (§5.3/§5.9) : l'alerte préventive `renouvellement`
+ * (épuisement/expiration anticipé sous 15 j) est RÉSERVÉE aux bons liés à une
+ * série récurrente (`seriesPrescriptionIds` = ids des bons rattachés à une
+ * série active, via ride_recurrences.prescription_id). Un bon PONCTUEL proche
+ * de l'épuisement reste couvert par `seuil_80`/`epuisee`/`expiree` — pas de
+ * faux positif de renouvellement.
  */
 export function derivePrescriptionAlerts(
   items: ReadonlyArray<PrescriptionAlertSource>,
   today: Date = new Date(),
-  opts: { recurringPatientIds?: ReadonlySet<string> } = {},
+  opts: { seriesPrescriptionIds?: ReadonlySet<string> } = {},
 ): PrescriptionAlert[] {
-  const recurring = opts.recurringPatientIds ?? new Set<string>();
+  const linkedToSeries = opts.seriesPrescriptionIds ?? new Set<string>();
   const out: PrescriptionAlert[] = [];
 
   for (const p of items) {
@@ -97,7 +103,7 @@ export function derivePrescriptionAlerts(
     let kind: PrescriptionAlertKind | null = null;
     if (expired) kind = 'expiree';
     else if (p.trajets_consommes >= p.trajets_autorises) kind = 'epuisee';
-    else if (recurring.has(p.patient_id) && (atThreshold || expiresSoon)) kind = 'renouvellement';
+    else if (linkedToSeries.has(p.id) && (atThreshold || expiresSoon)) kind = 'renouvellement';
     else if (atThreshold) kind = 'seuil_80';
 
     if (kind) {

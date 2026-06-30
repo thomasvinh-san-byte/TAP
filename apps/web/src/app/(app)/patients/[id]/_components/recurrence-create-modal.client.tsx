@@ -42,10 +42,12 @@ export function RecurrenceCreateModal({
   open,
   onOpenChange,
   patientId,
+  prescriptionOptions,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   patientId: string;
+  prescriptionOptions: { id: string; numero: string }[];
 }): JSX.Element {
   const [days, setDays] = useState<string[]>(['MO', 'WE', 'FR']);
   const [hour, setHour] = useState('08:00');
@@ -217,6 +219,28 @@ export function RecurrenceCreateModal({
               </select>
             </div>
           </div>
+
+          {prescriptionOptions.length > 0 && (
+            <div className="space-y-4">
+              <Label htmlFor="rec-prescription">Bon de transport (optionnel)</Label>
+              <select
+                id="rec-prescription"
+                name="prescription_id"
+                defaultValue=""
+                className="border-input bg-background flex h-10 w-full rounded-md border px-12 text-sm"
+              >
+                <option value="">Aucun bon rattaché</option>
+                {prescriptionOptions.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    Bon {p.numero}
+                  </option>
+                ))}
+              </select>
+              <p className="text-muted-foreground text-xs">
+                Rattacher un bon permet l&apos;alerte de renouvellement anticipé (15 jours).
+              </p>
+            </div>
+          )}
 
           <RecurrencePreview rruleStr={rruleStr} startDate={startDate} holidays974={holidays974} />
 
