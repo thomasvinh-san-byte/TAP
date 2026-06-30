@@ -56,6 +56,10 @@ export type DriverMin = {
   id: string;
   nom_affichage: string;
   type_permis: string[];
+  // CHAUFFEUR-02 : peuplés par `listActiveDrivers` (modal d'affectation) ;
+  // optionnels car les jointures d'enrichissement de course ne les ramènent pas.
+  competences?: string[];
+  langues?: string[];
 };
 
 export type VehicleMin = {

@@ -27,6 +27,7 @@ import {
   listActiveVehiclesAction,
 } from '../actions';
 import { isPlanningBlocking, type EntityComplianceState } from '@tap/shared';
+import { DriverAttributesBadges } from '@/components/driver-attributes-badges.client';
 import type { DriverMin, VehicleMin } from '../_lib/queries';
 
 interface Props {
@@ -415,6 +416,21 @@ export function AssignModal({ rideId, open, onOpenChange }: Props): JSX.Element 
               </p>
             </div>
           )}
+
+          {/* CHAUFFEUR-02 : profil du chauffeur (langues / compétences) en lecture
+              seule — éclaire le choix, n'impose aucune contrainte d'affectation. */}
+          {selectedDriver &&
+          (selectedDriver.langues?.length || selectedDriver.competences?.length) ? (
+            <div className="border-border bg-muted/30 space-y-8 rounded-md border px-16 py-12">
+              <div className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+                Profil de {selectedDriver.nom_affichage}
+              </div>
+              <DriverAttributesBadges
+                competences={selectedDriver.competences}
+                langues={selectedDriver.langues}
+              />
+            </div>
+          ) : null}
 
           {hasComplianceIssue && (
             <div

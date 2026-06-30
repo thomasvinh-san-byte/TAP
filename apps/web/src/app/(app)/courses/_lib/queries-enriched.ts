@@ -185,14 +185,15 @@ export async function listActiveDrivers(): Promise<DriverMin[]> {
   // l'affectation. En congé / suspendu / archivé sont exclus (status fait foi).
   const { data, error } = await supabase
     .from('drivers')
-    .select('id, nom_affichage, type_permis')
+    .select('id, nom_affichage, type_permis, competences, langues')
     .eq('status' as never, 'actif' as never)
     .order('nom_affichage', { ascending: true })
     .limit(50);
   if (error) {
     console.error('[courses/drivers] Erreur Supabase:', error);
   }
-  return (data ?? []) as DriverMin[];
+  // competences/langues absents de types.gen.ts → cast via unknown (DEC-155).
+  return (data ?? []) as unknown as DriverMin[];
 }
 
 export async function listActiveVehicles(): Promise<VehicleMin[]> {

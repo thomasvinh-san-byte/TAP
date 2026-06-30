@@ -33,6 +33,37 @@ export const DRIVER_STATUS_LABELS: Record<DriverStatus, string> = {
   archive: 'Archivé',
 };
 
+/**
+ * Compétences chauffeur (§5.6, CHAUFFEUR-02) — énumération fermée extensible
+ * (colonne `drivers.competences` text[], sans check DB). Attribut d'affectation :
+ * éclaire le choix du régulateur, hors solveur.
+ */
+export const DRIVER_COMPETENCE_VALUES = [
+  'accueil_personnes_agees',
+  'gestion_fauteuil',
+  'conduite_douce',
+] as const;
+export type DriverCompetence = (typeof DRIVER_COMPETENCE_VALUES)[number];
+
+export const DRIVER_COMPETENCE_LABELS: Record<DriverCompetence, string> = {
+  accueil_personnes_agees: 'Accueil personnes âgées',
+  gestion_fauteuil: 'Gestion fauteuil roulant',
+  conduite_douce: 'Conduite douce',
+};
+
+/**
+ * Langues parlées par le chauffeur (§5.6, CHAUFFEUR-02) — énumération fermée
+ * extensible (colonne `drivers.langues` text[], sans check DB).
+ */
+export const DRIVER_LANGUE_VALUES = ['francais', 'creole', 'anglais'] as const;
+export type DriverLangue = (typeof DRIVER_LANGUE_VALUES)[number];
+
+export const DRIVER_LANGUE_LABELS: Record<DriverLangue, string> = {
+  francais: 'Français',
+  creole: 'Créole',
+  anglais: 'Anglais',
+};
+
 export const driverInputSchema = z.object({
   nom_affichage: z
     .string()
@@ -42,6 +73,8 @@ export const driverInputSchema = z.object({
   telephone: z.string().trim().max(20).optional().or(z.literal('')),
   numero_licence: z.string().trim().max(40).optional().or(z.literal('')),
   type_permis: z.array(z.enum(TYPE_PERMIS_VALUES)).default([]),
+  competences: z.array(z.enum(DRIVER_COMPETENCE_VALUES)).default([]),
+  langues: z.array(z.enum(DRIVER_LANGUE_VALUES)).default([]),
   status: z.enum(DRIVER_FORM_STATUS_VALUES).default('actif'),
 });
 

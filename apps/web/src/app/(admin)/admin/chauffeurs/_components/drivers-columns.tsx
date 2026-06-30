@@ -3,6 +3,7 @@ import { ComplianceBadge } from '@/components/ui/compliance-badge';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
 import type { DataTableColumn } from '@/components/data-table';
 import type { DriverRow } from '../page';
+import { DriverAttributesBadges } from '@/components/driver-attributes-badges.client';
 import { AccountStatusBadge, getAccountStatus } from './account-status-badge.client';
 import { DriverStatusBadge } from './driver-status-badge.client';
 import { DriverRowActions } from './driver-row-actions.client';
@@ -64,6 +65,17 @@ export function buildDriverColumns({
           ))}
         </div>
       ),
+    },
+    {
+      key: 'profil',
+      header: 'Langues / Compétences',
+      width: '220px',
+      cell: (d) =>
+        d.langues.length + d.competences.length > 0 ? (
+          <DriverAttributesBadges competences={d.competences} langues={d.langues} />
+        ) : (
+          <span className="text-muted-foreground text-xs">—</span>
+        ),
     },
     {
       key: 'compte',
