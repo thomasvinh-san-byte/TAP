@@ -42,19 +42,26 @@ describe('derivePrescriptionAlerts', () => {
     expect(alerts[0]!.kind).toBe('expiree');
   });
 
-  it('renouvellement pour patient récurrent proche du seuil', () => {
+  it('renouvellement pour un bon lié à une série proche du seuil', () => {
     const alerts = derivePrescriptionAlerts([presc({ trajets_consommes: 4 })], TODAY, {
-      recurringPatientIds: new Set(['pat1']),
+      seriesPrescriptionIds: new Set(['p1']),
     });
     expect(alerts[0]!.kind).toBe('renouvellement');
   });
 
-  it('renouvellement si expiration dans moins de 15 jours (patient récurrent)', () => {
+  it('renouvellement si expiration dans moins de 15 jours (bon lié à une série)', () => {
     const alerts = derivePrescriptionAlerts(
       [presc({ trajets_consommes: 1, date_expiration: '2026-06-20' })],
       TODAY,
-      { recurringPatientIds: new Set(['pat1']) },
+      { seriesPrescriptionIds: new Set(['p1']) },
     );
     expect(alerts[0]!.kind).toBe('renouvellement');
+  });
+
+  it('PAS de renouvellement pour un bon PONCTUEL non lié à une série (au seuil)', () => {
+    const alerts = derivePrescriptionAlerts([presc({ trajets_consommes: 4 })], TODAY, {
+      seriesPrescriptionIds: new Set(['autre-bon']),
+    });
+    expect(alerts[0]!.kind).toBe('seuil_80');
   });
 });

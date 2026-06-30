@@ -27,16 +27,21 @@ export async function getPrescriptionAlerts(): Promise<PrescriptionAlertEnriched
     const items = (res.data as PrescriptionAlertSource[] | null) ?? [];
     if (items.length === 0) return [];
 
-    // Patients récurrents (renouvellement anticipé) — recurrences actives.
+    // RENOUVELLEMENT-01 : bons liés à une série ACTIVE (via la FK
+    // ride_recurrences.prescription_id). L'alerte de renouvellement anticipé est
+    // réservée à ces bons — un bon ponctuel ne déclenche pas de faux positif.
     const recRes = await supabase
       .from('ride_recurrences')
-      .select('patient_id')
-      .is('archived_at', null);
-    const recurring = new Set(
-      ((recRes.data as { patient_id: string }[] | null) ?? []).map((r) => r.patient_id),
+      .select('prescription_id')
+      .is('archived_at', null)
+      .not('prescription_id', 'is', null);
+    const seriesPrescriptionIds = new Set(
+      ((recRes.data as { prescription_id: string | null }[] | null) ?? [])
+        .map((r) => r.prescription_id)
+        .filter((id): id is string => Boolean(id)),
     );
 
-    const alerts = derivePrescriptionAlerts(items, new Date(), { recurringPatientIds: recurring });
+    const alerts = derivePrescriptionAlerts(items, new Date(), { seriesPrescriptionIds });
     if (alerts.length === 0) return [];
 
     const patientIds = Array.from(new Set(alerts.map((a) => a.patient_id)));

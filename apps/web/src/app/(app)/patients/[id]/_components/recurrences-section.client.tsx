@@ -41,14 +41,22 @@ function formatDateFr(iso: string): string {
   return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
+export interface PrescriptionOption {
+  id: string;
+  numero: string;
+}
+
 export function RecurrencesSection({
   patientId,
   recurrences,
   futureCounts,
+  prescriptionOptions,
 }: {
   patientId: string;
   recurrences: RideRecurrence[];
   futureCounts: Record<string, number>;
+  /** Bons actifs du patient, rattachables à une série (RENOUVELLEMENT-01). */
+  prescriptionOptions: PrescriptionOption[];
 }): JSX.Element {
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<RideRecurrence | null>(null);
@@ -145,7 +153,12 @@ export function RecurrencesSection({
         </ul>
       )}
 
-      <RecurrenceCreateModal open={createOpen} onOpenChange={setCreateOpen} patientId={patientId} />
+      <RecurrenceCreateModal
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        patientId={patientId}
+        prescriptionOptions={prescriptionOptions}
+      />
 
       {editing && (
         <RecurrenceEditModal
@@ -155,6 +168,7 @@ export function RecurrencesSection({
           }}
           recurrence={editing}
           futureCount={futureCounts[editing.id] ?? 0}
+          prescriptionOptions={prescriptionOptions}
         />
       )}
     </section>

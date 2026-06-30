@@ -58,11 +58,13 @@ export function RecurrenceEditModal({
   onOpenChange,
   recurrence,
   futureCount,
+  prescriptionOptions,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   recurrence: RideRecurrence;
   futureCount: number;
+  prescriptionOptions: { id: string; numero: string }[];
 }): JSX.Element {
   const [days, setDays] = useState<string[]>(parseDaysFromRrule(recurrence.rrule_str));
   const [hour, setHour] = useState(parseHourFromRrule(recurrence.rrule_str));
@@ -82,6 +84,7 @@ export function RecurrenceEditModal({
   });
   const [transportMode, setTransportMode] = useState(recurrence.transport_mode);
   const [urgency, setUrgency] = useState(recurrence.urgency);
+  const [prescriptionId, setPrescriptionId] = useState(recurrence.prescription_id ?? '');
   const [showCascadeConfirm, setShowCascadeConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -113,6 +116,8 @@ export function RecurrenceEditModal({
     if (dropoffCoords.citycode) formData.set('dropoff_citycode', dropoffCoords.citycode);
     formData.set('transport_mode', transportMode);
     formData.set('urgency', urgency);
+    // RENOUVELLEMENT-01 : bon rattaché (vide → omis → lien effacé côté action).
+    if (prescriptionId) formData.set('prescription_id', prescriptionId);
 
     startTransition(async () => {
       const result = await updateRecurrenceAction(formData);
@@ -260,6 +265,28 @@ export function RecurrenceEditModal({
                 </select>
               </div>
             </div>
+
+            {prescriptionOptions.length > 0 && (
+              <div className="space-y-4">
+                <Label htmlFor="edit-prescription">Bon de transport (optionnel)</Label>
+                <select
+                  id="edit-prescription"
+                  value={prescriptionId}
+                  onChange={(e) => setPrescriptionId(e.target.value)}
+                  className="border-input bg-background flex h-10 w-full rounded-md border px-12 text-sm"
+                >
+                  <option value="">Aucun bon rattaché</option>
+                  {prescriptionOptions.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      Bon {p.numero}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-muted-foreground text-xs">
+                  Rattacher un bon permet l&apos;alerte de renouvellement anticipé (15 jours).
+                </p>
+              </div>
+            )}
 
             <RecurrencePreview
               rruleStr={rruleStr}
