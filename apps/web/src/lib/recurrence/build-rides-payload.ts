@@ -18,7 +18,9 @@ export type RecurrencePayloadInput = {
 
 export type RecurrencePayloadCtx = {
   organizationId: string;
-  userId: string;
+  // null pour la génération système (cron RECURRENCE-01) : created_by est
+  // nullable côté `rides` (FK ON DELETE SET NULL).
+  userId: string | null;
 };
 
 /**
