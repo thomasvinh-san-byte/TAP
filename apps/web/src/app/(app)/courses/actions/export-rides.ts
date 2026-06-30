@@ -58,6 +58,8 @@ const STATUS_LABELS: Record<string, string> = {
   validee: 'Validée',
   assignee: 'Assignée',
   en_cours: 'En cours',
+  arrive_sur_place: 'Arrivé sur place',
+  patient_a_bord: 'Patient à bord',
   terminee: 'Terminée',
   annulee_regulateur: 'Annulée (régulateur)',
   annulee_patient: 'Annulée (patient)',

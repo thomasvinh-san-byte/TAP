@@ -25,6 +25,8 @@ import { RideActions } from './ride-actions.client';
 const STATUS_BAR: Record<string, string> = {
   assignee: 'bg-muted',
   en_cours: 'bg-warning',
+  arrive_sur_place: 'bg-warning',
+  patient_a_bord: 'bg-warning',
   terminee: 'bg-success',
   annulee_regulateur: 'bg-destructive/60',
   annulee_patient: 'bg-destructive/60',

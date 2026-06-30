@@ -17,6 +17,8 @@ export const STATUS_LABEL: Record<string, string> = {
   validee: 'Validée',
   assignee: 'Affectée',
   en_cours: 'En cours',
+  arrive_sur_place: 'Arrivé sur place',
+  patient_a_bord: 'Patient à bord',
   terminee: 'Terminée',
   annulee_regulateur: 'Annulée',
   annulee_patient: 'Annulée (patient)',
@@ -30,7 +32,11 @@ export function StatusBadge({ status }: { status: string }): JSX.Element {
   let cls = 'border-border bg-muted text-foreground';
   if (status === 'assignee') {
     cls = 'border-info/30 bg-info/10 text-info';
-  } else if (status === 'en_cours') {
+  } else if (
+    status === 'en_cours' ||
+    status === 'arrive_sur_place' ||
+    status === 'patient_a_bord'
+  ) {
     cls = 'border-warning/30 bg-warning/10 text-warning';
   } else if (status === 'terminee') {
     cls = 'border-success/30 bg-success/10 text-success';

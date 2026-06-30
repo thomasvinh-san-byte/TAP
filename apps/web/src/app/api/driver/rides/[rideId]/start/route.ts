@@ -5,7 +5,6 @@ import { driverPositionInputSchema, canTransition } from '@tap/shared';
 import { requireDriverFromRouteHandler } from '@/lib/api/driver-auth';
 import { withIdempotency } from '@/lib/api/idempotency';
 import { recordDriverPosition } from '@/lib/geoloc/record-position';
-import { notifyPickupConfirmed } from '@/app/(driver)/conduite/_lib/notify-pickup';
 
 /**
  * POST /api/driver/rides/[rideId]/start
@@ -116,10 +115,6 @@ export async function POST(req: NextRequest, props: { params: Promise<{ rideId: 
           },
         };
       }
-
-      // SMS-01 : prise en charge confirmée au patient. Best-effort APRÈS la
-      // transition committée — un échec n'affecte pas le démarrage.
-      await notifyPickupConfirmed(rideIdParse.data, auth.ctx.organizationId);
 
       // Phase 10.0 DEC-096 : capture événementielle position.
       // Non bloquant — toute erreur est avalée par recordDriverPosition.

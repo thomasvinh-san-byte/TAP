@@ -8,6 +8,8 @@ export const STATUS_LABELS_FR: Record<string, string> = {
   validee: 'validée',
   assignee: 'affectée à un chauffeur',
   en_cours: 'en cours',
+  arrive_sur_place: 'arrivé sur place',
+  patient_a_bord: 'patient à bord',
   terminee: 'terminée',
 };
 

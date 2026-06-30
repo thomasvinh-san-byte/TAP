@@ -2,10 +2,10 @@ import 'server-only';
 
 /**
  * Notification SMS « prise en charge confirmée » (SMS-01, §5.15). Appelée en
- * BEST-EFFORT par les deux chemins qui réalisent la transition assignee →
- * en_cours (route API `start` + Server Action `startRideAction`), APRÈS la
- * transition committée : un échec d'envoi NE fait JAMAIS échouer le démarrage
- * (le métier prime sur la notification — pattern `notify-reaffectation`).
+ * BEST-EFFORT au moment « patient à bord » (PWA-01 : transition arrive_sur_place
+ * → patient_a_bord, route API `board`), APRÈS la transition committée — moment
+ * sémantiquement exact de la prise en charge. Un échec d'envoi NE fait JAMAIS
+ * échouer la transition (le métier prime — pattern `notify-reaffectation`).
  *
  * Réutilise le socle SMS (DEC-156, DEC-008) sans rien réécrire :
  *   - `getActiveSmsConsentMap` : consentement vrai ET horodaté (RGPD, ABSOLU).

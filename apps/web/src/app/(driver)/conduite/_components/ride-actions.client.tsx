@@ -4,27 +4,28 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { enqueue } from '@/lib/offline/sync-engine';
 import { getDb } from '@/lib/offline/dexie-instance';
+import type { MutationType } from '@/lib/offline/dexie-schema';
 import { formatTimeFr } from '@/lib/dates-fr';
 import { captureCurrentPosition } from '@/lib/geoloc/capture-current-position.client';
+import { SlideToConfirm } from './slide-to-confirm.client';
 import { EndRideModal } from './end-ride-modal.client';
 import { NoShowButton } from './no-show-button.client';
 
 /**
- * CTA contextuel d'une course (Phase 3 / 03-E).
+ * CTA contextuel d'une course (Phase 3 / 03-E, étendu PWA-01 §5.16).
  *
- * Statut → action (couleurs alignées sur conduite-maquette.html) :
- *   - assignee  → bouton primary « Démarrer la course »
- *   - en_cours  → bouton warning orange « Clôturer la course »
- *   - terminee  → badge success h-14 « Terminée à HHhMM »
- *   - annulee_* → badge neutre h-14 « Course annulée »
+ * Bouton géant unique, libellé selon la séquence de prise en charge :
+ *   assignee         → « Je pars »            (start  → en_cours)
+ *   en_cours         → « Arrivé sur place »   (arrive → arrive_sur_place)
+ *   arrive_sur_place → « Patient à bord »     (board  → patient_a_bord)
+ *   patient_a_bord   → « Terminer la course » (ouvre la clôture tarif/paiement)
+ *   terminee / annulee_* → badge
  *
- * Hauteur fixe h-14 (56 px) pour cible tactile pouce mobile (CLAUDE.md § 5).
- * Variant `sticky` : utilisé en page détail, le CTA se colle en bas du
- * viewport pour rester accessible sans scroll.
+ * Confirmation par GLISSEMENT (anti-appui accidentel à une main) en complément
+ * du contrôle visible. Chaque transition passe par le mode hors-ligne (file de
+ * mutations rejouable, FIFO par course). Cible ≥ 56 px, zone basse (sticky).
  */
 
 interface Props {
@@ -34,16 +35,45 @@ interface Props {
   variant?: 'inline' | 'sticky';
 }
 
+interface Step {
+  label: string;
+  path: string;
+  mutationType: MutationType;
+  success: string;
+  /** Capture la position (DEC-096) — seulement au démarrage. */
+  withPosition?: boolean;
+}
+
+const STEPS: Record<string, Step> = {
+  assignee: {
+    label: 'Je pars',
+    path: 'start',
+    mutationType: 'start_ride',
+    success: 'Course démarrée.',
+    withPosition: true,
+  },
+  en_cours: {
+    label: 'Arrivé sur place',
+    path: 'arrive',
+    mutationType: 'arrive_ride',
+    success: 'Arrivée enregistrée.',
+  },
+  arrive_sur_place: {
+    label: 'Patient à bord',
+    path: 'board',
+    mutationType: 'board_ride',
+    success: 'Patient à bord.',
+  },
+};
+
+/** États où l'action « Patient absent » reste pertinente (avant embarquement). */
+const NO_SHOW_STATES = new Set(['assignee', 'en_cours', 'arrive_sur_place']);
+
 export function RideActions({ rideId, status, endedAt, variant = 'inline' }: Props): JSX.Element {
   const router = useRouter();
   const [pending, setPending] = React.useState(false);
   const [endOpen, setEndOpen] = React.useState(false);
 
-  // Track mutations en queue Dexie pour ce ride (Phase 04.9-bis #3).
-  // Pattern industry 2026 : « track pending operations with visible
-  // status line » (tasking.space PWA Edge Sync 2026, TanStack Query
-  // useMutation isPending). Évite la duplication enqueue post-refresh
-  // quand state local pending est reset par router.refresh().
   const pendingForThisRide = useLiveQuery(
     () => {
       if (typeof window === 'undefined') return 0;
@@ -58,56 +88,43 @@ export function RideActions({ rideId, status, endedAt, variant = 'inline' }: Pro
   );
   const hasPendingSync = (pendingForThisRide ?? 0) > 0;
 
-  const onStart = async () => {
-    setPending(true);
-    const idempotency_key = crypto.randomUUID();
-
-    // Phase 10.0 DEC-096 : capture position évènementielle (best-effort).
-    // Acquisition GPS pendant ce délai — affichée via `pending` côté UI.
-    const position = await captureCurrentPosition();
-
-    try {
-      if (!navigator.onLine) {
-        throw new Error('offline');
-      }
-
-      const res = await fetch(`/api/driver/rides/${rideId}/start`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idempotency_key, ...position }),
-      });
-
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as {
-          error?: string;
-        };
-        const errorMsg = data.error ?? `HTTP ${res.status}`;
-
-        // Erreurs métier (4xx) : afficher sans enqueue (retry serait vain)
-        if (res.status >= 400 && res.status < 500) {
-          toast.error(errorMsg);
-          setPending(false);
-          return;
+  const runTransition = React.useCallback(
+    async (step: Step) => {
+      setPending(true);
+      const idempotency_key = crypto.randomUUID();
+      const payload: Record<string, unknown> = step.withPosition
+        ? await captureCurrentPosition()
+        : {};
+      try {
+        if (!navigator.onLine) throw new Error('offline');
+        const res = await fetch(`/api/driver/rides/${rideId}/${step.path}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idempotency_key, ...payload }),
+        });
+        if (!res.ok) {
+          const data = (await res.json().catch(() => ({}))) as { error?: string };
+          const errorMsg = data.error ?? `HTTP ${res.status}`;
+          // 4xx = erreur métier définitive : afficher, ne pas mettre en file.
+          if (res.status >= 400 && res.status < 500) {
+            toast.error(errorMsg);
+            setPending(false);
+            return;
+          }
+          throw new Error(errorMsg); // 5xx → file
         }
-
-        // 5xx : enqueue pour retry au retour
-        throw new Error(errorMsg);
+        toast.success(step.success);
+        router.refresh();
+      } catch {
+        await enqueue({ type: step.mutationType, resource_id: rideId, payload });
+        toast.warning('Action enregistrée : sync au retour réseau.');
+        router.refresh();
+      } finally {
+        setPending(false);
       }
-
-      toast.success('Course démarrée.');
-      router.refresh();
-    } catch {
-      await enqueue({
-        type: 'start_ride',
-        resource_id: rideId,
-        payload: position,
-      });
-      toast.warning('Mutation enregistrée : sync au retour réseau.');
-      router.refresh();
-    } finally {
-      setPending(false);
-    }
-  };
+    },
+    [rideId, router],
+  );
 
   if (status === 'terminee') {
     return (
@@ -130,51 +147,32 @@ export function RideActions({ rideId, status, endedAt, variant = 'inline' }: Pro
       ? 'sticky bottom-0 -mx-16 sm:-mx-24 px-16 sm:px-24 py-12 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85 border-t border-border'
       : '';
 
-  if (status === 'en_cours') {
-    return (
-      <>
-        <div className={stickyCls}>
-          <Button
-            type="button"
-            onClick={() => setEndOpen(true)}
-            disabled={hasPendingSync}
-            className="bg-warning hover:bg-warning/90 focus-visible:ring-warning h-14 w-full text-base font-semibold text-white disabled:opacity-60"
-          >
-            {hasPendingSync ? 'Clôture en attente de sync…' : 'Clôturer la course'}
-          </Button>
-        </div>
-        <EndRideModal rideId={rideId} open={endOpen} onOpenChange={setEndOpen} />
-      </>
-    );
-  }
+  const step = STEPS[status];
+  const blocked = pending || hasPendingSync;
 
-  // assignee (par défaut)
   return (
     <div className={stickyCls}>
-      <Button
-        type="button"
-        variant="accent"
-        onClick={onStart}
-        disabled={pending || hasPendingSync}
-        className="h-14 w-full text-base font-semibold"
-      >
-        {pending ? (
-          <>
-            <Loader2 className="mr-8 h-16 w-16 animate-spin" aria-hidden />
-            Démarrage…
-          </>
-        ) : hasPendingSync ? (
-          'Démarrage en attente de sync…'
-        ) : (
-          'Démarrer la course'
-        )}
-      </Button>
-      {/* « Patient absent » : action lourde (course perdue). Écart large +
-          frontière pour la détacher du CTA — anti clic accidentel (retour
-          terrain). Hiérarchie secondaire DEC-014 inchangée. */}
-      <div className="border-border mt-24 border-t pt-16">
-        <NoShowButton rideId={rideId} />
-      </div>
+      {status === 'patient_a_bord' ? (
+        <SlideToConfirm
+          label={hasPendingSync ? 'Clôture en attente de sync…' : 'Terminer la course'}
+          onConfirm={() => setEndOpen(true)}
+          disabled={blocked}
+        />
+      ) : step ? (
+        <SlideToConfirm
+          label={hasPendingSync ? 'En attente de sync…' : step.label}
+          onConfirm={() => void runTransition(step)}
+          disabled={blocked}
+        />
+      ) : null}
+
+      {NO_SHOW_STATES.has(status) && (
+        <div className="border-border mt-24 border-t pt-16">
+          <NoShowButton rideId={rideId} />
+        </div>
+      )}
+
+      <EndRideModal rideId={rideId} open={endOpen} onOpenChange={setEndOpen} />
     </div>
   );
 }
