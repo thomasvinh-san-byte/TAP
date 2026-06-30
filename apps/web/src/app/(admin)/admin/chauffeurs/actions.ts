@@ -46,7 +46,9 @@ function parseFormData(formData: FormData) {
     telephone: formData.get('telephone'),
     numero_licence: formData.get('numero_licence'),
     type_permis: formData.getAll('type_permis'),
-    actif: formData.get('actif') === 'on',
+    // CHAUFFEUR-01 : statut explicite (actif / conge / suspendu). L'archivage
+    // passe par le flux dédié, jamais par ce formulaire.
+    status: formData.get('status') ?? 'actif',
   });
 }
 
@@ -191,13 +193,15 @@ export async function archiveDriverAction(
   // automatiquement — on ajoute en plus un audit applicatif sémantique
   // `driver_archived` avec le motif et l'acteur, pour traçabilité claire
   // côté RGPD et historique chauffeur).
+  // CHAUFFEUR-01 : status='archive' (source de vérité ; le trigger DB dérive
+  // archive=true, actif=false). Le garde-fou dirigeant s'applique sur la
+  // transition vers 'archive'.
   const { error: updErr } = await ctx.supabase
     .from('drivers')
     .update({
-      archive: true,
+      status: 'archive',
       archive_at: new Date().toISOString(),
       archive_motif: motif,
-      actif: false,
     } as never)
     .eq('id', driverId)
     .eq('archive', false);
@@ -255,9 +259,11 @@ export async function deactivateDriverAction(
     };
   }
 
+  // CHAUFFEUR-01 : « désactiver » = passer en suspendu (status fait foi ; le
+  // trigger DB dérive actif=false). Non archivé, reste dans le référentiel.
   const { data, error } = await ctx.supabase
     .from('drivers')
-    .update({ actif: false } as never)
+    .update({ status: 'suspendu' } as never)
     .eq('id', driverId)
     .eq('archive', false)
     .select('id, nom_affichage')
@@ -300,9 +306,10 @@ export async function reactivateDriverAction(driverId: string): Promise<ActionSt
   const ctx = await requireAdminOrRegulateur();
   if (!ctx) return { error: 'Accès dirigeant ou régulateur requis.' };
 
+  // CHAUFFEUR-01 : « réactiver » = repasser en actif (status fait foi).
   const { data, error } = await ctx.supabase
     .from('drivers')
-    .update({ actif: true } as never)
+    .update({ status: 'actif' } as never)
     .eq('id', driverId)
     .eq('archive', false)
     .select('id, nom_affichage')
@@ -362,10 +369,13 @@ export async function unarchiveDriverAction(
     };
   }
 
+  // CHAUFFEUR-01 : désarchivage → status='suspendu' (réintégré mais non
+  // affectable tant qu'il n'est pas réactivé ; le trigger DB dérive
+  // archive=false, actif=false). archive_at / archive_motif effacés.
   const { data, error } = await ctx.supabase
     .from('drivers')
     .update({
-      archive: false,
+      status: 'suspendu',
       archive_at: null,
       archive_motif: null,
     } as never)

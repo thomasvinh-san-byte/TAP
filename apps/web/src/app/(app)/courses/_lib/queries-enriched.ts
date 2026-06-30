@@ -181,11 +181,12 @@ export async function getRideAuditLog(rideId: string): Promise<RideAuditEntry[]>
 
 export async function listActiveDrivers(): Promise<DriverMin[]> {
   const supabase = await createClient();
+  // CHAUFFEUR-01 (§5.6) : seuls les chauffeurs status='actif' sont proposés à
+  // l'affectation. En congé / suspendu / archivé sont exclus (status fait foi).
   const { data, error } = await supabase
     .from('drivers')
     .select('id, nom_affichage, type_permis')
-    .eq('actif', true)
-    .eq('archive', false)
+    .eq('status' as never, 'actif' as never)
     .order('nom_affichage', { ascending: true })
     .limit(50);
   if (error) {
