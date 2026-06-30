@@ -4,6 +4,7 @@ export * from './patient-data-export';
 export * from './patient-anonymize';
 export * from './format-date-fr';
 export * from './driver-vehicle-compat';
+export * from './vehicle-patient-compat';
 export * from './nir-checksum';
 export * from './compliance-status';
 export * from './compliance-alerts';

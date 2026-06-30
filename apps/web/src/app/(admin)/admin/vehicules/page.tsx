@@ -43,6 +43,11 @@ export type VehicleRow = {
   type: 'taxi_conventionne' | 'tpmr' | 'vsl' | 'ambulance';
   places_assises: number | null;
   places_tpmr: number | null;
+  // VEHICULE-01 (§5.7) : équipements de compatibilité.
+  equipement_oxygene: boolean;
+  equipement_brancard: boolean;
+  capacite_charge_kg: number | null;
+  equipement_autre: string | null;
   actif: boolean;
   created_at: string;
 };
