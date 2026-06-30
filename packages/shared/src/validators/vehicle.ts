@@ -33,6 +33,16 @@ export const vehicleInputSchema = z.object({
     .max(9, 'Au maximum 9 places assises.')
     .optional(),
   places_tpmr: z.number().int().min(0).max(3, 'Au maximum 3 places TPMR.').optional(),
+  // VEHICULE-01 (§5.7) : équipements de compatibilité patient.
+  equipement_oxygene: z.boolean().default(false),
+  equipement_brancard: z.boolean().default(false),
+  capacite_charge_kg: z
+    .number()
+    .int()
+    .min(1, 'Capacité de charge minimale 1 kg.')
+    .max(2000, 'Capacité de charge maximale 2000 kg.')
+    .optional(),
+  equipement_autre: z.string().trim().max(200).optional().or(z.literal('')),
   actif: z.boolean().default(true),
 });
 

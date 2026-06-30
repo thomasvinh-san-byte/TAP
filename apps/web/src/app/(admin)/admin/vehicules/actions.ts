@@ -27,6 +27,7 @@ function parseFormData(formData: FormData) {
   const placesTpmr = formData.get('places_tpmr');
   const rawMarque = formData.get('marque');
   const rawModele = formData.get('modele');
+  const capaciteCharge = formData.get('capacite_charge_kg');
   return vehicleInputSchema.safeParse({
     immatriculation: formData.get('immatriculation'),
     // D-07 : normalisation Title Case sur saisies libres (limite les
@@ -38,6 +39,12 @@ function parseFormData(formData: FormData) {
     places_assises:
       placesAssises === null || placesAssises === '' ? undefined : Number(placesAssises),
     places_tpmr: placesTpmr === null || placesTpmr === '' ? undefined : Number(placesTpmr),
+    // VEHICULE-01 (§5.7) : équipements de compatibilité.
+    equipement_oxygene: formData.get('equipement_oxygene') === 'on',
+    equipement_brancard: formData.get('equipement_brancard') === 'on',
+    capacite_charge_kg:
+      capaciteCharge === null || capaciteCharge === '' ? undefined : Number(capaciteCharge),
+    equipement_autre: formData.get('equipement_autre') ?? undefined,
     actif: formData.get('actif') === 'on',
   });
 }
@@ -80,6 +87,7 @@ export async function createVehicleAction(
       created_by: ctx.userId,
       marque: parsed.data.marque || null,
       modele: parsed.data.modele || null,
+      equipement_autre: parsed.data.equipement_autre || null,
     } as never)
     .select('id')
     .single();
@@ -119,6 +127,7 @@ export async function updateVehicleAction(
       ...parsed.data,
       marque: parsed.data.marque || null,
       modele: parsed.data.modele || null,
+      equipement_autre: parsed.data.equipement_autre || null,
     } as never)
     .eq('id', vehicleId)
     .eq('archive', false)

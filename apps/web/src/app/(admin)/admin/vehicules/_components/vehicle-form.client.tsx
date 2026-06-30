@@ -152,6 +152,44 @@ export function VehicleForm({
           </FormRow>
         </FormSection>
 
+        <FormSection title="Équipements">
+          <div className="space-y-12">
+            <label className="flex cursor-pointer items-center gap-12">
+              <Checkbox
+                name="equipement_oxygene"
+                defaultChecked={initial?.equipement_oxygene ?? false}
+              />
+              <span className="text-sm">Oxygène</span>
+            </label>
+            <label className="flex cursor-pointer items-center gap-12">
+              <Checkbox
+                name="equipement_brancard"
+                defaultChecked={initial?.equipement_brancard ?? false}
+              />
+              <span className="text-sm">Accès brancard</span>
+            </label>
+          </div>
+          <FormRow>
+            <NumberField
+              id="capacite_charge_kg"
+              label="Capacité de charge (kg)"
+              min={1}
+              max={2000}
+              defaultValue={initial?.capacite_charge_kg ?? null}
+              hint="Surcharge pondérale (facultatif)"
+              error={fe.capacite_charge_kg}
+            />
+            <Field
+              id="equipement_autre"
+              label="Autre équipement"
+              defaultValue={initial?.equipement_autre ?? ''}
+              hint="Champ libre (facultatif)"
+              error={fe.equipement_autre}
+              maxLength={200}
+            />
+          </FormRow>
+        </FormSection>
+
         {/* Disponibilité : ligne discrète séparée par un filet (D-03). */}
         <div className="border-border border-t pt-12">
           <label className="flex cursor-pointer items-center gap-12">

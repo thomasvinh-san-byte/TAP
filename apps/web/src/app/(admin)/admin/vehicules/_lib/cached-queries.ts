@@ -32,7 +32,9 @@ async function getVehiculesPageData(organizationId: string): Promise<VehiculesPa
     admin
       .from('vehicles')
       .select(
-        'id, immatriculation, marque, modele, type, places_assises, places_tpmr, actif, created_at',
+        'id, immatriculation, marque, modele, type, places_assises, places_tpmr, ' +
+          'equipement_oxygene, equipement_brancard, capacite_charge_kg, equipement_autre, ' +
+          'actif, created_at',
       )
       .eq('organization_id', organizationId)
       .eq('archive', false)
@@ -51,7 +53,9 @@ async function getVehiculesPageData(organizationId: string): Promise<VehiculesPa
     console.error('[admin/vehicules] Erreur Supabase:', vehiclesRes.error);
   }
 
-  const vehicles = (vehiclesRes.data ?? []) as VehicleRow[];
+  // Colonnes équipement absentes de types.gen.ts (pas de resync) → cast via
+  // unknown (DEC-155). Le SELECT les ramène bien à l'exécution.
+  const vehicles = (vehiclesRes.data ?? []) as unknown as VehicleRow[];
 
   const nextComplianceByVehicleId: Record<string, string> = {};
   for (const r of (complianceRes.data as { entity_id: string; expires_at: string }[] | null) ??
