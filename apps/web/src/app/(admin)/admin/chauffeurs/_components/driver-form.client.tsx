@@ -22,6 +22,7 @@ import { Field } from '@/components/form/field';
 import { FormSection, FormRow } from '@/components/form/form-layout';
 import { cn } from '@/lib/utils';
 import { ComplianceFieldset } from '../../conformite/_components/compliance-fieldset.client';
+import { DriverPatientPreferencesSection } from './driver-patient-preferences-section.client';
 import { type ActionState, createDriverAction, updateDriverAction } from '../actions';
 import type { DriverRow } from '../page';
 
@@ -204,6 +205,12 @@ export function DriverForm({
               entityId={initial.id}
               uploadEnabled={uploadEnabled}
             />
+          </FormSection>
+        )}
+
+        {initial && (
+          <FormSection title="Patients préférés / à éviter">
+            <DriverPatientPreferencesSection driverId={initial.id} />
           </FormSection>
         )}
 
