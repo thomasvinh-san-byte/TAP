@@ -20,6 +20,7 @@ import { ComplianceAlertsPanel } from '../../../(admin)/admin/conformite/_compon
 import type { PrescriptionAlertEnriched } from '../_lib/get-prescription-alerts';
 import { PrescriptionAlertsPanel } from './prescription-alerts-panel.client';
 import { AlertsPanel } from './alerts-panel.client';
+import { DriverLoadPanel } from './driver-load-panel.client';
 import { UnassignedH1Indicator } from './unassigned-h1-indicator.client';
 import { AlertSoundToggle } from './alert-sound-toggle.client';
 import { DraftsIndicator } from './drafts-indicator.client';
@@ -196,6 +197,7 @@ export function CockpitContent({
             <AlertSoundToggle armed={sound.armed} onArm={sound.arm} onDisarm={sound.disarm} />
           </div>
           <AlertsPanel alerts={panelAlerts} />
+          <DriverLoadPanel rides={rides} driverLabels={driverLabels} />
           <DraftsIndicator />
           <ComplianceAlertsPanel alerts={complianceAlerts} variant="panel" limit={4} />
           <PrescriptionAlertsPanel alerts={prescriptionAlerts} />
