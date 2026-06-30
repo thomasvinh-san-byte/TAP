@@ -23,11 +23,33 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
-      - name: Pousser les migrations
+      - name: Pousser les migrations (critique, bloquant)
+        # SEULE opération critique du déploiement : applique les migrations au
+        # schéma de production. Si elle échoue, le déploiement DOIT échouer (on
+        # ne déploie pas de code sur un schéma non migré). La conclusion du job
+        # deploy-migrations ne dépend QUE de cette étape (le seed a été déplacé
+        # dans le job seed-demo, non bloquant — INFRA-02).
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-        run: supabase db push --linked
+        run: |
+          echo "→ supabase db push --linked (critique)"
+          supabase db push --linked
+
+  seed-demo:
+    name: Application du seed de démo (non bloquant)
+    needs: deploy-migrations
+    runs-on: ubuntu-latest
+    environment: production
+    # Non-bloquant (INFRA-02) : le seed (comptes démo + patients fictifs) est
+    # idempotent (ON CONFLICT DO NOTHING) et NON critique. Son échec (connexion
+    # pooler, secret, IPv4, région) ne doit JAMAIS faire échouer le déploiement
+    # ni bloquer le sync-types post-CD. Le succès du déploiement est déterminé
+    # par `db push` seul (job deploy-migrations). Même posture que
+    # deploy-edge-functions.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
       - name: Appliquer le seed (auth + démo)
         # Idempotent : tous les INSERT utilisent ON CONFLICT DO NOTHING.
         # seed.sql crée 3 comptes démo + 1 organization.
@@ -40,11 +62,16 @@ jobs:
         # Le hostname pooler dépend de la région du projet (aws-0-<region>).
         # Récupéré dynamiquement via API Supabase pour éviter le hardcode
         # qui causait FATAL: Tenant or user not found.
+        #
+        # Logique de connexion INCHANGÉE (INFRA-02) : seul le couplage au job
+        # critique a été retiré. En cas d'échec, ce job apparaît en échec (annoté
+        # warning) mais n'affecte ni la conclusion du déploiement ni le sync.
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
         run: |
           set -e
+          echo "ℹ Seed non bloquant : un échec ici n'échoue PAS le déploiement."
           PROJECT_REF="${{ secrets.SUPABASE_PROJECT_REF }}"
 
           echo "→ Récupération région projet via Supabase API"
@@ -54,7 +81,7 @@ jobs:
             | jq -r '.region')
 
           if [ -z "$REGION" ] || [ "$REGION" = "null" ]; then
-            echo "❌ Région introuvable. SUPABASE_PROJECT_REF correct ?"
+            echo "❌ Région introuvable (seed ignoré, non bloquant). SUPABASE_PROJECT_REF correct ?"
             exit 1
           fi
           echo "  region: $REGION"
