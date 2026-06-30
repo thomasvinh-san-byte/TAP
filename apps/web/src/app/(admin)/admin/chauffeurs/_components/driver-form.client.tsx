@@ -3,7 +3,11 @@
 import * as React from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
 import {
+  DRIVER_COMPETENCE_LABELS,
+  DRIVER_COMPETENCE_VALUES,
   DRIVER_FORM_STATUS_VALUES,
+  DRIVER_LANGUE_LABELS,
+  DRIVER_LANGUE_VALUES,
   DRIVER_STATUS_LABELS,
   TYPE_PERMIS_VALUES,
   type DriverFormStatus,
@@ -27,6 +31,40 @@ const TYPE_PERMIS_LABELS: Record<TypePermis, string> = {
   vsl: 'VSL',
   tpmr: 'TPMR',
 };
+
+/**
+ * Groupe de cases à cocher tokenisées multivaluées (permis / compétences /
+ * langues). Valeur cochée → présente dans le tableau `name` à la soumission.
+ */
+function CheckboxChipGroup<T extends string>({
+  name,
+  values,
+  labels,
+  selected,
+}: {
+  name: string;
+  values: readonly T[];
+  labels: Record<T, string>;
+  selected: readonly string[] | undefined;
+}): JSX.Element {
+  return (
+    <div className="grid grid-cols-2 gap-12">
+      {values.map((v) => (
+        <label
+          key={v}
+          className={cn(
+            'flex cursor-pointer items-center gap-12 rounded-md border px-12 py-12 transition-colors',
+            'border-input hover:bg-muted/50',
+            'has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:text-primary',
+          )}
+        >
+          <Checkbox name={name} value={v} defaultChecked={selected?.includes(v) ?? false} />
+          <span className="text-sm font-medium">{labels[v]}</span>
+        </label>
+      ))}
+    </div>
+  );
+}
 
 interface Props {
   initial?: DriverRow;
@@ -107,25 +145,30 @@ export function DriverForm({
         </FormSection>
 
         <FormSection title="Types de permis">
-          <div className="grid grid-cols-2 gap-12">
-            {TYPE_PERMIS_VALUES.map((v) => (
-              <label
-                key={v}
-                className={cn(
-                  'flex cursor-pointer items-center gap-12 rounded-md border px-12 py-12 transition-colors',
-                  'border-input hover:bg-muted/50',
-                  'has-[:checked]:border-primary has-[:checked]:bg-primary/10 has-[:checked]:text-primary',
-                )}
-              >
-                <Checkbox
-                  name="type_permis"
-                  value={v}
-                  defaultChecked={initial?.type_permis?.includes(v) ?? false}
-                />
-                <span className="text-sm font-medium">{TYPE_PERMIS_LABELS[v]}</span>
-              </label>
-            ))}
-          </div>
+          <CheckboxChipGroup
+            name="type_permis"
+            values={TYPE_PERMIS_VALUES}
+            labels={TYPE_PERMIS_LABELS}
+            selected={initial?.type_permis}
+          />
+        </FormSection>
+
+        <FormSection title="Compétences">
+          <CheckboxChipGroup
+            name="competences"
+            values={DRIVER_COMPETENCE_VALUES}
+            labels={DRIVER_COMPETENCE_LABELS}
+            selected={initial?.competences}
+          />
+        </FormSection>
+
+        <FormSection title="Langues parlées">
+          <CheckboxChipGroup
+            name="langues"
+            values={DRIVER_LANGUE_VALUES}
+            labels={DRIVER_LANGUE_LABELS}
+            selected={initial?.langues}
+          />
         </FormSection>
 
         {/* Statut chauffeur (§5.6) : seul « actif » est proposé à l'affectation. */}

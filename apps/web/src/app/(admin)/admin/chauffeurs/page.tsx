@@ -64,6 +64,8 @@ export type DriverRow = {
   telephone: string | null;
   numero_licence: string | null;
   type_permis: string[];
+  competences: string[];
+  langues: string[];
   status: import('@tap/shared').DriverStatus;
   actif: boolean;
   archive: boolean;

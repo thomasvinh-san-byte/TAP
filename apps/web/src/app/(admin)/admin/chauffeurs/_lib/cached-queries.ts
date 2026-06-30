@@ -45,7 +45,7 @@ async function getChauffeursPageData(
     admin
       .from('drivers')
       .select(
-        'id, nom_affichage, telephone, numero_licence, type_permis, status, actif, archive, archive_at, archive_motif, profile_id, created_at',
+        'id, nom_affichage, telephone, numero_licence, type_permis, competences, langues, status, actif, archive, archive_at, archive_motif, profile_id, created_at',
       )
       .eq('organization_id', organizationId)
       .eq('archive', vueArchives)

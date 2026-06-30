@@ -46,6 +46,9 @@ function parseFormData(formData: FormData) {
     telephone: formData.get('telephone'),
     numero_licence: formData.get('numero_licence'),
     type_permis: formData.getAll('type_permis'),
+    // CHAUFFEUR-02 : compétences et langues (multivaluées, énumérations fermées).
+    competences: formData.getAll('competences'),
+    langues: formData.getAll('langues'),
     // CHAUFFEUR-01 : statut explicite (actif / conge / suspendu). L'archivage
     // passe par le flux dédié, jamais par ce formulaire.
     status: formData.get('status') ?? 'actif',
