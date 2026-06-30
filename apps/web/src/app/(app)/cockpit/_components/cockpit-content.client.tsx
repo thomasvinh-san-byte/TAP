@@ -8,6 +8,9 @@ import { PageHeader } from '@/components/page-header';
 import type { WeatherAlert } from '../../meteo/_lib/queries';
 import { useCockpitAlerts } from '../_lib/use-cockpit-alerts';
 import { useCockpitRides } from '../_lib/use-cockpit-rides';
+import { useUnassignedH1 } from '../_lib/use-unassigned-h1';
+import { sortAlertsByPriority } from '../_lib/alert-priority';
+import { useAlertSound, useAlertSoundOnNew } from '@/lib/alert-sound/use-alert-sound';
 import type { CockpitAlert, CockpitRide } from '../_lib/types';
 import type { CockpitAlertPreferences } from '@/lib/notifications/preferences';
 import type { DriverPosition } from '../_lib/use-driver-positions';
@@ -16,6 +19,8 @@ import { ComplianceAlertsPanel } from '../../../(admin)/admin/conformite/_compon
 import type { PrescriptionAlertEnriched } from '../_lib/get-prescription-alerts';
 import { PrescriptionAlertsPanel } from './prescription-alerts-panel.client';
 import { AlertsPanel } from './alerts-panel.client';
+import { UnassignedH1Indicator } from './unassigned-h1-indicator.client';
+import { AlertSoundToggle } from './alert-sound-toggle.client';
 import { DraftsIndicator } from './drafts-indicator.client';
 import { CoursesTable } from './courses-table.client';
 import { DriverPositionsPanel } from './driver-positions-panel.client';
@@ -24,6 +29,7 @@ import { RealtimeStatusBadge } from './realtime-status-badge.client';
 
 const NOSHOW_DETECTION_WINDOW_MS = 60_000;
 const NOSHOW_DISMISSED_KEY = 'cockpit:noshow-dismissed';
+const MAX_PANEL_ALERTS = 20;
 
 export function CockpitContent({
   initialRides,
@@ -48,6 +54,15 @@ export function CockpitContent({
   const { alerts } = useCockpitAlerts(initialAlerts);
   const [dismissedNoShowIds, setDismissedNoShowIds] = useState<Set<string>>(() => new Set());
 
+  // COCKPIT-01 (§5.13) : courses validées non affectées à H-1 (calculées, ticker).
+  const { count: unassignedH1Count, alerts: h1Alerts } = useUnassignedH1(rides);
+  // Son d'alerte réutilisable, armé par interaction (politique autoplay).
+  const sound = useAlertSound();
+  useAlertSoundOnNew(
+    useMemo(() => h1Alerts.map((a) => a.id), [h1Alerts]),
+    sound,
+  );
+
   // DEC-149 : filtrage d'AFFICHAGE selon les préférences utilisateur. La
   // détection (useCockpitAlerts, realtime) reste INCHANGÉE — on ne masque que
   // les familles désactivées. Défaut tout activé = rétro-compatible.
@@ -57,6 +72,14 @@ export function CockpitContent({
     () =>
       alerts.filter((a) => (alertPreferences as Record<string, boolean>)[a.event_type] !== false),
     [alerts, alertPreferences],
+  );
+
+  // Panneau : alertes H-1 (critiques) fusionnées aux alertes ride_events, triées
+  // par priorité (critiques d'abord), plafonnées. Les H-1 ne sont pas filtrées
+  // par préférences (alerte critique du §5.13).
+  const panelAlerts = useMemo<CockpitAlert[]>(
+    () => sortAlertsByPriority([...h1Alerts, ...visibleAlerts]).slice(0, MAX_PANEL_ALERTS),
+    [h1Alerts, visibleAlerts],
   );
 
   const recentNoShow = useMemo<CockpitAlert | null>(() => {
@@ -158,7 +181,11 @@ export function CockpitContent({
           <DriverPositionsPanel initial={initialPositions} driverLabels={driverLabels} />
         </section>
         <aside className="lg:border-border flex w-full shrink-0 flex-col gap-24 lg:w-80 lg:border-l lg:pl-24">
-          <AlertsPanel alerts={visibleAlerts} />
+          <div className="space-y-8">
+            <UnassignedH1Indicator count={unassignedH1Count} />
+            <AlertSoundToggle armed={sound.armed} onArm={sound.arm} onDisarm={sound.disarm} />
+          </div>
+          <AlertsPanel alerts={panelAlerts} />
           <DraftsIndicator />
           <ComplianceAlertsPanel alerts={complianceAlerts} variant="panel" limit={4} />
           <PrescriptionAlertsPanel alerts={prescriptionAlerts} />
