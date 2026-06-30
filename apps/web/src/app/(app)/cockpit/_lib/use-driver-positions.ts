@@ -90,8 +90,15 @@ export function formatPositionAge(capturedAt: string, now: Date = new Date()): s
   return `vu il y a ${days}${NBSP}j`;
 }
 
-/** Plage de couleur : moins de 5min = primary, sinon muted. */
+/**
+ * Seuil de péremption d'une position (minutes). Au-delà, la position est
+ * considérée « périmée » — pour la couleur (display) ET l'alerte cockpit
+ * (COCKPIT-02). Source unique pour éviter un seuil divergent.
+ */
+export const POSITION_STALE_MIN = 5;
+
+/** Plage de couleur : moins du seuil = primary, sinon muted. */
 export function positionTone(capturedAt: string, now: Date = new Date()): 'primary' | 'muted' {
   const diffMin = (now.getTime() - new Date(capturedAt).getTime()) / 60_000;
-  return diffMin < 5 ? 'primary' : 'muted';
+  return diffMin < POSITION_STALE_MIN ? 'primary' : 'muted';
 }

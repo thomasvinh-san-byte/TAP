@@ -20,6 +20,8 @@ export interface CockpitRide {
   status: string;
   pickup_address: string;
   dropoff_address: string | null;
+  // COCKPIT-02 : nécessaire pour croiser positions ↔ courses (« en service »).
+  driver_id: string | null;
   patient: CockpitPersonName | null;
   driver: CockpitDriverName | null;
 }
@@ -31,7 +33,10 @@ export type CockpitAlertType =
   | 'driver_incident'
   // COCKPIT-01 (§5.13) : course validée non affectée à moins d'1h du créneau.
   // Calculée côté client (échéance temporelle), pas issue de `ride_events`.
-  | 'ride_unassigned_h1';
+  | 'ride_unassigned_h1'
+  // COCKPIT-02 (§5.13) : position d'un chauffeur en service non remontée depuis
+  // > 5 min. Calculée côté client (âge de la position), pas issue de `ride_events`.
+  | 'driver_position_stale';
 
 export interface CockpitAlert {
   id: string;

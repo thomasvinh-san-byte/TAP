@@ -9,11 +9,12 @@ import type { WeatherAlert } from '../../meteo/_lib/queries';
 import { useCockpitAlerts } from '../_lib/use-cockpit-alerts';
 import { useCockpitRides } from '../_lib/use-cockpit-rides';
 import { useUnassignedH1 } from '../_lib/use-unassigned-h1';
+import { useStalePositions } from '../_lib/use-stale-positions';
 import { sortAlertsByPriority } from '../_lib/alert-priority';
 import { useAlertSound, useAlertSoundOnNew } from '@/lib/alert-sound/use-alert-sound';
 import type { CockpitAlert, CockpitRide } from '../_lib/types';
 import type { CockpitAlertPreferences } from '@/lib/notifications/preferences';
-import type { DriverPosition } from '../_lib/use-driver-positions';
+import { useDriverPositions, type DriverPosition } from '../_lib/use-driver-positions';
 import type { ComplianceAlertEnriched } from '../../../(admin)/admin/conformite/_lib/get-compliance-alerts';
 import { ComplianceAlertsPanel } from '../../../(admin)/admin/conformite/_components/compliance-alerts-panel.client';
 import type { PrescriptionAlertEnriched } from '../_lib/get-prescription-alerts';
@@ -56,10 +57,15 @@ export function CockpitContent({
 
   // COCKPIT-01 (§5.13) : courses validées non affectées à H-1 (calculées, ticker).
   const { count: unassignedH1Count, alerts: h1Alerts } = useUnassignedH1(rides);
-  // Son d'alerte réutilisable, armé par interaction (politique autoplay).
+  // COCKPIT-02 (§5.13) : positions périmées des chauffeurs en service. Positions
+  // liftées ici (une seule subscription, partagée avec la carte).
+  const { positionsByDriver } = useDriverPositions(initialPositions);
+  const { alerts: staleAlerts } = useStalePositions(rides, positionsByDriver, driverLabels);
+  // Son d'alerte réutilisable, armé par interaction (politique autoplay). Sonorise
+  // les alertes critiques calculées (H-1 + géoloc périmée), une fois par transition.
   const sound = useAlertSound();
   useAlertSoundOnNew(
-    useMemo(() => h1Alerts.map((a) => a.id), [h1Alerts]),
+    useMemo(() => [...h1Alerts, ...staleAlerts].map((a) => a.id), [h1Alerts, staleAlerts]),
     sound,
   );
 
@@ -78,8 +84,12 @@ export function CockpitContent({
   // par priorité (critiques d'abord), plafonnées. Les H-1 ne sont pas filtrées
   // par préférences (alerte critique du §5.13).
   const panelAlerts = useMemo<CockpitAlert[]>(
-    () => sortAlertsByPriority([...h1Alerts, ...visibleAlerts]).slice(0, MAX_PANEL_ALERTS),
-    [h1Alerts, visibleAlerts],
+    () =>
+      sortAlertsByPriority([...h1Alerts, ...staleAlerts, ...visibleAlerts]).slice(
+        0,
+        MAX_PANEL_ALERTS,
+      ),
+    [h1Alerts, staleAlerts, visibleAlerts],
   );
 
   const recentNoShow = useMemo<CockpitAlert | null>(() => {
@@ -178,7 +188,7 @@ export function CockpitContent({
             }
           />
           <CoursesTable rides={rides} newRideIds={newRideIds} />
-          <DriverPositionsPanel initial={initialPositions} driverLabels={driverLabels} />
+          <DriverPositionsPanel positionsByDriver={positionsByDriver} driverLabels={driverLabels} />
         </section>
         <aside className="lg:border-border flex w-full shrink-0 flex-col gap-24 lg:w-80 lg:border-l lg:pl-24">
           <div className="space-y-8">

@@ -51,6 +51,7 @@ export function useCockpitRides(initial: CockpitRide[]): UseCockpitRidesResult {
                 status: payload.new.status ?? 'validee',
                 pickup_address: payload.new.pickup_address ?? '',
                 dropoff_address: payload.new.dropoff_address ?? null,
+                driver_id: payload.new.driver_id ?? null,
                 patient: null,
                 driver: null,
               };

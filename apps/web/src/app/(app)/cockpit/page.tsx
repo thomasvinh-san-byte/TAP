@@ -25,7 +25,7 @@ async function getRidesToday(
   const { data, error } = await supabase
     .from('rides')
     .select(
-      'id, scheduled_at, status, pickup_address, dropoff_address, ' +
+      'id, scheduled_at, status, pickup_address, dropoff_address, driver_id, ' +
         'patient:patients(prenom, nom), driver:drivers(nom_affichage)',
     )
     .gte('scheduled_at', `${today}T00:00:00`)
