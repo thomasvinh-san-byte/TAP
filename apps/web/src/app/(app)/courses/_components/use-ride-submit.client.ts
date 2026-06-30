@@ -44,7 +44,9 @@ export function useRideSubmit(args: {
   rideId: string | undefined;
   patientLabel: string;
   draftIdRef: { current: string | undefined };
-  onSuccess: () => void;
+  // EXPRESS-03 : `createdRideId` fourni uniquement en création (pas en édition),
+  // pour proposer « affecter au plus proche » sur la course fraîchement créée.
+  onSuccess: (createdRideId?: string) => void;
   onRestore: (snapshot: RideSubmitFormState) => void;
   onFieldErrors: (errors: Record<string, string>) => void;
 }) {
@@ -108,7 +110,8 @@ export function useRideSubmit(args: {
           args.onRestore(snapshot);
           return;
         }
-        args.onSuccess();
+        // Id de la course créée (création seule) pour l'étape « plus proche ».
+        args.onSuccess(targetRideId ? undefined : (res as { id?: string }).id);
       });
     },
     [args],
