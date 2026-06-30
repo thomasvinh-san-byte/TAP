@@ -9,9 +9,11 @@ import { createClient } from '@/lib/supabase/server';
  * RLS Postgres scope déjà l'organisation et réserve l'accès régulateur/dirigeant.
  *
  * Deux lectures :
- *   - `getPatientDriverPreferences` : listes préférés / évités pour la fiche.
+ *   - `getPatientDriverPreferences` : listes préférés / évités pour la fiche
+ *     patient — direction patient → chauffeur uniquement (origin='patient').
  *   - `getDriverPreferenceLookupForPatient` : lookup driverId → kind pour
- *     décorer le modal d'assignation (lecture inverse).
+ *     décorer le modal d'assignation — combine LES DEUX directions
+ *     (CHAUFFEUR-03), évité prioritaire en cas de divergence.
  */
 
 export type DriverPreferenceKind = 'prefere' | 'evite';
@@ -36,20 +38,23 @@ interface PreferenceRow {
 async function fetchPreferenceRows(
   supabase: Awaited<ReturnType<typeof createClient>>,
   patientId: string,
+  origin?: 'patient' | 'chauffeur',
 ): Promise<PreferenceRow[]> {
-  const { data } = await supabase
+  let query = supabase
     .from('patient_driver_preference' as never)
     .select('id, driver_id, kind')
     .eq('patient_id', patientId);
+  if (origin) query = query.eq('origin' as never, origin as never);
+  const { data } = await query;
   return (data as PreferenceRow[] | null) ?? [];
 }
 
-/** Listes des chauffeurs préférés et évités d'un patient (avec nom affiché). */
+/** Listes des chauffeurs préférés / évités d'un patient (direction patient). */
 export async function getPatientDriverPreferences(
   patientId: string,
 ): Promise<PatientDriverPreferences> {
   const supabase = await createClient();
-  const rows = await fetchPreferenceRows(supabase, patientId);
+  const rows = await fetchPreferenceRows(supabase, patientId, 'patient');
   if (rows.length === 0) return { prefere: [], evite: [] };
 
   const driverIds = rows.map((r) => r.driver_id);
@@ -76,13 +81,22 @@ export async function getPatientDriverPreferences(
   };
 }
 
-/** Lookup driverId → kind pour un patient (décoration du modal d'assignation). */
+/**
+ * Lookup driverId → kind pour un patient (décoration du modal d'assignation).
+ * Combine les deux directions (patient→chauffeur ET chauffeur→patient) :
+ * « évité » l'emporte sur « préféré » si les deux directions divergent, car un
+ * avertissement à franchir prime sur une simple mise en avant.
+ */
 export async function getDriverPreferenceLookupForPatient(
   patientId: string,
 ): Promise<Record<string, DriverPreferenceKind>> {
   const supabase = await createClient();
   const rows = await fetchPreferenceRows(supabase, patientId);
   const lookup: Record<string, DriverPreferenceKind> = {};
-  for (const r of rows) lookup[r.driver_id] = r.kind;
+  for (const r of rows) {
+    // évité prioritaire : ne jamais écraser un 'evite' déjà posé par un 'prefere'.
+    if (lookup[r.driver_id] === 'evite') continue;
+    lookup[r.driver_id] = r.kind;
+  }
   return lookup;
 }
