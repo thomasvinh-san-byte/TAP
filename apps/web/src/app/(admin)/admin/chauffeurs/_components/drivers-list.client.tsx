@@ -4,8 +4,14 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  DRIVER_FORM_STATUS_VALUES,
+  DRIVER_STATUS_LABELS,
+  type DriverFormStatus,
+} from '@tap/shared';
 import { Button } from '@/components/ui/button';
 import { SegmentedNav } from '@/components/ui/segmented-control';
+import { Select } from '@/components/ui/select';
 import { DataTable, ListToolbar, ListMeta, Pagination } from '@/components/data-table';
 import {
   Sheet,
@@ -62,6 +68,7 @@ export function DriversList({
     kind: 'closed',
   });
   const [reactivatingId, setReactivatingId] = React.useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = React.useState<'tous' | DriverFormStatus>('tous');
   const [page, setPage] = React.useState(0);
 
   const close = React.useCallback(() => setMode({ kind: 'closed' }), []);
@@ -108,12 +115,42 @@ export function DriversList({
     },
   });
 
-  const paged = initialDrivers.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
+  // Filtre par statut (vue actifs uniquement : elle contient actif/conge/suspendu).
+  const filtered = React.useMemo(
+    () =>
+      vue === 'actifs' && statusFilter !== 'tous'
+        ? initialDrivers.filter((d) => d.status === statusFilter)
+        : initialDrivers,
+    [initialDrivers, vue, statusFilter],
+  );
+  const paged = filtered.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
 
   return (
     <div className="space-y-16">
       <ListToolbar
-        filters={<ViewToggle currentVue={vue} />}
+        filters={
+          <div className="flex flex-wrap items-center gap-12">
+            <ViewToggle currentVue={vue} />
+            {vue === 'actifs' && (
+              <Select
+                ariaLabel="Filtrer par statut"
+                value={statusFilter}
+                onChange={(v) => {
+                  setStatusFilter(v as 'tous' | DriverFormStatus);
+                  setPage(0);
+                }}
+                items={[
+                  { value: 'tous', label: 'Tous les statuts' },
+                  ...DRIVER_FORM_STATUS_VALUES.map((s) => ({
+                    value: s,
+                    label: DRIVER_STATUS_LABELS[s],
+                  })),
+                ]}
+                triggerClassName="w-[180px]"
+              />
+            )}
+          </div>
+        }
         actions={
           vue === 'actifs' ? (
             <Button
@@ -130,10 +167,10 @@ export function DriversList({
       />
 
       <ListMeta>
-        {initialDrivers.length} chauffeur
-        {initialDrivers.length > 1 ? 's' : ''}
+        {filtered.length} chauffeur
+        {filtered.length > 1 ? 's' : ''}
         {vue === 'archives' ? ' archivé' : ''}
-        {vue === 'archives' && initialDrivers.length > 1 ? 's' : ''}
+        {vue === 'archives' && filtered.length > 1 ? 's' : ''}
       </ListMeta>
 
       <DataTable<DriverRow>
@@ -143,18 +180,13 @@ export function DriversList({
         // d'état (Désactiver / Réactiver / Archiver / Désarchiver). Sans ça,
         // les boutons d'action restent figés sur l'ancien état après
         // router.refresh().
-        rowKey={(d) => `${d.id}-${d.actif}-${d.archive}`}
+        rowKey={(d) => `${d.id}-${d.status}`}
         ariaLabel={`Liste des chauffeurs ${vue === 'archives' ? 'archivés' : 'actifs'}`}
         onRowClick={(d) => setMode({ kind: 'edit', driver: d })}
         emptyState={<DriversEmptyState vue={vue} onCreate={() => setMode({ kind: 'create' })} />}
       />
 
-      <Pagination
-        page={page}
-        pageSize={PAGE_SIZE}
-        total={initialDrivers.length}
-        onPageChange={setPage}
-      />
+      <Pagination page={page} pageSize={PAGE_SIZE} total={filtered.length} onPageChange={setPage} />
 
       <Sheet
         open={mode.kind !== 'closed'}

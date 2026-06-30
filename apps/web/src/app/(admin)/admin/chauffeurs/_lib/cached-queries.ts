@@ -45,7 +45,7 @@ async function getChauffeursPageData(
     admin
       .from('drivers')
       .select(
-        'id, nom_affichage, telephone, numero_licence, type_permis, actif, archive, archive_at, archive_motif, profile_id, created_at',
+        'id, nom_affichage, telephone, numero_licence, type_permis, status, actif, archive, archive_at, archive_motif, profile_id, created_at',
       )
       .eq('organization_id', organizationId)
       .eq('archive', vueArchives)
@@ -88,9 +88,11 @@ async function getChauffeursPageData(
     }
   }
 
-  const drivers: DriverRow[] = ((driversRes.data ?? []) as Omit<DriverRow, 'invitation'>[]).map(
-    (d) => ({ ...d, invitation: invitationByDriverId.get(d.id) ?? null }),
-  );
+  // `status` est absent de types.gen.ts (pas de resync) → cast via unknown
+  // (DEC-155). Le SELECT le ramène bien à l'exécution.
+  const drivers: DriverRow[] = (
+    (driversRes.data ?? []) as unknown as Omit<DriverRow, 'invitation'>[]
+  ).map((d) => ({ ...d, invitation: invitationByDriverId.get(d.id) ?? null }));
 
   const nextComplianceByDriverId: Record<string, string> = {};
   for (const r of (complianceRes.data as { entity_id: string; expires_at: string }[] | null) ??

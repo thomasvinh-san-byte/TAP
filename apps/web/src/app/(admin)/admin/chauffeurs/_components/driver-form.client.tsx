@@ -2,9 +2,17 @@
 
 import * as React from 'react';
 import { useFormState, useFormStatus } from 'react-dom';
-import { TYPE_PERMIS_VALUES, type TypePermis } from '@tap/shared';
+import {
+  DRIVER_FORM_STATUS_VALUES,
+  DRIVER_STATUS_LABELS,
+  TYPE_PERMIS_VALUES,
+  type DriverFormStatus,
+  type TypePermis,
+} from '@tap/shared';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Select } from '@/components/ui/select';
 import { SheetFooter } from '@/components/ui/sheet';
 import { Field } from '@/components/form/field';
 import { FormSection, FormRow } from '@/components/form/form-layout';
@@ -47,6 +55,13 @@ export function DriverForm({
 }: Props): JSX.Element {
   const action = initial ? updateDriverAction.bind(null, initial.id) : createDriverAction;
   const [state, formAction] = useFormState<ActionState, FormData>(action, {});
+
+  // Statut saisissable (actif / conge / suspendu). L'archivage est géré par le
+  // flux dédié. Si on édite un chauffeur archivé (cas limite), on retombe sur
+  // une valeur valide — la sauvegarde reste bloquée côté action (.eq archive).
+  const initialStatus: DriverFormStatus =
+    initial && initial.status !== 'archive' ? (initial.status as DriverFormStatus) : 'actif';
+  const [status, setStatus] = React.useState<DriverFormStatus>(initialStatus);
 
   const previouslyOk = React.useRef(false);
   React.useEffect(() => {
@@ -113,14 +128,24 @@ export function DriverForm({
           </div>
         </FormSection>
 
-        {/* Statut : ligne discrète séparée par un filet (D-03, plus de titre-kicker). */}
-        <div className="border-border border-t pt-12">
-          <label className="flex cursor-pointer items-center gap-12">
-            <Checkbox name="actif" defaultChecked={initial?.actif ?? true} />
-            <span className="text-sm">
-              Chauffeur actif (apparaît dans la fenêtre d&apos;affectation)
-            </span>
-          </label>
+        {/* Statut chauffeur (§5.6) : seul « actif » est proposé à l'affectation. */}
+        <div className="border-border space-y-8 border-t pt-12">
+          <Label htmlFor="driver-status">Statut</Label>
+          <input type="hidden" name="status" value={status} />
+          <Select
+            ariaLabel="Statut du chauffeur"
+            value={status}
+            onChange={(v) => setStatus(v as DriverFormStatus)}
+            items={DRIVER_FORM_STATUS_VALUES.map((s) => ({
+              value: s,
+              label: DRIVER_STATUS_LABELS[s],
+            }))}
+            triggerClassName="w-full"
+          />
+          <p className="text-muted-foreground text-xs">
+            Seul un chauffeur actif apparaît dans la fenêtre d&apos;affectation. L&apos;archivage se
+            fait via le bouton dédié.
+          </p>
         </div>
 
         {state.error && !state.fieldErrors && (

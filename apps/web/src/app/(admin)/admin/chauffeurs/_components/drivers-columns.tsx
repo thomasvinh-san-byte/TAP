@@ -4,6 +4,7 @@ import { InitialsAvatar } from '@/components/ui/initials-avatar';
 import type { DataTableColumn } from '@/components/data-table';
 import type { DriverRow } from '../page';
 import { AccountStatusBadge, getAccountStatus } from './account-status-badge.client';
+import { DriverStatusBadge } from './driver-status-badge.client';
 import { DriverRowActions } from './driver-row-actions.client';
 
 type Role = 'dirigeant' | 'regulateur';
@@ -74,16 +75,7 @@ export function buildDriverColumns({
       key: 'statut',
       header: 'Statut',
       width: '120px',
-      cell: (d) =>
-        d.archive ? (
-          <Badge variant="outline" className="border-muted-foreground/40">
-            Archivé
-          </Badge>
-        ) : d.actif ? (
-          <Badge>Actif</Badge>
-        ) : (
-          <Badge variant="outline">Désactivé</Badge>
-        ),
+      cell: (d) => <DriverStatusBadge status={d.status} />,
     },
     {
       key: 'conformite',

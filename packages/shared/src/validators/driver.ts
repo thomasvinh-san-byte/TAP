@@ -14,6 +14,25 @@ import { z } from 'zod';
 export const TYPE_PERMIS_VALUES = ['taxi', 'ambulance', 'vsl', 'tpmr'] as const;
 export type TypePermis = (typeof TYPE_PERMIS_VALUES)[number];
 
+/**
+ * Statut chauffeur (§5.6, CHAUFFEUR-01) — source de vérité unique côté DB
+ * (colonne `drivers.status`). `archive` n'est pas saisi via le formulaire : il
+ * relève du flux d'archivage dédié (motif + confirmation, dirigeant).
+ */
+export const DRIVER_STATUS_VALUES = ['actif', 'conge', 'suspendu', 'archive'] as const;
+export type DriverStatus = (typeof DRIVER_STATUS_VALUES)[number];
+
+/** Statuts saisissables dans le formulaire chauffeur (hors archivage). */
+export const DRIVER_FORM_STATUS_VALUES = ['actif', 'conge', 'suspendu'] as const;
+export type DriverFormStatus = (typeof DRIVER_FORM_STATUS_VALUES)[number];
+
+export const DRIVER_STATUS_LABELS: Record<DriverStatus, string> = {
+  actif: 'Actif',
+  conge: 'En congé',
+  suspendu: 'Suspendu',
+  archive: 'Archivé',
+};
+
 export const driverInputSchema = z.object({
   nom_affichage: z
     .string()
@@ -23,7 +42,7 @@ export const driverInputSchema = z.object({
   telephone: z.string().trim().max(20).optional().or(z.literal('')),
   numero_licence: z.string().trim().max(40).optional().or(z.literal('')),
   type_permis: z.array(z.enum(TYPE_PERMIS_VALUES)).default([]),
-  actif: z.boolean().default(true),
+  status: z.enum(DRIVER_FORM_STATUS_VALUES).default('actif'),
 });
 
 export type DriverInput = z.infer<typeof driverInputSchema>;
