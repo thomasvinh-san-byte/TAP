@@ -44,3 +44,5 @@ export {
 export { exportRidesCsvAction } from './export-rides';
 export type { ExportRidesInput, ExportRidesResult } from './export-rides';
 export { createRideGroupAction, acceptRideGroupAction, refuseRideGroupAction } from './groups';
+export { proposeNearestDriversAction } from './propose-nearest';
+export type { NearestProposal } from './propose-nearest';

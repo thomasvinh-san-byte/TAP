@@ -24,6 +24,7 @@ import { PrescriptionPickerField } from './ride-prescription-picker.client';
 import { AddressOrPOIPicker } from './address-or-poi-picker.client';
 import { AccompagnantField } from './ride-accompagnant-field.client';
 import { MinorReferentWarning } from './minor-referent-warning.client';
+import { NearestAssignPanel } from './nearest-assign-panel.client';
 import {
   DateTimeFields,
   ModeUrgencyFields,
@@ -70,6 +71,8 @@ export function RideExpressModal(props: Props): JSX.Element {
   const [patientLabel, setPatientLabel] = useState<string>('');
   const [orderingPartyLabel, setOrderingPartyLabel] = useState<string>('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  // EXPRESS-03 : id de la course créée → bascule sur le panneau « plus proche ».
+  const [nearestForRideId, setNearestForRideId] = useState<string | null>(null);
   // B3 — détection doublon non-bloquante (D-B3-1..5).
   const dup = useDuplicateCheck();
   // EXPRESS-02 — suggestion de récurrence non bloquante (CdG §5.8).
@@ -189,9 +192,15 @@ export function RideExpressModal(props: Props): JSX.Element {
     rideId: props.rideId,
     patientLabel,
     draftIdRef: autosave.draftIdRef,
-    onSuccess: () => {
+    onSuccess: (createdRideId) => {
       dup.reset(); // D-B3-5 : reset AVANT onClose
       recurrence.reset();
+      // EXPRESS-03 : en création, proposer « affecter au plus proche » avant de
+      // fermer. En édition (pas d'id remonté), fermeture immédiate comme avant.
+      if (createdRideId) {
+        setNearestForRideId(createdRideId);
+        return;
+      }
       props.onClose();
     },
     onRestore: setForm,
@@ -223,6 +232,22 @@ export function RideExpressModal(props: Props): JSX.Element {
   useEffect(() => {
     void recurrenceRunCheck(formPatientId, formScheduledAt);
   }, [recurrenceRunCheck, formPatientId, formScheduledAt]);
+
+  if (nearestForRideId) {
+    return (
+      <Dialog open onOpenChange={(o) => !o && props.onClose()}>
+        <DialogContent
+          className="max-h-[90vh] w-[calc(100vw-32px)] max-w-[640px] overflow-y-auto overflow-x-hidden"
+          aria-label="Affecter au plus proche"
+        >
+          <DialogHeader>
+            <DialogTitle>Affecter au plus proche</DialogTitle>
+          </DialogHeader>
+          <NearestAssignPanel rideId={nearestForRideId} onDone={props.onClose} />
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open onOpenChange={handleOpenChange}>
