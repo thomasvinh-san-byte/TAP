@@ -28,7 +28,10 @@ export type CockpitAlertType =
   | 'patient_no_show'
   | 'sms_failed'
   | 'ride_delayed'
-  | 'driver_incident';
+  | 'driver_incident'
+  // COCKPIT-01 (§5.13) : course validée non affectée à moins d'1h du créneau.
+  // Calculée côté client (échéance temporelle), pas issue de `ride_events`.
+  | 'ride_unassigned_h1';
 
 export interface CockpitAlert {
   id: string;
