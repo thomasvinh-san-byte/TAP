@@ -15,7 +15,7 @@ import { getRideByIdAction } from '../actions';
  */
 export function useRidePrefill<F>(
   rideId: string | undefined,
-  apply: (next: F, patientLabel: string, orderingPartyLabel: string) => void,
+  apply: (next: F, patientLabel: string, orderingPartyLabel: string, ride: PrefillRide) => void,
   onMissing: () => void,
   buildForm: (r: PrefillRide) => F,
 ): void {
@@ -34,7 +34,7 @@ export function useRidePrefill<F>(
         const ride = r as PrefillRide;
         const label = ride.patient ? `${ride.patient.prenom} ${ride.patient.nom}` : '';
         const orderingPartyLabel = ride.ordering_party?.raison_sociale ?? '';
-        apply(buildForm(ride), label, orderingPartyLabel);
+        apply(buildForm(ride), label, orderingPartyLabel, ride);
       })
       .catch(() => {
         if (cancelled) return;
@@ -64,4 +64,6 @@ export type PrefillRide = {
   accompagnant_identite?: string | null;
   patient?: { prenom: string; nom: string } | null;
   ordering_party?: { id: string; raison_sociale: string } | null;
+  /** RECURRENCE-02 : non-null si la course est une occurrence d'une série. */
+  ride_recurrence_id?: string | null;
 };

@@ -40,6 +40,44 @@ export async function updateRideAction(
     return { error: 'Action réservée au régulateur.' };
   }
 
+  // RECURRENCE-02 (§5.9) — surcharge d'occurrence (override standard iCalendar).
+  // Si cette course appartient à une série et que la modification CHANGE SA DATE,
+  // on exclut la date d'origine (EXDATE) AVANT l'édition, pour que le cron de
+  // génération ne régénère jamais l'occurrence d'origine (sinon doublon). Si la
+  // date ne change pas (heure dans la journée / lieu seulement), aucune exclusion
+  // (le cron protège déjà par date). L'instance modifiée reste la course éditée
+  // (elle garde son ride_recurrence_id).
+  const currentRes = await ctx.supabase
+    .from('rides')
+    .select('ride_recurrence_id, scheduled_at')
+    .eq('id', parsed.data.rideId)
+    .maybeSingle();
+  const current = currentRes.data as {
+    ride_recurrence_id: string | null;
+    scheduled_at: string;
+  } | null;
+
+  if (current?.ride_recurrence_id) {
+    const origDate = current.scheduled_at.slice(0, 10);
+    const newDate = new Date(parsed.data.input.scheduled_at).toISOString().slice(0, 10);
+    if (origDate !== newDate) {
+      // Exclusion de la date d'origine (idempotente : unique recurrence+date).
+      const excRes = await ctx.supabase.from('ride_recurrence_exceptions').upsert(
+        {
+          ride_recurrence_id: current.ride_recurrence_id,
+          excluded_date: origDate,
+          reason: 'occurrence_deplacee',
+          replaced_by_ride_id: parsed.data.rideId,
+          created_by: ctx.userId,
+        } as never,
+        { onConflict: 'ride_recurrence_id,excluded_date' },
+      );
+      if (excRes.error) {
+        return { error: 'Déplacement impossible (exclusion de la date d’origine refusée).' };
+      }
+    }
+  }
+
   const { error, data } = await ctx.supabase
     .from('rides')
     .update({
