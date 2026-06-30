@@ -16,6 +16,7 @@ function ride(over: Partial<CockpitRide>): CockpitRide {
     status: 'validee',
     pickup_address: 'A',
     dropoff_address: 'B',
+    driver_id: null,
     patient: { nom: 'Hoarau', prenom: 'Patrick' },
     driver: null,
     ...over,

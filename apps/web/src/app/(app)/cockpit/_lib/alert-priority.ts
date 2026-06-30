@@ -12,6 +12,8 @@ const SEVERITY: Record<CockpitAlertType, AlertSeverity> = {
   ride_unassigned_h1: 'critique',
   patient_no_show: 'critique',
   driver_incident: 'critique',
+  // Perte de visibilité sur un chauffeur en course = angle mort opérationnel.
+  driver_position_stale: 'critique',
   ride_delayed: 'info',
   sms_failed: 'info',
 };

@@ -2,12 +2,7 @@
 
 import * as React from 'react';
 import { Map, type MapMarker } from '@/components/map/map.client';
-import {
-  useDriverPositions,
-  type DriverPosition,
-  formatPositionAge,
-  positionTone,
-} from '../_lib/use-driver-positions';
+import { type DriverPosition, formatPositionAge, positionTone } from '../_lib/use-driver-positions';
 
 /**
  * Phase 10.0 prototype géoloc (DEC-096).
@@ -23,14 +18,15 @@ import {
  */
 
 interface Props {
-  initial: DriverPosition[];
+  /** Positions live (remontées par le parent via useDriverPositions — DEC-096,
+   *  lifté en COCKPIT-02 pour partager une seule subscription avec l'alerte). */
+  positionsByDriver: Map<string, DriverPosition>;
   driverLabels: Record<string, string>;
 }
 
 const REUNION_CENTER = { lat: -21.1, lng: 55.55 };
 
-export function DriverPositionsPanel({ initial, driverLabels }: Props): JSX.Element {
-  const { positionsByDriver } = useDriverPositions(initial);
+export function DriverPositionsPanel({ positionsByDriver, driverLabels }: Props): JSX.Element {
   const [now, setNow] = React.useState<Date>(() => new Date());
 
   // Rafraîchir l'âge toutes les 30s — la position ne bouge pas, son âge si.
