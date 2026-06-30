@@ -30,6 +30,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { canTransition } from '@tap/shared';
 import { getAuthContext, type AuthContext } from '@/lib/auth/get-auth-context';
+import { notifyPickupConfirmed } from './_lib/notify-pickup';
 
 export type ActionState = {
   error?: string;
@@ -124,6 +125,10 @@ export async function startRideAction(rideId: string): Promise<ActionState> {
       error: 'Course non démarrée : son statut a changé (déjà démarrée ou réaffectée). Actualisez.',
     };
   }
+
+  // SMS-01 : prise en charge confirmée au patient. Best-effort APRÈS la
+  // transition committée — un échec n'affecte pas le démarrage.
+  await notifyPickupConfirmed(parsed.data, ctx.organizationId);
 
   revalidatePath('/conduite');
   return { success: true, id: parsed.data };
