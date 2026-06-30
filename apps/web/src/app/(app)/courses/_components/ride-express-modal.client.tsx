@@ -73,6 +73,8 @@ export function RideExpressModal(props: Props): JSX.Element {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   // EXPRESS-03 : id de la course créée → bascule sur le panneau « plus proche ».
   const [nearestForRideId, setNearestForRideId] = useState<string | null>(null);
+  // RECURRENCE-02 : la course éditée est une occurrence d'une série récurrente.
+  const [isRecurrenceOccurrence, setIsRecurrenceOccurrence] = useState(false);
   // B3 — détection doublon non-bloquante (D-B3-1..5).
   const dup = useDuplicateCheck();
   // EXPRESS-02 — suggestion de récurrence non bloquante (CdG §5.8).
@@ -87,10 +89,12 @@ export function RideExpressModal(props: Props): JSX.Element {
   // Pré-chargement du ride en mode édition — extrait dans useRidePrefill.
   useRidePrefill<FormState>(
     props.rideId,
-    (next, label, orderingLabel) => {
+    (next, label, orderingLabel, ride) => {
       setForm(next);
       if (label) setPatientLabel(label);
       if (orderingLabel) setOrderingPartyLabel(orderingLabel);
+      // RECURRENCE-02 : balise « occurrence d'une série » pour le libellé explicite.
+      setIsRecurrenceOccurrence(Boolean(ride.ride_recurrence_id));
     },
     props.onClose,
     (r) => ({
@@ -260,6 +264,17 @@ export function RideExpressModal(props: Props): JSX.Element {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-12" noValidate>
+          {isEditMode && isRecurrenceOccurrence && (
+            <p
+              role="status"
+              className="border-border bg-muted/40 text-muted-foreground rounded-md border px-12 py-8 text-xs"
+            >
+              Vous modifiez <strong>une seule occurrence</strong> d&apos;une série récurrente. La
+              série et les autres occurrences ne sont pas affectées. Un changement de date
+              reprogramme uniquement cette course.
+            </p>
+          )}
+
           <PatientPickerField
             selectedLabel={patientLabel}
             onSelect={handlePatientSelect}
