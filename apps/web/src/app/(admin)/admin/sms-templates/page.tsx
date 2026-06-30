@@ -18,6 +18,7 @@ interface SmsTemplate {
 const TEMPLATE_LABELS: Record<string, string> = {
   j1_reminder: 'Rappel J-1 (veille de la course)',
   j2h_reminder: 'Rappel J-2h (deux heures avant)',
+  pickup_confirmed: 'Prise en charge confirmée (démarrage du transport)',
 };
 
 export default async function SmsTemplatesPage(): Promise<JSX.Element> {

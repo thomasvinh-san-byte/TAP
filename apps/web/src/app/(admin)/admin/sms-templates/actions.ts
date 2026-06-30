@@ -20,12 +20,13 @@ export type SmsTemplateActionState = {
 };
 
 const saveSchema = z.object({
-  template_key: z.enum(['j1_reminder', 'j2h_reminder']),
+  // SMS-01 : pickup_confirmed éditable comme les rappels (§5.15).
+  template_key: z.enum(['j1_reminder', 'j2h_reminder', 'pickup_confirmed']),
   body: z.string().min(1, 'Corps requis').max(160, 'Maximum 160 caractères'),
 });
 
 const testSchema = z.object({
-  template_key: z.enum(['j1_reminder', 'j2h_reminder']),
+  template_key: z.enum(['j1_reminder', 'j2h_reminder', 'pickup_confirmed']),
   to_phone: z.string().regex(/^\+\d{8,15}$/, 'Numéro E.164 attendu (ex: +262692XXXXXX)'),
   patient_prenom: z.string().optional(),
   patient_nom: z.string().optional(),
