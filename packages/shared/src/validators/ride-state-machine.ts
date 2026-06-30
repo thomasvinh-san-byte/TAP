@@ -19,6 +19,9 @@ export const RIDE_STATUSES = [
   'validee',
   'assignee',
   'en_cours',
+  // PWA-01 (§5.16) : états intermédiaires de la prise en charge.
+  'arrive_sur_place',
+  'patient_a_bord',
   'terminee',
   'annulee_regulateur',
   'annulee_patient',
@@ -34,8 +37,14 @@ export type RideStatusValue = (typeof RIDE_STATUSES)[number];
  *   - validee   → assignee (affectation) / annulee_regulateur (annulation) /
  *                 annulee_patient (no-show) / annulee_meteo (mode météo)
  *   - assignee  → en_cours (démarrage) / validee (désaffectation) / annulee_* (idem)
- *   - en_cours  → terminee (clôture) / annulee_patient (no-show en cours)
+ *   - en_cours  → arrive_sur_place (arrivé) / annulee_patient (no-show en route)
+ *   - arrive_sur_place → patient_a_bord (à bord) / annulee_patient (no-show à l'arrivée)
+ *   - patient_a_bord   → terminee (clôture)  [plus d'annulation patient : il est à bord]
  *   - terminee / annulee_* → terminaux (aucune sortie)
+ *
+ * PWA-01 (§5.16) : la clôture n'est plus directe depuis `en_cours` — la séquence
+ * impose arrive_sur_place puis patient_a_bord. `terminee` n'est atteignable que
+ * depuis `patient_a_bord` (test explicite : en_cours → terminee illégal).
  *
  * `annulee_chauffeur` : valeur d'enum SANS producteur actuel (aucune action ne
  * l'écrit) → terminal sans arête entrante (tracé registre §14).
@@ -44,7 +53,9 @@ export const RIDE_TRANSITIONS: Record<RideStatusValue, readonly RideStatusValue[
   brouillon: ['validee', 'annulee_regulateur'],
   validee: ['assignee', 'annulee_regulateur', 'annulee_patient', 'annulee_meteo'],
   assignee: ['en_cours', 'validee', 'annulee_regulateur', 'annulee_patient', 'annulee_meteo'],
-  en_cours: ['terminee', 'annulee_patient'],
+  en_cours: ['arrive_sur_place', 'annulee_patient'],
+  arrive_sur_place: ['patient_a_bord', 'annulee_patient'],
+  patient_a_bord: ['terminee'],
   terminee: [],
   annulee_regulateur: [],
   annulee_patient: [],
@@ -63,8 +74,16 @@ export function statusesAllowedTo(to: RideStatusValue): RideStatusValue[] {
   return RIDE_STATUSES.filter((s) => RIDE_TRANSITIONS[s].includes(to));
 }
 
-/** Statuts d'une course ACTIVE (ni brouillon ni annulée). */
-export const ACTIVE_RIDE_STATUSES = ['validee', 'assignee', 'en_cours', 'terminee'] as const;
+/** Statuts d'une course ACTIVE (ni brouillon ni annulée). PWA-01 : inclut les
+ *  états intermédiaires arrive_sur_place / patient_a_bord. */
+export const ACTIVE_RIDE_STATUSES = [
+  'validee',
+  'assignee',
+  'en_cours',
+  'arrive_sur_place',
+  'patient_a_bord',
+  'terminee',
+] as const;
 export type ActiveRideStatus = (typeof ACTIVE_RIDE_STATUSES)[number];
 
 /**

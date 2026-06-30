@@ -13,7 +13,14 @@
 
 import Dexie, { type Table } from 'dexie';
 
-export type MutationType = 'start_ride' | 'end_ride' | 'no_show_ride';
+// PWA-01 (§5.16) : transitions intermédiaires de la prise en charge. Mêmes
+// table/index Dexie (le type n'est qu'un champ texte) — pas de bump de version.
+export type MutationType =
+  | 'start_ride'
+  | 'arrive_ride'
+  | 'board_ride'
+  | 'end_ride'
+  | 'no_show_ride';
 export type MutationStatus = 'pending' | 'in_flight' | 'failed' | 'dead';
 
 export interface PendingMutation {

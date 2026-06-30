@@ -30,7 +30,6 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { canTransition } from '@tap/shared';
 import { getAuthContext, type AuthContext } from '@/lib/auth/get-auth-context';
-import { notifyPickupConfirmed } from './_lib/notify-pickup';
 
 export type ActionState = {
   error?: string;
@@ -126,10 +125,6 @@ export async function startRideAction(rideId: string): Promise<ActionState> {
     };
   }
 
-  // SMS-01 : prise en charge confirmée au patient. Best-effort APRÈS la
-  // transition committée — un échec n'affecte pas le démarrage.
-  await notifyPickupConfirmed(parsed.data, ctx.organizationId);
-
   revalidatePath('/conduite');
   return { success: true, id: parsed.data };
 }
@@ -186,11 +181,11 @@ export async function endRideAction(
   if (currentRow.driver_id !== myDriverId) {
     return { error: 'Cette course ne vous est pas affectée.' };
   }
-  // DEC-178 : transition en_cours → terminee via la machine à états centralisée.
+  // DEC-178 + PWA-01 : clôture depuis patient_a_bord (séquence §5.16).
   if (!canTransition(currentRow.status, 'terminee')) {
     return {
       error:
-        "Clôture impossible : la course n'est pas en cours (statut : " + currentRow.status + ').',
+        'Clôture impossible : le patient doit être à bord (statut : ' + currentRow.status + ').',
     };
   }
 
@@ -214,7 +209,7 @@ export async function endRideAction(
     .from('rides')
     .update(update as never)
     .eq('id', parsed.data.rideId)
-    .eq('status', 'en_cours')
+    .eq('status', 'patient_a_bord')
     .select('id');
   if (error) return { error: 'Clôture course impossible.' };
   if (!updated || updated.length === 0) {

@@ -91,13 +91,13 @@ export async function POST(req: NextRequest, props: { params: Promise<{ rideId: 
           body: { error: 'Cette course ne vous est pas affectée.' },
         };
       }
-      // DEC-178 : transition en_cours → terminee via la machine à états centralisée.
+      // DEC-178 + PWA-01 : clôture depuis patient_a_bord (séquence §5.16).
       if (!canTransition(currentRow.status, 'terminee')) {
         return {
           status: 409,
           body: {
             error:
-              "Clôture impossible : la course n'est pas en cours (statut : " +
+              'Clôture impossible : le patient doit être à bord (statut : ' +
               currentRow.status +
               ').',
           },
@@ -124,6 +124,8 @@ export async function POST(req: NextRequest, props: { params: Promise<{ rideId: 
         .from('rides')
         .update(update as never)
         .eq('id', rideIdParse.data)
+        // PWA-01 : compare-and-set sur le statut source (anti-TOCTOU, DEC-168).
+        .eq('status', 'patient_a_bord')
         .select('id');
       if (error) {
         return { status: 500, body: { error: 'Clôture course impossible.' } };

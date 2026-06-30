@@ -28,8 +28,12 @@ describe('canTransition — transitions légales (reconstituées du code)', () =
     ['assignee', 'validee'],
     ['assignee', 'annulee_regulateur'],
     ['assignee', 'annulee_meteo'],
-    ['en_cours', 'terminee'],
+    // PWA-01 (§5.16) : séquence prise en charge.
+    ['en_cours', 'arrive_sur_place'],
     ['en_cours', 'annulee_patient'],
+    ['arrive_sur_place', 'patient_a_bord'],
+    ['arrive_sur_place', 'annulee_patient'],
+    ['patient_a_bord', 'terminee'],
   ];
   it.each(legal)('%s → %s est autorisée', (from, to) => {
     expect(canTransition(from, to)).toBe(true);
@@ -45,6 +49,11 @@ describe('canTransition — transitions illégales bloquées', () => {
     ['validee', 'terminee'],
     ['validee', 'en_cours'],
     ['en_cours', 'assignee'],
+    // PWA-01 : la clôture directe et les sauts d'étape sont refusés.
+    ['en_cours', 'terminee'],
+    ['en_cours', 'patient_a_bord'],
+    ['arrive_sur_place', 'terminee'],
+    ['patient_a_bord', 'annulee_patient'],
     ['annulee_regulateur', 'validee'],
     ['annulee_meteo', 'validee'],
     ['inconnu', 'validee'],

@@ -20,6 +20,15 @@ import { toast } from 'sonner';
 import { getDb } from './dexie-instance';
 import type { MutationType } from './dexie-schema';
 
+/** Type de mutation → segment de chemin du Route Handler chauffeur (PWA-01). */
+const MUTATION_PATHS: Record<MutationType, string> = {
+  start_ride: 'start',
+  arrive_ride: 'arrive',
+  board_ride: 'board',
+  end_ride: 'end',
+  no_show_ride: 'no-show',
+};
+
 const MAX_ATTEMPTS = 3;
 const BASE_DELAY_MS = 2000;
 const JITTER_MS = 500;
@@ -84,8 +93,16 @@ export async function flushQueue(): Promise<FlushResult> {
   let failed = 0;
   let dead = 0;
 
+  // PWA-01 : préservation de l'ORDRE de rejeu PAR COURSE. Le tri global est
+  // FIFO (created_at), mais si une transition d'une course n'aboutit pas dans
+  // cette passe (failed/dead), on NE TENTE PAS les transitions suivantes de la
+  // MÊME course (elles seraient refusées par la machine à états → 409). Elles
+  // restent en file, rejouées dans l'ordre à la passe suivante.
+  const blocked = new Set<string>();
+
   for (const m of pending) {
     if (m.attempts >= MAX_ATTEMPTS) continue;
+    if (blocked.has(m.resource_id)) continue;
 
     await db.mutations_queue.update(m.id!, {
       status: 'in_flight',
@@ -93,7 +110,7 @@ export async function flushQueue(): Promise<FlushResult> {
     });
 
     try {
-      const path = m.type === 'start_ride' ? 'start' : m.type === 'end_ride' ? 'end' : 'no-show';
+      const path = MUTATION_PATHS[m.type];
       const endpoint = `/api/driver/rides/${m.resource_id}/${path}`;
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -131,6 +148,7 @@ export async function flushQueue(): Promise<FlushResult> {
           last_error: errorMsg,
         });
         dead++;
+        blocked.add(m.resource_id); // PWA-01 : ne pas tenter les suivantes de la course
         toast.error('Synchronisation impossible', {
           description: errorMsg,
         });
@@ -142,6 +160,9 @@ export async function flushQueue(): Promise<FlushResult> {
     } catch (err) {
       const newAttempts = m.attempts + 1;
       const newStatus = newAttempts >= MAX_ATTEMPTS ? 'dead' : 'failed';
+
+      // PWA-01 : transition non aboutie → bloquer les suivantes de la course.
+      blocked.add(m.resource_id);
 
       await db.mutations_queue.update(m.id!, {
         status: newStatus,
