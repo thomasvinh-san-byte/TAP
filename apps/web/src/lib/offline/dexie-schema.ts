@@ -20,7 +20,10 @@ export type MutationType =
   | 'arrive_ride'
   | 'board_ride'
   | 'end_ride'
-  | 'no_show_ride';
+  | 'no_show_ride'
+  // PWA-04 (§5.16) : relevé kilométrique journalier (endpoint non lié à une
+  // course). Même table/index Dexie (le type est un champ texte) — pas de bump.
+  | 'save_mileage';
 export type MutationStatus = 'pending' | 'in_flight' | 'failed' | 'dead';
 
 export interface PendingMutation {

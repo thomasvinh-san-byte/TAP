@@ -20,14 +20,25 @@ import { toast } from 'sonner';
 import { getDb } from './dexie-instance';
 import type { MutationType } from './dexie-schema';
 
-/** Type de mutation → segment de chemin du Route Handler chauffeur (PWA-01). */
-const MUTATION_PATHS: Record<MutationType, string> = {
+/** Transitions de course → segment de chemin `/api/driver/rides/[id]/…` (PWA-01). */
+const RIDE_MUTATION_PATHS: Record<Exclude<MutationType, 'save_mileage'>, string> = {
   start_ride: 'start',
   arrive_ride: 'arrive',
   board_ride: 'board',
   end_ride: 'end',
   no_show_ride: 'no-show',
 };
+
+/**
+ * Endpoint du Route Handler pour une mutation. Les transitions de course
+ * ciblent `/api/driver/rides/[resource_id]/[path]` ; le relevé kilométrique
+ * (PWA-04) cible `/api/driver/mileage` (non lié à une course) — même file, même
+ * logique de rejeu, seul l'URL diffère.
+ */
+function endpointFor(type: MutationType, resourceId: string): string {
+  if (type === 'save_mileage') return '/api/driver/mileage';
+  return `/api/driver/rides/${resourceId}/${RIDE_MUTATION_PATHS[type]}`;
+}
 
 const MAX_ATTEMPTS = 3;
 const BASE_DELAY_MS = 2000;
@@ -110,8 +121,7 @@ export async function flushQueue(): Promise<FlushResult> {
     });
 
     try {
-      const path = MUTATION_PATHS[m.type];
-      const endpoint = `/api/driver/rides/${m.resource_id}/${path}`;
+      const endpoint = endpointFor(m.type, m.resource_id);
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
