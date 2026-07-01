@@ -43,6 +43,10 @@ interface Props {
 export function RideDetail({ ride }: Props): JSX.Element {
   const fullName = `${ride.patient.nom} ${ride.patient.prenom}`.trim();
   const bar = STATUS_BAR[ride.status] ?? 'bg-muted';
+  // PWA-02 (§5.16) : énoncé vocal au démarrage — nom + adresse de départ
+  // uniquement (déjà à l'écran, aucune donnée médicale).
+  const pickup = joinAddress(ride.pickup_address, ride.pickup_postal_code, ride.pickup_city);
+  const announceAtStart = [fullName, pickup].filter(Boolean).join('. ');
 
   return (
     <div className="flex flex-col gap-24 pb-32">
@@ -142,7 +146,13 @@ export function RideDetail({ ride }: Props): JSX.Element {
         <RideChat rideId={ride.id} className="max-h-[280px] min-h-[140px]" />
       </section>
 
-      <RideActions rideId={ride.id} status={ride.status} endedAt={ride.ended_at} variant="sticky" />
+      <RideActions
+        rideId={ride.id}
+        status={ride.status}
+        endedAt={ride.ended_at}
+        variant="sticky"
+        announceAtStart={announceAtStart}
+      />
     </div>
   );
 }

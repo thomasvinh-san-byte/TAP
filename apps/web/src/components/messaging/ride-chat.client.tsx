@@ -6,6 +6,7 @@ import { Send } from 'lucide-react';
 import { groupMessagesByDay, SENDER_ROLE_LABEL, type RideMessage } from '@tap/shared';
 import { createClient } from '@/lib/supabase/client';
 import { useRideMessages, type ChatStatus } from '@/lib/messaging/use-ride-messages';
+import { useDriverAudio } from '@/app/(driver)/_components/driver-audio.client';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
@@ -48,11 +49,36 @@ export function RideChat({ rideId, className }: Props): JSX.Element {
   const [draft, setDraft] = React.useState('');
   const [me, setMe] = React.useState<string | null>(null);
   const bottomRef = React.useRef<HTMLDivElement>(null);
+  // PWA-02 (§5.16) : earcon « message » côté chauffeur. Hors zone (driver), le
+  // contexte renvoie des no-op (aucun son côté régulateur — canal existant côté
+  // chauffeur uniquement).
+  const audio = useDriverAudio();
+  const seenIdsRef = React.useRef<Set<string>>(new Set());
+  const initializedRef = React.useRef(false);
 
   React.useEffect(() => {
     const supabase = createClient();
     void supabase.auth.getUser().then(({ data }) => setMe(data.user?.id ?? null));
   }, []);
+
+  // Earcon sur nouveau message ENTRANT (émis par un autre que soi), jamais au
+  // chargement initial de l'historique ni sur ses propres envois.
+  React.useEffect(() => {
+    if (loading) return;
+    if (!initializedRef.current) {
+      seenIdsRef.current = new Set(messages.map((m) => m.id));
+      initializedRef.current = true;
+      return;
+    }
+    const seen = seenIdsRef.current;
+    let incoming = false;
+    for (const m of messages) {
+      if (seen.has(m.id)) continue;
+      seen.add(m.id);
+      if (me !== null && m.sender_profile_id !== me) incoming = true;
+    }
+    if (incoming) audio.earcon('message');
+  }, [messages, me, loading, audio]);
 
   React.useEffect(() => {
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
