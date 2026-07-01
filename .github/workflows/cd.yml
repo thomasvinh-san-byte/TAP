@@ -18,13 +18,14 @@ jobs:
       - uses: supabase/setup-cli@v1
         # DEPLOY-02 : version épinglée (série 2.109, récente — corrige
         # l'application en pipeline de certaines instructions, dont la création
-        # d'index concurrente) + résolution AUTHENTIFIÉE via le jeton d'exécution
-        # intégré, pour éviter les échecs intermittents par dépassement de la
-        # limite d'appels non authentifiés à l'API GitHub.
+        # d'index concurrente) + résolution AUTHENTIFIÉE de la version via le
+        # paramètre d'entrée `github-token` de l'action (jeton d'exécution
+        # intégré), pour éviter les échecs intermittents par dépassement de la
+        # limite d'appels non authentifiés à l'API GitHub. Le jeton doit passer
+        # par `with: github-token` (l'action ne lit PAS `env: GITHUB_TOKEN`).
         with:
           version: 2.109.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
       - name: Lier le projet
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
@@ -125,13 +126,14 @@ jobs:
       - uses: supabase/setup-cli@v1
         # DEPLOY-02 : version épinglée (série 2.109, récente — corrige
         # l'application en pipeline de certaines instructions, dont la création
-        # d'index concurrente) + résolution AUTHENTIFIÉE via le jeton d'exécution
-        # intégré, pour éviter les échecs intermittents par dépassement de la
-        # limite d'appels non authentifiés à l'API GitHub.
+        # d'index concurrente) + résolution AUTHENTIFIÉE de la version via le
+        # paramètre d'entrée `github-token` de l'action (jeton d'exécution
+        # intégré), pour éviter les échecs intermittents par dépassement de la
+        # limite d'appels non authentifiés à l'API GitHub. Le jeton doit passer
+        # par `with: github-token` (l'action ne lit PAS `env: GITHUB_TOKEN`).
         with:
           version: 2.109.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
       - name: Lier le projet
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
