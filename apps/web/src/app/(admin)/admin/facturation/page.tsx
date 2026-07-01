@@ -5,8 +5,10 @@ import {
   getCountCoursesSansTarif,
   getChauffeursForSelector,
 } from './_lib/queries-facturation';
+import { getOrganizationSiret } from './_lib/queries-fec';
 import { PeriodeSelector } from './_components/periode-selector.client';
 import { FactureApercu } from './_components/facture-apercu';
+import { FecExportSection } from './_components/fec-export-section.client';
 
 export const metadata = { title: 'Facturation CGSS' };
 export const dynamic = 'force-dynamic';
@@ -29,10 +31,11 @@ export default async function FacturationPage(props: {
     : defaultMois();
   const chauffeurId = searchParams.chauffeur || undefined;
 
-  const [courses, countSansTarif, chauffeurs] = await Promise.all([
+  const [courses, countSansTarif, chauffeurs, siret] = await Promise.all([
     getCoursesFacturables(mois, chauffeurId),
     getCountCoursesSansTarif(mois, chauffeurId),
     getChauffeursForSelector(),
+    getOrganizationSiret(),
   ]);
 
   return (
@@ -50,6 +53,8 @@ export default async function FacturationPage(props: {
         mois={mois}
         chauffeurId={chauffeurId}
       />
+
+      <FecExportSection mois={mois} siret={siret} />
     </div>
   );
 }
