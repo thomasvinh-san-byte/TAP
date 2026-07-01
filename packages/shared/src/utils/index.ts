@@ -11,3 +11,4 @@ export * from './compliance-alerts';
 export * from './entity-compliance-state';
 export * from './internal-message';
 export * from './age';
+export * from './fec';
