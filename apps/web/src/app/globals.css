@@ -58,6 +58,16 @@
     --muted-foreground: 215 30% 85%;
   }
 
+  /* PWA-04 (§5.16) — Police agrandie chauffeur (+20 %, option terrain).
+   * Activée par toggle utilisateur (data-driver-font="large" posé via
+   * `use-driver-font-scale.client.ts`). Les tailles de texte sont en rem
+   * (échelle Tailwind par défaut) → mises à l'échelle par la racine ; les
+   * espacements sont en px (échelle custom) → mise en page préservée, les
+   * écrans clés (bouton géant, course en cours) ne cassent pas. */
+  [data-driver-font='large'] {
+    font-size: 120%;
+  }
+
   @media (prefers-contrast: more) {
     :root {
       --border: 214 50% 45%;
