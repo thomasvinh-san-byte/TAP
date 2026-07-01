@@ -5,6 +5,8 @@ import { UserMenu } from '@/components/user-menu';
 import { SWRegister } from './_components/sw-register.client';
 import { ConnectionStatusBadge } from './_components/connection-status-badge.client';
 import { HighContrastToggle } from './_components/high-contrast-toggle.client';
+import { AudioSettingsMenu } from './_components/audio-settings-menu.client';
+import { DriverAudioProvider } from './_components/driver-audio.client';
 import { WarningBannerInactivity } from './_components/warning-banner-inactivity.client';
 import { InstallPwaBanner } from './_components/install-pwa-banner.client';
 
@@ -28,37 +30,40 @@ export default async function DriverLayout({ children }: { children: React.React
   if (ctx.role !== 'chauffeur') redirect('/patients');
 
   return (
-    <div className="bg-background flex min-h-screen flex-col">
-      <SWRegister />
-      <header
-        className={
-          'pt-safe border-border sticky top-0 z-40 w-full border-b ' +
-          'bg-background/85 supports-[backdrop-filter]:bg-background/70 backdrop-blur'
-        }
-      >
-        <div className="flex h-14 items-center justify-between gap-16 px-16 sm:px-24">
-          <Link
-            href="/conduite"
-            className="focus-visible:ring-ring flex items-baseline gap-8 rounded-sm focus-visible:outline-none focus-visible:ring-2"
-          >
-            <span className="text-foreground font-semibold tracking-tight">TAP</span>
-            <span className="text-muted-foreground text-sm">Ma journée</span>
-          </Link>
-          <div className="flex items-center gap-12">
-            <ConnectionStatusBadge />
-            <HighContrastToggle />
-            <UserMenu />
+    <DriverAudioProvider>
+      <div className="bg-background flex min-h-screen flex-col">
+        <SWRegister />
+        <header
+          className={
+            'pt-safe border-border sticky top-0 z-40 w-full border-b ' +
+            'bg-background/85 supports-[backdrop-filter]:bg-background/70 backdrop-blur'
+          }
+        >
+          <div className="flex h-14 items-center justify-between gap-16 px-16 sm:px-24">
+            <Link
+              href="/conduite"
+              className="focus-visible:ring-ring flex items-baseline gap-8 rounded-sm focus-visible:outline-none focus-visible:ring-2"
+            >
+              <span className="text-foreground font-semibold tracking-tight">TAP</span>
+              <span className="text-muted-foreground text-sm">Ma journée</span>
+            </Link>
+            <div className="flex items-center gap-12">
+              <ConnectionStatusBadge />
+              <AudioSettingsMenu />
+              <HighContrastToggle />
+              <UserMenu />
+            </div>
           </div>
-        </div>
-      </header>
-      <main
-        className="pb-safe mx-auto w-full max-w-[640px] flex-1 px-16 py-24 sm:px-24"
-        style={{ backgroundColor: 'hsl(var(--driver-surface, var(--background)))' }}
-      >
-        <WarningBannerInactivity />
-        <InstallPwaBanner />
-        {children}
-      </main>
-    </div>
+        </header>
+        <main
+          className="pb-safe mx-auto w-full max-w-[640px] flex-1 px-16 py-24 sm:px-24"
+          style={{ backgroundColor: 'hsl(var(--driver-surface, var(--background)))' }}
+        >
+          <WarningBannerInactivity />
+          <InstallPwaBanner />
+          {children}
+        </main>
+      </div>
+    </DriverAudioProvider>
   );
 }

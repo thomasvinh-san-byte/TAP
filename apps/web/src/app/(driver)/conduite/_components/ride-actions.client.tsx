@@ -12,6 +12,7 @@ import { captureCurrentPosition } from '@/lib/geoloc/capture-current-position.cl
 import { SlideToConfirm } from './slide-to-confirm.client';
 import { EndRideModal } from './end-ride-modal.client';
 import { NoShowButton } from './no-show-button.client';
+import { useDriverAudio } from '../../_components/driver-audio.client';
 
 /**
  * CTA contextuel d'une course (Phase 3 / 03-E, étendu PWA-01 §5.16).
@@ -33,6 +34,11 @@ interface Props {
   status: string;
   endedAt: string | null;
   variant?: 'inline' | 'sticky';
+  /**
+   * Texte énoncé au démarrage (nom + adresse de départ) — PWA-02 §5.16. Lu une
+   * seule fois si la lecture vocale est activée. Aucune donnée médicale.
+   */
+  announceAtStart?: string;
 }
 
 interface Step {
@@ -69,8 +75,15 @@ const STEPS: Record<string, Step> = {
 /** États où l'action « Patient absent » reste pertinente (avant embarquement). */
 const NO_SHOW_STATES = new Set(['assignee', 'en_cours', 'arrive_sur_place']);
 
-export function RideActions({ rideId, status, endedAt, variant = 'inline' }: Props): JSX.Element {
+export function RideActions({
+  rideId,
+  status,
+  endedAt,
+  variant = 'inline',
+  announceAtStart,
+}: Props): JSX.Element {
   const router = useRouter();
+  const { announce } = useDriverAudio();
   const [pending, setPending] = React.useState(false);
   const [endOpen, setEndOpen] = React.useState(false);
 
@@ -114,16 +127,20 @@ export function RideActions({ rideId, status, endedAt, variant = 'inline' }: Pro
           throw new Error(errorMsg); // 5xx → file
         }
         toast.success(step.success);
+        // PWA-02 : lecture vocale au démarrage (course lancée en ligne).
+        if (step.path === 'start' && announceAtStart) announce(announceAtStart);
         router.refresh();
       } catch {
         await enqueue({ type: step.mutationType, resource_id: rideId, payload });
         toast.warning('Action enregistrée : sync au retour réseau.');
+        // PWA-02 : la course est lancée localement (rejeu différé) → on énonce.
+        if (step.path === 'start' && announceAtStart) announce(announceAtStart);
         router.refresh();
       } finally {
         setPending(false);
       }
     },
-    [rideId, router],
+    [rideId, router, announce, announceAtStart],
   );
 
   if (status === 'terminee') {
