@@ -89,7 +89,11 @@ recount as (
       select count(*)::int
       from public.rides r
       where r.prescription_id = a.id
-        and r.status <> all (
+        -- `r.status::text` : en SQL simple, un array de littéraux se résout en
+        -- text[] → `ride_status <> text` n'existe pas (SQLSTATE 42883). On
+        -- compare donc côté text. (Le corps plpgsql plus haut, `= any(text[])`,
+        -- est valide au runtime — inchangé.)
+        and r.status::text <> all (
           array['brouillon','annulee_regulateur','annulee_patient','annulee_chauffeur','annulee_meteo']
         )
     ) as consommes
