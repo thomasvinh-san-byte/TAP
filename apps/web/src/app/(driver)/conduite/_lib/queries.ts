@@ -25,6 +25,9 @@ import { getAuthContext, type AuthContext } from '@/lib/auth/get-auth-context';
 export type DriverRideStatus =
   | 'assignee'
   | 'en_cours'
+  // PWA-01 (§5.16) : états intermédiaires de la prise en charge.
+  | 'arrive_sur_place'
+  | 'patient_a_bord'
   | 'terminee'
   | 'annulee_regulateur'
   | 'annulee_patient'
@@ -41,6 +44,11 @@ export type RideForDriverList = {
   dropoff_address: string;
   dropoff_postal_code: string | null;
   dropoff_city: string | null;
+  // PWA-03 (§5.16) : coordonnées géocodées pour la navigation externe.
+  pickup_lat: number | null;
+  pickup_lng: number | null;
+  dropoff_lat: number | null;
+  dropoff_lng: number | null;
   transport_mode: string;
   urgency: string;
   notes_regulateur: string | null;
@@ -125,6 +133,7 @@ const RIDE_FOR_DRIVER_COLUMNS =
   'id, patient_id, scheduled_at, status, ' +
   'pickup_address, pickup_postal_code, pickup_city, ' +
   'dropoff_address, dropoff_postal_code, dropoff_city, ' +
+  'pickup_lat, pickup_lng, dropoff_lat, dropoff_lng, ' +
   'transport_mode, urgency, notes_regulateur, ' +
   'started_at, ended_at, tarif_amount_eur, ' +
   'payment_status, payment_method';
@@ -140,6 +149,10 @@ type RawRideRow = {
   dropoff_address: string;
   dropoff_postal_code: string | null;
   dropoff_city: string | null;
+  pickup_lat: number | null;
+  pickup_lng: number | null;
+  dropoff_lat: number | null;
+  dropoff_lng: number | null;
   transport_mode: string;
   urgency: string;
   notes_regulateur: string | null;
@@ -188,6 +201,10 @@ function joinPatient(
     dropoff_address: ride.dropoff_address,
     dropoff_postal_code: ride.dropoff_postal_code,
     dropoff_city: ride.dropoff_city,
+    pickup_lat: ride.pickup_lat,
+    pickup_lng: ride.pickup_lng,
+    dropoff_lat: ride.dropoff_lat,
+    dropoff_lng: ride.dropoff_lng,
     transport_mode: ride.transport_mode,
     urgency: ride.urgency,
     notes_regulateur: ride.notes_regulateur,
