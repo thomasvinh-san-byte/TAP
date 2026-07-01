@@ -12,3 +12,4 @@ export * from './entity-compliance-state';
 export * from './internal-message';
 export * from './age';
 export * from './fec';
+export * from './navigation-link';

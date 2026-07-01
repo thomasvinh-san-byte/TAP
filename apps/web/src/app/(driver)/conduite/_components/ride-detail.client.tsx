@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowDown, ArrowLeft, MapPin, Navigation, Phone } from 'lucide-react';
+import { ArrowDown, ArrowLeft, MapPin, Navigation, Phone, Route } from 'lucide-react';
+import { buildNavigationUrl } from '@tap/shared';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
 import { cn } from '@/lib/utils';
 import { formatRelativeFr, formatTimeFr } from '@/lib/dates-fr';
@@ -47,6 +48,23 @@ export function RideDetail({ ride }: Props): JSX.Element {
   // uniquement (déjà à l'écran, aucune donnée médicale).
   const pickup = joinAddress(ride.pickup_address, ride.pickup_postal_code, ride.pickup_city);
   const announceAtStart = [fullName, pickup].filter(Boolean).join('. ');
+
+  // PWA-03 (§5.16) : navigation externe. Le point visé suit l'état de la course
+  // — destination une fois le patient à bord, prise en charge avant. Coordonnées
+  // privilégiées, repli sur l'adresse (helper pur @tap/shared). Bouton affiché
+  // seulement pour une course active et si une cible existe (pas de bouton mort).
+  const goingToDropoff = ride.status === 'patient_a_bord';
+  const navUrl = buildNavigationUrl(
+    goingToDropoff
+      ? {
+          lat: ride.dropoff_lat,
+          lng: ride.dropoff_lng,
+          address: joinAddress(ride.dropoff_address, ride.dropoff_postal_code, ride.dropoff_city),
+        }
+      : { lat: ride.pickup_lat, lng: ride.pickup_lng, address: pickup },
+  );
+  const NAVIGABLE_STATUSES = ['assignee', 'en_cours', 'arrive_sur_place', 'patient_a_bord'];
+  const showNav = navUrl !== null && NAVIGABLE_STATUSES.includes(ride.status);
 
   return (
     <div className="flex flex-col gap-24 pb-32">
@@ -112,6 +130,23 @@ export function RideDetail({ ride }: Props): JSX.Element {
                 </div>
               </div>
             </div>
+
+            {showNav && (
+              <a
+                href={navUrl!}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  'flex min-h-[48px] items-center justify-center gap-8 rounded-md',
+                  'bg-primary text-primary-foreground text-base font-semibold',
+                  'transition-colors duration-150 hover:opacity-90 active:opacity-80',
+                  'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+                )}
+              >
+                <Route className="h-16 w-16" aria-hidden />
+                {goingToDropoff ? 'Y aller — destination' : 'Y aller — prise en charge'}
+              </a>
+            )}
           </section>
 
           {ride.notes_regulateur && (
