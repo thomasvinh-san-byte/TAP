@@ -10,8 +10,8 @@
  *     filet plus large pour les créneaux imprécis — faux positifs assumés car
  *     la détection est NON bloquante : la régulatrice tranche)
  *   - `archive = false`
- *   - `status ∈ {validee, assignee, en_cours, terminee}` (exclut les
- *     courses annulées et brouillons)
+ *   - `status ∈ ACTIVE_RIDE_STATUSES` (source canonique — exclut les courses
+ *     annulées et brouillons ; inclut arrive_sur_place / patient_a_bord)
  *   - en mode édition : exclut la course elle-même (`excludeRideId`)
  *
  * Lecture seule — pas de `revalidatePath`. Le résultat alimente le banner
@@ -24,6 +24,7 @@
  */
 
 import { z } from 'zod';
+import { ACTIVE_RIDE_STATUSES } from '@tap/shared';
 import { getAuthContext } from '@/lib/auth/get-auth-context';
 import { REGULATEUR_OR_DIRIGEANT } from './_shared';
 
@@ -41,7 +42,6 @@ export type DuplicateRide = {
 
 // CdG §5.8 : fenêtre ±2h (révise D-B3-2 ±30 min — EXPRESS-01).
 const WINDOW_MS = 2 * 60 * 60 * 1000;
-const ACTIVE_STATUSES = ['validee', 'assignee', 'en_cours', 'terminee'] as const;
 
 export async function checkDuplicateRideAction(
   input: z.infer<typeof checkDuplicateInputSchema>,
@@ -66,7 +66,7 @@ export async function checkDuplicateRideAction(
     .select('id, scheduled_at, status')
     .eq('patient_id', parsed.data.patientId)
     .eq('archive', false)
-    .in('status', ACTIVE_STATUSES as unknown as string[])
+    .in('status', ACTIVE_RIDE_STATUSES as unknown as string[])
     .gte('scheduled_at', fromIso)
     .lte('scheduled_at', toIso);
 

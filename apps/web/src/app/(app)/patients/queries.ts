@@ -9,6 +9,7 @@
  *   Garde 2 chars côté serveur pour aligner avec l'UI (D-10).
  * - `getPatientById(id)` : SELECT vue + jointures contraintes / note active.
  */
+import { ACTIVE_RIDE_STATUSES } from '@tap/shared';
 import { createClient } from '@/lib/supabase/server';
 import type { Database } from '@tap/database/types';
 
@@ -174,7 +175,8 @@ function toListItem(row: Partial<PatientSafeRow>): PatientListItem {
  * Filtre :
  *  - `patient_id = $patientId` ET `organization_id = $organizationId`
  *  - `archive = false`
- *  - `status ∈ {validee, assignee, en_cours, terminee}` (exclut `annulee_*`)
+ *  - `status ∈ ACTIVE_RIDE_STATUSES` (statuts non annulés, source canonique —
+ *    inclut les états intermédiaires arrive_sur_place / patient_a_bord)
  *  - `order by scheduled_at desc limit 1`
  *
  * Silent fail : toute erreur Supabase ou résultat vide retourne `null`
@@ -195,7 +197,7 @@ export async function getPatientRideDefaults(
     .eq('patient_id', patientId)
     .eq('organization_id', organizationId)
     .eq('archive', false)
-    .in('status', ['validee', 'assignee', 'en_cours', 'terminee'])
+    .in('status', [...ACTIVE_RIDE_STATUSES])
     .order('scheduled_at', { ascending: false })
     .limit(1)
     .maybeSingle();

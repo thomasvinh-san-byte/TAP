@@ -26,11 +26,17 @@ import { RideDrawer } from './ride-drawer.client';
 import { AssignModal } from './assign-modal.client';
 import { useRideOrchestrator } from './ride-orchestrator-context.client';
 
+// Source canonique des statuts actifs : STATUS_LABELS_FR (ride-status-fr.ts) et
+// la machine à états (@tap/shared). Liste maintenue à la main ici pour l'ordre
+// et le regroupement des annulations sous une seule entrée « Annulées » — à
+// garder synchronisée si l'énumération évolue (FIX-01, §5.16).
 const STATUS_FILTERS = [
   { value: 'all', label: 'Tous statuts' },
   { value: 'validee', label: 'Validées' },
   { value: 'assignee', label: 'Affectées' },
   { value: 'en_cours', label: 'En cours' },
+  { value: 'arrive_sur_place', label: 'Arrivé sur place' },
+  { value: 'patient_a_bord', label: 'Patient à bord' },
   { value: 'terminee', label: 'Terminées' },
   { value: 'annulee_regulateur', label: 'Annulées' },
 ] as const;
