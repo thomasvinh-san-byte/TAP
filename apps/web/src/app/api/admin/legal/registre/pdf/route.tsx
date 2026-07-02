@@ -54,7 +54,7 @@ export async function GET() {
     entity_type: 'data_processing_register',
     entity_id: null,
     metadata: { entries_count: entries.length },
-  } as never);
+  });
 
   const stream = await renderToStream(
     <RegistrePdf

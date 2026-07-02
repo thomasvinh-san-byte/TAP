@@ -119,7 +119,7 @@ export async function exportRidesCsvAction(input: ExportRidesInput): Promise<Exp
 
   const { data, error } = await q;
   if (error) return { error: 'Lecture des courses impossible.' };
-  const rides = ((data ?? []) as RawRideRow[]) ?? [];
+  const rides = ((data ?? []) as unknown as RawRideRow[]) ?? [];
 
   // Hydrate patient + driver labels en 2 lookups (pas de FK polymorphe :
   // patients_safe = vue sans ciphertext, drivers = nom_affichage).

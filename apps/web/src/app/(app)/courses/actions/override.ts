@@ -57,7 +57,7 @@ export async function overrideRideTarifAction(
       tarif_amount_eur: parsed.data.newTarifEur,
       tarif_source: 'override',
       updated_by: ctx.userId,
-    } as never)
+    })
     .eq('id', parsed.data.rideId)
     .select('id');
   if (updated.error) return { error: 'Modification impossible.' };
@@ -79,7 +79,7 @@ export async function overrideRideTarifAction(
       new_amount: parsed.data.newTarifEur,
       reason: parsed.data.reason,
     },
-  } as never);
+  });
 
   revalidatePath('/courses');
   return { success: true };

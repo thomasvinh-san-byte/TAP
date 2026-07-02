@@ -92,7 +92,7 @@ export async function getOpenIncidentsWithProposals(): Promise<IncidentWithPropo
   const nowIso = new Date().toISOString();
 
   const incRes = await supabase
-    .from('driver_incidents' as never)
+    .from('driver_incidents')
     .select('id, driver_id, type, nature, lieu, started_at')
     .is('resolved_at', null)
     .order('started_at', { ascending: false });

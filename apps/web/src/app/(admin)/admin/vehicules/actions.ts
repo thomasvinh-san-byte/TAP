@@ -88,7 +88,7 @@ export async function createVehicleAction(
       marque: parsed.data.marque || null,
       modele: parsed.data.modele || null,
       equipement_autre: parsed.data.equipement_autre || null,
-    } as never)
+    })
     .select('id')
     .single();
 
@@ -128,7 +128,7 @@ export async function updateVehicleAction(
       marque: parsed.data.marque || null,
       modele: parsed.data.modele || null,
       equipement_autre: parsed.data.equipement_autre || null,
-    } as never)
+    })
     .eq('id', vehicleId)
     .eq('archive', false)
     .select('id')
@@ -157,7 +157,7 @@ export async function archiveVehicleAction(vehicleId: string): Promise<ActionSta
       archive: true,
       archive_at: new Date().toISOString(),
       actif: false,
-    } as never)
+    })
     .eq('id', vehicleId)
     .select('id');
 

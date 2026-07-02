@@ -117,7 +117,7 @@ export async function POST(
       };
       const { data: updated, error: updateErr } = await auth.ctx.supabase
         .from('rides')
-        .update(update as never)
+        .update(update)
         .eq('id', rideIdParse.data)
         .select('id');
       if (updateErr) {
@@ -139,7 +139,7 @@ export async function POST(
         event_type: 'patient_no_show',
         payload: { motif: bodyParse.data.motif ?? null },
         created_by: auth.ctx.userId,
-      } as never);
+      });
       if (eventErr) {
         return {
           status: 500,
@@ -158,7 +158,7 @@ export async function POST(
         metadata: {
           motif: bodyParse.data.motif ?? null,
         },
-      } as never);
+      });
 
       // Phase 10.0 DEC-096 : capture événementielle position.
       await recordDriverPosition({

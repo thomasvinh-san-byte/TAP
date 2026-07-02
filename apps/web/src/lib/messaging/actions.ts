@@ -69,7 +69,7 @@ export async function sendRideMessageAction(
       sender_profile_id: ctx.userId,
       sender_role: ctx.role,
       body: parsed.data.body,
-    } as never)
+    })
     .select('id');
 
   if (error) return { error: 'Envoi impossible. Vérifiez que la course vous est accessible.' };

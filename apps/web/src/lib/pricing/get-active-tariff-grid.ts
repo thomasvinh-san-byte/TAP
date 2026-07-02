@@ -29,7 +29,7 @@ export async function getActiveTariffGrid(): Promise<TariffGrid | null> {
 /** Jours fériés 974 (YYYY-MM-DD) pour la majoration pricing (DEC-059). */
 export async function getHolidays974(): Promise<string[]> {
   const supabase = await createClient();
-  const res = await supabase.from('holidays_974' as never).select('date');
+  const res = await supabase.from('holidays_974').select('date');
   if (res.error || !res.data) return [];
   return (res.data as { date: string }[]).map((r) => r.date);
 }
@@ -54,7 +54,7 @@ export async function getActiveTariffGridForOrderingParty(
 
   const partyRes = await supabase
     // `as never` : colonne tariff_mode (DEC-157) absente de types.gen.ts jusqu'au resync.
-    .from('ordering_parties' as never)
+    .from('ordering_parties')
     .select('tariff_mode')
     .eq('id', orderingPartyId)
     .maybeSingle();
@@ -62,7 +62,7 @@ export async function getActiveTariffGridForOrderingParty(
   if (mode !== 'grille_propre') return null;
 
   const gridRes = await supabase
-    .from('ordering_party_tariff_grids' as never)
+    .from('ordering_party_tariff_grids')
     .select(GRID_COLUMNS)
     .eq('ordering_party_id', orderingPartyId)
     .lte('date_effet', on)

@@ -138,7 +138,7 @@ export async function createPatientAction(
       referent_type: data.referent_type ?? null,
       archive: false,
       created_by: user.id,
-    } as never)
+    })
     .select('id')
     .single();
 
@@ -153,7 +153,7 @@ export async function createPatientAction(
   if (data.notes_operationnelles && data.notes_operationnelles.length > 0) {
     await replacePatientNote(
       // Cast : signature 3-args Database vs SupabaseClient 4-args du runtime.
-      supabase as never,
+      supabase,
       insertedRow.id,
       data.notes_operationnelles,
       user.id,
@@ -224,16 +224,13 @@ export async function updatePatientAction(
     }
   }
 
-  const { error } = await supabase
-    .from('patients')
-    .update(update as never)
-    .eq('id', id);
+  const { error } = await supabase.from('patients').update(update).eq('id', id);
   if (error) return { error: 'Modification impossible.' };
 
   // Note opérationnelle (B-1, pattern replaced_by_id D-18).
   if (typeof data.notes_operationnelles === 'string') {
     try {
-      await replacePatientNote(supabase as never, id, data.notes_operationnelles, user.id);
+      await replacePatientNote(supabase, id, data.notes_operationnelles, user.id);
     } catch {
       return { error: 'Note opérationnelle non enregistrée.' };
     }

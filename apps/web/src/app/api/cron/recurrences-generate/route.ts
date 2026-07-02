@@ -73,7 +73,7 @@ interface RecurrenceRow {
 }
 
 async function fetchHolidays(supabase: SupabaseClient<Database>): Promise<Set<string>> {
-  const res = await supabase.from('holidays_974' as never).select('date');
+  const res = await supabase.from('holidays_974').select('date');
   if (res.error || !res.data) return new Set();
   return new Set((res.data as { date: string }[]).map((r) => r.date));
 }

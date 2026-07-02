@@ -53,7 +53,7 @@ export async function checkDuplicateRideAction(
 
   const ctx = await getAuthContext();
   if (!ctx) return { error: 'Session expirée. Reconnectez-vous.' };
-  if (!REGULATEUR_OR_DIRIGEANT.includes(ctx.role as never)) {
+  if (!REGULATEUR_OR_DIRIGEANT.includes(ctx.role)) {
     return { error: 'Accès non autorisé.' };
   }
 
@@ -66,7 +66,7 @@ export async function checkDuplicateRideAction(
     .select('id, scheduled_at, status')
     .eq('patient_id', parsed.data.patientId)
     .eq('archive', false)
-    .in('status', ACTIVE_RIDE_STATUSES as unknown as string[])
+    .in('status', [...ACTIVE_RIDE_STATUSES])
     .gte('scheduled_at', fromIso)
     .lte('scheduled_at', toIso);
 

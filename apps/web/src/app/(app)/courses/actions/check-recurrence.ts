@@ -49,7 +49,7 @@ export async function checkRecurrenceSuggestionAction(
 
   const ctx = await getAuthContext();
   if (!ctx) return { error: 'Session expirée. Reconnectez-vous.' };
-  if (!REGULATEUR_OR_DIRIGEANT.includes(ctx.role as never)) {
+  if (!REGULATEUR_OR_DIRIGEANT.includes(ctx.role)) {
     return { error: 'Accès non autorisé.' };
   }
 

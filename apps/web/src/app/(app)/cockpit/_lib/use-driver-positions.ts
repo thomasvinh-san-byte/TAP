@@ -48,7 +48,7 @@ export function useDriverPositions(initial: DriverPosition[]): UseDriverPosition
     const channel = supabase
       .channel('cockpit:driver_positions')
       .on(
-        'postgres_changes' as never,
+        'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'driver_positions' },
         (payload: { new: DriverPosition }) => {
           const fresh = payload.new;

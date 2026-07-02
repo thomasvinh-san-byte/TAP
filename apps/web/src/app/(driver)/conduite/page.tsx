@@ -1,6 +1,5 @@
 import Link from 'next/link';
-import { Calendar, History } from 'lucide-react';
-import { Calendar, Gauge } from 'lucide-react';
+import { Calendar, Gauge, History } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { cn } from '@/lib/utils';
 import { listMyRidesUpcoming, type RideForDriverWithBucket } from './_lib/queries';
@@ -85,6 +84,19 @@ function HistoriqueLink({ className }: { className?: string }): JSX.Element {
   return (
     <Link
       href="/historique"
+      className={cn(
+        'text-muted-foreground inline-flex items-center gap-8 text-sm',
+        'hover:text-foreground transition-colors duration-150',
+        'focus-visible:ring-ring rounded-sm focus-visible:outline-none focus-visible:ring-2',
+        className,
+      )}
+    >
+      <History className="h-16 w-16" aria-hidden />
+      Historique
+    </Link>
+  );
+}
+
 function KilometrageLink({ className }: { className?: string }): JSX.Element {
   return (
     <Link
@@ -96,8 +108,6 @@ function KilometrageLink({ className }: { className?: string }): JSX.Element {
         className,
       )}
     >
-      <History className="h-16 w-16" aria-hidden />
-      Historique
       <Gauge className="h-16 w-16" aria-hidden />
       Kilométrage
     </Link>

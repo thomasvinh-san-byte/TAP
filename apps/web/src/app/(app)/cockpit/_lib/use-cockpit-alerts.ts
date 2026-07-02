@@ -26,7 +26,7 @@ export function useCockpitAlerts(initial: CockpitAlert[]): { alerts: CockpitAler
     const channel = supabase
       .channel('cockpit:ride_events')
       .on(
-        'postgres_changes' as never,
+        'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'ride_events' },
         (payload: { new: CockpitAlert }) => {
           const incoming = payload.new;

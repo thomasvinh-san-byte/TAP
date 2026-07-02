@@ -81,7 +81,7 @@ export async function GET(request: Request): Promise<Response> {
       rides_count: aggregate.count,
       total_eur: aggregate.totalEur,
     },
-  } as never);
+  });
 
   const chauffeurLabel = chauffeurId
     ? (courses.find((c) => c.driver_id === chauffeurId)?.driver_nom ?? null)

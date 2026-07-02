@@ -28,7 +28,7 @@ export async function savePushSubscriptionAction(
   const ctx = await getAuthContext();
   if (!ctx) return { error: 'Session expirée. Reconnectez-vous.' };
 
-  const { error } = await ctx.supabase.from('push_subscriptions' as never).upsert(
+  const { error } = await ctx.supabase.from('push_subscriptions').upsert(
     {
       organization_id: ctx.organizationId,
       user_id: ctx.userId,
@@ -37,7 +37,7 @@ export async function savePushSubscriptionAction(
       auth: parsed.data.auth,
       user_agent: parsed.data.userAgent ?? null,
       last_used_at: new Date().toISOString(),
-    } as never,
+    },
     { onConflict: 'endpoint' },
   );
   if (error) return { error: "Enregistrement de l'abonnement impossible." };
@@ -52,10 +52,7 @@ export async function deletePushSubscriptionAction(endpoint: string): Promise<Pu
   if (!ctx) return { error: 'Session expirée. Reconnectez-vous.' };
 
   // RLS : ne supprime que SES propres abonnements (user_id = auth.uid()).
-  const { error } = await ctx.supabase
-    .from('push_subscriptions' as never)
-    .delete()
-    .eq('endpoint' as never, endpoint as never);
+  const { error } = await ctx.supabase.from('push_subscriptions').delete().eq('endpoint', endpoint);
   if (error) return { error: 'Désabonnement impossible.' };
   return { success: true };
 }

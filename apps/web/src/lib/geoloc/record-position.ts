@@ -42,7 +42,7 @@ export async function recordDriverPosition(opts: {
     accuracy: position.accuracy ?? null,
     source,
     captured_at: new Date().toISOString(),
-  } as never);
+  });
 
   if (error) {
     Sentry.captureException(error, { tags: { module: 'geoloc' } });

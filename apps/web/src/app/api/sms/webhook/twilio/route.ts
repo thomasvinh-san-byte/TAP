@@ -108,7 +108,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const upRes = await supabase
     .from('sms_messages')
-    .update(patch as never)
+    .update(patch)
     .eq('twilio_message_sid', messageSid)
     .select('id');
   if (upRes.error) {

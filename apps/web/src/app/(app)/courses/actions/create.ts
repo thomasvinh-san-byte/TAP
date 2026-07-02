@@ -72,7 +72,7 @@ export async function createRideAction(
       dropoff_citycode: dropoffCoords.citycode,
       created_by: user.id,
       updated_by: user.id,
-    } as never)
+    })
     .select('id')
     .single();
   const insertedRow = row as { id: string } | null;
@@ -120,7 +120,7 @@ export async function upsertRideDraft(
 
   const { data, error } = await supabase
     .from('ride_draft')
-    .upsert(row as never, { onConflict: 'id' })
+    .upsert(row, { onConflict: 'id' })
     .select('id')
     .single();
   const savedRow = data as { id: string } | null;

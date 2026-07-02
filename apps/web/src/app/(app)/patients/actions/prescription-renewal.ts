@@ -69,7 +69,7 @@ export async function buildRenewalRequestAction(
   if (!ctx) return { error: 'Action réservée au régulateur ou au dirigeant.' };
 
   const presRes = await ctx.supabase
-    .from('prescriptions' as never)
+    .from('prescriptions')
     .select(
       'id, numero, patient_id, prescriber_id, motif, trajets_autorises, trajets_consommes, date_expiration',
     )
@@ -94,7 +94,7 @@ export async function buildRenewalRequestAction(
     ctx.supabase
       .from('ride_recurrences')
       .select('rrule_str')
-      .eq('prescription_id' as never, prescriptionId as never)
+      .eq('prescription_id', prescriptionId)
       .is('archived_at', null)
       .limit(1)
       .maybeSingle(),

@@ -70,7 +70,7 @@ export async function listMyPastTournees(): Promise<PastTourneeDay[]> {
     .select('scheduled_at, status')
     // `driver_id` absent de types.gen.ts jusqu'au resync → cast (DEC-155),
     // même pattern que listMyRidesUpcoming.
-    .eq('driver_id' as never, myDriverId)
+    .eq('driver_id', myDriverId)
     .gte('scheduled_at', since)
     .lt('scheduled_at', todayStart)
     .eq('archive', false)

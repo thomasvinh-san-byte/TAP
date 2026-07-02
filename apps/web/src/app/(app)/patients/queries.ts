@@ -60,7 +60,7 @@ export async function searchPatients(
     // Hotfix 04.7-bis élargi : la RPC search_patients ne discrimine pas
     // par archive. On filtre en post-fetch côté JS pour cohérence rapide
     // (volume résultats < 50, négligeable).
-    const { data, error } = await supabase.rpc('search_patients', { q: trimmed } as never);
+    const { data, error } = await supabase.rpc('search_patients', { q: trimmed });
     if (error) throw new Error('Recherche impossible');
     const rows = (data ?? []) as PatientSafeRow[];
     items = rows.filter((r) => (r.archive ?? false) === wantArchived).map(toListItem);
@@ -248,9 +248,9 @@ export type PatientReferentFields = {
 export async function getPatientReferentFields(id: string): Promise<PatientReferentFields | null> {
   const supabase = await createClient();
   const { data } = await supabase
-    .from('patients' as never)
+    .from('patients')
     .select('referent_nom, referent_lien, referent_telephone, referent_type')
-    .eq('id' as never, id as never)
+    .eq('id', id)
     .maybeSingle();
   return (data as PatientReferentFields | null) ?? null;
 }

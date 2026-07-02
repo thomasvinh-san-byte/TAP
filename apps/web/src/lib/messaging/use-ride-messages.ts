@@ -57,7 +57,7 @@ export function useRideMessages(rideId: string): UseRideMessagesResult {
     const channel = supabase
       .channel(`internal_message:${rideId}`)
       .on(
-        'postgres_changes' as never,
+        'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',

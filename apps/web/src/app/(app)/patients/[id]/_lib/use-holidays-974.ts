@@ -20,7 +20,7 @@ export function useHolidays974(): Set<string> {
     let cancelled = false;
 
     void (async () => {
-      const result = await supabase.from('holidays_974' as never).select('date');
+      const result = await supabase.from('holidays_974').select('date');
       if (cancelled) return;
       if (result.error || !result.data) return;
       const rows = result.data as { date: string }[];

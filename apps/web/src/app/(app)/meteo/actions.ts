@@ -49,14 +49,14 @@ async function activateAlert(
   zone: string | undefined,
 ): Promise<WeatherActionState> {
   const ins = await ctx.supabase
-    .from('weather_alerts' as never)
+    .from('weather_alerts')
     .insert({
       organization_id: ctx.organizationId,
       active: true,
       motif,
       zone: zone || null,
       activated_by: ctx.userId,
-    } as never)
+    })
     .select('id');
   if (ins.error) {
     // 23505 = violation de l'index unique partiel (mode déjà actif).
@@ -72,10 +72,10 @@ async function activateAlert(
 /** Désactive l'épisode actif de l'org (compare-and-set sur active = true). */
 async function deactivateAlert(ctx: AuthContext): Promise<WeatherActionState> {
   const upd = await ctx.supabase
-    .from('weather_alerts' as never)
-    .update({ active: false, deactivated_at: new Date().toISOString() } as never)
-    .eq('organization_id' as never, ctx.organizationId as never)
-    .eq('active' as never, true as never)
+    .from('weather_alerts')
+    .update({ active: false, deactivated_at: new Date().toISOString() })
+    .eq('organization_id', ctx.organizationId)
+    .eq('active', true)
     .select('id');
   if (upd.error) return { error: 'Désactivation du mode alerte météo impossible.' };
   if (!upd.data || upd.data.length === 0) {
@@ -129,7 +129,7 @@ async function cancelRides(
 ): Promise<{ error?: string; rides?: CancelledRide[] }> {
   let query = ctx.supabase
     .from('rides')
-    .update({ status: 'annulee_meteo', cancel_motif: motif, updated_by: ctx.userId } as never)
+    .update({ status: 'annulee_meteo', cancel_motif: motif, updated_by: ctx.userId })
     .gte('scheduled_at', `${date}T00:00:00`)
     .lte('scheduled_at', `${date}T23:59:59`)
     // DEC-178 : sources légales d'une annulation (machine à états centralisée).
@@ -174,7 +174,7 @@ async function reconcileWeatherGroups(ctx: AuthContext, rides: CancelledRide[]):
 
     const upd = await ctx.supabase
       .from('ride_groups')
-      .update({ status: 'annulee' } as never)
+      .update({ status: 'annulee' })
       .in('id', fullyCancelled)
       .eq('status', 'acceptee'); // ne touche que les groupes actifs.
     if (upd.error) {

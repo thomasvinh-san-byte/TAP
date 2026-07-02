@@ -86,7 +86,7 @@ export async function createDriverAction(
       created_by: ctx.userId,
       telephone: parsed.data.telephone || null,
       numero_licence: parsed.data.numero_licence || null,
-    } as never)
+    })
     .select('id')
     .single();
 
@@ -123,7 +123,7 @@ export async function updateDriverAction(
       ...parsed.data,
       telephone: parsed.data.telephone || null,
       numero_licence: parsed.data.numero_licence || null,
-    } as never)
+    })
     .eq('id', driverId)
     .eq('archive', false)
     .select('id')
@@ -205,7 +205,7 @@ export async function archiveDriverAction(
       status: 'archive',
       archive_at: new Date().toISOString(),
       archive_motif: motif,
-    } as never)
+    })
     .eq('id', driverId)
     .eq('archive', false);
 
@@ -226,7 +226,7 @@ export async function archiveDriverAction(
       archived_by_role: ctx.role,
       driver_nom_affichage: (current as { nom_affichage: string }).nom_affichage,
     },
-  } as never);
+  });
 
   revalidatePath('/admin/chauffeurs');
   // DEC-152 : purge le cache data par org (la liste reflète l'écriture aussitôt).
@@ -266,7 +266,7 @@ export async function deactivateDriverAction(
   // trigger DB dérive actif=false). Non archivé, reste dans le référentiel.
   const { data, error } = await ctx.supabase
     .from('drivers')
-    .update({ status: 'suspendu' } as never)
+    .update({ status: 'suspendu' })
     .eq('id', driverId)
     .eq('archive', false)
     .select('id, nom_affichage')
@@ -286,7 +286,7 @@ export async function deactivateDriverAction(
       acted_by_role: ctx.role,
       driver_nom_affichage: (data as { nom_affichage: string }).nom_affichage,
     },
-  } as never);
+  });
 
   revalidatePath('/admin/chauffeurs');
   // DEC-152 : purge le cache data par org (la liste reflète l'écriture aussitôt).
@@ -312,7 +312,7 @@ export async function reactivateDriverAction(driverId: string): Promise<ActionSt
   // CHAUFFEUR-01 : « réactiver » = repasser en actif (status fait foi).
   const { data, error } = await ctx.supabase
     .from('drivers')
-    .update({ status: 'actif' } as never)
+    .update({ status: 'actif' })
     .eq('id', driverId)
     .eq('archive', false)
     .select('id, nom_affichage')
@@ -332,7 +332,7 @@ export async function reactivateDriverAction(driverId: string): Promise<ActionSt
       acted_by_role: ctx.role,
       driver_nom_affichage: (data as { nom_affichage: string }).nom_affichage,
     },
-  } as never);
+  });
 
   revalidatePath('/admin/chauffeurs');
   // DEC-152 : purge le cache data par org (la liste reflète l'écriture aussitôt).
@@ -381,7 +381,7 @@ export async function unarchiveDriverAction(
       status: 'suspendu',
       archive_at: null,
       archive_motif: null,
-    } as never)
+    })
     .eq('id', driverId)
     .eq('archive', true)
     .select('id, nom_affichage')
@@ -401,7 +401,7 @@ export async function unarchiveDriverAction(
       acted_by_role: ctx.role,
       driver_nom_affichage: (data as { nom_affichage: string }).nom_affichage,
     },
-  } as never);
+  });
 
   revalidatePath('/admin/chauffeurs');
   // DEC-152 : purge le cache data par org (la liste reflète l'écriture aussitôt).
@@ -541,7 +541,7 @@ export async function inviteDriverAction(
       email,
       role: 'chauffeur',
       status: 'pending',
-    } as never)
+    })
     .select('id')
     .single();
 
@@ -625,7 +625,7 @@ export async function resendInvitationAction(invitationId: string): Promise<Acti
   const newExpiresAt = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
   const { error: updErr } = await ctx.supabase
     .from('driver_invitations')
-    .update({ expires_at: newExpiresAt } as never)
+    .update({ expires_at: newExpiresAt })
     .eq('id', invitationId);
   if (updErr) return { error: 'Mise à jour invitation impossible.' };
 

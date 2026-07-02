@@ -103,7 +103,7 @@ export async function notifyPickupConfirmed(rideId: string, organizationId: stri
         delivery_status: 'skipped_consent_revoked',
         delivery_error: null,
         sent_at: null,
-      } as never);
+      });
       return;
     }
 
@@ -133,7 +133,7 @@ export async function notifyPickupConfirmed(rideId: string, organizationId: stri
       delivery_status: sid ? 'queued' : 'failed',
       delivery_error: error,
       sent_at: sid ? new Date().toISOString() : null,
-    } as never);
+    });
   } catch (err) {
     // Best-effort total : jamais propagé (le démarrage reste committé).
     console.error('[pickup sms] échec (best-effort, démarrage conservé):', err);

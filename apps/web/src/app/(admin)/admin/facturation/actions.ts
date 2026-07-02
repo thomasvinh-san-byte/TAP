@@ -58,7 +58,7 @@ export async function updateOrganizationSiretAction(
   // DEC-041 — vérification du nombre de lignes affectées (RLS dirigeant only).
   const upd = await supabase
     .from('organizations')
-    .update({ siret: parsed.data.siret } as never)
+    .update({ siret: parsed.data.siret })
     .eq('id', profile.organization_id)
     .select('id');
 

@@ -92,7 +92,7 @@ export async function createDpiaAction(
     next_review_at: data.next_review_at.toISOString().slice(0, 10),
     status: data.status,
     created_by: user.id,
-  } as never);
+  });
 
   if (error) return { error: 'Création impossible.' };
   revalidatePath('/admin/legal/dpia');
@@ -135,7 +135,7 @@ export async function updateDpiaAction(
       reviewed_at: data.reviewed_at.toISOString().slice(0, 10),
       next_review_at: data.next_review_at.toISOString().slice(0, 10),
       status: data.status,
-    } as never)
+    })
     .eq('id', id)
     .select('id');
 
@@ -218,7 +218,7 @@ export async function prefillDpiaRecordAction(input: DpiaPrefillInput): Promise<
     next_review_at: d.next_review_at.toISOString().slice(0, 10),
     status: 'brouillon',
     created_by: user.id,
-  } as never);
+  });
 
   if (error) return { error: 'Création impossible.' };
   revalidatePath('/admin/legal/dpia');

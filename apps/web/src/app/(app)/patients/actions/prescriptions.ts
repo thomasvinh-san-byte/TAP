@@ -48,7 +48,7 @@ export async function listPrescriptionsForPatientAction(
   const ctx = await requireAdminOrRegulateur();
   if (!ctx) return [];
   const { data } = await ctx.supabase
-    .from('prescriptions' as never)
+    .from('prescriptions')
     .select(SELECT_COLUMNS)
     .eq('patient_id', patientId)
     .order('date_prescription', { ascending: false })
@@ -68,7 +68,7 @@ export async function createPrescriptionAction(
 
   const d = parsed.data;
   const { data, error } = await ctx.supabase
-    .from('prescriptions' as never)
+    .from('prescriptions')
     .insert({
       organization_id: ctx.organizationId,
       patient_id: d.patient_id,
@@ -81,7 +81,7 @@ export async function createPrescriptionAction(
       trajets_autorises: d.trajets_autorises,
       date_expiration: nullifyEmpty(d.date_expiration),
       created_by: ctx.userId,
-    } as never)
+    })
     .select('id')
     .single();
 

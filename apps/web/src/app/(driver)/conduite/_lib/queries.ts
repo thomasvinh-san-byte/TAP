@@ -254,7 +254,7 @@ export async function listMyRidesUpcoming(): Promise<RideForDriverWithBucket[]> 
   const { data, error } = await ctx.supabase
     .from('rides')
     .select(RIDE_FOR_DRIVER_COLUMNS)
-    .eq('driver_id' as never, myDriverId)
+    .eq('driver_id', myDriverId)
     .gte('scheduled_at', startIso)
     .lt('scheduled_at', endIso)
     .eq('archive', false)

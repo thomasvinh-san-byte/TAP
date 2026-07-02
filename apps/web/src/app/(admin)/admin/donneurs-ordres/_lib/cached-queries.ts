@@ -25,7 +25,7 @@ async function getDonneursOrdresPageData(organizationId: string): Promise<Orderi
   const { data, error } = await admin
     // `as never` : colonne tariff_mode (DEC-157) absente de types.gen.ts jusqu'au
     // prochain resync — à retirer alors (cf. registre §5).
-    .from('ordering_parties' as never)
+    .from('ordering_parties')
     .select(
       'id, raison_sociale, siret, contact_principal_nom, contact_principal_telephone, contact_principal_email, modalite_facturation, tariff_mode, actif, created_at',
     )

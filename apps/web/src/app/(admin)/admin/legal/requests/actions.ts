@@ -72,7 +72,7 @@ export async function createDataRequestAction(
       request_token: 'placeholder',
       request_token_expires_at: tokenExpiresAt.toISOString(),
       status: 'recue',
-    } as never)
+    })
     .select('id, organization_id, request_type')
     .single();
 
@@ -95,7 +95,7 @@ export async function createDataRequestAction(
   // la ligne existe, mais on garde le contrôle pour défendre RLS).
   const tokenUpd = await supabase
     .from('patient_data_request')
-    .update({ request_token: token } as never)
+    .update({ request_token: token })
     .eq('id', inserted.id)
     .select('id');
   if (tokenUpd.error || !tokenUpd.data || (tokenUpd.data as unknown[]).length === 0) {
@@ -130,7 +130,7 @@ export async function updateRequestStatusAction(
       response,
       response_at: new Date().toISOString(),
       response_by: user.id,
-    } as never)
+    })
     .eq('id', id)
     .select('id');
 

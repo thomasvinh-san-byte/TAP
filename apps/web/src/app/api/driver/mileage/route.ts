@@ -58,10 +58,10 @@ export async function POST(req: NextRequest) {
   // `driver_daily_mileage` absente de types.gen.ts jusqu'au resync → cast
   // `as never` sur le nom de table (DEC-155), comme prescriptions/incidents.
   const { data: existing } = await auth.ctx.supabase
-    .from('driver_daily_mileage' as never)
+    .from('driver_daily_mileage')
     .select('id, km_start, km_end')
-    .eq('driver_id' as never, driverId)
-    .eq('jour' as never, jour)
+    .eq('driver_id', driverId)
+    .eq('jour', jour)
     .maybeSingle();
   const current = (existing as MileageRow | null) ?? null;
 
@@ -75,14 +75,14 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { error } = await auth.ctx.supabase.from('driver_daily_mileage' as never).upsert(
+  const { error } = await auth.ctx.supabase.from('driver_daily_mileage').upsert(
     {
       organization_id: auth.ctx.organizationId,
       driver_id: driverId,
       jour,
       km_start: mergedStart,
       km_end: mergedEnd,
-    } as never,
+    },
     { onConflict: 'organization_id,driver_id,jour' },
   );
 

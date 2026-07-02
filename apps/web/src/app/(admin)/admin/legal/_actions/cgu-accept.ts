@@ -29,7 +29,7 @@ export async function acceptCguAction(version: string): Promise<ActionState> {
     version,
     document_type: 'cgu',
     accepted_at: now,
-  } as never);
+  });
 
   if (insertError) return { error: 'Acceptation impossible.' };
 
@@ -39,7 +39,7 @@ export async function acceptCguAction(version: string): Promise<ActionState> {
     .update({
       cgu_version_accepted: version,
       cgu_accepted_at: now,
-    } as never)
+    })
     .eq('id', user.id)
     .select('id');
 

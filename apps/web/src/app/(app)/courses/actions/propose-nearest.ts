@@ -57,7 +57,7 @@ export async function proposeNearestDriversAction(
 
   const ctx = await getAuthContext();
   if (!ctx) return { error: 'Session expirée. Reconnectez-vous.' };
-  if (!REGULATEUR_OR_DIRIGEANT.includes(ctx.role as never)) {
+  if (!REGULATEUR_OR_DIRIGEANT.includes(ctx.role)) {
     return { error: 'Accès non autorisé.' };
   }
 
@@ -73,7 +73,7 @@ export async function proposeNearestDriversAction(
   const driversRes = await ctx.supabase
     .from('drivers')
     .select('id, nom_affichage, type_permis')
-    .eq('status' as never, 'actif' as never);
+    .eq('status', 'actif');
   const drivers = (driversRes.data as DriverRow[] | null) ?? [];
   if (drivers.length === 0) {
     return { data: { best: null, candidates: [], reassignable: false } };

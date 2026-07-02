@@ -186,7 +186,7 @@ export async function listActiveDrivers(): Promise<DriverMin[]> {
   const { data, error } = await supabase
     .from('drivers')
     .select('id, nom_affichage, type_permis, competences, langues')
-    .eq('status' as never, 'actif' as never)
+    .eq('status', 'actif')
     .order('nom_affichage', { ascending: true })
     .limit(50);
   if (error) {

@@ -66,7 +66,7 @@ export async function createDpaRecordAction(
     expires_at: data.expires_at ? data.expires_at.toISOString().slice(0, 10) : null,
     notes: data.notes ?? null,
     created_by: user.id,
-  } as never);
+  });
 
   if (error) return { error: 'Création impossible.' };
 
@@ -145,7 +145,7 @@ export async function prefillDpaRecordsAction(entries: DpaPrefillInput[]): Promi
     });
   }
 
-  const { error } = await supabase.from('dpa_record').insert(rows as never);
+  const { error } = await supabase.from('dpa_record').insert(rows);
   if (error) return { error: 'Insertion impossible.' };
 
   revalidatePath('/admin/legal/dpa');

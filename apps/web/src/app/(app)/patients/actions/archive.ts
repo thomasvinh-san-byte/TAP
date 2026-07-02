@@ -58,7 +58,7 @@ export async function archivePatientAction(patientId: string): Promise<PatientAr
       archive: true,
       archive_at: new Date().toISOString(),
       updated_by: ctx.userId,
-    } as never)
+    })
     .eq('id', parsed.data)
     .select('id');
   if (updated.error) return { error: 'Archivage impossible.' };
@@ -79,7 +79,7 @@ export async function archivePatientAction(patientId: string): Promise<PatientAr
       patient_nom: beforeRow.nom,
       patient_prenom: beforeRow.prenom,
     },
-  } as never);
+  });
 
   revalidatePath('/patients');
   return { success: true };
@@ -116,7 +116,7 @@ export async function unarchivePatientAction(patientId: string): Promise<Patient
       archive: false,
       archive_at: null,
       updated_by: ctx.userId,
-    } as never)
+    })
     .eq('id', parsed.data)
     .select('id');
   if (updated.error) return { error: 'Réactivation impossible.' };
@@ -135,7 +135,7 @@ export async function unarchivePatientAction(patientId: string): Promise<Patient
       patient_nom: beforeRow.nom,
       patient_prenom: beforeRow.prenom,
     },
-  } as never);
+  });
 
   revalidatePath('/patients');
   return { success: true };

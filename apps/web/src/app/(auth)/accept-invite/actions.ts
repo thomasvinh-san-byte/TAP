@@ -125,7 +125,7 @@ export async function acceptInvitationAction(
     .update({
       status: 'accepted',
       accepted_at: new Date().toISOString(),
-    } as never)
+    })
     .eq('id', inv.id)
     .eq('status', 'pending')
     .select('id');
@@ -138,7 +138,7 @@ export async function acceptInvitationAction(
   //    requête match 0 row). DEC-041 row count check.
   const drvUpdRes = await supabase
     .from('drivers')
-    .update({ profile_id: user.id } as never)
+    .update({ profile_id: user.id })
     .eq('id', inv.driver_id)
     .is('profile_id', null)
     .select('id');
@@ -160,7 +160,7 @@ export async function acceptInvitationAction(
       invitation_id: inv.id,
       cgu_version: process.env.NEXT_PUBLIC_CGU_VERSION ?? 'v1.0',
     },
-  } as never);
+  });
 
   // 8. Redirect vers le shell chauffeur avec flag toast success
   //    (FLAG #1 — consommé côté /conduite/page.tsx via ActivationToast,

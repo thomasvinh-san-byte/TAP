@@ -18,7 +18,7 @@
     "clean": "rm -rf .turbo dist *.tsbuildinfo coverage"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.45.4",
+    "@supabase/supabase-js": "2.49.4",
     "@tap/database": "workspace:*",
     "date-fns": "^4.1.0",
     "jose": "^6.2.3",
