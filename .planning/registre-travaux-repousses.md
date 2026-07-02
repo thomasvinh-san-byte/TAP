@@ -148,6 +148,22 @@ EXTERNE (donnée/spec à obtenir d'un tiers).
 - **Décision** : Phase 06 (DEC-058). V1.5 = monopatient.
 - **Raison** : transport partagé = feature à part entière (UI courses groupées + abattements -23/-35/-37 %).
 - **Déblocage** : 🗳 prioriser ; chantier dédié.
+- **Cadrage bloc 2 rédigé (2026-07-02)** : le barème d'abattement et le patron de
+  persistance sont figés dans `modules/facturation/cadrage-gsd-facturation-transport-partage.md`
+  (abattement 23 % à 2 patients / 35 % à 3 / 37 % à 4+ plafond 8 ; dérogation
+  longue distance 5 % pour un patient seul ≥ seuil local min. 30 km ; assiette hors
+  péage et hors supplément mobilité réduite ; péages divisés par nb de patients ;
+  barème = grille versionnée paramétrable ; ordre : tarif plein → abattement partage
+  → régime prise en charge du bloc 1). C'est un abattement réglementaire par facture,
+  PAS un partage de coût façon théorie des jeux.
+- **Déblocage résiduel** : 🗳 À DÉLIBÉRER — **comment naît un transport partagé** :
+  proposé par le solveur puis accepté UNIQUEMENT, ou aussi composé manuellement par
+  la régulation ? La réponse (à prendre au contact d'un transporteur réel) fixe le
+  POINT DE CAPTURE du « groupe de partage » à persister (entité distincte de
+  `ride_groups` B2B) et l'ergonomie. Tant qu'elle n'est pas tranchée, on ne fige pas
+  le schéma d'écriture. Voir cadrage ci-dessus (section « Décision métier à
+  TRANCHER »). N'empêche pas les autres blocs facturation (le bloc 1 est livré ;
+  télétransmission §3.1 et facturation native §3.2 restent sur leurs propres verrous).
 - **Conformité détour (T5) — RÉSOLU (11.01, DEC-169)** : le décret n°2025-202
   du 28/02/2025 (détour ≤10 km/pers dès la 2ᵉ, ≤30 km total, sinon non
   remboursable CGSS) est désormais appliqué par le solveur — un groupement non
