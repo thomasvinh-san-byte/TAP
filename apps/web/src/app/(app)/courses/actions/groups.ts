@@ -12,7 +12,6 @@
  *
  * Sécurité : RLS Postgres (ride_groups_*_regulateur, rides_*_regulateur) gate
  * les rôles ; les courses portent `ordering_party_id` → tarifées via la grille
- * B2B (DEC-157) à l'acceptation, sans recode pricing.
  */
 
 import { revalidatePath } from 'next/cache';
@@ -41,7 +40,7 @@ export async function createRideGroupAction(
       ordering_party_id,
       status: 'en_attente',
       created_by: user.id,
-    } as never)
+    })
     .select('id')
     .single();
   const group = groupRes.data as { id: string } | null;
@@ -79,7 +78,7 @@ export async function createRideGroupAction(
     // marquant refusé (motif technique). Best-effort.
     await supabase
       .from('ride_groups')
-      .update({ status: 'refusee', motif_refus: 'Création des courses échouée.' } as never)
+      .update({ status: 'refusee', motif_refus: 'Création des courses échouée.' })
       .eq('id', group.id);
     return { error: 'Création des courses de la demande impossible.' };
   }
@@ -98,7 +97,7 @@ export async function acceptRideGroupAction(groupId: string): Promise<ActionStat
   // Group en_attente → acceptee (row count check : déjà traitée / hors droits).
   const g = await ctx.supabase
     .from('ride_groups')
-    .update({ status: 'acceptee' } as never)
+    .update({ status: 'acceptee' })
     .eq('id', groupId)
     .eq('status', 'en_attente')
     .select('id');
@@ -111,7 +110,7 @@ export async function acceptRideGroupAction(groupId: string): Promise<ActionStat
   // déclarée dans la machine à états ; `.eq('status','brouillon')` = atomicité.
   const r = await ctx.supabase
     .from('rides')
-    .update({ status: 'validee' } as never)
+    .update({ status: 'validee' })
     .eq('ride_group_id', groupId)
     .eq('status', 'brouillon');
   if (r.error) return { error: 'Validation des courses impossible.' };
@@ -138,7 +137,7 @@ export async function refuseRideGroupAction(
 
   const g = await ctx.supabase
     .from('ride_groups')
-    .update({ status: 'refusee', motif_refus: parsed.data.motif } as never)
+    .update({ status: 'refusee', motif_refus: parsed.data.motif })
     .eq('id', groupId)
     .eq('status', 'en_attente')
     .select('id');
@@ -151,7 +150,7 @@ export async function refuseRideGroupAction(
   // arête déclarée dans la machine ; `.eq('status','brouillon')` = atomicité.
   const r = await ctx.supabase
     .from('rides')
-    .update({ status: 'annulee_regulateur' } as never)
+    .update({ status: 'annulee_regulateur' })
     .eq('ride_group_id', groupId)
     .eq('status', 'brouillon');
   if (r.error) return { error: 'Annulation des courses impossible.' };

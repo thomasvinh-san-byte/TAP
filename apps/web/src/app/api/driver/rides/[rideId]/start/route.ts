@@ -95,13 +95,13 @@ export async function POST(req: NextRequest, props: { params: Promise<{ rideId: 
       }
 
       const update = {
-        status: 'en_cours',
+        status: 'en_cours' as const,
         started_at: new Date().toISOString(),
         updated_by: auth.ctx.userId,
       };
       const { data: updated, error } = await auth.ctx.supabase
         .from('rides')
-        .update(update as never)
+        .update(update)
         .eq('id', rideIdParse.data)
         .select('id');
       if (error) {

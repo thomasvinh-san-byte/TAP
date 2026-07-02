@@ -7,7 +7,6 @@
  * PAS d'envoi automatique : un texte copiable / un `mailto:` pré-rempli suffit.
  * Données minimales (pas de détail clinique) : patient, bon (numéro, trajets,
  * expiration), nature de la série (motif + rythme), demande d'un nouveau bon.
- * Table prescriptions absente de types.gen.ts → `as never` (DEC-155).
  */
 
 import { z } from 'zod';

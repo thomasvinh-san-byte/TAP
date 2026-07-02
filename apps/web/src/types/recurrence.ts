@@ -3,7 +3,6 @@
  *
  * Phase 05 Wave 7 (post-régénération auto types.gen.ts via cd.yml +
  * workflow_run #129) : ce fichier remplace l'ancien `recurrence-temp.ts`
- * (qui définissait des interfaces inline en attendant la régénération).
  *
  * Aliases pratiques pour éviter la verbosité
  * `Database['public']['Tables']['ride_recurrences']['Row']` répétée dans

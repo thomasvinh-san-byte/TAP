@@ -156,7 +156,6 @@ export async function archiveOrderingPartyAction(partyId: string): Promise<Actio
 }
 
 // --------------------------------------------------------------------------
-// GRILLE TARIFAIRE B2B (DEC-157) — versionnée par donneur d'ordres
 // --------------------------------------------------------------------------
 
 export type TariffGridActionState = { success?: true; error?: string };

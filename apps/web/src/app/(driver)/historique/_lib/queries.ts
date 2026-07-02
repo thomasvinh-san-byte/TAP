@@ -68,7 +68,6 @@ export async function listMyPastTournees(): Promise<PastTourneeDay[]> {
   const { data, error } = await ctx.supabase
     .from('rides')
     .select('scheduled_at, status')
-    // `driver_id` absent de types.gen.ts jusqu'au resync → cast (DEC-155),
     // même pattern que listMyRidesUpcoming.
     .eq('driver_id', myDriverId)
     .gte('scheduled_at', since)

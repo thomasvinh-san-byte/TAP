@@ -4,7 +4,6 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import type { PrescriberRow } from '../page';
 
 /**
- * Data-cache par organisation pour la page prescripteurs (DEC-162, réplique le
  * pattern data-cache 08.03/08.04 — DEC-152/153).
  *
  * ⚠️ SÉCURITÉ MULTI-TENANT : exécuté dans `unstable_cache` (cookies
@@ -23,7 +22,6 @@ async function getPrescribersPageData(organizationId: string): Promise<Prescribe
   const admin = createAdminClient();
 
   const { data, error } = await admin
-    // `as never` : table prescribers (DEC-162) absente de types.gen.ts jusqu'au
     // prochain resync — à retirer alors (cf. registre §5).
     .from('prescribers')
     .select(

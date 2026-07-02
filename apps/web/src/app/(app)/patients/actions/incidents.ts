@@ -6,8 +6,6 @@
  * Journal IMMUABLE : seule la création est exposée (pas d'édition / suppression,
  * cohérent avec la migration). Validation zod, guard régulateur/dirigeant,
  * INSERT (RLS forcée), revalidate de la fiche patient. Audit géré par trigger
- * Postgres `patient_incidents_audit_trigger`. Table absente de types.gen.ts
- * → `.from('patient_incidents' as never)` + payload `as never` (DEC-155).
  */
 
 import { revalidatePath } from 'next/cache';
@@ -39,7 +37,7 @@ export async function createPatientIncidentAction(
   if (!ctx) return { error: 'Action réservée au régulateur ou au dirigeant.' };
 
   const d = parsed.data;
-  const { error } = await ctx.supabase.from('patient_incidents' as never).insert({
+  const { error } = await ctx.supabase.from('patient_incidents').insert({
     organization_id: ctx.organizationId,
     patient_id: d.patientId,
     type: d.type,

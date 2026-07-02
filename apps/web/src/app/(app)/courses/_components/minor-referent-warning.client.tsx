@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { getPatientReferentStatusAction } from '../../patients/actions';
 
 /**
- * Avertissement « référent légal obligatoire pour un mineur » (DEC-172, T3,
  * CdG l.139-140). Pattern miroir du bon expiré (07.06) : dérivé d'une requête,
  * VISIBLE mais NON bloquant (le régulateur garde la main). Le statut mineur est
  * dérivé serveur de date_naissance ; l'avertissement n'apparaît que si le

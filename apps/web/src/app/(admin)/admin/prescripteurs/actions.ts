@@ -1,15 +1,12 @@
 'use server';
 
 /**
- * Server Actions admin prescripteurs (CdG §5.4, DEC-162).
  *
  * Pattern miroir de `donneurs-ordres/actions.ts` : validation zod →
  * requireAdminOrRegulateur (dirigeant OU régulateur) → INSERT/UPDATE filtré →
  * revalidatePath + revalidateTag (data-cache par org). L'audit est alimenté par
  * le trigger Postgres `prescribers_audit_trigger`. RLS double-checke.
  *
- * Dette types : table prescribers absente de types.gen.ts jusqu'au resync
- * nightly → `.from('prescribers' as never)` + payloads `as never` (DEC-155).
  */
 
 import { revalidatePath, revalidateTag } from 'next/cache';

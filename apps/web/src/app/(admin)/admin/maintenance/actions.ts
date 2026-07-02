@@ -301,7 +301,6 @@ export async function recomputeTarifsAction(): Promise<RecomputeTarifsResult> {
     }
   }
 
-  // DEC-157 : recompute des courses tarifées via grille B2B ('b2b_auto') avec la
   // grille PROPRE de leur donneur d'ordres — JAMAIS la grille CGSS de l'org. Le
   // recompute cgss_auto ci-dessus ne les a pas touchées (filtre tarif_source).
   const today = new Date().toISOString().slice(0, 10);
@@ -327,7 +326,6 @@ export async function recomputeTarifsAction(): Promise<RecomputeTarifsResult> {
   const b2bGridByParty = new Map<string, TariffGrid>();
   if (partyIds.length > 0) {
     const partiesRes = await supabase
-      // `as never` : colonne tariff_mode (DEC-157) absente de types.gen.ts jusqu'au resync.
       .from('ordering_parties')
       .select('id, tariff_mode')
       .in('id', partyIds);

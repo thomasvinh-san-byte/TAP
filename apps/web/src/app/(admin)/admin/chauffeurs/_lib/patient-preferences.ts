@@ -4,8 +4,6 @@ import { createClient } from '@/lib/supabase/server';
 /**
  * Query RSC des préférences patient d'un chauffeur (CHAUFFEUR-03, §5.6) —
  * direction chauffeur → patient (origin='chauffeur'). Miroir de
- * `getPatientDriverPreferences`. Table absente de types.gen.ts → casts
- * `as never` (DEC-155) ; RLS scope l'org et réserve l'accès régulateur/dirigeant.
  */
 
 export type PreferenceKind = 'prefere' | 'evite';

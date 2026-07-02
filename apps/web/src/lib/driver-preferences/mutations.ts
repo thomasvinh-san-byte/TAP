@@ -7,8 +7,6 @@ import type { AuthContext } from '@/lib/auth/get-auth-context';
  * directions. Pas de 'use server' : helpers serveur appelés par les Server
  * Actions (qui posent le guard de rôle + revalidatePath).
  *
- * Table `patient_driver_preference` absente de types.gen.ts → casts `as never`
- * (DEC-155). Sans motif (minimisation RGPD). Audit géré par trigger Postgres.
  */
 
 export type PreferenceKind = 'prefere' | 'evite';

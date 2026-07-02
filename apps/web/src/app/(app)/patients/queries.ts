@@ -233,10 +233,8 @@ export async function getPatientById(id: string) {
 }
 
 /**
- * Référent légal d'un patient (DEC-172) — lecture des 4 colonnes pour le
  * pré-remplissage du formulaire d'édition. Lit la table base (colonnes non
  * sensibles, RLS-scopée) car la vue patients_safe ne les expose pas encore.
- * `as never` : colonnes absentes de types.gen.ts jusqu'au resync (DEC-155).
  */
 export type PatientReferentFields = {
   referent_nom: string | null;

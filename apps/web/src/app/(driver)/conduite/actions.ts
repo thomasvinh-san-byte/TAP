@@ -20,10 +20,6 @@
  *     déjà clôturée par mégarde »).
  *   - Trigger rides_audit_trigger Phase 2 capture toutes les transitions
  *     dans audit_logs (action ride.update).
- *
- * TODO(types) : packages/database/src/types.gen.ts pas encore régénéré pour
- * inclure `drivers`, `payment_*`, `started_at`, etc. — sync-types.yml (cron
- * 3h UTC) le fera. Casts ciblés `as never` / `as { … }` jusqu'à régénération.
  */
 
 import { revalidatePath } from 'next/cache';
@@ -50,8 +46,6 @@ const paymentStatusSchema = z.enum(['non_concerne', 'a_encaisser', 'encaisse']);
 type DriverIdRow = { id: string };
 
 async function getMyDriverId(ctx: AuthContext): Promise<string | null> {
-  // TODO(types) : `drivers` absent de types.gen.ts jusqu'à régénération
-  // nightly (sync-types.yml cron 3h UTC). Cast ciblé du nom de table en
   // attendant — Supabase JS tolère les tables inconnues à l'exécution.
   const { data } = await ctx.supabase
     .from('drivers')
@@ -108,13 +102,13 @@ export async function startRideAction(rideId: string): Promise<ActionState> {
   }
 
   const update = {
-    status: 'en_cours',
+    status: 'en_cours' as const,
     started_at: new Date().toISOString(),
     updated_by: ctx.userId,
   };
   const { data: updated, error } = await ctx.supabase
     .from('rides')
-    .update(update as never)
+    .update(update)
     .eq('id', parsed.data)
     .eq('status', 'assignee')
     .select('id');
@@ -207,7 +201,7 @@ export async function endRideAction(
 
   const { data: updated, error } = await ctx.supabase
     .from('rides')
-    .update(update as never)
+    .update(update)
     .eq('id', parsed.data.rideId)
     .eq('status', 'patient_a_bord')
     .select('id');
@@ -259,7 +253,7 @@ export async function reportBreakdownAction(
       nature: parsed.data.nature,
       lieu: parsed.data.lieu || null,
       created_by: ctx.userId,
-    } as never)
+    })
     .select('id');
   if (ins.error) return { error: 'Signalement impossible. Réessayez.' };
   if (!ins.data || ins.data.length === 0) {

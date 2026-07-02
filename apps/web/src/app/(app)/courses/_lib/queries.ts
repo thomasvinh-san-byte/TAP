@@ -22,7 +22,6 @@ import { createClient } from '@/lib/supabase/server';
 import type { Database } from '@tap/database/types';
 
 export type RideRow = Database['public']['Tables']['rides']['Row'] & {
-  // TODO(types) : colonnes Passe 1 absentes de types.gen.ts (régénérées nightly).
   driver_id?: string | null;
   vehicle_id?: string | null;
   started_at?: string | null;
@@ -32,11 +31,8 @@ export type RideRow = Database['public']['Tables']['rides']['Row'] & {
   payment_status?: string | null;
   payment_method?: string | null;
   payment_received_at?: string | null;
-  // Donneur d'ordres B2B (DEC-148) — absent de types.gen.ts jusqu'à régen.
   ordering_party_id?: string | null;
-  // Prescription / bon de transport (DEC-163) — absent de types.gen.ts jusqu'à régen.
   prescription_id?: string | null;
-  // Accompagnant (DEC-172) — absent de types.gen.ts jusqu'à régen.
   accompagnant?: boolean | null;
   accompagnant_payant?: boolean | null;
   accompagnant_identite?: string | null;

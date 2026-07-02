@@ -110,7 +110,7 @@ function pickFormData(formData: FormData, keys: string[]): Record<string, unknow
 async function fetchHolidays(
   supabase: Awaited<ReturnType<typeof createClient>>,
 ): Promise<Set<string>> {
-  const result = await supabase.from('holidays_974' as never).select('date');
+  const result = await supabase.from('holidays_974').select('date');
   if (result.error || !result.data) return new Set();
   const rows = result.data as { date: string }[];
   return new Set(rows.map((r) => r.date));
@@ -168,7 +168,7 @@ export async function createRecurrenceAction(formData: FormData): Promise<Recurr
       urgency: input.urgency,
       prescription_id: input.prescription_id ?? null,
       created_by: ctx.userId,
-    } as never)
+    })
     .select('id')
     .single();
   const insertedRow = insertRes.data as { id: string } | null;
@@ -222,7 +222,7 @@ export async function createRecurrenceAction(formData: FormData): Promise<Recurr
       count: occurrences.length,
       rrule_str: input.rrule_str,
     },
-  } as never);
+  });
 
   revalidatePath(`/patients/${input.patient_id}`);
   return { success: true, count: occurrences.length };
@@ -315,7 +315,7 @@ export async function updateRecurrenceAction(formData: FormData): Promise<Recurr
       transport_mode: input.transport_mode,
       urgency: input.urgency,
       prescription_id: input.prescription_id ?? null,
-    } as never)
+    })
     .eq('id', id)
     .select('id');
   if (upRes.error) return { error: 'Modification impossible.' };
@@ -356,7 +356,7 @@ export async function updateRecurrenceAction(formData: FormData): Promise<Recurr
       regenerated_count: regen.count,
       rrule_str: input.rrule_str,
     },
-  } as never);
+  });
 
   revalidatePath(`/patients/${input.patient_id}`);
   return { success: true, regenerated_count: regen.count };
@@ -382,7 +382,7 @@ export async function cancelRecurrenceAction(recurrenceId: string): Promise<Recu
 
   const upRes = await supabase
     .from('ride_recurrences')
-    .update({ archived_at: new Date().toISOString() } as never)
+    .update({ archived_at: new Date().toISOString() })
     .eq('id', idParsed.data)
     .select('id');
   if (upRes.error) return { error: 'Archivage impossible.' };
@@ -398,7 +398,7 @@ export async function cancelRecurrenceAction(recurrenceId: string): Promise<Recu
     entity_type: 'ride_recurrence',
     entity_id: idParsed.data,
     metadata: { patient_id: beforeRow.patient_id },
-  } as never);
+  });
 
   revalidatePath(`/patients/${beforeRow.patient_id}`);
   return { success: true };

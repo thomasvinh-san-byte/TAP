@@ -4,8 +4,6 @@ import { getAuthContext } from '@/lib/auth/get-auth-context';
 /**
  * Relevé kilométrique du jour du chauffeur (PWA-04, §5.16).
  *
- * `driver_daily_mileage` absente de types.gen.ts jusqu'au resync → cast
- * `as never` (DEC-155). RLS `driver_id = auth.uid()` isole le chauffeur.
  */
 
 const REUNION_OFFSET_HOURS = 4;
