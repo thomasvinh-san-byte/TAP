@@ -436,6 +436,54 @@ export type Database = {
           },
         ]
       }
+      driver_daily_mileage: {
+        Row: {
+          created_at: string
+          driver_id: string
+          id: string
+          jour: string
+          km_end: number | null
+          km_start: number | null
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          driver_id: string
+          id?: string
+          jour: string
+          km_end?: number | null
+          km_start?: number | null
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string
+          id?: string
+          jour?: string
+          km_end?: number | null
+          km_start?: number | null
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "driver_daily_mileage_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "driver_daily_mileage_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       driver_incidents: {
         Row: {
           created_at: string
@@ -614,13 +662,16 @@ export type Database = {
           archive: boolean
           archive_at: string | null
           archive_motif: string | null
+          competences: string[]
           created_at: string
           created_by: string | null
           id: string
+          langues: string[]
           nom_affichage: string
           numero_licence: string | null
           organization_id: string
           profile_id: string | null
+          status: Database["public"]["Enums"]["driver_status"]
           telephone: string | null
           type_permis: string[]
           updated_at: string
@@ -630,13 +681,16 @@ export type Database = {
           archive?: boolean
           archive_at?: string | null
           archive_motif?: string | null
+          competences?: string[]
           created_at?: string
           created_by?: string | null
           id?: string
+          langues?: string[]
           nom_affichage: string
           numero_licence?: string | null
           organization_id: string
           profile_id?: string | null
+          status?: Database["public"]["Enums"]["driver_status"]
           telephone?: string | null
           type_permis?: string[]
           updated_at?: string
@@ -646,13 +700,16 @@ export type Database = {
           archive?: boolean
           archive_at?: string | null
           archive_motif?: string | null
+          competences?: string[]
           created_at?: string
           created_by?: string | null
           id?: string
+          langues?: string[]
           nom_affichage?: string
           numero_licence?: string | null
           organization_id?: string
           profile_id?: string | null
+          status?: Database["public"]["Enums"]["driver_status"]
           telephone?: string | null
           type_permis?: string[]
           updated_at?: string
@@ -1151,6 +1208,133 @@ export type Database = {
           },
         ]
       }
+      patient_driver_preference: {
+        Row: {
+          created_at: string
+          created_by: string
+          driver_id: string
+          id: string
+          kind: Database["public"]["Enums"]["patient_driver_preference_kind"]
+          organization_id: string
+          origin: Database["public"]["Enums"]["driver_preference_origin"]
+          patient_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          driver_id: string
+          id?: string
+          kind: Database["public"]["Enums"]["patient_driver_preference_kind"]
+          organization_id: string
+          origin?: Database["public"]["Enums"]["driver_preference_origin"]
+          patient_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          driver_id?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["patient_driver_preference_kind"]
+          organization_id?: string
+          origin?: Database["public"]["Enums"]["driver_preference_origin"]
+          patient_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_driver_preference_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_driver_preference_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_driver_preference_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_driver_preference_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients_safe"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      patient_incidents: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          note: string | null
+          occurred_at: string
+          organization_id: string
+          patient_id: string
+          ride_id: string | null
+          type: Database["public"]["Enums"]["patient_incident_type"]
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          note?: string | null
+          occurred_at?: string
+          organization_id: string
+          patient_id: string
+          ride_id?: string | null
+          type: Database["public"]["Enums"]["patient_incident_type"]
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          note?: string | null
+          occurred_at?: string
+          organization_id?: string
+          patient_id?: string
+          ride_id?: string | null
+          type?: Database["public"]["Enums"]["patient_incident_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "patient_incidents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_incidents_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_incidents_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients_safe"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "patient_incidents_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       patient_operational_note: {
         Row: {
           author_id: string
@@ -1237,6 +1421,11 @@ export type Database = {
           nom: string | null
           organization_id: string
           prenom: string | null
+          referent_document_url: string | null
+          referent_lien: string | null
+          referent_nom: string | null
+          referent_telephone: string | null
+          referent_type: string | null
           search_text: string | null
           telephone: string | null
           telephone_normalized: string | null
@@ -1267,6 +1456,11 @@ export type Database = {
           nom?: string | null
           organization_id: string
           prenom?: string | null
+          referent_document_url?: string | null
+          referent_lien?: string | null
+          referent_nom?: string | null
+          referent_telephone?: string | null
+          referent_type?: string | null
           search_text?: string | null
           telephone?: string | null
           telephone_normalized?: string | null
@@ -1297,6 +1491,11 @@ export type Database = {
           nom?: string | null
           organization_id?: string
           prenom?: string | null
+          referent_document_url?: string | null
+          referent_lien?: string | null
+          referent_nom?: string | null
+          referent_telephone?: string | null
+          referent_type?: string | null
           search_text?: string | null
           telephone?: string | null
           telephone_normalized?: string | null
@@ -1791,6 +1990,7 @@ export type Database = {
           excluded_date: string
           id: string
           reason: string | null
+          replaced_by_ride_id: string | null
           ride_recurrence_id: string
         }
         Insert: {
@@ -1799,6 +1999,7 @@ export type Database = {
           excluded_date: string
           id?: string
           reason?: string | null
+          replaced_by_ride_id?: string | null
           ride_recurrence_id: string
         }
         Update: {
@@ -1807,9 +2008,17 @@ export type Database = {
           excluded_date?: string
           id?: string
           reason?: string | null
+          replaced_by_ride_id?: string | null
           ride_recurrence_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "ride_recurrence_exceptions_replaced_by_ride_id_fkey"
+            columns: ["replaced_by_ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "ride_recurrence_exceptions_ride_recurrence_id_fkey"
             columns: ["ride_recurrence_id"]
@@ -1908,10 +2117,20 @@ export type Database = {
             referencedRelation: "patients_safe"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "ride_recurrences_prescription_id_fkey"
+            columns: ["prescription_id"]
+            isOneToOne: false
+            referencedRelation: "prescriptions"
+            referencedColumns: ["id"]
+          },
         ]
       }
       rides: {
         Row: {
+          accompagnant: boolean
+          accompagnant_identite: string | null
+          accompagnant_payant: boolean
           archive: boolean
           cancel_motif: string | null
           created_at: string
@@ -1956,6 +2175,9 @@ export type Database = {
           vehicle_id: string | null
         }
         Insert: {
+          accompagnant?: boolean
+          accompagnant_identite?: string | null
+          accompagnant_payant?: boolean
           archive?: boolean
           cancel_motif?: string | null
           created_at?: string
@@ -2000,6 +2222,9 @@ export type Database = {
           vehicle_id?: string | null
         }
         Update: {
+          accompagnant?: boolean
+          accompagnant_identite?: string | null
+          accompagnant_payant?: boolean
           archive?: boolean
           cancel_motif?: string | null
           created_at?: string
@@ -2227,6 +2452,7 @@ export type Database = {
           majoration_pct: number
           organization_id: string
           prix_km_eur: number
+          supplement_accompagnant_eur: number
           supplement_drom_eur: number
           supplement_tpmr_eur: number
         }
@@ -2242,6 +2468,7 @@ export type Database = {
           majoration_pct: number
           organization_id: string
           prix_km_eur: number
+          supplement_accompagnant_eur?: number
           supplement_drom_eur: number
           supplement_tpmr_eur: number
         }
@@ -2257,6 +2484,7 @@ export type Database = {
           majoration_pct?: number
           organization_id?: string
           prix_km_eur?: number
+          supplement_accompagnant_eur?: number
           supplement_drom_eur?: number
           supplement_tpmr_eur?: number
         }
@@ -2275,8 +2503,12 @@ export type Database = {
           actif: boolean
           archive: boolean
           archive_at: string | null
+          capacite_charge_kg: number | null
           created_at: string
           created_by: string | null
+          equipement_autre: string | null
+          equipement_brancard: boolean
+          equipement_oxygene: boolean
           id: string
           immatriculation: string
           marque: string | null
@@ -2291,8 +2523,12 @@ export type Database = {
           actif?: boolean
           archive?: boolean
           archive_at?: string | null
+          capacite_charge_kg?: number | null
           created_at?: string
           created_by?: string | null
+          equipement_autre?: string | null
+          equipement_brancard?: boolean
+          equipement_oxygene?: boolean
           id?: string
           immatriculation: string
           marque?: string | null
@@ -2307,8 +2543,12 @@ export type Database = {
           actif?: boolean
           archive?: boolean
           archive_at?: string | null
+          capacite_charge_kg?: number | null
           created_at?: string
           created_by?: string | null
+          equipement_autre?: string | null
+          equipement_brancard?: boolean
+          equipement_oxygene?: boolean
           id?: string
           immatriculation?: string
           marque?: string | null
@@ -2322,6 +2562,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "vehicles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      weather_alerts: {
+        Row: {
+          activated_at: string
+          activated_by: string | null
+          active: boolean
+          created_at: string
+          deactivated_at: string | null
+          id: string
+          motif: string
+          organization_id: string
+          zone: string | null
+        }
+        Insert: {
+          activated_at?: string
+          activated_by?: string | null
+          active?: boolean
+          created_at?: string
+          deactivated_at?: string | null
+          id?: string
+          motif: string
+          organization_id: string
+          zone?: string | null
+        }
+        Update: {
+          activated_at?: string
+          activated_by?: string | null
+          active?: boolean
+          created_at?: string
+          deactivated_at?: string | null
+          id?: string
+          motif?: string
+          organization_id?: string
+          zone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weather_alerts_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -2457,6 +2741,7 @@ export type Database = {
         Returns: string
       }
       purge_driver_positions: { Args: never; Returns: undefined }
+      purge_internal_messages: { Args: never; Returns: undefined }
       purge_legal_request_attempts: { Args: never; Returns: undefined }
       recompute_prescription_status: {
         Args: { p_id: string }
@@ -2511,6 +2796,8 @@ export type Database = {
     Enums: {
       canal_contact_prefere: "sms" | "appel" | "aucun"
       driver_incident_type: "panne_vehicule" | "indisponible"
+      driver_preference_origin: "patient" | "chauffeur"
+      driver_status: "actif" | "conge" | "suspendu" | "archive"
       ordering_party_billing_modality:
         | "a_la_course"
         | "hebdomadaire"
@@ -2525,9 +2812,16 @@ export type Database = {
         | "horaire_apres_midi"
         | "accompagnement_obligatoire"
         | "autre"
+      patient_driver_preference_kind: "prefere" | "evite"
+      patient_incident_type:
+        | "retard"
+        | "refus_paiement"
+        | "conflit_chauffeur"
+        | "plainte"
+        | "autre"
       prescriber_type: "medecin" | "etablissement"
       prescription_status: "active" | "epuisee" | "expiree"
-      ride_group_status: "en_attente" | "acceptee" | "refusee"
+      ride_group_status: "en_attente" | "acceptee" | "refusee" | "annulee"
       ride_status:
         | "brouillon"
         | "validee"
@@ -2537,6 +2831,9 @@ export type Database = {
         | "annulee_regulateur"
         | "annulee_patient"
         | "annulee_chauffeur"
+        | "annulee_meteo"
+        | "arrive_sur_place"
+        | "patient_a_bord"
       ride_transport_mode: "taxi_conventionne" | "tpmr" | "vsl" | "ambulance"
       ride_urgency: "programmee" | "urgente" | "immediate"
       user_role: "dirigeant" | "regulateur" | "chauffeur"
@@ -2669,6 +2966,8 @@ export const Constants = {
     Enums: {
       canal_contact_prefere: ["sms", "appel", "aucun"],
       driver_incident_type: ["panne_vehicule", "indisponible"],
+      driver_preference_origin: ["patient", "chauffeur"],
+      driver_status: ["actif", "conge", "suspendu", "archive"],
       ordering_party_billing_modality: [
         "a_la_course",
         "hebdomadaire",
@@ -2685,9 +2984,17 @@ export const Constants = {
         "accompagnement_obligatoire",
         "autre",
       ],
+      patient_driver_preference_kind: ["prefere", "evite"],
+      patient_incident_type: [
+        "retard",
+        "refus_paiement",
+        "conflit_chauffeur",
+        "plainte",
+        "autre",
+      ],
       prescriber_type: ["medecin", "etablissement"],
       prescription_status: ["active", "epuisee", "expiree"],
-      ride_group_status: ["en_attente", "acceptee", "refusee"],
+      ride_group_status: ["en_attente", "acceptee", "refusee", "annulee"],
       ride_status: [
         "brouillon",
         "validee",
@@ -2697,6 +3004,9 @@ export const Constants = {
         "annulee_regulateur",
         "annulee_patient",
         "annulee_chauffeur",
+        "annulee_meteo",
+        "arrive_sur_place",
+        "patient_a_bord",
       ],
       ride_transport_mode: ["taxi_conventionne", "tpmr", "vsl", "ambulance"],
       ride_urgency: ["programmee", "urgente", "immediate"],
