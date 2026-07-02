@@ -43,11 +43,16 @@ export default async function RequestTokenPage(props: { params: Promise<{ token:
       </div>
     );
   } catch (e) {
-    const message = e instanceof Error ? e.message : 'Lien invalide ou expiré.';
+    // SÉCU-01 : portail public — détail au journal serveur, message générique
+    // affiché (jamais le texte d'exception, ex. détail de la lib JWT).
+    console.error(
+      '[legal request] vérification du lien échec:',
+      e instanceof Error ? e.message : e,
+    );
     return (
       <div className="space-y-16">
         <h1 className="mb-12 text-2xl font-semibold tracking-tight">Lien invalide ou expiré</h1>
-        <p className="text-muted-foreground text-base">{message}</p>
+        <p className="text-muted-foreground text-base">Ce lien est invalide ou a expiré.</p>
         <p className="text-base">
           Pour formuler une nouvelle demande, contactez le service client de votre transporteur.
         </p>

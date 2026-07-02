@@ -112,7 +112,13 @@ export async function verifyIdentityAction(
     await markAttemptSuccess(token);
     dest = request.request_type === 'effacement' ? 'erasure' : 'access';
   } catch (e) {
-    return { error: e instanceof Error ? e.message : 'Erreur inattendue.' };
+    // SÉCU-01 : portail public non authentifié — détail au journal serveur,
+    // message générique à l'utilisateur (jamais le texte d'exception brut).
+    console.error(
+      '[legal request] verifyIdentityAction échec:',
+      e instanceof Error ? e.message : e,
+    );
+    return { error: 'Une erreur est survenue. Réessayez plus tard.' };
   }
   if (dest) redirect(`/legal/request/${token}/${dest}`);
   return {};
@@ -147,7 +153,9 @@ export async function fulfillAccessAction(
       .eq('id', request.id);
     return { data };
   } catch (e) {
-    return { error: e instanceof Error ? e.message : 'Erreur inattendue.' };
+    // SÉCU-01 : détail au journal serveur, message générique à l'utilisateur.
+    console.error('[legal request] fulfillAccessAction échec:', e instanceof Error ? e.message : e);
+    return { error: 'Une erreur est survenue. Réessayez plus tard.' };
   }
 }
 
@@ -173,6 +181,11 @@ export async function fulfillErasureAction(token: string): Promise<{ ok?: true; 
       .eq('id', request.id);
     return { ok: true };
   } catch (e) {
-    return { error: e instanceof Error ? e.message : 'Erreur inattendue.' };
+    // SÉCU-01 : détail au journal serveur, message générique à l'utilisateur.
+    console.error(
+      '[legal request] fulfillErasureAction échec:',
+      e instanceof Error ? e.message : e,
+    );
+    return { error: 'Une erreur est survenue. Réessayez plus tard.' };
   }
 }
