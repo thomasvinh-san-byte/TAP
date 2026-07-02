@@ -1,5 +1,7 @@
-import { Calendar } from 'lucide-react';
+import Link from 'next/link';
+import { Calendar, Gauge } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
+import { cn } from '@/lib/utils';
 import { listMyRidesUpcoming, type RideForDriverWithBucket } from './_lib/queries';
 import { RideCard } from './_components/ride-card.client';
 import { ActivationToast } from './_components/activation-toast.client';
@@ -39,6 +41,7 @@ export default async function ConduitePage() {
           <div className="w-full max-w-[320px] space-y-12 pt-12">
             <EnablePushButton />
             <ReportBreakdownButton />
+            <KilometrageLink className="justify-center" />
           </div>
         </div>
       </>
@@ -56,9 +59,12 @@ export default async function ConduitePage() {
         <PageHeader
           title="Ma journée"
           actions={
-            <span className="text-muted-foreground text-sm tabular-nums">
-              {rides.length} course{rides.length > 1 ? 's' : ''}
-            </span>
+            <div className="flex items-center gap-16">
+              <span className="text-muted-foreground text-sm tabular-nums">
+                {rides.length} course{rides.length > 1 ? 's' : ''}
+              </span>
+              <KilometrageLink />
+            </div>
           }
         />
 
@@ -69,6 +75,23 @@ export default async function ConduitePage() {
         <ReportBreakdownButton />
       </div>
     </>
+  );
+}
+
+function KilometrageLink({ className }: { className?: string }): JSX.Element {
+  return (
+    <Link
+      href="/kilometrage"
+      className={cn(
+        'text-muted-foreground inline-flex items-center gap-8 text-sm',
+        'hover:text-foreground transition-colors duration-150',
+        'focus-visible:ring-ring rounded-sm focus-visible:outline-none focus-visible:ring-2',
+        className,
+      )}
+    >
+      <Gauge className="h-16 w-16" aria-hidden />
+      Kilométrage
+    </Link>
   );
 }
 
