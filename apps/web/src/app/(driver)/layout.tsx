@@ -4,7 +4,9 @@ import { getAuthContext } from '@/lib/auth/get-auth-context';
 import { UserMenu } from '@/components/user-menu';
 import { SWRegister } from './_components/sw-register.client';
 import { ConnectionStatusBadge } from './_components/connection-status-badge.client';
+import { BatteryStatusBadge } from './_components/battery-status-badge.client';
 import { HighContrastToggle } from './_components/high-contrast-toggle.client';
+import { FontScaleToggle } from './_components/font-scale-toggle.client';
 import { AudioSettingsMenu } from './_components/audio-settings-menu.client';
 import { DriverAudioProvider } from './_components/driver-audio.client';
 import { WarningBannerInactivity } from './_components/warning-banner-inactivity.client';
@@ -49,7 +51,9 @@ export default async function DriverLayout({ children }: { children: React.React
             </Link>
             <div className="flex items-center gap-12">
               <ConnectionStatusBadge />
+              <BatteryStatusBadge />
               <AudioSettingsMenu />
+              <FontScaleToggle />
               <HighContrastToggle />
               <UserMenu />
             </div>

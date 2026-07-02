@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Calendar, History } from 'lucide-react';
+import { Calendar, Gauge } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { cn } from '@/lib/utils';
 import { listMyRidesUpcoming, type RideForDriverWithBucket } from './_lib/queries';
@@ -42,6 +43,7 @@ export default async function ConduitePage() {
             <EnablePushButton />
             <ReportBreakdownButton />
             <HistoriqueLink className="justify-center" />
+            <KilometrageLink className="justify-center" />
           </div>
         </div>
       </>
@@ -64,6 +66,7 @@ export default async function ConduitePage() {
                 {rides.length} course{rides.length > 1 ? 's' : ''}
               </span>
               <HistoriqueLink />
+              <KilometrageLink />
             </div>
           }
         />
@@ -82,6 +85,10 @@ function HistoriqueLink({ className }: { className?: string }): JSX.Element {
   return (
     <Link
       href="/historique"
+function KilometrageLink({ className }: { className?: string }): JSX.Element {
+  return (
+    <Link
+      href="/kilometrage"
       className={cn(
         'text-muted-foreground inline-flex items-center gap-8 text-sm',
         'hover:text-foreground transition-colors duration-150',
@@ -91,6 +98,8 @@ function HistoriqueLink({ className }: { className?: string }): JSX.Element {
     >
       <History className="h-16 w-16" aria-hidden />
       Historique
+      <Gauge className="h-16 w-16" aria-hidden />
+      Kilométrage
     </Link>
   );
 }
