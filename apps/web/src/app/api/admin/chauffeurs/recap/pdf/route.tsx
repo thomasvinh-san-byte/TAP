@@ -144,7 +144,7 @@ export async function GET(request: Request): Promise<Response> {
       rides_count: rows.length,
       total_eur: totalEur,
     },
-  } as never);
+  });
 
   const stream = await renderToStream(
     <RecapChauffeurPdf

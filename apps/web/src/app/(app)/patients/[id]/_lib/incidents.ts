@@ -62,7 +62,7 @@ function windowCutoffIso(): string {
 export async function getPatientIncidents(patientId: string): Promise<PatientIncidentsRecap> {
   const supabase = await createClient();
   const { data } = await supabase
-    .from('patient_incidents' as never)
+    .from('patient_incidents')
     .select(SELECT_COLUMNS)
     .eq('patient_id', patientId)
     .order('occurred_at', { ascending: false })

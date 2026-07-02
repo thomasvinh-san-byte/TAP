@@ -83,12 +83,12 @@ export async function createPrescriberAction(
   }
 
   const { data, error } = await ctx.supabase
-    .from('prescribers' as never)
+    .from('prescribers')
     .insert({
       ...toRow(parsed.data),
       organization_id: ctx.organizationId,
       created_by: ctx.userId,
-    } as never)
+    })
     .select('id')
     .single();
 
@@ -118,8 +118,8 @@ export async function updatePrescriberAction(
   }
 
   const { error, data } = await ctx.supabase
-    .from('prescribers' as never)
-    .update(toRow(parsed.data) as never)
+    .from('prescribers')
+    .update(toRow(parsed.data))
     .eq('id', prescriberId)
     .eq('archive', false)
     .select('id')
@@ -142,12 +142,12 @@ export async function archivePrescriberAction(prescriberId: string): Promise<Act
   if (!ctx) return { error: 'Accès dirigeant ou régulateur requis.' };
 
   const { error, data } = await ctx.supabase
-    .from('prescribers' as never)
+    .from('prescribers')
     .update({
       archive: true,
       archive_at: new Date().toISOString(),
       actif: false,
-    } as never)
+    })
     .eq('id', prescriberId)
     .select('id');
 

@@ -71,7 +71,7 @@ export async function withIdempotency<T extends Record<string, unknown>>(
       mutation_type: mutationType,
       resource_id: resourceId,
       response_json: { status: result.status, body: result.body },
-    } as never);
+    });
   }
 
   return result;

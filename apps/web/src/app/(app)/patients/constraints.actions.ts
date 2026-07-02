@@ -57,7 +57,7 @@ export async function addPatientConstraintAction(
       type: parsed.data.type,
       note: parsed.data.note ?? null,
       created_by: user.id,
-    } as never)
+    })
     .select('id, type, note')
     .single();
   const data = insertRes.data as { id: string; type: string; note: string | null } | null;

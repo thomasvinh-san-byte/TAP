@@ -311,9 +311,9 @@ export function RideExpressModal(props: Props): JSX.Element {
             onChange={(v) => updateField('pickup_address', v)}
             onSelect={(sel) => {
               // DEC-044 : threadage coords BAN/POI → persistance Server Action
-              updateField('pickup_lat' as keyof FormState, (sel.lat ?? null) as never);
-              updateField('pickup_lng' as keyof FormState, (sel.lng ?? null) as never);
-              updateField('pickup_citycode' as keyof FormState, (sel.citycode ?? null) as never);
+              updateField('pickup_lat' as keyof FormState, sel.lat ?? null);
+              updateField('pickup_lng' as keyof FormState, sel.lng ?? null);
+              updateField('pickup_citycode' as keyof FormState, sel.citycode ?? null);
             }}
             onBlur={() => void autosave.flushSave(form)}
             tabIndex={3}
@@ -327,9 +327,9 @@ export function RideExpressModal(props: Props): JSX.Element {
             value={form.dropoff_address ?? ''}
             onChange={(v) => updateField('dropoff_address', v)}
             onSelect={(sel) => {
-              updateField('dropoff_lat' as keyof FormState, (sel.lat ?? null) as never);
-              updateField('dropoff_lng' as keyof FormState, (sel.lng ?? null) as never);
-              updateField('dropoff_citycode' as keyof FormState, (sel.citycode ?? null) as never);
+              updateField('dropoff_lat' as keyof FormState, sel.lat ?? null);
+              updateField('dropoff_lng' as keyof FormState, sel.lng ?? null);
+              updateField('dropoff_citycode' as keyof FormState, sel.citycode ?? null);
             }}
             onBlur={() => void autosave.flushSave(form)}
             tabIndex={4}

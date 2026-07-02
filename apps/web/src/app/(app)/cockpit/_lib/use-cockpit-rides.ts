@@ -32,7 +32,7 @@ export function useCockpitRides(initial: CockpitRide[]): UseCockpitRidesResult {
     const channel = supabase
       .channel('cockpit:rides')
       .on(
-        'postgres_changes' as never,
+        'postgres_changes',
         { event: '*', schema: 'public', table: 'rides' },
         (payload: {
           eventType: 'INSERT' | 'UPDATE' | 'DELETE';

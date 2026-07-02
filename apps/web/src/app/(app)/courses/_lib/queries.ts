@@ -116,7 +116,7 @@ export async function listRides(
   if (params.urgency) q = q.eq('urgency', params.urgency);
   const { data, error } = await q;
   if (error) throw new Error('Lecture courses impossible.');
-  return (data ?? []) as RideRow[];
+  return (data ?? []) as unknown as RideRow[];
 }
 
 /**

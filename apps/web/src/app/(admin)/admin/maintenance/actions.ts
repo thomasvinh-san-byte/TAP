@@ -122,7 +122,7 @@ export async function backfillRideGeocodingAction(): Promise<BackfillResult> {
         dropoff_lat: dropoff?.lat ?? null,
         dropoff_lng: dropoff?.lng ?? null,
         dropoff_citycode: dropoff?.citycode ?? null,
-      } as never)
+      })
       .eq('id', ride.id)
       .select('id');
 
@@ -162,7 +162,7 @@ export async function backfillRideGeocodingAction(): Promise<BackfillResult> {
           dropoff_lat: dropoff?.lat ?? null,
           dropoff_lng: dropoff?.lng ?? null,
           dropoff_citycode: dropoff?.citycode ?? null,
-        } as never)
+        })
         .eq('id', rec.id)
         .select('id');
       if (!upd.error && upd.data && (upd.data as unknown[]).length > 0) {
@@ -180,7 +180,7 @@ export async function backfillRideGeocodingAction(): Promise<BackfillResult> {
             dropoff_lat: dropoff?.lat ?? null,
             dropoff_lng: dropoff?.lng ?? null,
             dropoff_citycode: dropoff?.citycode ?? null,
-          } as never)
+          })
           .eq('ride_recurrence_id', rec.id)
           .in('status', ['validee', 'assignee'])
           .gt('scheduled_at', nowIso)
@@ -204,7 +204,7 @@ export async function backfillRideGeocodingAction(): Promise<BackfillResult> {
       recurrences_processed: recurrencesProcessed,
       max_per_run: MAX_PER_RUN,
     },
-  } as never);
+  });
 
   return { processed, skipped, errors, recurrences_processed: recurrencesProcessed };
 }
@@ -273,7 +273,7 @@ export async function recomputeTarifsAction(): Promise<RecomputeTarifsResult> {
     return { recomputed: 0, candidates: 0, error: 'Lecture des courses impossible.' };
   }
 
-  const rides = (target.data as TarifRideRow[] | null) ?? [];
+  const rides = (target.data as unknown as TarifRideRow[] | null) ?? [];
   let recomputed = 0;
   for (const ride of rides) {
     const result = computeCgssShortTrip(
@@ -292,7 +292,7 @@ export async function recomputeTarifsAction(): Promise<RecomputeTarifsResult> {
     // DEC-041 row count check + garde-fou encaissé répété sur l'UPDATE.
     const upd = await supabase
       .from('rides')
-      .update({ tarif_amount_eur: result.total_eur } as never)
+      .update({ tarif_amount_eur: result.total_eur })
       .eq('id', ride.id)
       .neq('payment_status', 'encaisse')
       .select('id');
@@ -315,7 +315,9 @@ export async function recomputeTarifsAction(): Promise<RecomputeTarifsResult> {
     .neq('payment_status', 'encaisse');
   const b2bRides = b2bTarget.error
     ? []
-    : ((b2bTarget.data as (TarifRideRow & { ordering_party_id: string | null })[] | null) ?? []);
+    : ((b2bTarget.data as unknown as
+        | (TarifRideRow & { ordering_party_id: string | null })[]
+        | null) ?? []);
 
   // Résolution des grilles B2B par donneur en 2 requêtes (N+1 évité — DEC-156) :
   // 1) donneurs en grille_propre, 2) leur grille active (MAX date_effet ≤ today).
@@ -326,7 +328,7 @@ export async function recomputeTarifsAction(): Promise<RecomputeTarifsResult> {
   if (partyIds.length > 0) {
     const partiesRes = await supabase
       // `as never` : colonne tariff_mode (DEC-157) absente de types.gen.ts jusqu'au resync.
-      .from('ordering_parties' as never)
+      .from('ordering_parties')
       .select('id, tariff_mode')
       .in('id', partyIds);
     const proprePartyIds = ((partiesRes.data as { id: string; tariff_mode: string }[] | null) ?? [])
@@ -334,7 +336,7 @@ export async function recomputeTarifsAction(): Promise<RecomputeTarifsResult> {
       .map((p) => p.id);
     if (proprePartyIds.length > 0) {
       const gridsRes = await supabase
-        .from('ordering_party_tariff_grids' as never)
+        .from('ordering_party_tariff_grids')
         .select(
           'ordering_party_id, date_effet, forfait_eur, km_inclus, prix_km_eur, ' +
             'supplement_drom_eur, supplement_tpmr_eur, majoration_pct, ' +
@@ -371,7 +373,7 @@ export async function recomputeTarifsAction(): Promise<RecomputeTarifsResult> {
     );
     const upd = await supabase
       .from('rides')
-      .update({ tarif_amount_eur: result.total_eur } as never)
+      .update({ tarif_amount_eur: result.total_eur })
       .eq('id', ride.id)
       .neq('payment_status', 'encaisse')
       .select('id');
@@ -394,7 +396,7 @@ export async function recomputeTarifsAction(): Promise<RecomputeTarifsResult> {
       cgss: recomputed,
       b2b: b2bRecomputed,
     },
-  } as never);
+  });
 
   return { recomputed: totalRecomputed, candidates: totalCandidates };
 }

@@ -39,7 +39,7 @@ export async function cancelRideAction(
 
   const ctx = await getAuthContext();
   if (!ctx) return { error: 'Session expirée. Reconnectez-vous.' };
-  if (!REGULATEUR_OR_DIRIGEANT.includes(ctx.role as never)) {
+  if (!REGULATEUR_OR_DIRIGEANT.includes(ctx.role)) {
     return { error: 'Action réservée au régulateur.' };
   }
 
@@ -49,7 +49,7 @@ export async function cancelRideAction(
       status: 'annulee_regulateur',
       cancel_motif: parsed.data.motif?.trim() || null,
       updated_by: ctx.userId,
-    } as never)
+    })
     .eq('id', parsed.data.rideId)
     // DEC-178 : sources légales d'une annulation (machine à états centralisée).
     .in('status', [...RIDE_MODIFIABLE_STATUSES])

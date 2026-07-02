@@ -42,7 +42,7 @@ export async function replacePatientNote(
 
   const { data: inserted, error: insErr } = await supabase
     .from('patient_operational_note')
-    .insert(insertPayload as never)
+    .insert(insertPayload)
     .select('id')
     .single();
   if (insErr || !inserted) throw new Error('Note non enregistrée.');

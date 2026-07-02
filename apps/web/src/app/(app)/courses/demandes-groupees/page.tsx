@@ -30,7 +30,7 @@ export default async function DemandesGroupeesPage() {
 
   // Demandes en attente (RLS scope org) + nom donneur + nombre de courses.
   const groupsRes = await supabase
-    .from('ride_groups' as never)
+    .from('ride_groups')
     .select('id, created_at, ordering_party_id')
     .eq('status', 'en_attente')
     .order('created_at', { ascending: false });

@@ -83,7 +83,7 @@ export async function createDataProcessingRegisterAction(
     international_transfer_safeguards: data.international_transfer_safeguards ?? null,
     created_by: user.id,
     updated_by: user.id,
-  } as never);
+  });
 
   if (error) return { error: 'Création impossible.' };
 
@@ -161,7 +161,7 @@ export async function prefillDataProcessingRegisterAction(
     });
   }
 
-  const { error } = await supabase.from('data_processing_register').insert(rows as never);
+  const { error } = await supabase.from('data_processing_register').insert(rows);
   if (error) return { error: 'Insertion impossible.' };
 
   revalidatePath('/admin/legal/registre');

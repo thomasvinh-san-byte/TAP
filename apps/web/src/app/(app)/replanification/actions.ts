@@ -60,7 +60,7 @@ export async function declareIncidentAction(
       nature: parsed.data.nature || null,
       lieu: parsed.data.lieu || null,
       created_by: ctx.userId,
-    } as never)
+    })
     .select('id');
   if (ins.error) return { error: "Déclaration de l'incident impossible." };
   if (!ins.data || ins.data.length === 0) {
@@ -85,7 +85,7 @@ export async function resolveIncidentAction(incidentId: string): Promise<ReplanA
 
   const upd = await ctx.supabase
     .from('driver_incidents')
-    .update({ resolved_at: new Date().toISOString() } as never)
+    .update({ resolved_at: new Date().toISOString() })
     .eq('id', parsed.data)
     .is('resolved_at', null)
     .select('id');
@@ -147,7 +147,7 @@ export async function reassignRidesBatchAction(
         vehicle_id: null,
         status: 'assignee',
         updated_by: ctx.userId,
-      } as never)
+      })
       .eq('id', item.rideId)
       .in('status', [...RIDE_MODIFIABLE_STATUSES])
       .select('id');

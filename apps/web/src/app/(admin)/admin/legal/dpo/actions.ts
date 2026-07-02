@@ -60,7 +60,7 @@ export async function updateDpoContactAction(
       dpo_contact_address: data.dpo_contact_address ?? null,
       dpo_external: data.dpo_external,
       dpo_updated_at: new Date().toISOString(),
-    } as never)
+    })
     .eq('id', profile.organization_id)
     .select('id');
 

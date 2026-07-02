@@ -122,7 +122,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ rideId: 
 
       const { data: updated, error } = await auth.ctx.supabase
         .from('rides')
-        .update(update as never)
+        .update(update)
         .eq('id', rideIdParse.data)
         // PWA-01 : compare-and-set sur le statut source (anti-TOCTOU, DEC-168).
         .eq('status', 'patient_a_bord')

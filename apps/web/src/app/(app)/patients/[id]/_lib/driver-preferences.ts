@@ -41,10 +41,10 @@ async function fetchPreferenceRows(
   origin?: 'patient' | 'chauffeur',
 ): Promise<PreferenceRow[]> {
   let query = supabase
-    .from('patient_driver_preference' as never)
+    .from('patient_driver_preference')
     .select('id, driver_id, kind')
     .eq('patient_id', patientId);
-  if (origin) query = query.eq('origin' as never, origin as never);
+  if (origin) query = query.eq('origin', origin);
   const { data } = await query;
   return (data as PreferenceRow[] | null) ?? [];
 }

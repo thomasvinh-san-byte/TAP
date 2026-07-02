@@ -25,7 +25,7 @@ async function getPrescribersPageData(organizationId: string): Promise<Prescribe
   const { data, error } = await admin
     // `as never` : table prescribers (DEC-162) absente de types.gen.ts jusqu'au
     // prochain resync — à retirer alors (cf. registre §5).
-    .from('prescribers' as never)
+    .from('prescribers')
     .select(
       'id, nom, prenom, type, rpps, adeli, finess, specialite, contact_telephone, contact_email, adresse, actif, created_at',
     )

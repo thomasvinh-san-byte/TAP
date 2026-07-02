@@ -33,10 +33,10 @@ export async function getDriverPatientPreferences(
 ): Promise<DriverPatientPreferences> {
   const supabase = await createClient();
   const { data } = await supabase
-    .from('patient_driver_preference' as never)
+    .from('patient_driver_preference')
     .select('id, patient_id, kind')
     .eq('driver_id', driverId)
-    .eq('origin' as never, 'chauffeur' as never);
+    .eq('origin', 'chauffeur');
   const rows = (data as PreferenceRow[] | null) ?? [];
   if (rows.length === 0) return { prefere: [], evite: [] };
 

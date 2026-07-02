@@ -34,7 +34,7 @@ export async function updateComplianceBlockingModeAction(raw: unknown): Promise<
 
   const { data, error } = await ctx.supabase
     .from('organizations')
-    .update({ compliance_blocking_mode: parsed.data } as never)
+    .update({ compliance_blocking_mode: parsed.data })
     .eq('id', ctx.organizationId)
     .select('id');
 
@@ -96,7 +96,7 @@ export async function upsertComplianceItemAction(raw: unknown): Promise<ActionSt
   if (v.id) {
     const { data, error } = await ctx.supabase
       .from('compliance_items')
-      .update(payload as never)
+      .update(payload)
       .eq('id', v.id)
       .eq('archive', false)
       .select('id');
@@ -118,7 +118,7 @@ export async function upsertComplianceItemAction(raw: unknown): Promise<ActionSt
       ...payload,
       organization_id: ctx.organizationId,
       created_by: ctx.userId,
-    } as never)
+    })
     .select('id')
     .single();
 
@@ -175,7 +175,7 @@ export async function archiveComplianceItemAction(id: string): Promise<ActionSta
 
   const { data, error } = await ctx.supabase
     .from('compliance_items')
-    .update({ archive: true, archive_at: new Date().toISOString() } as never)
+    .update({ archive: true, archive_at: new Date().toISOString() })
     .eq('id', id)
     .eq('archive', false)
     .select('id');

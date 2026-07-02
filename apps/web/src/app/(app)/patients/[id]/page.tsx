@@ -73,7 +73,7 @@ export default async function PatientPage(props: PageProps) {
         const countRes = await supabase
           .from('rides')
           .select('id', { count: 'exact', head: true })
-          .eq('ride_recurrence_id' as never, rec.id)
+          .eq('ride_recurrence_id', rec.id)
           .in('status', ['validee', 'assignee'])
           .gt('scheduled_at', nowIso);
         futureCounts[rec.id] = countRes.count ?? 0;
@@ -84,7 +84,7 @@ export default async function PatientPage(props: PageProps) {
   // Prescriptions du patient (CdG §5.3, DEC-163) + prescripteurs actifs (picker).
   const [prescriptionsRes, prescribersRes] = await Promise.all([
     supabase
-      .from('prescriptions' as never)
+      .from('prescriptions')
       .select(
         'id, numero, date_prescription, prescriber_id, finess, motif, type_transport, ' +
           'trajets_autorises, trajets_consommes, date_expiration, statut, created_at',

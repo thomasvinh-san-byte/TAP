@@ -80,7 +80,7 @@ export async function saveTariffGridAction(formData: FormData): Promise<TariffGr
       facteur_correction_routier: parsed.data.facteur_correction_routier,
       arrondi_eur: parsed.data.arrondi_eur,
       created_by: ctx.userId,
-    } as never)
+    })
     .select('id');
   if (insertRes.error) {
     if (insertRes.error.code === '23505') {
@@ -104,7 +104,7 @@ export async function saveTariffGridAction(formData: FormData): Promise<TariffGr
       prix_km_eur: parsed.data.prix_km_eur,
       forfait_eur: parsed.data.forfait_eur,
     },
-  } as never);
+  });
 
   revalidatePath('/admin/tarifs');
   // DEC-153 : purge le cache data par org (la grille reflète l'écriture aussitôt).

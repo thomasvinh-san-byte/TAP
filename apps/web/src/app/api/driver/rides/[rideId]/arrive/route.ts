@@ -73,7 +73,7 @@ export async function POST(req: NextRequest, props: { params: Promise<{ rideId: 
 
       const { data: updated, error } = await auth.ctx.supabase
         .from('rides')
-        .update({ status: 'arrive_sur_place', updated_by: auth.ctx.userId } as never)
+        .update({ status: 'arrive_sur_place', updated_by: auth.ctx.userId })
         .eq('id', rideIdParse.data)
         .eq('status', 'en_cours')
         .select('id');

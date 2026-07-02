@@ -42,7 +42,7 @@ export async function updateNotificationPreferencesAction(
       alert_patient_no_show: parsed.data.patient_no_show,
       alert_sms_failed: parsed.data.sms_failed,
       alert_ride_delayed: parsed.data.ride_delayed,
-    } as never,
+    },
     { onConflict: 'user_id' },
   );
 

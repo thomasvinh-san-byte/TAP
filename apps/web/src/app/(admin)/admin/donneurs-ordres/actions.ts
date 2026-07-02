@@ -79,7 +79,7 @@ export async function createOrderingPartyAction(
       ...toRow(parsed.data),
       organization_id: ctx.organizationId,
       created_by: ctx.userId,
-    } as never)
+    })
     .select('id')
     .single();
 
@@ -111,7 +111,7 @@ export async function updateOrderingPartyAction(
 
   const { error, data } = await ctx.supabase
     .from('ordering_parties')
-    .update(toRow(parsed.data) as never)
+    .update(toRow(parsed.data))
     .eq('id', partyId)
     .eq('archive', false)
     .select('id')
@@ -140,7 +140,7 @@ export async function archiveOrderingPartyAction(partyId: string): Promise<Actio
       archive: true,
       archive_at: new Date().toISOString(),
       actif: false,
-    } as never)
+    })
     .eq('id', partyId)
     .select('id');
 
@@ -192,12 +192,12 @@ export async function saveOrderingPartyTariffGridAction(
     return { error: parsed.error.errors[0]?.message ?? 'Grille invalide.' };
   }
 
-  const { error } = await ctx.supabase.from('ordering_party_tariff_grids' as never).insert({
+  const { error } = await ctx.supabase.from('ordering_party_tariff_grids').insert({
     ...parsed.data,
     organization_id: ctx.organizationId,
     ordering_party_id: partyId,
     created_by: ctx.userId,
-  } as never);
+  });
 
   if (error) {
     // Contrainte unique (ordering_party_id, date_effet) → message clair.
@@ -231,7 +231,7 @@ export async function getOrderingPartyActiveTariffGridAction(
   if (!ctx) return null;
   const today = new Date().toISOString().slice(0, 10);
   const { data } = await ctx.supabase
-    .from('ordering_party_tariff_grids' as never)
+    .from('ordering_party_tariff_grids')
     .select(
       'date_effet, forfait_eur, km_inclus, prix_km_eur, supplement_drom_eur, ' +
         'supplement_tpmr_eur, majoration_pct, facteur_correction_routier, arrondi_eur',

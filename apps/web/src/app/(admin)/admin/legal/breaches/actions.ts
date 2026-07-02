@@ -82,7 +82,7 @@ export async function createBreachAction(
       ? data.subjects_notified_at.toISOString()
       : null,
     created_by: user.id,
-  } as never);
+  });
 
   if (error) return { error: 'Création impossible.' };
 
@@ -107,7 +107,7 @@ export async function closeBreachAction(id: string): Promise<ActionState> {
     .update({
       closed_at: new Date().toISOString(),
       closed_by: user.id,
-    } as never)
+    })
     .eq('id', id)
     .select('id');
 

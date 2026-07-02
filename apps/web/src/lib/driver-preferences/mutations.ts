@@ -28,11 +28,11 @@ export async function addPreference(
   const { patientId, driverId, kind, origin } = args;
 
   const existingRes = await ctx.supabase
-    .from('patient_driver_preference' as never)
+    .from('patient_driver_preference')
     .select('kind')
     .eq('patient_id', patientId)
     .eq('driver_id', driverId)
-    .eq('origin' as never, origin as never)
+    .eq('origin', origin)
     .maybeSingle();
   const existing = existingRes.data as { kind: PreferenceKind } | null;
   if (existing) {
@@ -40,14 +40,14 @@ export async function addPreference(
     return { conflict: existing.kind };
   }
 
-  const { error } = await ctx.supabase.from('patient_driver_preference' as never).insert({
+  const { error } = await ctx.supabase.from('patient_driver_preference').insert({
     organization_id: ctx.organizationId,
     patient_id: patientId,
     driver_id: driverId,
     kind,
     origin,
     created_by: ctx.userId,
-  } as never);
+  });
   if (error) return { error: 'Enregistrement de la préférence impossible.' };
   return { ok: true };
 }
@@ -58,7 +58,7 @@ export async function removePreferenceById(
   preferenceId: string,
 ): Promise<{ ok: true } | { error: string }> {
   const { error, data } = await ctx.supabase
-    .from('patient_driver_preference' as never)
+    .from('patient_driver_preference')
     .delete()
     .eq('id', preferenceId)
     .select('id');

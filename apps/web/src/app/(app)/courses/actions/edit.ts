@@ -36,7 +36,7 @@ export async function updateRideAction(
 
   const ctx = await getAuthContext();
   if (!ctx) return { error: 'Session expirée. Reconnectez-vous.' };
-  if (!REGULATEUR_OR_DIRIGEANT.includes(ctx.role as never)) {
+  if (!REGULATEUR_OR_DIRIGEANT.includes(ctx.role)) {
     return { error: 'Action réservée au régulateur.' };
   }
 
@@ -69,7 +69,7 @@ export async function updateRideAction(
           reason: 'occurrence_deplacee',
           replaced_by_ride_id: parsed.data.rideId,
           created_by: ctx.userId,
-        } as never,
+        },
         { onConflict: 'ride_recurrence_id,excluded_date' },
       );
       if (excRes.error) {
@@ -83,7 +83,7 @@ export async function updateRideAction(
     .update({
       ...parsed.data.input,
       updated_by: ctx.userId,
-    } as never)
+    })
     .eq('id', parsed.data.rideId)
     // DEC-178 : statuts modifiables avant démarrage (machine à états centralisée).
     .in('status', [...RIDE_MODIFIABLE_STATUSES])

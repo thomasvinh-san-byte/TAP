@@ -25,7 +25,7 @@ import { getSlaRules, type SlaRule } from './sla-status';
  */
 
 // DEC-173 : source unique (inclut annulee_meteo) — plus d'énumération en dur.
-const STATUTS_ANNULEE: readonly string[] = RIDE_CANCELLED_STATUSES;
+const STATUTS_ANNULEE = RIDE_CANCELLED_STATUSES;
 
 export interface DashboardVolume {
   aujourdhui: number;
@@ -332,7 +332,7 @@ async function getPrescriptions(supabase: Supabase): Promise<DashboardPrescripti
     topPrescripteurs: [],
   };
   const res = await supabase
-    .from('prescriptions' as never)
+    .from('prescriptions')
     .select('statut, prescriber_id, trajets_autorises, trajets_consommes')
     .limit(5000);
   if (res.error) {

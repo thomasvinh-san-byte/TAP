@@ -25,9 +25,9 @@ export async function getActiveWeatherAlert(): Promise<WeatherAlert | null> {
   try {
     const supabase = await createClient();
     const { data, error } = await supabase
-      .from('weather_alerts' as never)
+      .from('weather_alerts')
       .select('id, active, motif, zone, activated_at')
-      .eq('active' as never, true as never)
+      .eq('active', true)
       .maybeSingle();
     if (error) {
       console.error('[meteo] lecture épisode actif échouée:', error.message);

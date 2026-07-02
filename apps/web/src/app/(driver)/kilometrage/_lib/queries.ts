@@ -27,10 +27,10 @@ export async function getTodayMileage(): Promise<TodayMileage> {
   if (!ctx || ctx.role !== 'chauffeur') return { jour, km_start: null, km_end: null };
 
   const { data } = await ctx.supabase
-    .from('driver_daily_mileage' as never)
+    .from('driver_daily_mileage')
     .select('km_start, km_end')
-    .eq('driver_id' as never, ctx.userId)
-    .eq('jour' as never, jour)
+    .eq('driver_id', ctx.userId)
+    .eq('jour', jour)
     .maybeSingle();
 
   const row = (data as { km_start: number | null; km_end: number | null } | null) ?? null;

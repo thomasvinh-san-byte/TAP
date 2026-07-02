@@ -24,9 +24,9 @@ export async function getPatientReferentStatusAction(
   const supabase = await createClient();
   // `as never` : referent_nom (DEC-172) absent de types.gen.ts jusqu'au resync.
   const { data, error } = await supabase
-    .from('patients' as never)
+    .from('patients')
     .select('date_naissance, referent_nom')
-    .eq('id' as never, patientId as never)
+    .eq('id', patientId)
     .maybeSingle();
   if (error || !data) return null;
   const row = data as { date_naissance: string | null; referent_nom: string | null };

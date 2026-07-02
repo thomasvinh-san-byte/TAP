@@ -57,4 +57,4 @@ export async function getAuthContext() {
  * Utilisé conjointement avec `@/lib/auth/get-auth-context` qui charge le
  * rôle depuis la table `profiles`.
  */
-export const REGULATEUR_OR_DIRIGEANT = ['regulateur', 'dirigeant'] as const;
+export const REGULATEUR_OR_DIRIGEANT: readonly string[] = ['regulateur', 'dirigeant'];

@@ -70,7 +70,7 @@ export async function updateRidePaymentAction(
   // DEC-041 row count check.
   const upd = await ctx.supabase
     .from('rides')
-    .update(update as never)
+    .update(update)
     .eq('id', parsed.data.rideId)
     .select('id');
   if (upd.error) return { error: 'Mise à jour paiement impossible.' };

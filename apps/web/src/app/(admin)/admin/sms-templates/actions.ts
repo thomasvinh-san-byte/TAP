@@ -63,7 +63,7 @@ export async function saveTemplateAction(formData: FormData): Promise<SmsTemplat
       body: parsed.data.body,
       updated_by: ctx.userId,
       updated_at: new Date().toISOString(),
-    } as never)
+    })
     .eq('key', parsed.data.template_key)
     .select('key');
   if (upRes.error) return { error: 'Modification refusée.' };
@@ -82,7 +82,7 @@ export async function saveTemplateAction(formData: FormData): Promise<SmsTemplat
       template_key: parsed.data.template_key,
       new_length: parsed.data.body.length,
     },
-  } as never);
+  });
 
   revalidatePath('/admin/sms-templates');
   return { success: true };
@@ -142,7 +142,7 @@ export async function testSendSmsAction(formData: FormData): Promise<SmsTemplate
     body_rendered: rendered,
     twilio_message_sid: sid,
     delivery_status: 'queued',
-  } as never);
+  });
 
   await supabase.from('audit_logs').insert({
     organization_id: ctx.organizationId,
@@ -156,7 +156,7 @@ export async function testSendSmsAction(formData: FormData): Promise<SmsTemplate
       to_phone: parsed.data.to_phone,
       twilio_sid: sid,
     },
-  } as never);
+  });
 
   return { success: true, sid };
 }
