@@ -848,3 +848,279 @@ begin
 
   raise notice 'Seed démo : 3 donneurs d''ordres B2B fictifs créés (organization_id=%)', org_id;
 end$$;
+
+-- =============================================================================
+-- SEED-01 — Amorce facturation : prescripteurs, prescriptions, modes de
+-- paiement et cas particuliers (données fictives 974, preview/staging).
+-- =============================================================================
+-- Comble les trous côté facturation conventionnée à venir : sans prescription
+-- ni prescripteur, impossible d'éprouver le lien course→bon, les alertes de
+-- renouvellement et la facturation. Idempotent (ON CONFLICT + reset ciblé).
+--
+-- DÉPENDANCES DE SCHÉMA NOTÉES (non ajoutées ici — ce lot peuple, ne migre pas) :
+--   • Paiement « mixte » : l'enum payment_method vaut cash/cb/cheque/cgss_differe,
+--     sans valeur « mixte » ni ventilation multi-lignes. Cas non représentable
+--     tel quel → à cadrer par le chantier facturation (table de règlements ?).
+--   • Exonération ALD : aucune colonne d'exonération (ALD / ticket modérateur)
+--     sur rides ni prescriptions. Cas non représentable → dépendance facturation.
+--
+-- Préfixes UUID : prescripteurs 55555555, prescriptions 88888888, courses
+-- facturation 44444444-…06x (au-dessus du max existant …052). pois_metier
+-- utilise 66666666 (ne pas confondre).
+-- =============================================================================
+
+-- -----------------------------------------------------------------------------
+-- Prescripteurs fictifs : 2 médecins (RPPS) + 1 établissement (FINESS)
+-- -----------------------------------------------------------------------------
+do $$
+declare
+  org_id        uuid := '00000000-0000-0000-0000-000000000001';
+  regulateur_id uuid := '00000000-0000-0000-0000-000000000020';
+begin
+  insert into public.prescribers (
+    id, organization_id, nom, prenom, type, rpps, finess, specialite,
+    contact_telephone, contact_email, adresse, actif, created_by
+  ) values
+    ('55555555-0000-0000-0000-000000000001', org_id,
+     'Payet', 'Marie-Claude', 'medecin', '10000000001', null, 'Néphrologie',
+     '0262 90 51 00', 'mc.payet@cabinet-demo.re',
+     'Cabinet de néphrologie, 97400 Saint-Denis', true, regulateur_id),
+    ('55555555-0000-0000-0000-000000000002', org_id,
+     'Grondin', 'Jean-Bernard', 'medecin', '10000000002', null, 'Médecine générale',
+     '0262 27 42 00', 'jb.grondin@cabinet-demo.re',
+     '18 Rue Hubert Delisle, 97430 Le Tampon', true, regulateur_id),
+    ('55555555-0000-0000-0000-000000000003', org_id,
+     'CHU de La Réunion — Service néphrologie', null, 'etablissement', null, '970000001',
+     'Néphrologie / dialyse', '0262 90 50 50', 'nephrologie@chu-demo.re',
+     'CHU Félix Guyon, 97400 Saint-Denis', true, regulateur_id)
+  -- Réappliquer met à jour les champs de référence (pas d'état runtime ici).
+  on conflict (id) do update set
+    nom = excluded.nom,
+    prenom = excluded.prenom,
+    type = excluded.type,
+    rpps = excluded.rpps,
+    finess = excluded.finess,
+    specialite = excluded.specialite,
+    contact_telephone = excluded.contact_telephone,
+    contact_email = excluded.contact_email,
+    adresse = excluded.adresse,
+    actif = excluded.actif,
+    archive = false,
+    archive_at = null;
+
+  raise notice 'Seed démo SEED-01 : 3 prescripteurs fictifs (organization_id=%)', org_id;
+end$$;
+
+-- -----------------------------------------------------------------------------
+-- Prescriptions fictives : simple / série (dialyse) / proche échéance / expirée
+-- -----------------------------------------------------------------------------
+-- Rattachées à des patients existants (tri par nom, mêmes 10 que le bloc rides)
+-- et aux prescripteurs ci-dessus. trajets_consommes / statut sont maintenus par
+-- le trigger de comptage (rides_prescription_counter) dès qu'une course
+-- consommatrice est rattachée : on ne les RÉINITIALISE PAS au ré-seed (sinon
+-- état hybride vs trigger). On ne (ré)initialise que les champs statiques du bon.
+-- -----------------------------------------------------------------------------
+do $$
+declare
+  org_id         uuid := '00000000-0000-0000-0000-000000000001';
+  regulateur_id  uuid := '00000000-0000-0000-0000-000000000020';
+  medecin_nephro uuid := '55555555-0000-0000-0000-000000000001';
+  medecin_gen    uuid := '55555555-0000-0000-0000-000000000002';
+  etab_chu       uuid := '55555555-0000-0000-0000-000000000003';
+  patient_ids    uuid[];
+begin
+  select array_agg(id order by nom)
+    into patient_ids
+    from public.patients
+    where organization_id = org_id and archive = false;
+
+  if patient_ids is null or array_length(patient_ids, 1) < 10 then
+    raise notice 'Seed démo SEED-01 : moins de 10 patients, bloc prescriptions ignoré.';
+    return;
+  end if;
+
+  insert into public.prescriptions (
+    id, organization_id, patient_id, prescriber_id, numero, date_prescription,
+    finess, motif, type_transport, trajets_autorises, date_expiration, statut,
+    created_by
+  ) values
+    -- Simple, active (transport ponctuel — consultation de suivi)
+    ('88888888-0000-0000-0000-000000000001', org_id, patient_ids[1], medecin_gen,
+     'BT-DEMO-2026-0001', current_date - 20,
+     null, 'Consultation de suivi', 'taxi_conventionne', 4,
+     current_date + 150, 'active', regulateur_id),
+    -- Série (dialyse itérative — 20 trajets), active
+    ('88888888-0000-0000-0000-000000000002', org_id, patient_ids[2], etab_chu,
+     'BT-DEMO-2026-0002', current_date - 30,
+     '970000001', 'Dialyse péritonéale 3x/semaine', 'taxi_conventionne', 20,
+     current_date + 90, 'active', regulateur_id),
+    -- Proche de l'échéance (renouvellement à anticiper — alerte)
+    ('88888888-0000-0000-0000-000000000003', org_id, patient_ids[3], etab_chu,
+     'BT-DEMO-2026-0003', current_date - 175,
+     '970000001', 'Séances de kinésithérapie post-opératoire', 'tpmr', 10,
+     current_date + 5, 'active', regulateur_id),
+    -- Expirée (bon échu — ne doit plus autoriser de nouvelle course)
+    ('88888888-0000-0000-0000-000000000004', org_id, patient_ids[4], medecin_nephro,
+     'BT-DEMO-2025-0009', current_date - 210,
+     null, 'Cure thermale', 'taxi_conventionne', 4,
+     current_date - 30, 'expiree', regulateur_id),
+    -- Simple, active (support d'une course encaissée directe)
+    ('88888888-0000-0000-0000-000000000005', org_id, patient_ids[6], medecin_gen,
+     'BT-DEMO-2026-0005', current_date - 10,
+     null, 'Transport vers consultation spécialisée', 'taxi_conventionne', 4,
+     current_date + 170, 'active', regulateur_id)
+  -- Champs statiques réinitialisés ; trajets_consommes + statut restent
+  -- pilotés par le trigger de comptage (voir en-tête de bloc).
+  on conflict (id) do update set
+    patient_id = excluded.patient_id,
+    prescriber_id = excluded.prescriber_id,
+    numero = excluded.numero,
+    date_prescription = excluded.date_prescription,
+    finess = excluded.finess,
+    motif = excluded.motif,
+    type_transport = excluded.type_transport,
+    trajets_autorises = excluded.trajets_autorises,
+    date_expiration = excluded.date_expiration;
+
+  raise notice 'Seed démo SEED-01 : 5 prescriptions fictives (organization_id=%)', org_id;
+end$$;
+
+-- -----------------------------------------------------------------------------
+-- Courses « facturation » : diversité de modes de paiement + cas particuliers
+-- (accompagnant, transport adapté TPMR) + rattachement à des prescriptions.
+-- -----------------------------------------------------------------------------
+-- Reset EXHAUSTIF vers la BASELINE SEED (excluded.*) au ré-seed — y compris les
+-- champs de paiement et d'accompagnant — pour effacer toute dérive UAT sans
+-- laisser d'état hybride (esprit DEC-039-bis). Le rattachement prescription_id
+-- est stable → le trigger de comptage ne produit pas de delta au ré-update.
+-- -----------------------------------------------------------------------------
+do $$
+declare
+  org_id         uuid := '00000000-0000-0000-0000-000000000001';
+  regulateur_id  uuid := '00000000-0000-0000-0000-000000000020';
+  vergoz_id      uuid := '22222222-0000-0000-0000-000000000011';
+  maillot_id     uuid := '22222222-0000-0000-0000-000000000012';
+  boyer_id       uuid := '22222222-0000-0000-0000-000000000013';
+  vehicle_dacia  uuid := '33333333-0000-0000-0000-000000000011';
+  vehicle_master uuid := '33333333-0000-0000-0000-000000000012';
+  presc_serie    uuid := '88888888-0000-0000-0000-000000000002';
+  presc_directe  uuid := '88888888-0000-0000-0000-000000000005';
+  patient_ids    uuid[];
+  d2 timestamptz := date_trunc('day', now() - interval '2 days');
+begin
+  select array_agg(id order by nom)
+    into patient_ids
+    from public.patients
+    where organization_id = org_id and archive = false;
+
+  if patient_ids is null or array_length(patient_ids, 1) < 10 then
+    raise notice 'Seed démo SEED-01 : moins de 10 patients, bloc rides facturation ignoré.';
+    return;
+  end if;
+
+  insert into public.rides (
+    id, organization_id, patient_id, driver_id, vehicle_id, prescription_id,
+    pickup_address, dropoff_address,
+    scheduled_at, status, transport_mode, urgency,
+    started_at, ended_at, tarif_amount_eur, tarif_source,
+    payment_status, payment_method, payment_received_at,
+    accompagnant, accompagnant_payant, accompagnant_identite,
+    created_at, created_by, updated_by
+  ) values
+    -- Tiers payant conventionné (CGSS) — cas dominant, aucun encaissement direct
+    ('44444444-0000-0000-0000-000000000060', org_id, patient_ids[2], maillot_id,
+     vehicle_dacia, presc_serie,
+     '45 Avenue de la République, 97410 Saint-Pierre',
+     'Centre de dialyse Sud, 97410 Saint-Pierre',
+     d2 + interval '7 hours', 'terminee', 'taxi_conventionne', 'programmee',
+     d2 + interval '7 hours 5 minutes', d2 + interval '7 hours 25 minutes',
+     18.00, 'manuel', 'non_concerne', null, null,
+     false, false, null,
+     d2, regulateur_id, regulateur_id),
+    -- Espèces (hors prise en charge) — encaissé
+    ('44444444-0000-0000-0000-000000000061', org_id, patient_ids[6], vergoz_id,
+     vehicle_dacia, presc_directe,
+     '5 Boulevard Lacaussade, 97400 Saint-Denis',
+     'Clinique Saint-Vincent, 97400 Saint-Denis',
+     d2 + interval '9 hours', 'terminee', 'taxi_conventionne', 'programmee',
+     d2 + interval '9 hours 5 minutes', d2 + interval '9 hours 40 minutes',
+     22.00, 'manuel', 'encaisse', 'cash', d2 + interval '9 hours 40 minutes',
+     false, false, null,
+     d2, regulateur_id, regulateur_id),
+    -- Carte bancaire — encaissé
+    ('44444444-0000-0000-0000-000000000062', org_id, patient_ids[7], boyer_id,
+     vehicle_dacia, null,
+     '8 Chemin des Frangipaniers, 97419 La Possession',
+     'Cabinet médical, 97460 Saint-Paul',
+     d2 + interval '11 hours', 'terminee', 'taxi_conventionne', 'programmee',
+     d2 + interval '11 hours 5 minutes', d2 + interval '11 hours 35 minutes',
+     30.00, 'manuel', 'encaisse', 'cb', d2 + interval '11 hours 35 minutes',
+     false, false, null,
+     d2, regulateur_id, regulateur_id),
+    -- Chèque — encaissé
+    ('44444444-0000-0000-0000-000000000063', org_id, patient_ids[8], maillot_id,
+     vehicle_dacia, null,
+     '23 Rue Maréchal Leclerc, 97400 Saint-Denis',
+     'Laboratoire d''analyses, 97490 Sainte-Clotilde',
+     d2 + interval '13 hours', 'terminee', 'taxi_conventionne', 'programmee',
+     d2 + interval '13 hours 5 minutes', d2 + interval '13 hours 30 minutes',
+     28.00, 'manuel', 'encaisse', 'cheque', d2 + interval '13 hours 30 minutes',
+     false, false, null,
+     d2, regulateur_id, regulateur_id),
+    -- CGSS différé — encaissement décalé de la part conventionnée
+    ('44444444-0000-0000-0000-000000000064', org_id, patient_ids[9], vergoz_id,
+     vehicle_master, null,
+     'Foyer Les Avirons, 97425 Les Avirons',
+     'CHU Sud, 97448 Saint-Pierre',
+     d2 + interval '15 hours', 'terminee', 'vsl', 'programmee',
+     d2 + interval '15 hours 5 minutes', d2 + interval '16 hours 10 minutes',
+     35.00, 'manuel', 'encaisse', 'cgss_differe', d2 + interval '16 hours 10 minutes',
+     false, false, null,
+     d2, regulateur_id, regulateur_id),
+    -- Cas particulier : accompagnant payant + transport adapté (TPMR)
+    ('44444444-0000-0000-0000-000000000065', org_id, patient_ids[2], boyer_id,
+     vehicle_master, presc_serie,
+     '45 Avenue de la République, 97410 Saint-Pierre',
+     'Centre de dialyse Sud, 97410 Saint-Pierre',
+     d2 + interval '17 hours', 'terminee', 'tpmr', 'programmee',
+     d2 + interval '17 hours 5 minutes', d2 + interval '17 hours 45 minutes',
+     42.00, 'manuel', 'non_concerne', null, null,
+     true, true, 'Accompagnant : proche aidant (fille)',
+     d2, regulateur_id, regulateur_id),
+    -- Reste à encaisser (créance en attente de règlement)
+    ('44444444-0000-0000-0000-000000000066', org_id, patient_ids[10], maillot_id,
+     vehicle_dacia, null,
+     '12 Rue de Paris, 97400 Saint-Denis',
+     'Centre de radiologie, 97400 Saint-Denis',
+     d2 + interval '18 hours', 'terminee', 'taxi_conventionne', 'programmee',
+     d2 + interval '18 hours 5 minutes', d2 + interval '18 hours 30 minutes',
+     20.00, 'manuel', 'a_encaisser', null, null,
+     false, false, null,
+     d2, regulateur_id, regulateur_id)
+  on conflict (id) do update set
+    scheduled_at = excluded.scheduled_at,
+    created_at = excluded.created_at,
+    pickup_address = excluded.pickup_address,
+    dropoff_address = excluded.dropoff_address,
+    transport_mode = excluded.transport_mode,
+    urgency = excluded.urgency,
+    driver_id = excluded.driver_id,
+    vehicle_id = excluded.vehicle_id,
+    prescription_id = excluded.prescription_id,
+    status = excluded.status,
+    started_at = excluded.started_at,
+    ended_at = excluded.ended_at,
+    tarif_amount_eur = excluded.tarif_amount_eur,
+    tarif_source = excluded.tarif_source,
+    payment_status = excluded.payment_status,
+    payment_method = excluded.payment_method,
+    payment_received_at = excluded.payment_received_at,
+    accompagnant = excluded.accompagnant,
+    accompagnant_payant = excluded.accompagnant_payant,
+    accompagnant_identite = excluded.accompagnant_identite,
+    archive = false,
+    cancel_motif = null,
+    notes_regulateur = null;
+
+  raise notice 'Seed démo SEED-01 : 7 courses facturation (paiements variés + accompagnant/TPMR)';
+end$$;
