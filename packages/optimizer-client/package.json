@@ -14,7 +14,7 @@
     "clean": "rm -rf .turbo dist *.tsbuildinfo coverage"
   },
   "dependencies": {
-    "zod": "*"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^2.1.9",
