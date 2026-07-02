@@ -3,8 +3,6 @@
  * restantes du chauffeur en incident + propositions de réaffectation scorées.
  *
  * RLS Postgres (driver_incidents_select_org, rides/drivers same-org) isole par
- * org ; les casts `as never` ne contournent que le typage TS jusqu'au resync
- * de types.gen.ts (driver_incidents nouvelle table — DEC-155). Pas de N+1 :
  * tout est chargé en requêtes groupées `.in()` puis agrégé en mémoire.
  */
 

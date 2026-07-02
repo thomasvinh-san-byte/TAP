@@ -11,9 +11,7 @@
  *   (statut dédié `annulee_meteo`), filtre zone optionnel, puis prévient
  *   patients (SMS best-effort) et chauffeurs (push best-effort).
  *
- * Dette types : weather_alerts absente de types.gen.ts + valeur d'enum
  * `annulee_meteo` récente → `.from('weather_alerts' as never)` et payloads
- * `as never` (DEC-155).
  */
 
 import { revalidatePath } from 'next/cache';

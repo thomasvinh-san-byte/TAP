@@ -1,7 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton';
 
 /**
- * Skeleton de chargement de la liste prescripteurs (DEC-162).
  * Épouse le layout : en-tête + CTA, compteur, 6 lignes de table.
  */
 export default function PrescripteursLoading(): JSX.Element {

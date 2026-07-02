@@ -126,7 +126,7 @@ export async function rescheduleRideAction(formData: FormData): Promise<CockpitA
       new_ride_id: cloned.id,
       new_scheduled_at: parsed.data.new_scheduled_at,
     },
-  } as never);
+  });
 
   revalidatePath('/cockpit');
   return { success: true, new_ride_id: cloned.id };
@@ -147,7 +147,7 @@ export async function cancelRideForNoShowAction(rideId: string): Promise<Cockpit
     .update({
       status: 'annulee_patient',
       updated_by: ctx.userId,
-    } as never)
+    })
     .eq('id', parsed.data.ride_id)
     .select('id');
   if (upRes.error) return { error: 'Annulation impossible.' };
@@ -163,7 +163,7 @@ export async function cancelRideForNoShowAction(rideId: string): Promise<Cockpit
     entity_type: 'ride',
     entity_id: parsed.data.ride_id,
     metadata: {},
-  } as never);
+  });
 
   revalidatePath('/cockpit');
   return { success: true };

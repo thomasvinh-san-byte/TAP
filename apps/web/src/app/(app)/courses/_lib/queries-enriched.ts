@@ -9,8 +9,7 @@
  *
  * RLS Postgres (drivers_select_same_org, vehicles_select_same_org,
  * rides_select_same_org, audit_logs_select_same_org) garantit l'isolation
- * tenant — les casts `as never` ne contournent que le typage TS jusqu'à
- * régénération de types.gen.ts (cron nightly).
+ * tenant.
  */
 
 import { createClient } from '@/lib/supabase/server';
@@ -192,7 +191,6 @@ export async function listActiveDrivers(): Promise<DriverMin[]> {
   if (error) {
     console.error('[courses/drivers] Erreur Supabase:', error);
   }
-  // competences/langues absents de types.gen.ts → cast via unknown (DEC-155).
   return (data ?? []) as unknown as DriverMin[];
 }
 

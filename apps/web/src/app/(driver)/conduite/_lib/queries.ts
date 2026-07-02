@@ -10,9 +10,6 @@
  *     rides same-org via SELECT). On ne RETOURNE que les siennes au RSC.
  *   - On lit les coordonnées patient via `patients_safe` (vue Phase 1
  *     security_invoker, masque le ciphertext NIR — DEC-NIR).
- *
- * TODO(types) : `drivers` + colonnes `rides` étendues absents de
- * types.gen.ts jusqu'à régénération nightly. Casts ciblés en attendant.
  */
 
 import 'server-only';

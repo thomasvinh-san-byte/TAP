@@ -6,8 +6,7 @@
  * Saisie structurée + lecture. Le COMPTEUR de trajets (trajets_consommes) et le
  * STATUT (active/epuisee/expiree) sont gérés par trigger Postgres idempotent
  * (migration 20260612000006) — JAMAIS écrits ici à la main. Écriture réservée
- * dirigeant + régulateur (RLS double-check). Dette types : table prescriptions
- * absente de types.gen.ts → `.from('prescriptions' as never)` + `as never`.
+ * dirigeant + régulateur (RLS double-check).
  */
 
 import { revalidatePath } from 'next/cache';

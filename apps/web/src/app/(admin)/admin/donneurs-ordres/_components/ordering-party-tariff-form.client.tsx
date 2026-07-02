@@ -21,7 +21,6 @@ import {
 } from '../actions';
 
 /**
- * Grille tarifaire propre d'un donneur d'ordres (DEC-157) — mode `grille_propre`.
  *
  * Bouton dans la fiche donneur qui ouvre une Sheet dédiée (portalisée → pas de
  * `<form>` imbriqué dans le formulaire donneur). Versionnement strict comme

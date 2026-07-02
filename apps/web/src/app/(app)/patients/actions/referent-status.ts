@@ -1,7 +1,6 @@
 'use server';
 
 /**
- * Statut référent légal d'un patient (DEC-172, T3) pour l'avertissement de
  * saisie course. Server Action RLS-scopée : lit UNIQUEMENT `date_naissance` et
  * `referent_nom` (aucun ciphertext NIR sélectionné — la règle patients_safe vise
  * le NIR ; ici on ne lit que deux colonnes non sensibles). Le statut « mineur »
@@ -22,7 +21,6 @@ export async function getPatientReferentStatusAction(
 ): Promise<PatientReferentStatus | null> {
   if (!z.string().uuid().safeParse(patientId).success) return null;
   const supabase = await createClient();
-  // `as never` : referent_nom (DEC-172) absent de types.gen.ts jusqu'au resync.
   const { data, error } = await supabase
     .from('patients')
     .select('date_naissance, referent_nom')

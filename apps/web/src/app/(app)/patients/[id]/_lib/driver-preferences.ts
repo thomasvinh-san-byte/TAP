@@ -4,8 +4,6 @@ import { createClient } from '@/lib/supabase/server';
 /**
  * Queries RSC des préférences chauffeur d'un patient (PATIENT-02, CdG §5.2).
  *
- * Table `patient_driver_preference` absente de types.gen.ts jusqu'au resync
- * → `.from('patient_driver_preference' as never)` + cast de lecture (DEC-155).
  * RLS Postgres scope déjà l'organisation et réserve l'accès régulateur/dirigeant.
  *
  * Deux lectures :

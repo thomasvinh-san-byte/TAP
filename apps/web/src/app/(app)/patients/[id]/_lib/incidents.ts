@@ -12,8 +12,6 @@ import {
 /**
  * Query RSC de l'historique des incidents patient (PATIENT-01, CdG §5.2).
  *
- * Table `patient_incidents` absente de types.gen.ts jusqu'au resync
- * → `.from('patient_incidents' as never)` + cast de lecture (DEC-155). RLS
  * Postgres scope déjà l'organisation (lecture same-org).
  */
 

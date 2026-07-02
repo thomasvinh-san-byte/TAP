@@ -55,8 +55,6 @@ export async function POST(req: NextRequest) {
   const { jour, km_start, km_end } = parsed.data;
 
   // Lecture du relevé existant du jour (RLS scope l'org + le chauffeur).
-  // `driver_daily_mileage` absente de types.gen.ts jusqu'au resync → cast
-  // `as never` sur le nom de table (DEC-155), comme prescriptions/incidents.
   const { data: existing } = await auth.ctx.supabase
     .from('driver_daily_mileage')
     .select('id, km_start, km_end')

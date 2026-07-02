@@ -40,7 +40,6 @@ const GRID_COLUMNS =
 
 /**
  * Grille tarifaire à appliquer à une course rattachée à un donneur d'ordres
- * (DEC-157). Renvoie la grille PROPRE du donneur (active à `date`) SI son
  * `tariff_mode = 'grille_propre'` ET qu'une grille existe ; sinon `null`
  * (l'appelant retombe sur la grille CGSS de l'org — comportement par défaut,
  * INCHANGÉ). Le moteur `computeCgssFromDistance` n'est pas modifié : on ne fait
@@ -53,7 +52,6 @@ export async function getActiveTariffGridForOrderingParty(
   const supabase = await createClient();
 
   const partyRes = await supabase
-    // `as never` : colonne tariff_mode (DEC-157) absente de types.gen.ts jusqu'au resync.
     .from('ordering_parties')
     .select('tariff_mode')
     .eq('id', orderingPartyId)

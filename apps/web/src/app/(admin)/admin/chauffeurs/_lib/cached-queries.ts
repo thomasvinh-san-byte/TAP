@@ -88,8 +88,6 @@ async function getChauffeursPageData(
     }
   }
 
-  // `status` est absent de types.gen.ts (pas de resync) → cast via unknown
-  // (DEC-155). Le SELECT le ramène bien à l'exécution.
   const drivers: DriverRow[] = (
     (driversRes.data ?? []) as unknown as Omit<DriverRow, 'invitation'>[]
   ).map((d) => ({ ...d, invitation: invitationByDriverId.get(d.id) ?? null }));

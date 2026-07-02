@@ -54,7 +54,6 @@ async function getVehiculesPageData(organizationId: string): Promise<VehiculesPa
   }
 
   // Colonnes équipement absentes de types.gen.ts (pas de resync) → cast via
-  // unknown (DEC-155). Le SELECT les ramène bien à l'exécution.
   const vehicles = (vehiclesRes.data ?? []) as unknown as VehicleRow[];
 
   const nextComplianceByVehicleId: Record<string, string> = {};

@@ -8,11 +8,6 @@
  * (defense in depth — DEC-005 Phase 2). Le trigger rides_audit_trigger
  * (Phase 2, inchangé) capture automatiquement les nouvelles colonnes via
  * to_jsonb(old/new) — colonnes étendues en migration 20260512000003.
- *
- * TODO(types) : packages/database/src/types.gen.ts n'a pas encore été
- * régénéré pour inclure les colonnes `driver_id`, `vehicle_id`, etc. —
- * sync-types.yml (cron 3h UTC) le fera. En attendant, les payloads d'UPDATE
- * sont castés `as never` ; le typage métier est porté par zod côté serveur.
  */
 
 import { revalidatePath } from 'next/cache';
@@ -68,7 +63,7 @@ export async function assignRideAction(
   }
 
   const update = {
-    status: 'assignee',
+    status: 'assignee' as const,
     driver_id: parsed.data.driverId,
     vehicle_id: parsed.data.vehicleId ?? null,
     updated_by: ctx.userId,
@@ -79,7 +74,7 @@ export async function assignRideAction(
   // 0 ligne → refus explicite (pas d'écrasement silencieux).
   const upd = await ctx.supabase
     .from('rides')
-    .update(update as never)
+    .update(update)
     .eq('id', parsed.data.rideId)
     .eq('status', 'validee')
     .select('id');
@@ -152,7 +147,7 @@ export async function assignVehicleAction(
   // DEC-041 row count check.
   const upd = await ctx.supabase
     .from('rides')
-    .update(update as never)
+    .update(update)
     .eq('id', parsed.data.rideId)
     .select('id');
   if (upd.error) return { error: 'Affectation du véhicule impossible.' };
@@ -197,7 +192,7 @@ export async function unassignRideAction(rideId: string): Promise<ActionState> {
   }
 
   const update = {
-    status: 'validee',
+    status: 'validee' as const,
     driver_id: null,
     vehicle_id: null,
     updated_by: ctx.userId,
@@ -205,7 +200,7 @@ export async function unassignRideAction(rideId: string): Promise<ActionState> {
   // DEC-041 row count check + DEC-168 compare-and-set (`.eq('status','assignee')`).
   const upd = await ctx.supabase
     .from('rides')
-    .update(update as never)
+    .update(update)
     .eq('id', parsed.data)
     .eq('status', 'assignee')
     .select('id');

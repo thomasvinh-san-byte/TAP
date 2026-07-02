@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 /**
- * Bloc « Accompagnant » de la saisie course (DEC-172, CdG l.293).
  *
  * Case oui/non ; si oui → facturation (gratuit/payant) + identité libre.
  * Le coût d'un accompagnant payant est appliqué via la grille tarifaire

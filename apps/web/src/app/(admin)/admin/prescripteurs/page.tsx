@@ -4,7 +4,6 @@ import { getCachedPrescribersPageData } from './_lib/cached-queries';
 import { PrescribersList } from './_components/prescribers-list.client';
 
 export const metadata = { title: 'Prescripteurs' };
-// DEC-162 : data-cache par organisation (cf. _lib/cached-queries.ts). Page
 // dynamique (guard lit les cookies), donnée cachée par org et purgée à
 // l'écriture (revalidateTag dans actions.ts).
 
@@ -25,7 +24,6 @@ export type PrescriberRow = {
 };
 
 /**
- * Page référentiel prescripteurs (CdG §5.4, DEC-162) — RSC pré-fetch.
  * Données cachées par organisation ; guard dirigeant + régulateur.
  *
  * Le prescripteur (médecin/établissement émetteur de la prescription) est

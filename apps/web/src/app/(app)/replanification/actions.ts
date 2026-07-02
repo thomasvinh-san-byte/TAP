@@ -11,8 +11,6 @@
  * - resolveIncidentAction : marque un incident résolu (resolved_at).
  * - reassignRidesBatchAction : réaffecte en lot des courses au chauffeur choisi.
  *
- * Dette types : driver_incidents absente de types.gen.ts jusqu'au resync nightly
- * → `.from('driver_incidents' as never)` + payloads `as never` (DEC-155).
  */
 
 import { revalidatePath } from 'next/cache';
