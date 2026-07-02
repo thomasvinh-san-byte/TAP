@@ -29,6 +29,12 @@ export interface CourseFacturable {
   patient_nom: string;
   patient_prenom: string;
   driver_nom: string;
+  // Facturation bloc 1 : régime porté par le transport (dérive la ventilation).
+  prise_en_charge_taux: number | null;
+  exoneration_motif: string | null;
+  transport_partage_refuse: boolean;
+  /** Approxime « soins itératifs » (course rattachée à une prescription). */
+  has_prescription: boolean;
 }
 
 export interface ChauffeurOption {
@@ -43,6 +49,10 @@ interface RawRow {
   pickup_address: string;
   dropoff_address: string;
   driver_id: string;
+  prise_en_charge_taux: number | null;
+  exoneration_motif: string | null;
+  transport_partage_refuse: boolean | null;
+  prescription_id: string | null;
   patient: { nom: string; prenom: string } | null;
   driver: { nom_affichage: string } | null;
 }
@@ -74,6 +84,7 @@ export async function getCoursesFacturables(
     .from('rides')
     .select(
       `id, ended_at, tarif_amount_eur, pickup_address, dropoff_address, driver_id,
+       prise_en_charge_taux, exoneration_motif, transport_partage_refuse, prescription_id,
        patient:patients!inner(nom, prenom),
        driver:drivers(nom_affichage)`,
     )
@@ -101,6 +112,10 @@ export async function getCoursesFacturables(
     patient_nom: r.patient?.nom ?? '',
     patient_prenom: r.patient?.prenom ?? '',
     driver_nom: r.driver?.nom_affichage ?? '',
+    prise_en_charge_taux: r.prise_en_charge_taux ?? null,
+    exoneration_motif: r.exoneration_motif ?? null,
+    transport_partage_refuse: r.transport_partage_refuse ?? false,
+    has_prescription: r.prescription_id != null,
   }));
 }
 

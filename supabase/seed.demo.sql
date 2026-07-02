@@ -1124,3 +1124,125 @@ begin
 
   raise notice 'Seed démo SEED-01 : 7 courses facturation (paiements variés + accompagnant/TPMR)';
 end$$;
+
+-- =============================================================================
+-- FACTURATION bloc 1 — régime de prise en charge + refus transport partagé.
+-- =============================================================================
+-- Cas de démonstration pour la ventilation assurance/patient et le refus de
+-- transport partagé (colonnes rides prise_en_charge_taux / exoneration_motif /
+-- transport_partage_refuse — migration 20260613000020). Bloc AUTONOME : ne
+-- dépend pas d'un autre seed (crée son propre prescripteur + prescription).
+-- Idempotent (ON CONFLICT ; compteur prescription piloté par le trigger).
+--
+-- AMBIGUÏTÉ SIGNALÉE : la mention conventionnelle de refus et la bascule « hors
+-- tiers payant » concernent en toute rigueur la facture PATIENT (paiement
+-- direct), tandis que la facture existante est le récapitulatif CGSS (tiers
+-- payant). Pour rendre la règle DÉMONTRABLE sur le document existant, la course
+-- refusée reste listée (paiement non_concerne) et la ventilation la marque hors
+-- TP (part assurance = 0) avec la mention. La bascule effective du statut de
+-- paiement vers le direct relève du workflow runtime (hors de ce seed).
+-- =============================================================================
+do $$
+declare
+  org_id        uuid := '00000000-0000-0000-0000-000000000001';
+  regulateur_id uuid := '00000000-0000-0000-0000-000000000020';
+  vergoz_id     uuid := '22222222-0000-0000-0000-000000000011';
+  maillot_id    uuid := '22222222-0000-0000-0000-000000000012';
+  vehicle_dacia uuid := '33333333-0000-0000-0000-000000000011';
+  presc_fact    uuid := '88888888-0000-0000-0000-000000000009';
+  patient_ids   uuid[];
+  d1 timestamptz := date_trunc('day', now() - interval '1 day');
+begin
+  select array_agg(id order by nom) into patient_ids
+    from public.patients where organization_id = org_id and archive = false;
+  if patient_ids is null or array_length(patient_ids, 1) < 10 then
+    raise notice 'Facturation bloc 1 : moins de 10 patients, bloc régime ignoré.';
+    return;
+  end if;
+
+  -- Prescripteur + prescription autonomes (soins itératifs = dialyse).
+  insert into public.prescribers (id, organization_id, nom, type, finess, created_by)
+  values ('55555555-0000-0000-0000-000000000009', org_id,
+          'Cabinet néphrologie facturation', 'etablissement', '970000009', regulateur_id)
+  on conflict (id) do update set nom = excluded.nom, type = excluded.type, finess = excluded.finess;
+
+  insert into public.prescriptions
+    (id, organization_id, patient_id, prescriber_id, numero, date_prescription,
+     trajets_autorises, date_expiration, statut, created_by)
+  values (presc_fact, org_id, patient_ids[1], '55555555-0000-0000-0000-000000000009',
+          'BT-FACT-2026-0009', current_date - 15, 30, current_date + 120, 'active', regulateur_id)
+  on conflict (id) do update set
+    patient_id = excluded.patient_id, prescriber_id = excluded.prescriber_id,
+    numero = excluded.numero, date_prescription = excluded.date_prescription,
+    trajets_autorises = excluded.trajets_autorises, date_expiration = excluded.date_expiration;
+
+  -- Courses couvrant les cas de régime. Toutes en tiers payant (non_concerne)
+  -- pour apparaître sur le récapitulatif CGSS et y montrer la ventilation.
+  insert into public.rides (
+    id, organization_id, patient_id, driver_id, vehicle_id, prescription_id,
+    pickup_address, dropoff_address, scheduled_at, status, transport_mode, urgency,
+    started_at, ended_at, tarif_amount_eur, tarif_source,
+    payment_status, payment_method, payment_received_at,
+    prise_en_charge_taux, exoneration_motif, transport_partage_refuse,
+    created_at, created_by, updated_by
+  ) values
+    -- 100 % ALD en lien (dialyse) — pas de ticket modérateur
+    ('44444444-0000-0000-0000-000000000070', org_id, patient_ids[1], vergoz_id, vehicle_dacia, presc_fact,
+     '12 Rue de Paris, 97400 Saint-Denis', 'Centre de dialyse Nord, 97400 Saint-Denis',
+     d1 + interval '7 hours', 'terminee', 'taxi_conventionne', 'programmee',
+     d1 + interval '7 hours 5 minutes', d1 + interval '7 hours 30 minutes',
+     30.00, 'manuel', 'non_concerne', null, null,
+     100, 'ald_lien', false, d1, regulateur_id, regulateur_id),
+    -- Taux général 65 % — ticket modérateur à la charge du patient
+    ('44444444-0000-0000-0000-000000000071', org_id, patient_ids[3], maillot_id, vehicle_dacia, null,
+     '8 Chemin des Frangipaniers, 97419 La Possession', 'Cabinet médical, 97460 Saint-Paul',
+     d1 + interval '9 hours', 'terminee', 'taxi_conventionne', 'programmee',
+     d1 + interval '9 hours 5 minutes', d1 + interval '9 hours 35 minutes',
+     40.00, 'manuel', 'non_concerne', null, null,
+     null, null, false, d1, regulateur_id, regulateur_id),
+    -- 100 % accident du travail (franchise NON exonérée)
+    ('44444444-0000-0000-0000-000000000072', org_id, patient_ids[5], vergoz_id, vehicle_dacia, null,
+     '23 Rue Maréchal Leclerc, 97400 Saint-Denis', 'Clinique Saint-Vincent, 97400 Saint-Denis',
+     d1 + interval '11 hours', 'terminee', 'taxi_conventionne', 'programmee',
+     d1 + interval '11 hours 5 minutes', d1 + interval '11 hours 40 minutes',
+     36.00, 'manuel', 'non_concerne', null, null,
+     100, 'accident_travail', false, d1, regulateur_id, regulateur_id),
+    -- CSS : 100 %, franchise exonérée, hors périmètre du refus de partage
+    ('44444444-0000-0000-0000-000000000073', org_id, patient_ids[7], maillot_id, vehicle_dacia, null,
+     '45 Avenue de la République, 97410 Saint-Pierre', 'CHU Sud, 97448 Saint-Pierre',
+     d1 + interval '13 hours', 'terminee', 'taxi_conventionne', 'programmee',
+     d1 + interval '13 hours 5 minutes', d1 + interval '13 hours 45 minutes',
+     34.00, 'manuel', 'non_concerne', null, null,
+     100, 'css', false, d1, regulateur_id, regulateur_id),
+    -- Refus de transport partagé sur soins itératifs (prescription liée) → hors
+    -- tiers payant + mention. Reste listée pour démontrer la règle (voir en-tête).
+    ('44444444-0000-0000-0000-000000000074', org_id, patient_ids[1], vergoz_id, vehicle_dacia, presc_fact,
+     '12 Rue de Paris, 97400 Saint-Denis', 'Centre de dialyse Nord, 97400 Saint-Denis',
+     d1 + interval '15 hours', 'terminee', 'taxi_conventionne', 'programmee',
+     d1 + interval '15 hours 5 minutes', d1 + interval '15 hours 30 minutes',
+     30.00, 'manuel', 'non_concerne', null, null,
+     null, null, true, d1, regulateur_id, regulateur_id),
+    -- ALD NON exonérante : 55 %
+    ('44444444-0000-0000-0000-000000000075', org_id, patient_ids[8], maillot_id, vehicle_dacia, null,
+     'Foyer Les Avirons, 97425 Les Avirons', 'Laboratoire, 97490 Sainte-Clotilde',
+     d1 + interval '16 hours', 'terminee', 'taxi_conventionne', 'programmee',
+     d1 + interval '16 hours 5 minutes', d1 + interval '16 hours 40 minutes',
+     38.00, 'manuel', 'non_concerne', null, null,
+     55, null, false, d1, regulateur_id, regulateur_id)
+  on conflict (id) do update set
+    scheduled_at = excluded.scheduled_at, created_at = excluded.created_at,
+    pickup_address = excluded.pickup_address, dropoff_address = excluded.dropoff_address,
+    transport_mode = excluded.transport_mode, urgency = excluded.urgency,
+    driver_id = excluded.driver_id, vehicle_id = excluded.vehicle_id,
+    prescription_id = excluded.prescription_id,
+    status = excluded.status, started_at = excluded.started_at, ended_at = excluded.ended_at,
+    tarif_amount_eur = excluded.tarif_amount_eur, tarif_source = excluded.tarif_source,
+    payment_status = excluded.payment_status, payment_method = excluded.payment_method,
+    payment_received_at = excluded.payment_received_at,
+    prise_en_charge_taux = excluded.prise_en_charge_taux,
+    exoneration_motif = excluded.exoneration_motif,
+    transport_partage_refuse = excluded.transport_partage_refuse,
+    archive = false, cancel_motif = null, notes_regulateur = null;
+
+  raise notice 'Facturation bloc 1 : 6 courses régime (100%% ALD, 65%%, AT, CSS, refus partagé, 55%%)';
+end$$;

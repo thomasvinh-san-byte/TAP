@@ -1,4 +1,5 @@
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
+import { MENTION_REFUS_TRANSPORT_PARTAGE } from '@tap/pricing';
 import type { FactureAggregate } from '@/app/(admin)/admin/facturation/_lib/aggregate-facture';
 
 /**
@@ -128,6 +129,20 @@ export function FactureCgssPdf({
               <Text style={styles.cPatient} />
               <Text style={[styles.cMontant, styles.bold]}>{fmtEur(aggregate.totalEur)}</Text>
             </View>
+
+            {/* Facturation bloc 1 : ventilation part assurance / part patient */}
+            <View style={{ marginTop: 8 }}>
+              <Text style={styles.bold}>Ventilation conventionnelle (dérivée)</Text>
+              <Text>Part assurance maladie : {fmtEur(aggregate.totalAssuranceEur)}</Text>
+              <Text>Part patient (ticket modérateur) : {fmtEur(aggregate.totalPatientEur)}</Text>
+              <Text>Franchise médicale : {fmtEur(aggregate.totalFranchiseEur)}</Text>
+            </View>
+
+            {aggregate.hasRefusTransportPartage && (
+              <Text style={{ marginTop: 6, fontStyle: 'italic' }}>
+                {MENTION_REFUS_TRANSPORT_PARTAGE}.
+              </Text>
+            )}
           </>
         )}
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { AlertTriangle, Download, FileText } from 'lucide-react';
+import { MENTION_REFUS_TRANSPORT_PARTAGE } from '@tap/pricing';
 import { DataTable, type DataTableColumn } from '@/components/data-table';
 import { aggregateFacture } from '../_lib/aggregate-facture';
 import type { CourseFacturable } from '../_lib/queries-facturation';
@@ -69,7 +70,14 @@ export function FactureApercu({
   mois: string;
   chauffeurId?: string;
 }): JSX.Element {
-  const { totalEur, count } = aggregateFacture(courses);
+  const {
+    totalEur,
+    count,
+    totalAssuranceEur,
+    totalPatientEur,
+    totalFranchiseEur,
+    hasRefusTransportPartage,
+  } = aggregateFacture(courses);
   const empty = count === 0;
   const pdfHref =
     `/api/admin/facturation/pdf?mois=${encodeURIComponent(mois)}` +
@@ -84,6 +92,29 @@ export function FactureApercu({
           <span className="text-muted-foreground font-normal"> · Total estimé </span>
           <span className="font-mono tabular-nums">{formatEur(totalEur)}</span>
         </p>
+
+        {count > 0 && (
+          <div className="border-border bg-muted/30 grid grid-cols-1 gap-8 rounded-md border p-12 text-sm sm:grid-cols-3">
+            <div>
+              <div className="text-muted-foreground text-xs">Part assurance</div>
+              <div className="font-mono tabular-nums">{formatEur(totalAssuranceEur)}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground text-xs">Part patient (ticket modérateur)</div>
+              <div className="font-mono tabular-nums">{formatEur(totalPatientEur)}</div>
+            </div>
+            <div>
+              <div className="text-muted-foreground text-xs">Franchise médicale</div>
+              <div className="font-mono tabular-nums">{formatEur(totalFranchiseEur)}</div>
+            </div>
+          </div>
+        )}
+
+        {hasRefusTransportPartage && (
+          <p className="text-muted-foreground border-border rounded-md border border-dashed p-8 text-xs italic">
+            {MENTION_REFUS_TRANSPORT_PARTAGE}.
+          </p>
+        )}
 
         <DataTable
           columns={COLUMNS}
