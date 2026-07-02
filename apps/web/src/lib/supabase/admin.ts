@@ -1,3 +1,8 @@
+// SÉCU-01 : garde de compilation « côté serveur uniquement ». Toute tentative
+// d'importer ce fichier (qui manie la clé service_role, bypass RLS) depuis un
+// composant navigateur échoue au build — la protection est au point central,
+// pas seulement dans la discipline des appelants.
+import 'server-only';
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@tap/database';
 
