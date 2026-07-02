@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Calendar, History } from 'lucide-react';
 import { Calendar, Gauge } from 'lucide-react';
 import { PageHeader } from '@/components/page-header';
 import { cn } from '@/lib/utils';
@@ -41,6 +42,7 @@ export default async function ConduitePage() {
           <div className="w-full max-w-[320px] space-y-12 pt-12">
             <EnablePushButton />
             <ReportBreakdownButton />
+            <HistoriqueLink className="justify-center" />
             <KilometrageLink className="justify-center" />
           </div>
         </div>
@@ -63,6 +65,7 @@ export default async function ConduitePage() {
               <span className="text-muted-foreground text-sm tabular-nums">
                 {rides.length} course{rides.length > 1 ? 's' : ''}
               </span>
+              <HistoriqueLink />
               <KilometrageLink />
             </div>
           }
@@ -78,6 +81,10 @@ export default async function ConduitePage() {
   );
 }
 
+function HistoriqueLink({ className }: { className?: string }): JSX.Element {
+  return (
+    <Link
+      href="/historique"
 function KilometrageLink({ className }: { className?: string }): JSX.Element {
   return (
     <Link
@@ -89,6 +96,8 @@ function KilometrageLink({ className }: { className?: string }): JSX.Element {
         className,
       )}
     >
+      <History className="h-16 w-16" aria-hidden />
+      Historique
       <Gauge className="h-16 w-16" aria-hidden />
       Kilométrage
     </Link>
