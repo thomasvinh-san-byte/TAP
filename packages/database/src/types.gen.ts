@@ -2143,6 +2143,7 @@ export type Database = {
           dropoff_lng: number | null
           dropoff_postal_code: string | null
           ended_at: string | null
+          exoneration_motif: string | null
           id: string
           no_show_at: string | null
           no_show_motif: string | null
@@ -2161,6 +2162,7 @@ export type Database = {
           pickup_lng: number | null
           pickup_postal_code: string | null
           prescription_id: string | null
+          prise_en_charge_taux: number | null
           ride_group_id: string | null
           ride_recurrence_id: string | null
           scheduled_at: string
@@ -2169,6 +2171,7 @@ export type Database = {
           tarif_amount_eur: number | null
           tarif_source: string | null
           transport_mode: Database["public"]["Enums"]["ride_transport_mode"]
+          transport_partage_refuse: boolean
           updated_at: string
           updated_by: string
           urgency: Database["public"]["Enums"]["ride_urgency"]
@@ -2190,6 +2193,7 @@ export type Database = {
           dropoff_lng?: number | null
           dropoff_postal_code?: string | null
           ended_at?: string | null
+          exoneration_motif?: string | null
           id?: string
           no_show_at?: string | null
           no_show_motif?: string | null
@@ -2208,6 +2212,7 @@ export type Database = {
           pickup_lng?: number | null
           pickup_postal_code?: string | null
           prescription_id?: string | null
+          prise_en_charge_taux?: number | null
           ride_group_id?: string | null
           ride_recurrence_id?: string | null
           scheduled_at: string
@@ -2216,6 +2221,7 @@ export type Database = {
           tarif_amount_eur?: number | null
           tarif_source?: string | null
           transport_mode?: Database["public"]["Enums"]["ride_transport_mode"]
+          transport_partage_refuse?: boolean
           updated_at?: string
           updated_by: string
           urgency?: Database["public"]["Enums"]["ride_urgency"]
@@ -2237,6 +2243,7 @@ export type Database = {
           dropoff_lng?: number | null
           dropoff_postal_code?: string | null
           ended_at?: string | null
+          exoneration_motif?: string | null
           id?: string
           no_show_at?: string | null
           no_show_motif?: string | null
@@ -2255,6 +2262,7 @@ export type Database = {
           pickup_lng?: number | null
           pickup_postal_code?: string | null
           prescription_id?: string | null
+          prise_en_charge_taux?: number | null
           ride_group_id?: string | null
           ride_recurrence_id?: string | null
           scheduled_at?: string
@@ -2263,6 +2271,7 @@ export type Database = {
           tarif_amount_eur?: number | null
           tarif_source?: string | null
           transport_mode?: Database["public"]["Enums"]["ride_transport_mode"]
+          transport_partage_refuse?: boolean
           updated_at?: string
           updated_by?: string
           urgency?: Database["public"]["Enums"]["ride_urgency"]
