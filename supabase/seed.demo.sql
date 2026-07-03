@@ -791,33 +791,41 @@ end $$;
 -- coordonnées 974 réelles. Horodatages variés pour illustrer le rendu
 -- « vu il y a X min » côté cockpit. Source 'demo' uniquement — non
 -- purgée par la rétention 90j tant qu'on est en démo.
+-- SEED-02 (correctif) : ce bloc positionnait des chauffeurs mais visait un
+-- `organization_id` inexistant (un UUID de PATIENT) et un `driver_id` = id de la
+-- table drivers, alors que `driver_positions.driver_id` référence profiles(id)
+-- (l'identité Auth du chauffeur). Sous ON_ERROR_STOP=1, il AVORTAIT le seed —
+-- tout ce qui suit (donneurs d'ordres, prescripteurs, prescriptions, courses de
+-- facturation) n'était donc jamais appliqué en preview. Corrigé : société de
+-- démo réelle + identités Auth des chauffeurs + IDs déterministes (idempotent).
 do $$
 declare
-  org_id uuid := '11111111-0000-0000-0000-000000000001';
-  drv1 uuid := '22222222-0000-0000-0000-000000000011';
-  drv2 uuid := '22222222-0000-0000-0000-000000000012';
-  drv3 uuid := '22222222-0000-0000-0000-000000000013';
+  org_id  uuid := '00000000-0000-0000-0000-000000000001';
+  -- driver_positions.driver_id -> profiles(id) = identité Auth du chauffeur
+  prof1 uuid := '00000000-0000-0000-0000-000000000030'; -- Vergoz Jean
+  prof2 uuid := '00000000-0000-0000-0000-000000000031'; -- Maillot André
+  prof3 uuid := '00000000-0000-0000-0000-000000000032'; -- Boyer Sophie
 begin
-  -- Position fraîche (< 5 min) — apparait en couleur primary
   insert into public.driver_positions
-    (organization_id, driver_id, ride_id, lat, lng, accuracy, captured_at, source)
+    (id, organization_id, driver_id, ride_id, lat, lng, accuracy, captured_at, source)
   values
-    (org_id, drv1, null, -20.8825, 55.4513, 18.0, now() - interval '2 minutes', 'demo')
-  on conflict do nothing;
-
-  -- Position légèrement ancienne (15 min) — couleur muted, label « 15 min »
-  insert into public.driver_positions
-    (organization_id, driver_id, ride_id, lat, lng, accuracy, captured_at, source)
-  values
-    (org_id, drv2, null, -21.3393, 55.4781, 22.0, now() - interval '15 minutes', 'demo')
-  on conflict do nothing;
-
-  -- Position ancienne (1 h 20) — label « 1 h20 »
-  insert into public.driver_positions
-    (organization_id, driver_id, ride_id, lat, lng, accuracy, captured_at, source)
-  values
-    (org_id, drv3, null, -21.0344, 55.7124, 35.0, now() - interval '80 minutes', 'demo')
-  on conflict do nothing;
+    -- Position fraîche (< 5 min) — apparait en couleur primary
+    ('99999999-0000-0000-0000-0000000000a1', org_id, prof1, null,
+     -20.8825, 55.4513, 18.0, now() - interval '2 minutes', 'demo'),
+    -- Position légèrement ancienne (15 min) — couleur muted, label « 15 min »
+    ('99999999-0000-0000-0000-0000000000a2', org_id, prof2, null,
+     -21.3393, 55.4781, 22.0, now() - interval '15 minutes', 'demo'),
+    -- Position ancienne (1 h 20) — label « 1 h20 »
+    ('99999999-0000-0000-0000-0000000000a3', org_id, prof3, null,
+     -21.0344, 55.7124, 35.0, now() - interval '80 minutes', 'demo')
+  on conflict (id) do update set
+    organization_id = excluded.organization_id,
+    driver_id = excluded.driver_id,
+    lat = excluded.lat,
+    lng = excluded.lng,
+    accuracy = excluded.accuracy,
+    captured_at = excluded.captured_at,
+    source = excluded.source;
 end$$;
 
 -- Donneurs d'ordres B2B fictifs 974 (CdC §5.5, DEC-148) — pour que le
@@ -1245,4 +1253,511 @@ begin
     archive = false, cancel_motif = null, notes_regulateur = null;
 
   raise notice 'Facturation bloc 1 : 6 courses régime (100%% ALD, 65%%, AT, CSS, refus partagé, 55%%)';
+end$$;
+
+-- =============================================================================
+-- SEED-02 — Volume jusqu'à la cible VIS-03 + écrans vivants + multi-sociétés.
+-- =============================================================================
+-- Objectif : exercer CHAQUE écran en navigation (démo + recette manuelle).
+-- Cible documentée (REQUIREMENTS VIS-03/VIS-05) : 3 sociétés, 6 chauffeurs,
+-- ~30 patients (visibles dans /patients de la société de démo), ~50
+-- prescriptions, ~200 courses passées ; écrans météo / replanification /
+-- cockpit non vides.
+--
+-- Toutes données FICTIVES 974. Idempotent (IDs déterministes + ON CONFLICT).
+-- Dates glissantes (relatives à now()/current_date) préservées.
+--
+-- DÉPENDANCES DE SCHÉMA NOTÉES (non ajoutées — ce lot PEUPLE, ne migre pas) :
+--   • Aucune colonne « société multi-régulateur simultané » : le multi-société
+--     est porté par organization_id + comptes distincts (seed.sql), suffisant.
+--   • Réaffectation : pas de colonne d'état « en cours de réaffectation » — la
+--     matière de /replanification vient d'un incident ouvert + courses futures
+--     du chauffeur en panne (déduites au runtime), pas d'un flag stocké.
+-- Préfixes IDs : patients société 1 = 11111111-…011..030 ; sociétés 2/3 =
+--   …201.. / …301.. ; prescriptions générées = 88888888-…100.. ; courses
+--   historiques générées = 44444444-…100..264 ; exceptions cockpit = …080..085 ;
+--   météo = 12121212-… ; incident = 13131313-… .
+-- =============================================================================
+
+-- -----------------------------------------------------------------------------
+-- Société 1 — 20 patients supplémentaires (→ 30 au total, cible VIS-05)
+-- -----------------------------------------------------------------------------
+do $$
+declare
+  org_id        uuid := '00000000-0000-0000-0000-000000000001';
+  regulateur_id uuid := '00000000-0000-0000-0000-000000000020';
+begin
+  insert into public.patients (
+    id, organization_id, prenom, nom, date_naissance, genre,
+    telephone, telephone_normalized, adresse_ligne1, code_postal, ville,
+    canal_contact_prefere, consentement_sms, consentement_sms_at,
+    archive, created_at, updated_at, created_by, updated_by
+  ) values
+    ('11111111-0000-0000-0000-000000000011', org_id, 'Willy', 'Técher', '1951-04-11', 'M',
+     '06 92 99 00 11', '0692990011', '11 Rue du Marché', '97440', 'Saint-André', 'sms', true, now(), false, now(), now(), regulateur_id, regulateur_id),
+    ('11111111-0000-0000-0000-000000000012', org_id, 'Nadia', 'Fontaine', '1963-09-27', 'F',
+     '02 62 99 00 12', '0262990012', '12 Allée des Filaos', '97460', 'Saint-Paul', 'appel', false, null, false, now(), now(), regulateur_id, regulateur_id),
+    ('11111111-0000-0000-0000-000000000013', org_id, 'Steve', 'Rivière', '1978-01-05', 'M',
+     '06 92 99 00 13', '0692990013', '13 Rue Hubert Delisle', '97430', 'Le Tampon', 'sms', true, now(), false, now(), now(), regulateur_id, regulateur_id),
+    ('11111111-0000-0000-0000-000000000014', org_id, 'Josée', 'Lauret', '1946-11-19', 'F',
+     '02 62 99 00 14', '0262990014', '14 Chemin Canal', '97450', 'Saint-Louis', 'aucun', false, null, false, now(), now(), regulateur_id, regulateur_id),
+    ('11111111-0000-0000-0000-000000000015', org_id, 'Daniel', 'Gonthier', '1959-06-30', 'M',
+     '06 92 99 00 15', '0692990015', '15 Rue de l''Église', '97470', 'Saint-Benoît', 'sms', true, now(), false, now(), now(), regulateur_id, regulateur_id),
+    ('11111111-0000-0000-0000-000000000016', org_id, 'Marie-Thérèse', 'Turpin', '1954-03-08', 'F',
+     '02 62 99 00 16', '0262990016', '16 Route de Duparc', '97438', 'Sainte-Marie', 'appel', false, null, false, now(), now(), regulateur_id, regulateur_id),
+    ('11111111-0000-0000-0000-000000000017', org_id, 'Émile', 'Nativel', '1943-07-22', 'M',
+     '06 92 99 00 17', '0692990017', '17 Rue du Stade', '97441', 'Sainte-Suzanne', 'sms', true, now(), false, now(), now(), regulateur_id, regulateur_id),
+    ('11111111-0000-0000-0000-000000000018', org_id, 'Sylviane', 'Cadet', '1967-12-14', 'F',
+     '02 62 99 00 18', '0262990018', '18 Quai Ouest', '97420', 'Le Port', 'sms', true, now(), false, now(), now(), regulateur_id, regulateur_id),
+    ('11111111-0000-0000-0000-000000000019', org_id, 'Roland', 'Ledoux', '1950-02-02', 'M',
+     '06 92 99 00 19', '0692990019', '19 Rue Sainte-Thérèse', '97419', 'La Possession', 'appel', false, null, false, now(), now(), regulateur_id, regulateur_id),
+    ('11111111-0000-0000-0000-000000000020', org_id, 'Fabienne', 'Vienne', '1972-08-09', 'F',
+     '02 62 99 00 20', '0262990020', '20 Chemin Bras-Panon', '97412', 'Bras-Panon', 'sms', true, now(), false, now(), now(), regulateur_id, regulateur_id),
+    ('11111111-0000-0000-0000-000000000021', org_id, 'Georges', 'Sery', '1948-05-16', 'M',
+     '06 92 99 00 21', '0692990021', '21 Rue de la Plage', '97429', 'Petite-Île', 'aucun', false, null, false, now(), now(), regulateur_id, regulateur_id),
+    ('11111111-0000-0000-0000-000000000022', org_id, 'Monique', 'Barret', '1961-10-25', 'F',
+     '02 62 99 00 22', '0262990022', '22 Route de la Plaine', '97480', 'Saint-Joseph', 'sms', true, now(), false, now(), now(), regulateur_id, regulateur_id),
+    ('11111111-0000-0000-0000-000000000023', org_id, 'Alain', 'Ponama', '1957-01-30', 'M',
+     '06 92 99 00 23', '0692990023', '23 Rue du Sel', '97427', 'L''Étang-Salé', 'appel', false, null, false, now(), now(), regulateur_id, regulateur_id),
+    ('11111111-0000-0000-0000-000000000024', org_id, 'Huguette', 'Élisabeth', '1944-04-04', 'F',
+     '02 62 99 00 24', '0262990024', '24 Rue des Avirons', '97425', 'Les Avirons', 'sms', true, now(), false, now(), now(), regulateur_id, regulateur_id),
+    ('11111111-0000-0000-0000-000000000025', org_id, 'Jean-Claude', 'Sinaman', '1969-11-11', 'M',
+     '06 92 99 00 25', '0692990025', '25 Chemin Entre-Deux', '97414', 'Entre-Deux', 'sms', true, now(), false, now(), now(), regulateur_id, regulateur_id),
+    ('11111111-0000-0000-0000-000000000026', org_id, 'Brigitte', 'Hoareau', '1976-06-18', 'F',
+     '02 62 99 00 26', '0262990026', '26 Route de Sainte-Rose', '97439', 'Sainte-Rose', 'appel', false, null, false, now(), now(), regulateur_id, regulateur_id),
+    ('11111111-0000-0000-0000-000000000027', org_id, 'Maxime', 'Ah-Nieme', '1952-09-01', 'M',
+     '06 92 99 00 27', '0692990027', '27 Rue du Cirque', '97413', 'Cilaos', 'sms', true, now(), false, now(), now(), regulateur_id, regulateur_id),
+    ('11111111-0000-0000-0000-000000000028', org_id, 'Corinne', 'Fruteau', '1965-03-23', 'F',
+     '02 62 99 00 28', '0262990028', '28 Rue François de Mahy', '97410', 'Saint-Pierre', 'sms', true, now(), false, now(), now(), regulateur_id, regulateur_id),
+    ('11111111-0000-0000-0000-000000000029', org_id, 'Patrice', 'Legros', '1940-12-07', 'M',
+     '06 92 99 00 29', '0692990029', '29 Rue Jean Chatel', '97400', 'Saint-Denis', 'aucun', false, null, false, now(), now(), regulateur_id, regulateur_id),
+    ('11111111-0000-0000-0000-000000000030', org_id, 'Sabine', 'Vitry', '1974-07-13', 'F',
+     '02 62 99 00 30', '0262990030', '30 Route de Bois-de-Nèfles', '97490', 'Sainte-Clotilde', 'sms', true, now(), false, now(), now(), regulateur_id, regulateur_id)
+  on conflict (id) do nothing;
+
+  raise notice 'SEED-02 : 20 patients société 1 supplementaires (total 30)';
+end$$;
+
+-- -----------------------------------------------------------------------------
+-- Société 1 — ~44 prescriptions générées (→ ~50 avec l'existant) + variété
+-- (active / série / proche échéance / expirée), réparties sur les 30 patients.
+-- -----------------------------------------------------------------------------
+-- trajets_consommes / statut : statut posé à l'insert (aucune course
+-- consommatrice rattachée à ces bons générés → le trigger de comptage ne les
+-- touche pas), NON réinitialisé au ré-seed (mêmes règles que SEED-01).
+do $$
+declare
+  org_id         uuid := '00000000-0000-0000-0000-000000000001';
+  regulateur_id  uuid := '00000000-0000-0000-0000-000000000020';
+  prescriber_ids uuid[] := array[
+    '55555555-0000-0000-0000-000000000001',
+    '55555555-0000-0000-0000-000000000002',
+    '55555555-0000-0000-0000-000000000003']::uuid[];
+  motifs text[] := array[
+    'Dialyse itérative', 'Séances de kinésithérapie',
+    'Consultation de suivi spécialisé', 'Cure de chimiothérapie',
+    'Transport post-hospitalisation', 'Rééducation fonctionnelle',
+    'Consultation ophtalmologique', 'Soins de néphrologie'];
+  modes text[] := array['taxi_conventionne', 'tpmr', 'vsl'];
+  patient_ids uuid[];
+  np int;
+begin
+  select array_agg(id order by nom) into patient_ids
+    from public.patients where organization_id = org_id and archive = false;
+  np := array_length(patient_ids, 1);
+  if np is null or np < 30 then
+    raise notice 'SEED-02 prescriptions : moins de 30 patients, bloc ignoré.';
+    return;
+  end if;
+
+  insert into public.prescriptions (
+    id, organization_id, patient_id, prescriber_id, numero, date_prescription,
+    motif, type_transport, trajets_autorises, date_expiration, statut, created_by
+  )
+  select
+    ('88888888-0000-0000-0000-' || lpad((100 + g)::text, 12, '0'))::uuid,
+    org_id,
+    patient_ids[1 + (g % np)],
+    prescriber_ids[1 + (g % 3)],
+    'BT-DEMO-GEN-' || lpad((100 + g)::text, 4, '0'),
+    current_date - (10 + (g % 200)),
+    motifs[1 + (g % array_length(motifs, 1))],
+    modes[1 + (g % 3)],
+    4 + (g % 26),
+    case
+      when g % 10 = 0 then current_date - (5 + (g % 20))     -- expirée
+      when g % 10 = 1 then current_date + (3 + (g % 4))      -- proche échéance
+      else current_date + (60 + (g % 120))                  -- confortable
+    end,
+    (case when g % 10 = 0 then 'expiree' else 'active' end)::public.prescription_status,
+    regulateur_id
+  from generate_series(0, 43) as g
+  on conflict (id) do update set
+    patient_id = excluded.patient_id,
+    prescriber_id = excluded.prescriber_id,
+    numero = excluded.numero,
+    date_prescription = excluded.date_prescription,
+    motif = excluded.motif,
+    type_transport = excluded.type_transport,
+    trajets_autorises = excluded.trajets_autorises,
+    date_expiration = excluded.date_expiration;
+
+  raise notice 'SEED-02 : 44 prescriptions générées société 1 (variété active/expirée/proche échéance)';
+end$$;
+
+-- -----------------------------------------------------------------------------
+-- Société 1 — 165 courses historiques générées (→ ~200 avec l'existant)
+-- Toutes terminées + tarifées, réparties sur ~88 jours (KPIs, historique,
+-- pagination /courses). ~1/6 encaissées (caisse) ; le reste tiers payant CGSS.
+-- Dates glissantes (relatives à now()). Reset exhaustif au ré-seed.
+-- -----------------------------------------------------------------------------
+do $$
+declare
+  org_id        uuid := '00000000-0000-0000-0000-000000000001';
+  regulateur_id uuid := '00000000-0000-0000-0000-000000000020';
+  driver_ids  uuid[] := array[
+    '22222222-0000-0000-0000-000000000011',
+    '22222222-0000-0000-0000-000000000012',
+    '22222222-0000-0000-0000-000000000013']::uuid[];
+  vehicle_ids uuid[] := array[
+    '33333333-0000-0000-0000-000000000011',
+    '33333333-0000-0000-0000-000000000012',
+    '33333333-0000-0000-0000-000000000013']::uuid[];
+  modes public.ride_transport_mode[] := array['taxi_conventionne', 'tpmr', 'vsl']::public.ride_transport_mode[];
+  methods text[] := array['cash', 'cb', 'cheque'];
+  pickups text[] := array[
+    '12 Rue de Paris, 97400 Saint-Denis',
+    '45 Avenue de la République, 97410 Saint-Pierre',
+    '8 Chemin des Frangipaniers, 97419 La Possession',
+    '23 Rue Maréchal Leclerc, 97400 Saint-Denis',
+    'Résidence Les Mascareignes, 97432 Ravine-des-Cabris',
+    'EHPAD Les Lataniers, 97419 La Possession',
+    '17 Rue Sainte-Anne, 97410 Saint-Pierre',
+    '5 Boulevard Lacaussade, 97400 Saint-Denis'];
+  dropoffs text[] := array[
+    'CHU Félix Guyon, 97400 Saint-Denis',
+    'Centre de dialyse Sud, 97410 Saint-Pierre',
+    'CHU Sud Saint-Pierre, 97448 Saint-Pierre',
+    'Clinique Saint-Vincent, 97400 Saint-Denis',
+    'Centre de rééducation, 97430 Le Tampon',
+    'Cabinet médical, 97460 Saint-Paul',
+    'Centre de dialyse Nord, 97400 Saint-Denis',
+    'Laboratoire d''analyses, 97490 Sainte-Clotilde'];
+  patient_ids uuid[];
+  np int;
+begin
+  select array_agg(id order by nom) into patient_ids
+    from public.patients where organization_id = org_id and archive = false;
+  np := array_length(patient_ids, 1);
+  if np is null or np < 30 then
+    raise notice 'SEED-02 courses historiques : moins de 30 patients, bloc ignoré.';
+    return;
+  end if;
+
+  insert into public.rides (
+    id, organization_id, patient_id, driver_id, vehicle_id,
+    pickup_address, dropoff_address, scheduled_at, status, transport_mode, urgency,
+    started_at, ended_at, tarif_amount_eur, tarif_source,
+    payment_status, payment_method, payment_received_at,
+    created_at, created_by, updated_by
+  )
+  select
+    ('44444444-0000-0000-0000-' || lpad((100 + g)::text, 12, '0'))::uuid,
+    org_id,
+    patient_ids[1 + (g % np)],
+    driver_ids[1 + (g % 3)],
+    vehicle_ids[1 + (g % 3)],
+    pickups[1 + (g % 8)],
+    dropoffs[1 + (g % 8)],
+    sched.scheduled_at,
+    'terminee', modes[1 + (g % 3)], 'programmee',
+    sched.scheduled_at + interval '5 minutes',
+    sched.scheduled_at + interval '5 minutes' + ((20 + (g % 60)) || ' minutes')::interval,
+    ((15 + (g % 45))::numeric + 0.50),
+    'manuel',
+    case when g % 6 = 0 then 'encaisse' else 'non_concerne' end,
+    case when g % 6 = 0 then methods[1 + (g % 3)] else null end,
+    case when g % 6 = 0
+      then sched.scheduled_at + interval '5 minutes' + ((20 + (g % 60)) || ' minutes')::interval
+      else null end,
+    sched.scheduled_at - interval '1 day',
+    regulateur_id, regulateur_id
+  from generate_series(0, 164) as g
+  cross join lateral (
+    select date_trunc('day', now())
+      - ((1 + (g % 88)) || ' days')::interval
+      + ((7 + (g % 10)) || ' hours')::interval as scheduled_at
+  ) as sched
+  on conflict (id) do update set
+    patient_id = excluded.patient_id,
+    driver_id = excluded.driver_id,
+    vehicle_id = excluded.vehicle_id,
+    pickup_address = excluded.pickup_address,
+    dropoff_address = excluded.dropoff_address,
+    scheduled_at = excluded.scheduled_at,
+    status = excluded.status,
+    transport_mode = excluded.transport_mode,
+    urgency = excluded.urgency,
+    started_at = excluded.started_at,
+    ended_at = excluded.ended_at,
+    tarif_amount_eur = excluded.tarif_amount_eur,
+    tarif_source = excluded.tarif_source,
+    payment_status = excluded.payment_status,
+    payment_method = excluded.payment_method,
+    payment_received_at = excluded.payment_received_at,
+    created_at = excluded.created_at,
+    archive = false, cancel_motif = null, notes_regulateur = null;
+
+  raise notice 'SEED-02 : 165 courses historiques générées société 1 (dont ~1/6 encaissées)';
+end$$;
+
+-- -----------------------------------------------------------------------------
+-- Écrans vivants — météo (alerte active) + replanification (incident ouvert)
+-- + cockpit (retard / absence patient / urgence). Société 1.
+-- -----------------------------------------------------------------------------
+do $$
+declare
+  org_id        uuid := '00000000-0000-0000-0000-000000000001';
+  regulateur_id uuid := '00000000-0000-0000-0000-000000000020';
+  vergoz_id     uuid := '22222222-0000-0000-0000-000000000011';
+  maillot_id    uuid := '22222222-0000-0000-0000-000000000012';
+  boyer_id      uuid := '22222222-0000-0000-0000-000000000013';
+  vehicle_dacia uuid := '33333333-0000-0000-0000-000000000011';
+  vehicle_master uuid := '33333333-0000-0000-0000-000000000012';
+  patient_ids uuid[];
+begin
+  select array_agg(id order by nom) into patient_ids
+    from public.patients where organization_id = org_id and archive = false;
+  if patient_ids is null or array_length(patient_ids, 1) < 10 then
+    raise notice 'SEED-02 écrans vivants : moins de 10 patients, bloc ignoré.';
+    return;
+  end if;
+
+  -- Météo : une alerte ACTIVE (bandeau cockpit + écran /meteo démontrables).
+  insert into public.weather_alerts (id, organization_id, active, motif, zone, activated_by, activated_at)
+  values ('12121212-0000-0000-0000-000000000001', org_id, true,
+          'Vigilance cyclonique orange (démo) — anticiper annulations dialyse', 'Nord et Est',
+          regulateur_id, now() - interval '3 hours')
+  on conflict (id) do update set
+    active = true, motif = excluded.motif, zone = excluded.zone,
+    activated_by = excluded.activated_by, activated_at = excluded.activated_at,
+    deactivated_at = null;
+
+  -- Replanification : un incident OUVERT (panne) sur Boyer → ses courses futures
+  -- deviennent réaffectables sur /replanification.
+  insert into public.driver_incidents (id, organization_id, driver_id, type, nature, lieu, started_at, created_by)
+  values ('13131313-0000-0000-0000-000000000001', org_id, boyer_id, 'panne_vehicule',
+          'Voyant moteur allumé + perte de puissance', 'RN2 hauteur Sainte-Marie',
+          now() - interval '40 minutes', regulateur_id)
+  on conflict (id) do update set
+    type = excluded.type, nature = excluded.nature, lieu = excluded.lieu,
+    started_at = excluded.started_at, resolved_at = null;
+
+  -- Cockpit : cas d'exception (retard / absence patient / urgence) + du nominal.
+  insert into public.rides (
+    id, organization_id, patient_id, driver_id, vehicle_id,
+    pickup_address, dropoff_address, scheduled_at, status, transport_mode, urgency,
+    no_show_at, no_show_motif, cancel_motif,
+    created_at, created_by, updated_by
+  ) values
+    -- Retard : course assignée dont l'heure est déjà passée, non démarrée.
+    ('44444444-0000-0000-0000-000000000080', org_id, patient_ids[3], vergoz_id, vehicle_dacia,
+     '12 Rue de Paris, 97400 Saint-Denis', 'CHU Félix Guyon, 97400 Saint-Denis',
+     now() - interval '75 minutes', 'assignee', 'taxi_conventionne', 'programmee',
+     null, null, null, now() - interval '5 hours', regulateur_id, regulateur_id),
+    -- Absence patient : no-show du jour.
+    ('44444444-0000-0000-0000-000000000081', org_id, patient_ids[4], maillot_id, vehicle_dacia,
+     '45 Avenue de la République, 97410 Saint-Pierre', 'Centre de dialyse Sud, 97410 Saint-Pierre',
+     date_trunc('day', now()) + interval '8 hours', 'annulee_patient', 'taxi_conventionne', 'programmee',
+     now() - interval '30 minutes', 'Patient absent au point de rendez-vous (3 appels sans réponse).',
+     'Absence patient (no-show)', now() - interval '6 hours', regulateur_id, regulateur_id),
+    -- Urgence immédiate non affectée (à traiter).
+    ('44444444-0000-0000-0000-000000000082', org_id, patient_ids[5], null, null,
+     'CHU Félix Guyon, 97400 Saint-Denis', 'Clinique Sainte-Clotilde, 97490 Saint-Denis',
+     now() + interval '45 minutes', 'validee', 'taxi_conventionne', 'immediate',
+     null, null, null, now() - interval '10 minutes', regulateur_id, regulateur_id),
+    -- Urgence programmée urgente, affectée (Boyer — recoupe l'incident ci-dessus).
+    ('44444444-0000-0000-0000-000000000083', org_id, patient_ids[6], boyer_id, vehicle_master,
+     'EHPAD Les Lataniers, 97419 La Possession', 'CHU Sud Saint-Pierre, 97448 Saint-Pierre',
+     now() + interval '2 hours', 'assignee', 'tpmr', 'urgente',
+     null, null, null, now() - interval '20 minutes', regulateur_id, regulateur_id)
+  on conflict (id) do update set
+    patient_id = excluded.patient_id,
+    driver_id = excluded.driver_id,
+    vehicle_id = excluded.vehicle_id,
+    pickup_address = excluded.pickup_address,
+    dropoff_address = excluded.dropoff_address,
+    scheduled_at = excluded.scheduled_at,
+    status = excluded.status,
+    transport_mode = excluded.transport_mode,
+    urgency = excluded.urgency,
+    started_at = null, ended_at = null,
+    tarif_amount_eur = null, tarif_source = null,
+    payment_status = 'non_concerne', payment_method = null, payment_received_at = null,
+    no_show_at = excluded.no_show_at, no_show_motif = excluded.no_show_motif,
+    cancel_motif = excluded.cancel_motif,
+    archive = false, notes_regulateur = null;
+
+  raise notice 'SEED-02 : écrans vivants société 1 (météo active + incident ouvert + 4 exceptions cockpit)';
+end$$;
+
+-- -----------------------------------------------------------------------------
+-- Sociétés 2 et 3 — référentiels isolés (patients, chauffeurs, véhicules,
+-- prescripteurs, prescriptions, courses). Démontrent l'ISOLATION : chaque
+-- donnée porte l'organization_id de sa société, created_by = un compte de
+-- cette société. 6 chauffeurs au total (3 société 1 + 2 société 2 + 1 société 3).
+-- -----------------------------------------------------------------------------
+do $$
+declare
+  -- Société 2
+  org2  uuid := '00000000-0000-0000-0000-000000000002';
+  dir2  uuid := '00000000-0000-0000-0000-000000000210';
+  reg2  uuid := '00000000-0000-0000-0000-000000000220';
+  prof2a uuid := '00000000-0000-0000-0000-000000000230';
+  prof2b uuid := '00000000-0000-0000-0000-000000000231';
+  -- Société 3
+  org3  uuid := '00000000-0000-0000-0000-000000000003';
+  dir3  uuid := '00000000-0000-0000-0000-000000000310';
+  reg3  uuid := '00000000-0000-0000-0000-000000000320';
+  prof3a uuid := '00000000-0000-0000-0000-000000000330';
+begin
+  -- Patients société 2 (6) et société 3 (4).
+  insert into public.patients (
+    id, organization_id, prenom, nom, date_naissance, genre,
+    telephone, telephone_normalized, adresse_ligne1, code_postal, ville,
+    canal_contact_prefere, consentement_sms, consentement_sms_at,
+    archive, created_at, updated_at, created_by, updated_by
+  ) values
+    ('11111111-0000-0000-0000-000000000201', org2, 'Yolande', 'Grondin', '1953-02-17', 'F',
+     '02 62 35 00 01', '0262350001', '1 Rue Augustin Archambaud', '97410', 'Saint-Pierre', 'sms', true, now(), false, now(), now(), reg2, reg2),
+    ('11111111-0000-0000-0000-000000000202', org2, 'Bruno', 'Hoarau', '1961-05-29', 'M',
+     '06 92 35 00 02', '0692350002', '2 Rue François de Mahy', '97410', 'Saint-Pierre', 'appel', false, null, false, now(), now(), reg2, reg2),
+    ('11111111-0000-0000-0000-000000000203', org2, 'Isabelle', 'Payet', '1970-08-03', 'F',
+     '02 62 27 00 03', '0262270003', '3 Rue Hubert Delisle', '97430', 'Le Tampon', 'sms', true, now(), false, now(), now(), reg2, reg2),
+    ('11111111-0000-0000-0000-000000000204', org2, 'Serge', 'Dijoux', '1948-10-21', 'M',
+     '06 92 27 00 04', '0692270004', '4 Rue du Général de Gaulle', '97430', 'Le Tampon', 'aucun', false, null, false, now(), now(), reg2, reg2),
+    ('11111111-0000-0000-0000-000000000205', org2, 'Nathalie', 'Robert', '1966-12-09', 'F',
+     '02 62 35 00 05', '0262350005', '5 Boulevard Hubert Delisle', '97410', 'Saint-Pierre', 'sms', true, now(), false, now(), now(), reg2, reg2),
+    ('11111111-0000-0000-0000-000000000206', org2, 'Thierry', 'Lebon', '1957-03-14', 'M',
+     '06 92 29 00 06', '0692290006', '6 Rue de la Plage', '97429', 'Petite-Île', 'sms', true, now(), false, now(), now(), reg2, reg2),
+    ('11111111-0000-0000-0000-000000000301', org3, 'Ginette', 'Maillot', '1951-07-07', 'F',
+     '02 62 45 00 01', '0262450001', '1 Rue de la Compagnie', '97460', 'Saint-Paul', 'sms', true, now(), false, now(), now(), reg3, reg3),
+    ('11111111-0000-0000-0000-000000000302', org3, 'Pascal', 'Boyer', '1963-11-30', 'M',
+     '06 92 45 00 02', '0692450002', '2 Route du Théâtre', '97460', 'Saint-Paul', 'appel', false, null, false, now(), now(), reg3, reg3),
+    ('11111111-0000-0000-0000-000000000303', org3, 'Sandrine', 'Vergoz', '1975-04-25', 'F',
+     '02 62 42 00 03', '0262420003', '3 Rue Jeanne d''Arc', '97420', 'Le Port', 'sms', true, now(), false, now(), now(), reg3, reg3),
+    ('11111111-0000-0000-0000-000000000304', org3, 'Michel', 'Bègue', '1945-09-12', 'M',
+     '06 92 42 00 04', '0692420004', '4 Quai Ouest', '97420', 'Le Port', 'aucun', false, null, false, now(), now(), reg3, reg3)
+  on conflict (id) do nothing;
+
+  -- Chauffeurs (2 + 1) et véhicules (2 + 1).
+  insert into public.drivers (
+    id, organization_id, profile_id, nom_affichage, telephone, numero_licence, type_permis, actif, created_by
+  ) values
+    ('22222222-0000-0000-0000-000000000021', org2, prof2a, 'Técher Willy', '0692350021', 'LIC-974-021', '{taxi}'::text[], true, dir2),
+    ('22222222-0000-0000-0000-000000000022', org2, prof2b, 'Fontaine Nadia', '0692350022', 'LIC-974-022', '{taxi,tpmr}'::text[], true, dir2),
+    ('22222222-0000-0000-0000-000000000031', org3, prof3a, 'Rivière Steve', '0692450031', 'LIC-974-031', '{taxi}'::text[], true, dir3)
+  on conflict (id) do update set profile_id = excluded.profile_id;
+
+  insert into public.vehicles (
+    id, organization_id, immatriculation, marque, modele, type, places_assises, places_tpmr, actif, created_by
+  ) values
+    ('33333333-0000-0000-0000-000000000021', org2, 'MN-021-OP', 'Dacia', 'Jogger', 'taxi_conventionne', 4, null, true, dir2),
+    ('33333333-0000-0000-0000-000000000022', org2, 'QR-022-ST', 'Renault', 'Trafic', 'tpmr', 6, 1, true, dir2),
+    ('33333333-0000-0000-0000-000000000031', org3, 'UV-031-WX', 'Citroën', 'SpaceTourer', 'vsl', 3, null, true, dir3)
+  on conflict (id) do nothing;
+
+  -- Prescripteurs (1 + 1).
+  insert into public.prescribers (id, organization_id, nom, prenom, type, rpps, specialite, actif, created_by)
+  values
+    ('55555555-0000-0000-0000-000000000021', org2, 'Hoarau', 'Denis', 'medecin', '10000000021', 'Médecine générale', true, reg2),
+    ('55555555-0000-0000-0000-000000000031', org3, 'Payet', 'Sylvie', 'medecin', '10000000031', 'Néphrologie', true, reg3)
+  on conflict (id) do update set nom = excluded.nom, prenom = excluded.prenom, type = excluded.type,
+    rpps = excluded.rpps, specialite = excluded.specialite, actif = excluded.actif, archive = false, archive_at = null;
+
+  -- Prescriptions (3 société 2 + 2 société 3).
+  insert into public.prescriptions (
+    id, organization_id, patient_id, prescriber_id, numero, date_prescription,
+    motif, type_transport, trajets_autorises, date_expiration, statut, created_by
+  ) values
+    ('88888888-0000-0000-0000-000000000201', org2, '11111111-0000-0000-0000-000000000201', '55555555-0000-0000-0000-000000000021',
+     'BT-B-2026-0001', current_date - 25, 'Dialyse itérative', 'taxi_conventionne', 20, current_date + 90, 'active', reg2),
+    ('88888888-0000-0000-0000-000000000202', org2, '11111111-0000-0000-0000-000000000203', '55555555-0000-0000-0000-000000000021',
+     'BT-B-2026-0002', current_date - 12, 'Consultation de suivi', 'taxi_conventionne', 4, current_date + 150, 'active', reg2),
+    ('88888888-0000-0000-0000-000000000203', org2, '11111111-0000-0000-0000-000000000205', '55555555-0000-0000-0000-000000000021',
+     'BT-B-2025-0009', current_date - 200, 'Cure thermale', 'tpmr', 6, current_date - 20, 'expiree', reg2),
+    ('88888888-0000-0000-0000-000000000301', org3, '11111111-0000-0000-0000-000000000301', '55555555-0000-0000-0000-000000000031',
+     'BT-C-2026-0001', current_date - 18, 'Séances de kinésithérapie', 'taxi_conventionne', 10, current_date + 5, 'active', reg3),
+    ('88888888-0000-0000-0000-000000000302', org3, '11111111-0000-0000-0000-000000000303', '55555555-0000-0000-0000-000000000031',
+     'BT-C-2026-0002', current_date - 8, 'Soins de néphrologie', 'taxi_conventionne', 20, current_date + 120, 'active', reg3)
+  on conflict (id) do update set
+    patient_id = excluded.patient_id, prescriber_id = excluded.prescriber_id, numero = excluded.numero,
+    date_prescription = excluded.date_prescription, motif = excluded.motif, type_transport = excluded.type_transport,
+    trajets_autorises = excluded.trajets_autorises, date_expiration = excluded.date_expiration;
+
+  -- Courses (6 société 2 + 4 société 3) : historiques terminées + du jour, pour
+  -- que les cockpits/listes/facturation de ces sociétés ne soient pas vides.
+  insert into public.rides (
+    id, organization_id, patient_id, driver_id, vehicle_id,
+    pickup_address, dropoff_address, scheduled_at, status, transport_mode, urgency,
+    started_at, ended_at, tarif_amount_eur, tarif_source,
+    payment_status, payment_method, payment_received_at,
+    created_at, created_by, updated_by
+  ) values
+    ('44444444-0000-0000-0000-000000000301', org2, '11111111-0000-0000-0000-000000000201', '22222222-0000-0000-0000-000000000021', '33333333-0000-0000-0000-000000000021',
+     '1 Rue Augustin Archambaud, 97410 Saint-Pierre', 'Centre de dialyse Sud, 97410 Saint-Pierre',
+     date_trunc('day', now() - interval '2 days') + interval '7 hours', 'terminee', 'taxi_conventionne', 'programmee',
+     date_trunc('day', now() - interval '2 days') + interval '7 hours 5 minutes', date_trunc('day', now() - interval '2 days') + interval '7 hours 30 minutes',
+     19.00, 'manuel', 'non_concerne', null, null, now() - interval '2 days', reg2, reg2),
+    ('44444444-0000-0000-0000-000000000302', org2, '11111111-0000-0000-0000-000000000202', '22222222-0000-0000-0000-000000000022', '33333333-0000-0000-0000-000000000022',
+     '2 Rue François de Mahy, 97410 Saint-Pierre', 'CHU Sud Saint-Pierre, 97448 Saint-Pierre',
+     date_trunc('day', now() - interval '1 day') + interval '10 hours', 'terminee', 'tpmr', 'programmee',
+     date_trunc('day', now() - interval '1 day') + interval '10 hours 5 minutes', date_trunc('day', now() - interval '1 day') + interval '11 hours',
+     41.00, 'manuel', 'encaisse', 'cb', date_trunc('day', now() - interval '1 day') + interval '11 hours', now() - interval '1 day', reg2, reg2),
+    ('44444444-0000-0000-0000-000000000303', org2, '11111111-0000-0000-0000-000000000203', '22222222-0000-0000-0000-000000000021', '33333333-0000-0000-0000-000000000021',
+     '3 Rue Hubert Delisle, 97430 Le Tampon', 'Dialyse Sud Le Tampon, 97430 Le Tampon',
+     date_trunc('day', now()) + interval '8 hours', 'assignee', 'taxi_conventionne', 'programmee',
+     null, null, null, 'manuel', 'non_concerne', null, null, now() - interval '4 hours', reg2, reg2),
+    ('44444444-0000-0000-0000-000000000304', org2, '11111111-0000-0000-0000-000000000205', '22222222-0000-0000-0000-000000000022', '33333333-0000-0000-0000-000000000022',
+     '5 Boulevard Hubert Delisle, 97410 Saint-Pierre', 'Cabinet de kinésithérapie, 97410 Saint-Pierre',
+     date_trunc('day', now()) + interval '14 hours', 'validee', 'tpmr', 'programmee',
+     null, null, null, 'manuel', 'non_concerne', null, null, now() - interval '3 hours', reg2, reg2),
+    ('44444444-0000-0000-0000-000000000305', org2, '11111111-0000-0000-0000-000000000204', '22222222-0000-0000-0000-000000000021', '33333333-0000-0000-0000-000000000021',
+     '4 Rue du Général de Gaulle, 97430 Le Tampon', 'Laboratoire, 97410 Saint-Pierre',
+     date_trunc('day', now() + interval '1 day') + interval '9 hours', 'assignee', 'taxi_conventionne', 'programmee',
+     null, null, null, 'manuel', 'non_concerne', null, null, now() - interval '2 hours', reg2, reg2),
+    ('44444444-0000-0000-0000-000000000306', org2, '11111111-0000-0000-0000-000000000206', '22222222-0000-0000-0000-000000000022', '33333333-0000-0000-0000-000000000022',
+     '6 Rue de la Plage, 97429 Petite-Île', 'CHU Sud Saint-Pierre, 97448 Saint-Pierre',
+     date_trunc('day', now() - interval '5 days') + interval '13 hours', 'terminee', 'tpmr', 'programmee',
+     date_trunc('day', now() - interval '5 days') + interval '13 hours 5 minutes', date_trunc('day', now() - interval '5 days') + interval '14 hours',
+     45.00, 'manuel', 'non_concerne', null, null, now() - interval '5 days', reg2, reg2),
+    ('44444444-0000-0000-0000-000000000321', org3, '11111111-0000-0000-0000-000000000301', '22222222-0000-0000-0000-000000000031', '33333333-0000-0000-0000-000000000031',
+     '1 Rue de la Compagnie, 97460 Saint-Paul', 'CH Gabriel Martin, 97460 Saint-Paul',
+     date_trunc('day', now() - interval '1 day') + interval '9 hours', 'terminee', 'taxi_conventionne', 'programmee',
+     date_trunc('day', now() - interval '1 day') + interval '9 hours 5 minutes', date_trunc('day', now() - interval '1 day') + interval '9 hours 40 minutes',
+     23.00, 'manuel', 'encaisse', 'cash', date_trunc('day', now() - interval '1 day') + interval '9 hours 40 minutes', now() - interval '1 day', reg3, reg3),
+    ('44444444-0000-0000-0000-000000000322', org3, '11111111-0000-0000-0000-000000000302', '22222222-0000-0000-0000-000000000031', '33333333-0000-0000-0000-000000000031',
+     '2 Route du Théâtre, 97460 Saint-Paul', 'Cabinet médical, 97460 Saint-Paul',
+     date_trunc('day', now()) + interval '10 hours', 'assignee', 'taxi_conventionne', 'programmee',
+     null, null, null, 'manuel', 'non_concerne', null, null, now() - interval '3 hours', reg3, reg3),
+    ('44444444-0000-0000-0000-000000000323', org3, '11111111-0000-0000-0000-000000000303', '22222222-0000-0000-0000-000000000031', '33333333-0000-0000-0000-000000000031',
+     '3 Rue Jeanne d''Arc, 97420 Le Port', 'Clinique Jeanne d''Arc, 97420 Le Port',
+     date_trunc('day', now()) + interval '15 hours', 'validee', 'taxi_conventionne', 'programmee',
+     null, null, null, 'manuel', 'non_concerne', null, null, now() - interval '1 hour', reg3, reg3),
+    ('44444444-0000-0000-0000-000000000324', org3, '11111111-0000-0000-0000-000000000304', '22222222-0000-0000-0000-000000000031', '33333333-0000-0000-0000-000000000031',
+     '4 Quai Ouest, 97420 Le Port', 'CHU Félix Guyon, 97400 Saint-Denis',
+     date_trunc('day', now() - interval '3 days') + interval '8 hours', 'terminee', 'taxi_conventionne', 'programmee',
+     date_trunc('day', now() - interval '3 days') + interval '8 hours 5 minutes', date_trunc('day', now() - interval '3 days') + interval '9 hours 15 minutes',
+     33.00, 'manuel', 'non_concerne', null, null, now() - interval '3 days', reg3, reg3)
+  on conflict (id) do update set
+    patient_id = excluded.patient_id, driver_id = excluded.driver_id, vehicle_id = excluded.vehicle_id,
+    pickup_address = excluded.pickup_address, dropoff_address = excluded.dropoff_address,
+    scheduled_at = excluded.scheduled_at, status = excluded.status, transport_mode = excluded.transport_mode,
+    urgency = excluded.urgency, started_at = excluded.started_at, ended_at = excluded.ended_at,
+    tarif_amount_eur = excluded.tarif_amount_eur, tarif_source = excluded.tarif_source,
+    payment_status = excluded.payment_status, payment_method = excluded.payment_method,
+    payment_received_at = excluded.payment_received_at, created_at = excluded.created_at,
+    archive = false, cancel_motif = null, notes_regulateur = null;
+
+  raise notice 'SEED-02 : sociétés 2 et 3 (10 patients, 3 chauffeurs, 3 véhicules, 2 prescripteurs, 5 prescriptions, 10 courses)';
 end$$;
