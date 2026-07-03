@@ -64,6 +64,20 @@ Les items « Phase de résolution : Passe 2 (Phase 04) » référencés ci-desso
 - Phase de résolution : V1.5 ou upgrade `@supabase/ssr` compatible 4 generics
 - Workaround : casts explicites avec commentaires.
 
+> **Rectification 2026-07-03 (doc, cf. DEC-155 amendée + registre §5)** — ce snapshot est
+> périmé et son diagnostic est inexact. (1) **Chiffre** : après les lots 09.01 (épinglage du
+> client + retrait des `.from()`) et 09.02 (finition), il reste **seize `as never` au total
+> dans `apps/web/src`, dont treize sur des charges utiles d'écriture** (pas « 3 endroits »).
+> (2) **Cause** : ce n'est PAS un « skew de version » entre `@supabase/ssr` et
+> `@supabase/postgrest-js` — `postgrest-js` n'est pas une dépendance de `ssr`, il est
+> **embarqué par le client principal `@supabase/supabase-js`** (épinglé pour stabiliser la
+> LECTURE et l'auth). (3) **Déblocage** : « upgrade `@supabase/ssr` » n'est pas neutre —
+> **monter naïvement les versions du client aggrave** (casse l'inférence en lecture EN PLUS
+> de l'écriture, d'après les rapports amont officiels) ; la version épinglée est un point
+> d'équilibre. Les casts d'écriture restants sont sûrs à l'exécution (contraintes BDD +
+> isolation org) : **constat stable à laisser en place**, à revisiter seulement lors d'un
+> chantier couche de rendu / auth. À rafraîchir au prochain `gsd-map-codebase`.
+
 ### Types Supabase générés non régénérés
 
 **TODO(types) dans 5 fichiers :**
