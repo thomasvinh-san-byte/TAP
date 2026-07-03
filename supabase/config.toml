@@ -48,6 +48,22 @@ enable_manual_linking = false
 minimum_password_length = 12
 password_requirements = "lower_upper_letters_digits_symbols"
 
+# Limitation native du fournisseur d'auth (par origine réseau / IP, par tranche
+# de 5 minutes). Rendue EXPLICITE et versionnée ici (« vérifier et resserrer »).
+# NOTE DE SÉCURITÉ : cette limite native est (a) par origine seulement — donc
+# insuffisante sous sortie réseau partagée (974) et contournable en variant
+# d'origine — et (b) connue pour ne pas toujours appliquer le seuil de façon
+# fiable. Elle n'est donc qu'un PLANCHER : la protection autoritaire est la
+# limitation APPLICATIVE par compte + origine (table public.login_attempts,
+# migration 20260613000022, appelée dans signInAction avant la vérification du
+# mot de passe). On garde un seuil par IP MODÉRÉ pour ne pas pénaliser les
+# utilisateurs légitimes derrière une même sortie réseau.
+[auth.rate_limit]
+# Connexions + inscriptions par IP et par 5 minutes.
+sign_in_sign_ups = 30
+# Vérifications de jeton (OTP, PKCE) par IP et par 5 minutes.
+token_verifications = 30
+
 [auth.email]
 enable_signup = true
 double_confirm_changes = true

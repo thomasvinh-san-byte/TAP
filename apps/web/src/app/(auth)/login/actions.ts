@@ -1,9 +1,11 @@
 'use server';
 
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 import { createClient } from '@/lib/supabase/server';
+import { checkLoginThrottle, recordLoginAttempt, type ThrottleResult } from './_lib/rate-limit';
 
 const signInSchema = z.object({
   email: z.string().trim().toLowerCase().email('Email invalide'),
@@ -14,6 +16,18 @@ const signInSchema = z.object({
 export type SignInState = {
   error?: string;
 };
+
+/**
+ * Origine réseau de la requête pour la limitation par origine. Tient compte des
+ * en-têtes transmis par l'infrastructure (proxy Vercel/Supabase). Valeur de
+ * repli neutre si absente (regroupe alors les requêtes sans IP connue).
+ */
+async function resolveClientIp(): Promise<string> {
+  const h = await headers();
+  const forwarded = h.get('x-forwarded-for');
+  if (forwarded) return forwarded.split(',')[0]?.trim() || 'unknown';
+  return h.get('x-real-ip') ?? 'unknown';
+}
 
 /**
  * Authentification email/mot de passe.
@@ -41,14 +55,44 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
     return { error: parsed.error.errors[0]?.message ?? 'Saisie invalide' };
   }
 
+  // Durcissement force brute : limitation applicative par compte ET par origine,
+  // AVANT toute vérification de mot de passe. Complète la limitation native (par
+  // origine seule) du fournisseur d'auth, insuffisante et peu fiable ici.
+  const ip = await resolveClientIp();
+
+  // Fail-open sur incident d'infra (indisponibilité de la table de tentatives) :
+  // on ne verrouille pas tout le monde ; la limitation native reste un plancher.
+  let throttle: ThrottleResult = { limited: false };
+  try {
+    throttle = await checkLoginThrottle({ email: parsed.data.email, ip });
+  } catch (e) {
+    console.error('[login] échec de la vérification de limitation (fail-open)', e);
+  }
+  if (throttle.limited) {
+    // Détail (dimension) au journal serveur uniquement, sans donnée personnelle.
+    console.warn(`[login] tentative refusée par limitation (dimension=${throttle.reason})`);
+    return { error: 'Trop de tentatives. Réessayez dans quelques minutes.' };
+  }
+
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({
     email: parsed.data.email,
     password: parsed.data.password,
   });
 
+  // Enregistre la tentative réellement effectuée (succès OU échec). On
+  // n'enregistre PAS les tentatives déjà bloquées ci-dessus (anti-DoS : la
+  // fenêtre draine). Best-effort : un échec d'écriture ne bloque pas la connexion.
+  try {
+    await recordLoginAttempt({ email: parsed.data.email, ip, success: !error });
+  } catch (e) {
+    console.error('[login] échec d’enregistrement de la tentative', e);
+  }
+
   if (error) {
-    return { error: 'Identifiants invalides ou compte inexistant.' };
+    // Message neutre : ne révèle ni l'existence du compte ni la cause exacte
+    // (anti-énumération). Détail éventuel au journal serveur uniquement.
+    return { error: 'Identifiants invalides.' };
   }
 
   // Open redirect protection : `next` doit commencer par `/`, pas par `//`.
