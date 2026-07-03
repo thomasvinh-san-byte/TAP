@@ -14,35 +14,9 @@ begin;
 
 select plan(11);
 
-insert into public.organizations (id, nom, ville, code_postal)
-values
-  ('11111111-1111-1111-1111-111111111111', 'Org Alpha', 'Saint-Denis', '97400'),
-  ('22222222-2222-2222-2222-222222222222', 'Org Bravo', 'Saint-Pierre', '97410');
-
-insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
-  email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
-values
-  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-   '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-   'alpha-dir@test.tap', crypt('test1234!', gen_salt('bf')),
-   now(), now(), now(), '{}'::jsonb, '{}'::jsonb),
-  ('cccccccc-cccc-cccc-cccc-cccccccccccc',
-   '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-   'alpha-reg@test.tap', crypt('test1234!', gen_salt('bf')),
-   now(), now(), now(), '{}'::jsonb, '{}'::jsonb),
-  ('dddddddd-dddd-dddd-dddd-dddddddddddd',
-   '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-   'bravo-dir@test.tap', crypt('test1234!', gen_salt('bf')),
-   now(), now(), now(), '{}'::jsonb, '{}'::jsonb);
-
-insert into public.profiles (id, organization_id, role, prenom, nom, email)
-values
-  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '11111111-1111-1111-1111-111111111111',
-   'dirigeant', 'Alpha', 'Dirigeant', 'alpha-dir@test.tap'),
-  ('cccccccc-cccc-cccc-cccc-cccccccccccc', '11111111-1111-1111-1111-111111111111',
-   'regulateur', 'Alpha', 'Régulateur', 'alpha-reg@test.tap'),
-  ('dddddddd-dddd-dddd-dddd-dddddddddddd', '22222222-2222-2222-2222-222222222222',
-   'dirigeant', 'Bravo', 'Dirigeant', 'bravo-dir@test.tap');
+-- Socle multi-tenant via la fabrique de preambule (migration
+-- 20260613000021_test_fixtures_factory). Identifiants figes inchanges.
+do $$ begin perform test_fixtures.setup(with_second_org => true); end $$;
 
 -- Donneurs d'ordres (FK requise) — 1 par org.
 insert into public.ordering_parties (id, organization_id, raison_sociale)

@@ -22,28 +22,9 @@ select plan(9);
 -- -----------------------------------------------------------------------------
 -- Fixtures : org Alpha + dirigeant + regulateur + patient + driver
 -- -----------------------------------------------------------------------------
-insert into public.organizations (id, nom, ville, code_postal)
-values
-  ('11111111-1111-1111-1111-111111111111', 'Org Alpha', 'Saint-Denis', '97400');
-
-insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
-  email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
-values
-  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-   '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-   'alpha-dir@test.tap', crypt('test1234!', gen_salt('bf')),
-   now(), now(), now(), '{}'::jsonb, '{}'::jsonb),
-  ('cccccccc-cccc-cccc-cccc-cccccccccccc',
-   '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-   'alpha-reg@test.tap', crypt('test1234!', gen_salt('bf')),
-   now(), now(), now(), '{}'::jsonb, '{}'::jsonb);
-
-insert into public.profiles (id, organization_id, role, prenom, nom, email)
-values
-  ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '11111111-1111-1111-1111-111111111111',
-   'dirigeant', 'Alpha', 'Dirigeant', 'alpha-dir@test.tap'),
-  ('cccccccc-cccc-cccc-cccc-cccccccccccc', '11111111-1111-1111-1111-111111111111',
-   'regulateur', 'Alpha', 'Régulateur', 'alpha-reg@test.tap');
+-- Socle multi-tenant via la fabrique de preambule (migration
+-- 20260613000021_test_fixtures_factory). Identifiants figes inchanges.
+do $$ begin perform test_fixtures.setup(); end $$;
 
 insert into public.patients
   (id, organization_id, nom, prenom, date_naissance, adresse_ligne1,
