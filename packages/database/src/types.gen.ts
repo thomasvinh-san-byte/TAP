@@ -842,6 +842,30 @@ export type Database = {
         }
         Relationships: []
       }
+      login_attempts: {
+        Row: {
+          attempted_at: string
+          id: string
+          identifier_hash: string
+          ip_hash: string
+          success: boolean
+        }
+        Insert: {
+          attempted_at?: string
+          id?: string
+          identifier_hash: string
+          ip_hash: string
+          success?: boolean
+        }
+        Update: {
+          attempted_at?: string
+          id?: string
+          identifier_hash?: string
+          ip_hash?: string
+          success?: boolean
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           alert_patient_no_show: boolean
@@ -2752,6 +2776,7 @@ export type Database = {
       purge_driver_positions: { Args: never; Returns: undefined }
       purge_internal_messages: { Args: never; Returns: undefined }
       purge_legal_request_attempts: { Args: never; Returns: undefined }
+      purge_login_attempts: { Args: never; Returns: undefined }
       recompute_prescription_status: {
         Args: { p_id: string }
         Returns: undefined
