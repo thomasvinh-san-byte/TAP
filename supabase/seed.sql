@@ -9,16 +9,39 @@
 -- -----------------------------------------------------------------------------
 -- Organization de démo
 -- -----------------------------------------------------------------------------
+-- SEED-02 (VIS-03) : trois sociétés fictives pour éprouver l'isolation et le
+-- volume. La société 1 reste la société de démonstration principale (comptes
+-- @demo.tap historiques) ; les sociétés 2 et 3 servent à MONTRER l'isolation
+-- (un régulateur d'une société ne voit jamais les données d'une autre).
 insert into public.organizations (id, nom, siret, ville, code_postal, telephone, email)
-values (
-  '00000000-0000-0000-0000-000000000001',
-  'TAP Démo Réunion',
-  '12345678901234',
-  'Saint-Denis',
-  '97400',
-  '0262000000',
-  'contact@demo.tap'
-)
+values
+  (
+    '00000000-0000-0000-0000-000000000001',
+    'TAP Démo Réunion',
+    '12345678901234',
+    'Saint-Denis',
+    '97400',
+    '0262000000',
+    'contact@demo.tap'
+  ),
+  (
+    '00000000-0000-0000-0000-000000000002',
+    'Transport Austral Sud',
+    '39876543200021',
+    'Saint-Pierre',
+    '97410',
+    '0262350000',
+    'contact@transport-austral.demo'
+  ),
+  (
+    '00000000-0000-0000-0000-000000000003',
+    'Cita Ouest Réunion',
+    null,
+    'Saint-Paul',
+    '97460',
+    '0262450000',
+    'contact@cita-ouest.demo'
+  )
 on conflict (id) do nothing;
 
 -- -----------------------------------------------------------------------------
@@ -132,6 +155,46 @@ begin
     'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
     'reg-demo@tap.test', 'demo1234!',
     org_id, 'regulateur', 'E2E', 'Régulatrice'
+  );
+
+  -- SEED-02 : comptes des sociétés 2 et 3 (isolation démontrable). Même mot de
+  -- passe demo1234!. Suffixes -b (société 2) / -c (société 3).
+  -- Société 2 — Transport Austral Sud (dirigeant, régulateur, 2 chauffeurs).
+  perform pg_temp.seed_demo_user(
+    '00000000-0000-0000-0000-000000000210',
+    'dirigeant-b@demo.tap', 'demo1234!',
+    '00000000-0000-0000-0000-000000000002', 'dirigeant', 'Dirigeant', 'Austral'
+  );
+  perform pg_temp.seed_demo_user(
+    '00000000-0000-0000-0000-000000000220',
+    'regulateur-b@demo.tap', 'demo1234!',
+    '00000000-0000-0000-0000-000000000002', 'regulateur', 'Régulateur', 'Austral'
+  );
+  perform pg_temp.seed_demo_user(
+    '00000000-0000-0000-0000-000000000230',
+    'chauffeur-b1@demo.tap', 'demo1234!',
+    '00000000-0000-0000-0000-000000000002', 'chauffeur', 'Técher', 'Willy'
+  );
+  perform pg_temp.seed_demo_user(
+    '00000000-0000-0000-0000-000000000231',
+    'chauffeur-b2@demo.tap', 'demo1234!',
+    '00000000-0000-0000-0000-000000000002', 'chauffeur', 'Fontaine', 'Nadia'
+  );
+  -- Société 3 — Cita Ouest Réunion (dirigeant, régulateur, 1 chauffeur).
+  perform pg_temp.seed_demo_user(
+    '00000000-0000-0000-0000-000000000310',
+    'dirigeant-c@demo.tap', 'demo1234!',
+    '00000000-0000-0000-0000-000000000003', 'dirigeant', 'Dirigeant', 'Cita'
+  );
+  perform pg_temp.seed_demo_user(
+    '00000000-0000-0000-0000-000000000320',
+    'regulateur-c@demo.tap', 'demo1234!',
+    '00000000-0000-0000-0000-000000000003', 'regulateur', 'Régulateur', 'Cita'
+  );
+  perform pg_temp.seed_demo_user(
+    '00000000-0000-0000-0000-000000000330',
+    'chauffeur-c1@demo.tap', 'demo1234!',
+    '00000000-0000-0000-0000-000000000003', 'chauffeur', 'Rivière', 'Steve'
   );
 end
 $$;
