@@ -37,8 +37,11 @@ async function getRidesToday(
   if (error) {
     console.error('[cockpit] Erreur chargement rides:', error);
   }
-  // TODO(audit D+A lot 3) : ce cast écrase le typage inféré. À remplacer par un
-  // type dérivé de Database['public']['Tables']['rides']['Row'] + joins.
+  // L'inférence des SELECT à embeds de `@supabase/postgrest-js` dégrade le retour
+  // en `GenericStringError[]` (limitation de typage connue, cf. CONCERNS.md et
+  // queries-facturation.ts) : on assertit vers le contrat `CockpitRide` (forme
+  // réelle garantie à l'exécution). Ce n'est PAS une régénération de types en
+  // attente — le cast reste requis tant que l'inférence des embeds ne remonte pas.
   return (data as CockpitRide[] | null) ?? [];
 }
 
