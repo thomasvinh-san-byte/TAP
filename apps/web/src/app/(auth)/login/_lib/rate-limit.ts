@@ -44,18 +44,15 @@ function ipHash(ip: string): string {
   return sha256(ip);
 }
 
-// TODO(types) : `login_attempts` (migration 20260613000022) est absente de
-// types.gen.ts jusqu'au prochain resync (workflow sync-types) → `as never` sur
-// `.from()`, à retirer au resync (même convention que ordering_parties, registre §5).
 async function countSince(column: 'identifier_hash' | 'ip_hash', hash: string): Promise<number> {
   const sb = createAdminClient();
   const since = new Date(Date.now() - WINDOW_MS).toISOString();
-  const res = (await sb
-    .from('login_attempts' as never)
+  const { count } = await sb
+    .from('login_attempts')
     .select('*', { count: 'exact', head: true })
     .eq(column, hash)
-    .gte('attempted_at', since)) as { count: number | null };
-  return res.count ?? 0;
+    .gte('attempted_at', since);
+  return count ?? 0;
 }
 
 export type ThrottleResult = { limited: boolean; reason?: 'account' | 'ip' };
@@ -87,10 +84,9 @@ export async function recordLoginAttempt(input: {
   success: boolean;
 }): Promise<void> {
   const sb = createAdminClient();
-  // TODO(types) : cast `as never` sur la table absente de types.gen.ts (voir countSince).
-  await sb.from('login_attempts' as never).insert({
+  await sb.from('login_attempts').insert({
     identifier_hash: identifierHash(input.email),
     ip_hash: ipHash(input.ip),
     success: input.success,
-  } as never);
+  });
 }
