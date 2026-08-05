@@ -5,8 +5,7 @@ import { useRouter } from 'next/navigation';
 import { CalendarX } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Field, RequiredFieldsLegend } from '@/components/form/field';
 import {
   Dialog,
   DialogContent,
@@ -49,27 +48,26 @@ export function WeatherCancelForm({ enabled }: { enabled: boolean }): JSX.Elemen
 
   return (
     <div className="border-border bg-card space-y-16 rounded-lg border p-16">
-      <div className="space-y-8">
-        <Label htmlFor="meteo-date">Journée à annuler</Label>
-        <Input
-          id="meteo-date"
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          disabled={!enabled}
-        />
-      </div>
-      <div className="space-y-8">
-        <Label htmlFor="meteo-cancel-zone">Zone (facultatif)</Label>
-        <Input
-          id="meteo-cancel-zone"
-          value={zone}
-          onChange={(e) => setZone(e.target.value)}
-          maxLength={120}
-          placeholder="Ex. Le Tampon — laisser vide pour toutes les zones"
-          disabled={!enabled}
-        />
-      </div>
+      <RequiredFieldsLegend />
+      <Field
+        id="meteo-date"
+        label="Journée à annuler"
+        required
+        type="date"
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
+        disabled={!enabled}
+      />
+      <Field
+        id="meteo-cancel-zone"
+        label="Zone"
+        value={zone}
+        onChange={(e) => setZone(e.target.value)}
+        maxLength={120}
+        placeholder="Ex. Le Tampon — laisser vide pour toutes les zones"
+        hint="Laisser vide pour toutes les zones."
+        disabled={!enabled}
+      />
       <Button
         type="button"
         variant="destructive"
