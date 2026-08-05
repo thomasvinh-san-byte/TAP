@@ -22,6 +22,11 @@ export interface PatientListItem {
   telephone: string | null;
   canal_contact_prefere: 'sms' | 'appel' | 'aucun';
   archive: boolean;
+  /** Domicile structuré (pré-remplissage adresse de prise en charge — EXPRESS). */
+  adresse_ligne1: string | null;
+  adresse_ligne2: string | null;
+  code_postal: string | null;
+  ville: string | null;
   /** ISO timestamp de la dernière course non archivée (≤ maintenant). */
   last_ride_at?: string | null;
   /** ISO timestamp de la prochaine course non archivée (> maintenant). */
@@ -67,7 +72,9 @@ export async function searchPatients(
   } else {
     const { data, error } = await supabase
       .from('patients_safe')
-      .select('id, nom, prenom, telephone, canal_contact_prefere, archive')
+      .select(
+        'id, nom, prenom, telephone, canal_contact_prefere, archive, adresse_ligne1, adresse_ligne2, code_postal, ville',
+      )
       .eq('archive', wantArchived)
       .order('nom', { ascending: true })
       .limit(20);
@@ -149,6 +156,10 @@ function toListItem(row: Partial<PatientSafeRow>): PatientListItem {
     canal_contact_prefere: (row.canal_contact_prefere ??
       'appel') as PatientListItem['canal_contact_prefere'],
     archive: row.archive ?? false,
+    adresse_ligne1: row.adresse_ligne1 ?? null,
+    adresse_ligne2: row.adresse_ligne2 ?? null,
+    code_postal: row.code_postal ?? null,
+    ville: row.ville ?? null,
   };
 }
 

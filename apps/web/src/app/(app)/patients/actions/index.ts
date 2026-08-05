@@ -11,6 +11,7 @@
  *   smart defaults mode + urgence depuis la dernière course du patient).
  */
 export * from './_existing';
+export * from './quick-create';
 export * from './get-ride-defaults';
 export * from './archive';
 export * from './recurrences';
