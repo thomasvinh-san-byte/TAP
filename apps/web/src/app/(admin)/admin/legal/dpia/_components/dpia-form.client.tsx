@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Field } from '@/components/form/field';
+import { Field, RequiredMark, RequiredFieldsLegend } from '@/components/form/field';
 import { FormSection, FormRow, FormActions } from '@/components/form/form-layout';
 import { DateFieldFr } from '@/components/date-field-fr.client';
 import { createDpiaAction, updateDpiaAction } from '../actions';
@@ -53,6 +53,7 @@ export function DpiaForm({ mode, dpiaId, onClose }: Props) {
         </SheetHeader>
 
         <form action={onSubmit} className="mt-24 space-y-24">
+          <RequiredFieldsLegend />
           <FormSection title="Identification">
             <Field
               id="title"
@@ -62,7 +63,10 @@ export function DpiaForm({ mode, dpiaId, onClose }: Props) {
               maxLength={200}
             />
             <div className="space-y-8">
-              <Label htmlFor="scope">Périmètre</Label>
+              <Label htmlFor="scope">
+                Périmètre
+                <RequiredMark />
+              </Label>
               <Textarea id="scope" name="scope" rows={2} required />
             </div>
           </FormSection>
@@ -98,7 +102,10 @@ export function DpiaForm({ mode, dpiaId, onClose }: Props) {
               />
             </div>
             <div className="space-y-8">
-              <Label htmlFor="residual_risk_level">Risque résiduel</Label>
+              <Label htmlFor="residual_risk_level">
+                Risque résiduel
+                <RequiredMark />
+              </Label>
               <select
                 id="residual_risk_level"
                 name="residual_risk_level"
@@ -119,16 +126,25 @@ export function DpiaForm({ mode, dpiaId, onClose }: Props) {
             </div>
             <FormRow>
               <div className="space-y-8">
-                <Label htmlFor="reviewed_at">Revue le</Label>
+                <Label htmlFor="reviewed_at">
+                  Revue le
+                  <RequiredMark />
+                </Label>
                 <DateFieldFr id="reviewed_at" name="reviewed_at" required />
               </div>
               <div className="space-y-8">
-                <Label htmlFor="next_review_at">Prochaine revue</Label>
+                <Label htmlFor="next_review_at">
+                  Prochaine revue
+                  <RequiredMark />
+                </Label>
                 <DateFieldFr id="next_review_at" name="next_review_at" required />
               </div>
             </FormRow>
             <div className="space-y-8">
-              <Label htmlFor="status">Statut</Label>
+              <Label htmlFor="status">
+                Statut
+                <RequiredMark />
+              </Label>
               <select id="status" name="status" required className={NATIVE_SELECT_CLASS}>
                 <option value="brouillon">Brouillon</option>
                 <option value="validee">Validée</option>
