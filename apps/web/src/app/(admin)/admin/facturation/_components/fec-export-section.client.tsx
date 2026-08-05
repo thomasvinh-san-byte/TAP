@@ -94,7 +94,12 @@ export function FecExportSection({ mois, siret }: Props): JSX.Element {
               placeholder="12345678900012"
               className="max-w-[220px] tabular-nums"
             />
-            <Button type="button" onClick={() => void saveSiret()} disabled={savingSiret}>
+            <Button
+              type="button"
+              variant="accent"
+              onClick={() => void saveSiret()}
+              disabled={savingSiret}
+            >
               {savingSiret ? 'Enregistrement…' : 'Enregistrer'}
             </Button>
             {currentSiret && (

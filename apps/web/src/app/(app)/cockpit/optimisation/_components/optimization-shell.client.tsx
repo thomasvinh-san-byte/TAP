@@ -161,7 +161,7 @@ export function OptimizationShell({ initialRides, date }: Props): JSX.Element {
 
           <div className="flex justify-end gap-12 pt-16">
             <Button
-              variant="default"
+              variant="accent"
               className="min-h-[44px]"
               onClick={() => setConfirmOpen(true)}
               disabled={!hasAccepted}

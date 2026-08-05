@@ -235,6 +235,7 @@ export function EndRideModal({ rideId, open, onOpenChange }: Props): JSX.Element
 
         <Button
           type="button"
+          variant="accent"
           onClick={submit}
           disabled={pending || !amount || hasPendingSync}
           className="h-14 w-full text-base font-semibold"

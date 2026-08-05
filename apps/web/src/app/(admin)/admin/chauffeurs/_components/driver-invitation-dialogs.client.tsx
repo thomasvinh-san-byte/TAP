@@ -160,6 +160,7 @@ export function DriverInvitationDialogs({
             </Button>
             <Button
               type="button"
+              variant="accent"
               onClick={() => void onResendConfirm()}
               disabled={isSubmitting}
               aria-busy={isSubmitting}

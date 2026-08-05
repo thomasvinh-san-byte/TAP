@@ -48,7 +48,7 @@ export function CguAcceptanceBanner({ currentVersion, acceptedVersion }: Props) 
             Lire les CGU
           </Link>
         </Button>
-        <Button size="sm" onClick={onAccept} disabled={pending}>
+        <Button variant="accent" size="sm" onClick={onAccept} disabled={pending}>
           {pending ? 'Enregistrement…' : 'Accepter'}
         </Button>
       </div>

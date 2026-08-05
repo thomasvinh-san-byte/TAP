@@ -116,7 +116,7 @@ export function RidePaymentPopover({
           >
             Annuler
           </Button>
-          <Button type="button" onClick={submit} disabled={pending}>
+          <Button type="button" variant="accent" onClick={submit} disabled={pending}>
             Confirmer
           </Button>
         </DialogFooter>

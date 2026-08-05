@@ -312,6 +312,7 @@ export function RecurrenceEditModal({
             </Button>
             <Button
               type="button"
+              variant="accent"
               onClick={() => setShowCascadeConfirm(true)}
               disabled={pending || days.length === 0}
             >

@@ -106,7 +106,7 @@ export function DpaPrefillReview({ fiches }: { fiches: DpaPrefillFiche[] }): JSX
         >
           Annuler
         </Button>
-        <Button onClick={handleInsert} disabled={pending || checkedCount === 0}>
+        <Button variant="accent" onClick={handleInsert} disabled={pending || checkedCount === 0}>
           {pending ? 'Insertion…' : `Insérer les ${checkedCount} fiches cochées`}
         </Button>
       </div>
