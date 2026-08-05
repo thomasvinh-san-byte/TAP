@@ -11,6 +11,7 @@
  * (suffixe `Z`), alors que l'aval attend une valeur avec DÉCALAGE LOCAL.
  */
 import { describe, it, expect } from 'vitest';
+import { rideExpressInputSchema } from '@tap/shared';
 import {
   SERVICE_START_HOUR,
   SERVICE_END_HOUR,
@@ -85,18 +86,22 @@ describe('combineDateTime', () => {
     expect(combineDateTime(null, null)).toBeNull();
   });
 
-  // CARACTÉRISATION (comportement ACTUEL) : sortie en TEMPS UNIVERSEL (`Z`).
-  // À La Réunion (UTC+4), 10:30 local → 06:30Z.
-  it('[actuel] combinaison valide → ISO UTC (Z)', () => {
+  // AMÉLIORÉ (commit 2) : sortie avec DÉCALAGE LOCAL Réunion (+04:00) au lieu du
+  // temps universel (`Z`). Même INSTANT qu'avant (06:30Z), mais heure murale
+  // explicite et indépendante du fuseau du poste. (Au commit 1, ce test attendait
+  // '2026-05-13T06:30:00.000Z' — correction volontaire du fuseau.)
+  it('[corrigé] combinaison valide → ISO à décalage local (+04:00), même instant', () => {
     const iso = combineDateTime(new Date(2026, 4, 13), new Date(0, 0, 0, 10, 30));
-    expect(iso).toBe('2026-05-13T06:30:00.000Z');
+    expect(iso).toBe('2026-05-13T10:30:00+04:00');
+    expect(new Date(iso!).getTime()).toBe(new Date('2026-05-13T06:30:00.000Z').getTime());
   });
 
-  // CARACTÉRISATION minuit : 00:30 local Réunion → veille 20:30Z (décalage -4h
-  // fait reculer d'un jour). Comportement réel constaté.
-  it('[actuel] minuit/limite : 00:30 local → veille 20:30Z', () => {
+  // Minuit : 00:30 reste le 13/05 en heure murale locale (plus de recul d'un jour
+  // dû à la conversion UTC) ; l'instant demeure identique (veille 20:30Z).
+  it('[corrigé] minuit/limite : 00:30 → 13/05 00:30+04:00 (instant = veille 20:30Z)', () => {
     const iso = combineDateTime(new Date(2026, 4, 13), new Date(0, 0, 0, 0, 30));
-    expect(iso).toBe('2026-05-12T20:30:00.000Z');
+    expect(iso).toBe('2026-05-13T00:30:00+04:00');
+    expect(new Date(iso!).getTime()).toBe(new Date('2026-05-12T20:30:00.000Z').getTime());
   });
 
   it('aller-retour projeter → recombiner : instant STABLE', () => {
@@ -106,6 +111,27 @@ describe('combineDateTime', () => {
     expect(recombined).not.toBeNull();
     // Stabilité = même INSTANT (indépendant du format de sortie).
     expect(new Date(recombined!).getTime()).toBe(new Date(original).getTime());
+  });
+
+  it('[corrigé] relecture d’une valeur à décalage local (+04:00) : aller-retour stable', () => {
+    const original = '2026-05-13T10:30:00+04:00';
+    const { date, time } = projectFromIso(original);
+    expect(date!.getDate()).toBe(13);
+    expect(time!.getHours()).toBe(10);
+    expect(time!.getMinutes()).toBe(30);
+    const recombined = combineDateTime(date, time);
+    expect(recombined).toBe('2026-05-13T10:30:00+04:00');
+    expect(new Date(recombined!).getTime()).toBe(new Date(original).getTime());
+  });
+});
+
+describe('cohérence de bout en bout (validation aval)', () => {
+  it('[corrigé] la valeur combinée est acceptée par scheduled_at (datetime offset)', () => {
+    const iso = combineDateTime(new Date(2026, 4, 13), new Date(0, 0, 0, 10, 30));
+    // La validation aval exige `z.string().datetime({ offset: true })` : le
+    // décalage explicite +04:00 est accepté (le `Z` l'était aussi — même schéma).
+    const res = rideExpressInputSchema.shape.scheduled_at.safeParse(iso);
+    expect(res.success).toBe(true);
   });
 });
 
