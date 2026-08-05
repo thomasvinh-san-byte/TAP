@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { RequiredFieldsLegend, RequiredMark } from '@/components/form/field';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { overrideRideTarifAction } from '../actions';
@@ -136,8 +137,13 @@ export function OverrideTarifModal({
             </div>
           </div>
 
+          <RequiredFieldsLegend />
+
           <div className="space-y-8">
-            <Label htmlFor="new-tarif">Nouveau tarif (€)</Label>
+            <Label htmlFor="new-tarif">
+              Nouveau tarif (€)
+              <RequiredMark />
+            </Label>
             {/* PR2 06.17 : pas de spinner, inputMode décimal mobile,
                 pattern pour validation HTML5. */}
             <Input
@@ -159,7 +165,8 @@ export function OverrideTarifModal({
 
           <div className="space-y-8">
             <Label htmlFor="motif">
-              Motif d'override <span className="text-muted-foreground">(obligatoire)</span>
+              Motif d&apos;override
+              <RequiredMark />
             </Label>
             <Textarea
               id="motif"
