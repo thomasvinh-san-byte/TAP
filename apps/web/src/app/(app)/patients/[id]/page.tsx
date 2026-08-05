@@ -18,6 +18,7 @@ import { PatientIncidentsSection } from './_components/patient-incidents-section
 import { getPatientIncidents } from './_lib/incidents';
 import { PatientDriverPreferencesSection } from './_components/patient-driver-preferences-section.client';
 import { getPatientDriverPreferences } from './_lib/driver-preferences';
+import { logPatientConsultation } from './_lib/log-consultation';
 import { listActiveDrivers } from '../../courses/_lib/queries';
 
 interface PageProps {
@@ -53,6 +54,10 @@ export default async function PatientPage(props: PageProps) {
     consentement_sms: boolean;
     consentement_sms_at: string | null;
   };
+
+  // Traçabilité HDS : consultation d'un dossier patient identifiant (corollaire
+  // « qui a accédé à quel dossier »). Best-effort — n'interrompt pas le rendu.
+  await logPatientConsultation(p.id);
 
   // Récurrences actives (Phase 05 Wave 3) + counts rides futures non démarrées
   // pour la cascade DEC-048 dans le modal édition.
