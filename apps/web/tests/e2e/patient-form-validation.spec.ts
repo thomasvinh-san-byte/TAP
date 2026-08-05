@@ -114,7 +114,9 @@ test.describe('Patient form — masques + validation Zod', () => {
     // Le helper est toujours visible (« Lettres, accents, tirets et
     // apostrophes autorisés. »). On vérifie sa présence comme indication
     // utilisateur. Le refus final est côté serveur Zod (state.error).
-    await expect(page.locator('#nom-help')).toContainText(
+    // LOT 2 : le champ Nom est migré sur le socle <Field> — l'aide persistante
+    // porte désormais l'id `nom-hint` (auto-généré `${id}-hint`). Texte inchangé.
+    await expect(page.locator('#nom-hint')).toContainText(
       'Lettres, accents, tirets et apostrophes',
     );
   });

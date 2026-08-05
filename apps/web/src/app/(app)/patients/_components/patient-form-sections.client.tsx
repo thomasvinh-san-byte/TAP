@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Field } from '@/components/form/field';
 import { FormSection, FormRow } from '@/components/form/form-layout';
 import type { PatientFormDefaults } from './patient-form-types';
 import {
@@ -32,32 +33,25 @@ export function IdentitySection({ dv }: { dv: PatientFormDefaults }) {
   return (
     <FormSection title="Identité">
       <FormRow>
-        <div className="space-y-8">
-          <Label htmlFor="nom">Nom</Label>
-          <Input
-            id="nom"
-            name="nom"
-            required
-            defaultValue={dv.nom}
-            autoComplete="family-name"
-            className="capitalize"
-            aria-describedby="nom-help"
-          />
-          <p id="nom-help" className="text-muted-foreground text-sm">
-            Lettres, accents, tirets et apostrophes autorisés.
-          </p>
-        </div>
-        <div className="space-y-8">
-          <Label htmlFor="prenom">Prénom</Label>
-          <Input
-            id="prenom"
-            name="prenom"
-            required
-            defaultValue={dv.prenom}
-            autoComplete="given-name"
-            className="capitalize"
-          />
-        </div>
+        <Field
+          id="nom"
+          name="nom"
+          label="Nom"
+          required
+          defaultValue={dv.nom}
+          autoComplete="family-name"
+          className="capitalize"
+          hint="Lettres, accents, tirets et apostrophes autorisés."
+        />
+        <Field
+          id="prenom"
+          name="prenom"
+          label="Prénom"
+          required
+          defaultValue={dv.prenom}
+          autoComplete="given-name"
+          className="capitalize"
+        />
       </FormRow>
       <FormRow>
         <BirthDateField name="date_naissance" defaultValue={dv.date_naissance} required />

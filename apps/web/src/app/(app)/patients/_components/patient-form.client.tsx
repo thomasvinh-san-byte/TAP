@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useFormState, useFormStatus } from 'react-dom';
 import { Button } from '@/components/ui/button';
+import { RequiredFieldsLegend } from '@/components/form/field';
 import { FormColumns, FormColumn, FormActions } from '@/components/form/form-layout';
 import { PatientFormNote } from './patient-form-note.client';
 import {
@@ -46,6 +47,7 @@ export function PatientForm({ action, defaultValues = {}, submitLabel }: Props) 
   const dv = defaultValues;
   return (
     <form action={formAction} className="mx-auto w-full max-w-[980px] space-y-24" noValidate>
+      <RequiredFieldsLegend />
       <FormColumns>
         <FormColumn>
           <IdentitySection dv={dv} />
