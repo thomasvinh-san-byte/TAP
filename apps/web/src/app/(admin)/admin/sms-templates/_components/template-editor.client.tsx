@@ -4,6 +4,7 @@ import { useRef, useState, useTransition } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { RequiredFieldsLegend, RequiredMark } from '@/components/form/field';
 import { FormSection, FormActions } from '@/components/form/form-layout';
 import { TEMPLATE_VARIABLES, renderTemplate, type TemplateVars } from '@tap/sms/templates';
 import { saveTemplateAction } from '../actions';
@@ -109,9 +110,13 @@ export function TemplateEditor({
       </FormSection>
 
       <form action={handleSubmit} className="space-y-12">
+        <RequiredFieldsLegend />
         <div className="space-y-8">
           <div className="flex items-center justify-between">
-            <Label htmlFor={`tpl-${templateKey}`}>Corps du SMS</Label>
+            <Label htmlFor={`tpl-${templateKey}`}>
+              Corps du SMS
+              <RequiredMark />
+            </Label>
             <span
               id={`tpl-${templateKey}-count`}
               aria-live="polite"

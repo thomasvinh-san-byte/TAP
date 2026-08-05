@@ -4,6 +4,7 @@ import * as React from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { RequiredFieldsLegend, RequiredMark } from '@/components/form/field';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { DateFieldFr } from '@/components/date-field-fr.client';
@@ -73,8 +74,12 @@ export function PatientIncidentForm({
       </SheetHeader>
 
       <div className="space-y-16 py-16">
+        <RequiredFieldsLegend />
         <div className="space-y-8">
-          <Label htmlFor="incident-type">Type d&apos;incident</Label>
+          <Label htmlFor="incident-type">
+            Type d&apos;incident
+            <RequiredMark />
+          </Label>
           <Select
             ariaLabel="Type d'incident"
             value={type}
@@ -88,7 +93,10 @@ export function PatientIncidentForm({
         </div>
 
         <div className="space-y-8">
-          <Label htmlFor="incident-date">Date de l&apos;incident</Label>
+          <Label htmlFor="incident-date">
+            Date de l&apos;incident
+            <RequiredMark />
+          </Label>
           <DateFieldFr id="incident-date" value={occurredOn} onChange={setOccurredOn} />
         </div>
 

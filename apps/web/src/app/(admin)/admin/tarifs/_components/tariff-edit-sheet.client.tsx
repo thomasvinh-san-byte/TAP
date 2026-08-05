@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { NumberField } from '@/components/form/number-field';
+import { RequiredFieldsLegend, RequiredMark } from '@/components/form/field';
 import { FormSection } from '@/components/form/form-layout';
 import { DateFieldFr } from '@/components/date-field-fr.client';
 import type { TariffGridRow } from '../page';
@@ -115,9 +116,13 @@ export function TariffEditSheet({
         </SheetHeader>
 
         <form action={handleSubmit} className="space-y-24 py-16">
+          <RequiredFieldsLegend />
           <FormSection title="Période d'application">
             <div className="space-y-8">
-              <Label htmlFor="tg-date">Date d&apos;effet</Label>
+              <Label htmlFor="tg-date">
+                Date d&apos;effet
+                <RequiredMark />
+              </Label>
               <DateFieldFr id="tg-date" name="date_effet" defaultValue={tomorrowIso()} required />
             </div>
           </FormSection>

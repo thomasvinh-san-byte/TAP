@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
-import { Field } from '@/components/form/field';
+import { Field, RequiredFieldsLegend } from '@/components/form/field';
 import { FormRow } from '@/components/form/form-layout';
 import { DateFieldFr } from '@/components/date-field-fr.client';
 import {
@@ -181,6 +181,7 @@ function CreateForm({
       </SheetHeader>
 
       <div className="space-y-16 py-16">
+        <RequiredFieldsLegend />
         <FormRow>
           <Field
             id="numero"
