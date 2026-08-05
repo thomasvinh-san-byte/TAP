@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
+import { RequiredFieldsLegend, RequiredMark } from '@/components/form/field';
 import {
   Sheet,
   SheetContent,
@@ -93,8 +94,12 @@ export function DeclareIncidentForm({ drivers }: { drivers: DriverOption[] }): J
           </SheetHeader>
 
           <div className="space-y-16 py-16">
+            <RequiredFieldsLegend />
             <div className="space-y-8">
-              <Label htmlFor="inc-driver">Chauffeur</Label>
+              <Label htmlFor="inc-driver">
+                Chauffeur
+                <RequiredMark />
+              </Label>
               <Select
                 ariaLabel="Chauffeur"
                 value={driverId}
