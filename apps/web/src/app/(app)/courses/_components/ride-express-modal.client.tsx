@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -19,7 +19,7 @@ import { useDuplicateCheck } from './use-duplicate-check.client';
 import { DuplicateBanner } from './duplicate-banner.client';
 import { useRecurrenceSuggestion } from './use-recurrence-suggestion.client';
 import { RecurrenceBanner } from './recurrence-banner.client';
-import { PatientPickerField } from './ride-patient-picker.client';
+import { PatientPickerField, type PatientHome } from './ride-patient-picker.client';
 import { OrderingPartyPickerField } from './ride-ordering-party-picker.client';
 import { PrescriptionPickerField } from './ride-prescription-picker.client';
 import { AddressOrPOIPicker } from './address-or-poi-picker.client';
@@ -71,6 +71,11 @@ export function RideExpressModal(props: Props): JSX.Element {
   });
   const [patientLabel, setPatientLabel] = useState<string>('');
   const [orderingPartyLabel, setOrderingPartyLabel] = useState<string>('');
+  // Volet 1 — pré-remplissage adresse de prise en charge depuis le domicile.
+  // `pickupFromPatient` pilote le repère de provenance ; `pickupSourceRef` évite
+  // d'écraser une adresse saisie par l'utilisateur (jamais en continu).
+  const [pickupFromPatient, setPickupFromPatient] = useState(false);
+  const pickupSourceRef = useRef<'empty' | 'patient' | 'user'>('empty');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   // EXPRESS-03 : id de la course créée → bascule sur le panneau « plus proche ».
   const [nearestForRideId, setNearestForRideId] = useState<string | null>(null);
@@ -92,6 +97,9 @@ export function RideExpressModal(props: Props): JSX.Element {
     props.rideId,
     (next, label, orderingLabel, ride) => {
       setForm(next);
+      // Édition : une adresse de prise en charge déjà posée est « à l'utilisateur »
+      // → jamais écrasée par un changement de patient (volet 1).
+      if (next.pickup_address) pickupSourceRef.current = 'user';
       if (label) setPatientLabel(label);
       if (orderingLabel) setOrderingPartyLabel(orderingLabel);
       // RECURRENCE-02 : balise « occurrence d'une série » pour le libellé explicite.
@@ -168,14 +176,42 @@ export function RideExpressModal(props: Props): JSX.Element {
   });
 
   const handlePatientSelect = useCallback(
-    (id: string, label: string) => {
+    (id: string, label: string, home?: PatientHome) => {
       updateField('patient_id', id);
       setPatientLabel(label);
       // A2 silent prefill (D-A2-1) — pas de toast, pas de spinner.
       void smartDefaults.triggerForPatient(id);
+
+      // Volet 1 — pré-remplir l'adresse de prise en charge depuis le domicile.
+      // Uniquement À LA SÉLECTION (pas en continu), jamais par-dessus une adresse
+      // saisie par l'utilisateur, et rien si le domicile est incomplet.
+      if (!home || pickupSourceRef.current === 'user') return;
+      const l1 = home.ligne1?.trim();
+      const cp = home.code_postal?.trim();
+      const ville = home.ville?.trim();
+      if (!l1 || !cp || !ville) return; // domicile absent/incomplet → champ laissé tel quel
+      const l2 = home.ligne2?.trim();
+      const addr = `${l1}${l2 ? `, ${l2}` : ''}, ${cp} ${ville}`;
+      updateField('pickup_address', addr);
+      updateField('pickup_postal_code' as keyof FormState, cp as never);
+      updateField('pickup_city' as keyof FormState, ville as never);
+      // Domicile = adresse texte, pas un point géocodé BAN → coords remises à null
+      // (évite des coordonnées périmées d'une sélection précédente).
+      updateField('pickup_lat' as keyof FormState, null as never);
+      updateField('pickup_lng' as keyof FormState, null as never);
+      updateField('pickup_citycode' as keyof FormState, null as never);
+      pickupSourceRef.current = 'patient';
+      setPickupFromPatient(true);
     },
     [updateField, smartDefaults],
   );
+
+  // L'utilisateur touche l'adresse de prise en charge → elle devient « à lui »
+  // (plus de pré-remplissage automatique, repère de provenance retiré).
+  const markPickupUserEdited = useCallback(() => {
+    pickupSourceRef.current = 'user';
+    setPickupFromPatient(false);
+  }, []);
 
   const handleOrderingPartySelect = useCallback(
     (id: string | null, label: string) => {
@@ -313,8 +349,12 @@ export function RideExpressModal(props: Props): JSX.Element {
             label="Adresse de prise en charge"
             ariaLabel="Adresse de prise en charge"
             value={form.pickup_address ?? ''}
-            onChange={(v) => updateField('pickup_address', v)}
+            onChange={(v) => {
+              markPickupUserEdited();
+              updateField('pickup_address', v);
+            }}
             onSelect={(sel) => {
+              markPickupUserEdited();
               // DEC-044 : threadage coords BAN/POI → persistance Server Action
               updateField('pickup_lat' as keyof FormState, sel.lat ?? null);
               updateField('pickup_lng' as keyof FormState, sel.lng ?? null);
@@ -325,6 +365,11 @@ export function RideExpressModal(props: Props): JSX.Element {
             error={fieldErrors.pickup_address}
             required
           />
+          {pickupFromPatient && (
+            <p className="text-muted-foreground -mt-8 text-xs">
+              Adresse pré-remplie depuis le dossier patient — modifiable.
+            </p>
+          )}
 
           <AddressOrPOIPicker
             id="dropoff"

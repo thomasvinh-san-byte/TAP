@@ -28,9 +28,22 @@ import { searchPatientsAction } from '../../patients/actions';
  *   - onSelect('', '')      : réinitialise (utilisé par « Changer »)
  *   - error                 : message à afficher sous le composant
  */
+/** Domicile structuré d'un patient — pré-remplissage adresse de prise en charge. */
+export interface PatientHome {
+  ligne1: string | null;
+  ligne2: string | null;
+  code_postal: string | null;
+  ville: string | null;
+}
+
 interface Props {
   selectedLabel: string;
-  onSelect: (id: string, label: string) => void;
+  /**
+   * Sélection d'un patient. `home` = son domicile (si connu) pour pré-remplir
+   * l'adresse de prise en charge (EXPRESS volet 1). Absent lors du reset
+   * (« Changer »).
+   */
+  onSelect: (id: string, label: string, home?: PatientHome) => void;
   error?: string | null;
   /** Marque le champ obligatoire (astérisque + légende) via le socle. */
   required?: boolean;
@@ -125,7 +138,14 @@ export function PatientPickerField({
             <li key={p.id}>
               <button
                 type="button"
-                onClick={() => onSelect(p.id, `${p.prenom} ${p.nom}`)}
+                onClick={() =>
+                  onSelect(p.id, `${p.prenom} ${p.nom}`, {
+                    ligne1: p.adresse_ligne1,
+                    ligne2: p.adresse_ligne2,
+                    code_postal: p.code_postal,
+                    ville: p.ville,
+                  })
+                }
                 className="hover:bg-muted focus-visible:ring-ring flex w-full items-center justify-between gap-12 px-12 py-12 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset"
               >
                 <div className="flex min-w-0 items-center gap-12">
