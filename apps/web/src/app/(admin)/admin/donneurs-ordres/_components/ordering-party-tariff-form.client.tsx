@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { toast } from 'sonner';
 import { NumberField } from '@/components/form/number-field';
+import { RequiredFieldsLegend, RequiredMark } from '@/components/form/field';
 import { DateFieldFr } from '@/components/date-field-fr.client';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -116,8 +117,12 @@ export function OrderingPartyTariffForm({ partyId }: { partyId: string }): JSX.E
             key={loaded ? 'loaded' : 'loading'}
             className="space-y-16 py-16"
           >
+            <RequiredFieldsLegend />
             <div className="space-y-8">
-              <Label htmlFor="opg-date">Date d&apos;effet</Label>
+              <Label htmlFor="opg-date">
+                Date d&apos;effet
+                <RequiredMark />
+              </Label>
               <DateFieldFr id="opg-date" name="date_effet" defaultValue={tomorrowIso()} required />
             </div>
             <div className="grid grid-cols-2 gap-12">
