@@ -20,6 +20,7 @@ import { DuplicateBanner } from './duplicate-banner.client';
 import { useRecurrenceSuggestion } from './use-recurrence-suggestion.client';
 import { RecurrenceBanner } from './recurrence-banner.client';
 import { PatientPickerField, type PatientHome } from './ride-patient-picker.client';
+import { QuickCreatePatientInline } from './quick-create-patient-inline.client';
 import { OrderingPartyPickerField } from './ride-ordering-party-picker.client';
 import { PrescriptionPickerField } from './ride-prescription-picker.client';
 import { AddressOrPOIPicker } from './address-or-poi-picker.client';
@@ -320,6 +321,10 @@ export function RideExpressModal(props: Props): JSX.Element {
             error={fieldErrors.patient_id}
             required
           />
+
+          {/* EXPRESS volet 2 — création rapide au fil du formulaire, tant qu'aucun
+              patient n'est sélectionné. À la création, sélection auto (+ volet 1). */}
+          {!form.patient_id && <QuickCreatePatientInline onCreated={handlePatientSelect} />}
 
           <MinorReferentWarning patientId={form.patient_id} />
 
