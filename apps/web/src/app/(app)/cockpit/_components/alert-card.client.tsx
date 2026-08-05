@@ -9,8 +9,8 @@ import {
   MapPinOff,
 } from 'lucide-react';
 import type { CockpitAlert, CockpitAlertType } from '../_lib/types';
-import { formatReunionTime } from '../_lib/unassigned-h1';
-import { formatPositionAge } from '../_lib/use-driver-positions';
+import { formatReunionTime, minutesUntil, H1_WINDOW_MIN } from '../_lib/unassigned-h1';
+import { formatPositionAge, POSITION_STALE_MIN } from '../_lib/use-driver-positions';
 
 const TITLES: Record<CockpitAlertType, string> = {
   patient_no_show: 'Patient absent',
@@ -54,6 +54,40 @@ function stalePositionDetail(alert: CockpitAlert): string | null {
   return `${label} · ${formatPositionAge(p.captured_at)}`;
 }
 
+/** Seuil en langage clair : 60 → « 1 h », 5 → « 5 min ». */
+function thresholdLabel(min: number): string {
+  return min % 60 === 0 ? `${min / 60} h` : `${min} min`;
+}
+
+/** Proximité du créneau en langage clair (réutilise `minutesUntil`, pas de détection). */
+function slotProximity(scheduledAtIso: string): string {
+  const m = Math.round(minutesUntil(scheduledAtIso, Date.now()));
+  if (m >= 1) return `créneau dans ${m} min`;
+  if (m <= -1) return `créneau dépassé de ${-m} min`;
+  return 'créneau imminent';
+}
+
+/**
+ * « Pourquoi cette alerte ? » — explication concise du déclencheur, réservée aux
+ * alertes CALCULÉES (dérivées d'un seuil / critère). Réutilise les données déjà
+ * présentes dans le payload et les seuils de détection (aucun recalcul). Retourne
+ * `null` pour les événements bruts (retard, no-show, SMS, incident), qui n'ont
+ * pas de seuil à expliciter et restent inchangés.
+ */
+function alertReason(alert: CockpitAlert): string | null {
+  if (alert.event_type === 'driver_position_stale') {
+    const p = alert.payload as { captured_at?: string | null } | null;
+    if (!p?.captured_at) return 'aucune position reçue pour ce chauffeur en service';
+    return `position au-delà du seuil de ${thresholdLabel(POSITION_STALE_MIN)} sans mise à jour`;
+  }
+  if (alert.event_type === 'ride_unassigned_h1') {
+    const p = alert.payload as { scheduled_at?: string } | null;
+    const proximite = p?.scheduled_at ? slotProximity(p.scheduled_at) : 'créneau proche';
+    return `course validée sans chauffeur, ${proximite} (seuil ${thresholdLabel(H1_WINDOW_MIN)})`;
+  }
+  return null;
+}
+
 function formatRelativeTime(iso: string): string {
   const then = new Date(iso).getTime();
   if (Number.isNaN(then)) return '';
@@ -72,6 +106,8 @@ export function AlertCard({ alert }: { alert: CockpitAlert }): JSX.Element {
     alert.event_type === 'ride_delayed'
       ? 'border-amber-200 bg-amber-50'
       : 'border-destructive/30 bg-destructive/5';
+  // Explication du déclencheur (alertes calculées uniquement ; null sinon).
+  const reason = alertReason(alert);
   return (
     <article
       className={`flex items-start gap-12 rounded-md border p-12 ${tone}`}
@@ -85,6 +121,12 @@ export function AlertCard({ alert }: { alert: CockpitAlert }): JSX.Element {
             stalePositionDetail(alert) ??
             formatRelativeTime(alert.created_at)}
         </p>
+        {reason && (
+          <p className="text-muted-foreground mt-4 text-xs">
+            <span className="font-medium">Pourquoi : </span>
+            {reason}
+          </p>
+        )}
       </div>
     </article>
   );
