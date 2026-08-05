@@ -4,13 +4,14 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Sparkles, CloudLightning } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { PageHeader } from '@/components/page-header';
 import type { WeatherAlert } from '../../meteo/_lib/queries';
 import { useCockpitAlerts } from '../_lib/use-cockpit-alerts';
 import { useCockpitRides } from '../_lib/use-cockpit-rides';
 import { useUnassignedH1 } from '../_lib/use-unassigned-h1';
 import { useStalePositions } from '../_lib/use-stale-positions';
-import { sortAlertsByPriority } from '../_lib/alert-priority';
+import { sortAlertsByPriority, alertSeverity } from '../_lib/alert-priority';
 import { useAlertSound, useAlertSoundOnNew } from '@/lib/alert-sound/use-alert-sound';
 import type { CockpitAlert, CockpitRide } from '../_lib/types';
 import type { CockpitAlertPreferences } from '@/lib/notifications/preferences';
@@ -28,10 +29,17 @@ import { CoursesTable } from './courses-table.client';
 import { DriverPositionsPanel } from './driver-positions-panel.client';
 import { NoShowAlertModal } from './no-show-alert-modal.client';
 import { RealtimeStatusBadge } from './realtime-status-badge.client';
+import { CockpitSummaryStrip } from './cockpit-summary-strip.client';
 
 const NOSHOW_DETECTION_WINDOW_MS = 60_000;
 const NOSHOW_DISMISSED_KEY = 'cockpit:noshow-dismissed';
 const MAX_PANEL_ALERTS = 20;
+
+// COCKPIT-05 : cible d'ancrage d'un indicateur de la bande de synthèse. Reçoit le
+// focus programmatique (défilement + mise en évidence) sans altérer le panneau.
+// `focus:` (et non `focus-visible:`) car le focus est déclenché par code.
+const PANEL_ANCHOR_CLASS =
+  'scroll-mt-24 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2';
 
 export function CockpitContent({
   initialRides,
@@ -92,6 +100,20 @@ export function CockpitContent({
       ),
     [h1Alerts, staleAlerts, visibleAlerts],
   );
+
+  // COCKPIT-05 : nombre d'alertes de sévérité critique, pour la bande de synthèse.
+  // Réutilise l'ensemble déjà fusionné (H-1 + géoloc périmée + ride_events) et la
+  // fonction pure `alertSeverity` — aucune nouvelle détection. Compte AVANT le
+  // plafonnement d'affichage (`MAX_PANEL_ALERTS`) pour rester un total fidèle.
+  const criticalAlertsCount = useMemo<number>(
+    () =>
+      [...h1Alerts, ...staleAlerts, ...visibleAlerts].filter(
+        (a) => alertSeverity(a.event_type) === 'critique',
+      ).length,
+    [h1Alerts, staleAlerts, visibleAlerts],
+  );
+  // Positions périmées : réutilise le compte des alertes déjà détectées (COCKPIT-02).
+  const stalePositionsCount = staleAlerts.length;
 
   const recentNoShow = useMemo<CockpitAlert | null>(() => {
     const cutoff = Date.now() - NOSHOW_DETECTION_WINDOW_MS;
@@ -159,6 +181,12 @@ export function CockpitContent({
           </Link>
         </div>
       )}
+      <CockpitSummaryStrip
+        unassignedH1Count={unassignedH1Count}
+        criticalAlertsCount={criticalAlertsCount}
+        stalePositionsCount={stalePositionsCount}
+        complianceCount={complianceAlerts.length}
+      />
       <div className="flex flex-col gap-16 lg:flex-row lg:items-stretch lg:gap-24">
         <section className="min-w-0 flex-1 space-y-16">
           <PageHeader
@@ -189,17 +217,32 @@ export function CockpitContent({
             }
           />
           <CoursesTable rides={rides} newRideIds={newRideIds} />
-          <DriverPositionsPanel positionsByDriver={positionsByDriver} driverLabels={driverLabels} />
+          <div id="cockpit-panel-positions" tabIndex={-1} className={PANEL_ANCHOR_CLASS}>
+            <DriverPositionsPanel
+              positionsByDriver={positionsByDriver}
+              driverLabels={driverLabels}
+            />
+          </div>
         </section>
         <aside className="lg:border-border flex w-full shrink-0 flex-col gap-24 lg:w-80 lg:border-l lg:pl-24">
-          <div className="space-y-8">
+          <div
+            id="cockpit-panel-unassigned-h1"
+            tabIndex={-1}
+            className={cn('space-y-8', PANEL_ANCHOR_CLASS)}
+          >
             <UnassignedH1Indicator count={unassignedH1Count} />
             <AlertSoundToggle armed={sound.armed} onArm={sound.arm} onDisarm={sound.disarm} />
           </div>
-          <AlertsPanel alerts={panelAlerts} />
+          <div id="cockpit-panel-alerts" tabIndex={-1} className={PANEL_ANCHOR_CLASS}>
+            <AlertsPanel alerts={panelAlerts} />
+          </div>
           <DriverLoadPanel rides={rides} driverLabels={driverLabels} />
-          <DraftsIndicator />
-          <ComplianceAlertsPanel alerts={complianceAlerts} variant="panel" limit={4} />
+          <div id="cockpit-panel-drafts" tabIndex={-1} className={PANEL_ANCHOR_CLASS}>
+            <DraftsIndicator />
+          </div>
+          <div id="cockpit-panel-compliance" tabIndex={-1} className={PANEL_ANCHOR_CLASS}>
+            <ComplianceAlertsPanel alerts={complianceAlerts} variant="panel" limit={4} />
+          </div>
           <PrescriptionAlertsPanel alerts={prescriptionAlerts} />
         </aside>
         {recentNoShowRide && <NoShowAlertModal ride={recentNoShowRide} onClose={dismissNoShow} />}
