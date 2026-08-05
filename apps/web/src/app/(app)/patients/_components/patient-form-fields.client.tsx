@@ -16,6 +16,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
+import { Field } from '@/components/form/field';
 import { cn } from '@/lib/utils';
 
 registerLocale('fr', fr);
@@ -85,39 +86,49 @@ export function BirthDateField({
   const [date, setDate] = React.useState<Date | null>(initial);
   const iso = date ? format(date, 'yyyy-MM-dd') : '';
 
+  // Migré sur le socle <Field> en mode contrôle enfant (LOT 2) : l'étiquette
+  // (avec astérisque si `required`), l'aide et les liaisons a11y viennent du
+  // socle ; le DatePicker et le champ caché canonique (valeur ISO transmise au
+  // serveur) sont INCHANGÉS.
   return (
-    <div className="space-y-8">
-      <Label htmlFor={id}>Date de naissance</Label>
-      <div className="relative">
-        <DatePicker
-          id={id}
-          selected={date}
-          onChange={(d) => setDate(d)}
-          dateFormat="dd/MM/yyyy"
-          placeholderText="JJ/MM/AAAA"
-          locale="fr"
-          showYearDropdown
-          dropdownMode="select"
-          maxDate={new Date()}
-          minDate={new Date('1895-01-01')}
-          required={required}
-          aria-label="Date de naissance"
-          className={cn(
-            'border-input bg-background h-10 w-full rounded-md border px-12 pr-32 text-sm',
-            'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2',
-          )}
-          autoComplete="off"
-        />
-        <CalendarIcon
-          className="text-muted-foreground pointer-events-none absolute right-12 top-1/2 h-16 w-16 -translate-y-1/2"
-          aria-hidden
-        />
-      </div>
-      <p id={`${id}-help`} className="text-muted-foreground text-sm">
-        Format attendu : JJ/MM/AAAA.
-      </p>
-      <input type="hidden" name={name} value={iso} />
-    </div>
+    <Field
+      id={id}
+      label="Date de naissance"
+      required={required}
+      hint="Format attendu : JJ/MM/AAAA."
+    >
+      {(control) => (
+        <>
+          <div className="relative">
+            <DatePicker
+              id={control.id}
+              selected={date}
+              onChange={(d) => setDate(d)}
+              dateFormat="dd/MM/yyyy"
+              placeholderText="JJ/MM/AAAA"
+              locale="fr"
+              showYearDropdown
+              dropdownMode="select"
+              maxDate={new Date()}
+              minDate={new Date('1895-01-01')}
+              aria-label="Date de naissance"
+              aria-describedby={control['aria-describedby']}
+              aria-required={control['aria-required']}
+              className={cn(
+                'border-input bg-background h-10 w-full rounded-md border px-12 pr-32 text-sm',
+                'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2',
+              )}
+              autoComplete="off"
+            />
+            <CalendarIcon
+              className="text-muted-foreground pointer-events-none absolute right-12 top-1/2 h-16 w-16 -translate-y-1/2"
+              aria-hidden
+            />
+          </div>
+          <input type="hidden" name={name} value={iso} />
+        </>
+      )}
+    </Field>
   );
 }
 
@@ -162,9 +173,7 @@ export function NirField({ defaultValue }: NirFieldProps): JSX.Element {
 
   return (
     <div className="space-y-8">
-      <Label htmlFor="nir">
-        NIR <span className="text-muted-foreground font-normal">(optionnel en démo)</span>
-      </Label>
+      <Label htmlFor="nir">NIR</Label>
       <div className="relative max-w-[320px]">
         <Input
           id="nir"
