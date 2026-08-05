@@ -75,7 +75,7 @@ export function ErasureClient({ token }: Props) {
       <div className="flex gap-12">
         <Button
           type="button"
-          variant="accent"
+          variant="destructive"
           className="h-48"
           disabled={pending}
           onClick={onConfirm}
