@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { RequiredMark } from '@/components/form/field';
 import { TRANSPORT_OPTIONS, URGENCY_OPTIONS, type TransportMode, type Urgency } from './types';
 
 /**
@@ -64,16 +65,27 @@ export function ModeUrgencyFields({
   urgency,
   onModeChange,
   onUrgencyChange,
+  required,
 }: {
   mode: TransportMode;
   urgency: Urgency;
   onModeChange: (m: TransportMode) => void;
   onUrgencyChange: (u: Urgency) => void;
+  /**
+   * Marque mode + urgence obligatoires (astérisque via le socle). Le contrôle
+   * est un `<Select>` (DropdownMenu) : l'astérisque + la légende portent le sens.
+   * L'état programmatique `aria-required` n'est pas exposé par ce Select
+   * (DropdownMenu, pas combobox natif) — signalé pour extension du socle.
+   */
+  required?: boolean;
 }): JSX.Element {
   return (
     <div className="grid grid-cols-2 gap-16">
       <div className="min-w-0 space-y-8">
-        <Label htmlFor="mode">Mode de transport</Label>
+        <Label htmlFor="mode">
+          Mode de transport
+          {required ? <RequiredMark /> : null}
+        </Label>
         <Select
           ariaLabel="Mode de transport"
           value={mode}
@@ -83,7 +95,10 @@ export function ModeUrgencyFields({
         />
       </div>
       <div className="min-w-0 space-y-8">
-        <Label htmlFor="urgency">Urgence</Label>
+        <Label htmlFor="urgency">
+          Urgence
+          {required ? <RequiredMark /> : null}
+        </Label>
         <Select
           ariaLabel="Urgence"
           value={urgency}
@@ -107,7 +122,7 @@ export function NotesField({
 }): JSX.Element {
   return (
     <div className="space-y-8">
-      <Label htmlFor="notes">Notes (optionnel)</Label>
+      <Label htmlFor="notes">Notes</Label>
       <Textarea
         id="notes"
         aria-label="Notes"

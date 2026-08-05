@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { RequiredMark } from '@/components/form/field';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
@@ -31,9 +32,16 @@ interface Props {
   selectedLabel: string;
   onSelect: (id: string, label: string) => void;
   error?: string | null;
+  /** Marque le champ obligatoire (astérisque + légende) via le socle. */
+  required?: boolean;
 }
 
-export function PatientPickerField({ selectedLabel, onSelect, error }: Props): JSX.Element {
+export function PatientPickerField({
+  selectedLabel,
+  onSelect,
+  error,
+  required,
+}: Props): JSX.Element {
   const [query, setQuery] = useState<string>('');
   const dq = useDeferredValue(query);
 
@@ -48,7 +56,10 @@ export function PatientPickerField({ selectedLabel, onSelect, error }: Props): J
   if (selectedLabel) {
     return (
       <div className="space-y-8">
-        <Label>Patient</Label>
+        <Label>
+          Patient
+          {required ? <RequiredMark /> : null}
+        </Label>
         <div
           className={cn(
             'border-input bg-muted/30 flex items-center justify-between gap-12 rounded-md border px-12 py-12',
@@ -93,7 +104,10 @@ export function PatientPickerField({ selectedLabel, onSelect, error }: Props): J
   // Mode recherche : input + liste filtrée
   return (
     <div className="space-y-8">
-      <Label htmlFor="patient">Patient</Label>
+      <Label htmlFor="patient">
+        Patient
+        {required ? <RequiredMark /> : null}
+      </Label>
       <PatientSearch value={query} onChange={setQuery} />
 
       {dq.length === 1 && (

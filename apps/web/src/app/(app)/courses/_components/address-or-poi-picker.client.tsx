@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { Building, Hospital, MapPin, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { RequiredMark } from '@/components/form/field';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { listPoisMetierAction, type PoiMetierMin } from '@/lib/pois/actions';
@@ -128,6 +129,8 @@ interface Props {
   onBlur?: () => void;
   tabIndex?: number;
   error?: string | null;
+  /** Marque le champ obligatoire (astérisque + aria-required) via le socle. */
+  required?: boolean;
 }
 
 export function AddressOrPOIPicker({
@@ -140,6 +143,7 @@ export function AddressOrPOIPicker({
   onBlur,
   tabIndex,
   error,
+  required,
 }: Props): JSX.Element {
   const [picked, setPicked] = React.useState<boolean>(value.length > 0);
   const [highlightIdx, setHighlightIdx] = React.useState(0);
@@ -246,7 +250,10 @@ export function AddressOrPOIPicker({
   if (picked && value.length > 0) {
     return (
       <div className="space-y-8">
-        <Label>{label}</Label>
+        <Label>
+          {label}
+          {required ? <RequiredMark /> : null}
+        </Label>
         <div
           className={cn(
             'border-input bg-muted/30 flex items-center justify-between gap-12 rounded-md border px-12 py-12',
@@ -289,7 +296,10 @@ export function AddressOrPOIPicker({
 
   return (
     <div className="space-y-8">
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id}>
+        {label}
+        {required ? <RequiredMark /> : null}
+      </Label>
       <div className="relative">
         <MapPin
           className="text-muted-foreground pointer-events-none absolute left-12 top-1/2 h-16 w-16 -translate-y-1/2"
@@ -311,6 +321,7 @@ export function AddressOrPOIPicker({
           placeholder="Rechercher un lieu ou une adresse…"
           aria-label={ariaLabel}
           aria-invalid={error ? true : undefined}
+          aria-required={required ? true : undefined}
           aria-controls={listboxId}
           aria-expanded={allSuggestions.length > 0}
           aria-activedescendant={activeId}
