@@ -18,7 +18,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { SheetFooter } from '@/components/ui/sheet';
-import { Field } from '@/components/form/field';
+import { Field, RequiredFieldsLegend } from '@/components/form/field';
 import { FormSection, FormRow } from '@/components/form/form-layout';
 import { cn } from '@/lib/utils';
 import { ComplianceFieldset } from '../../conformite/_components/compliance-fieldset.client';
@@ -115,6 +115,7 @@ export function DriverForm({
   return (
     <form action={formAction} className="flex min-h-0 flex-1 flex-col">
       <div className="flex-1 space-y-24 overflow-y-auto px-24 py-16">
+        <RequiredFieldsLegend />
         <FormSection title="Identité & contact">
           <Field
             id="nom_affichage"

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select } from '@/components/ui/select';
 import { SheetFooter } from '@/components/ui/sheet';
-import { Field } from '@/components/form/field';
+import { Field, RequiredFieldsLegend } from '@/components/form/field';
 import { NumberField } from '@/components/form/number-field';
 import { Combobox } from '@/components/form/combobox.client';
 import { FormSection, FormRow } from '@/components/form/form-layout';
@@ -74,6 +74,7 @@ export function VehicleForm({
   return (
     <form action={formAction} className="flex min-h-0 flex-1 flex-col">
       <div className="flex-1 space-y-24 overflow-y-auto px-24 py-16">
+        <RequiredFieldsLegend />
         <FormSection title="Identification">
           <div className="max-w-[220px]">
             <Field
