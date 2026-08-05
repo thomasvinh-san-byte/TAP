@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { SegmentedNav } from '@/components/ui/segmented-control';
 import { DateFieldFr } from '@/components/date-field-fr.client';
 import { exportCaisseCsvAction } from '../../actions';
 import { CaisseReportButton } from './caisse-report-button.client';
@@ -88,33 +89,17 @@ export function CaisseToolbar({ vue, date, drivers, filters }: Props): JSX.Eleme
 
   return (
     <div className="space-y-12">
-      {/* Switch de vue (segmented control) piloté par URL. */}
-      <div
-        className="border-border inline-flex rounded-md border p-2"
-        role="tablist"
-        aria-label="Vue de la caisse"
-      >
-        <Button
-          type="button"
-          size="sm"
-          variant={aEncaisser ? 'ghost' : 'default'}
-          role="tab"
-          aria-selected={!aEncaisser}
-          onClick={() => router.push(buildUrl('encaissees', {}))}
-        >
-          Encaissées
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant={aEncaisser ? 'default' : 'ghost'}
-          role="tab"
-          aria-selected={aEncaisser}
-          onClick={() => router.push(buildUrl('a_encaisser', {}))}
-        >
-          À encaisser
-        </Button>
-      </div>
+      {/* Switch de vue piloté par URL : composant segmenté partagé, variante
+          navigation (liens). Les href réutilisent `buildUrl` (mêmes paramètres,
+          filtres conditionnels préservés). */}
+      <SegmentedNav<CaisseVue>
+        ariaLabel="Vue de la caisse"
+        value={vue}
+        options={[
+          { value: 'encaissees', label: 'Encaissées', href: buildUrl('encaissees', {}) },
+          { value: 'a_encaisser', label: 'À encaisser', href: buildUrl('a_encaisser', {}) },
+        ]}
+      />
 
       <div className="flex flex-wrap items-end justify-between gap-12">
         <div className="flex flex-wrap items-end gap-12">
