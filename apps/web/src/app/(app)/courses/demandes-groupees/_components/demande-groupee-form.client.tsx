@@ -6,6 +6,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { RequiredFieldsLegend, RequiredMark } from '@/components/form/field';
 import { Select } from '@/components/ui/select';
 import {
   Sheet,
@@ -134,8 +135,12 @@ export function DemandeGroupeeForm({ donneurs }: { donneurs: OrderingPartyMin[] 
           </SheetHeader>
 
           <div className="space-y-24 py-16">
+            <RequiredFieldsLegend />
             <div className="max-w-[360px] space-y-8">
-              <Label htmlFor="dg-donneur">Donneur d&apos;ordres</Label>
+              <Label htmlFor="dg-donneur">
+                Donneur d&apos;ordres
+                <RequiredMark />
+              </Label>
               <Select
                 ariaLabel="Donneur d'ordres"
                 value={orderingPartyId}
@@ -169,11 +174,13 @@ export function DemandeGroupeeForm({ donneurs }: { donneurs: OrderingPartyMin[] 
                   onSelect={(id, label) =>
                     patch(i, { patient_id: id || undefined, patientLabel: label })
                   }
+                  required
                 />
                 <DateTimeFields
                   value={line.scheduled_at ?? null}
                   onChange={(iso) => patch(i, { scheduled_at: iso ?? undefined })}
                   error={null}
+                  required
                 />
                 <AddressOrPOIPicker
                   id={`dg-${i}-pickup`}
@@ -188,6 +195,7 @@ export function DemandeGroupeeForm({ donneurs }: { donneurs: OrderingPartyMin[] 
                       pickup_citycode: sel.citycode ?? null,
                     })
                   }
+                  required
                 />
                 <AddressOrPOIPicker
                   id={`dg-${i}-dropoff`}
@@ -202,12 +210,14 @@ export function DemandeGroupeeForm({ donneurs }: { donneurs: OrderingPartyMin[] 
                       dropoff_citycode: sel.citycode ?? null,
                     })
                   }
+                  required
                 />
                 <ModeUrgencyFields
                   mode={line.transport_mode}
                   urgency={line.urgency}
                   onModeChange={(m) => patch(i, { transport_mode: m })}
                   onUrgencyChange={(u) => patch(i, { urgency: u })}
+                  required
                 />
               </div>
             ))}
