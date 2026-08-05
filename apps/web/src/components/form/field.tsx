@@ -37,6 +37,21 @@ import { cn } from '@/lib/utils';
  * alourdir la primitive `<Label>` utilisée ailleurs.
  */
 
+/**
+ * Astérisque rouge d'obligatoire, MASQUÉE aux lecteurs d'écran (l'information
+ * vient de `aria-required` sur le contrôle). Réutilisable par les contrôles qui
+ * ne passent pas par `<Field>` (sélecteurs, saisies spéciales) pour un marquage
+ * cohérent — évite le balisage local dupliqué.
+ */
+export function RequiredMark(): JSX.Element {
+  return (
+    <span aria-hidden="true" className="text-destructive">
+      {' '}
+      *
+    </span>
+  );
+}
+
 /** Attributs d'accessibilité transmis au contrôle enfant (mode contrôle enfant). */
 export interface FieldControlProps {
   id: string;
@@ -96,12 +111,7 @@ export function Field({
     <div className="space-y-8">
       <Label htmlFor={id}>
         {label}
-        {required ? (
-          <span aria-hidden="true" className="text-destructive">
-            {' '}
-            *
-          </span>
-        ) : null}
+        {required ? <RequiredMark /> : null}
       </Label>
       {children ? (
         children(control)

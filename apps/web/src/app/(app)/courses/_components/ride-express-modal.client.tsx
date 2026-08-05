@@ -9,6 +9,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { RequiredFieldsLegend } from '@/components/form/field';
 import { getPatientByIdAction } from '../../patients/actions';
 import { useRidePrefill } from './use-ride-prefill.client';
 import { useRideAutosave } from './use-ride-autosave.client';
@@ -264,6 +265,8 @@ export function RideExpressModal(props: Props): JSX.Element {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-12" noValidate>
+          <RequiredFieldsLegend />
+
           {isEditMode && isRecurrenceOccurrence && (
             <p
               role="status"
@@ -279,6 +282,7 @@ export function RideExpressModal(props: Props): JSX.Element {
             selectedLabel={patientLabel}
             onSelect={handlePatientSelect}
             error={fieldErrors.patient_id}
+            required
           />
 
           <MinorReferentWarning patientId={form.patient_id} />
@@ -301,6 +305,7 @@ export function RideExpressModal(props: Props): JSX.Element {
             onChange={(iso) => updateField('scheduled_at', iso ?? undefined)}
             onBlur={() => void autosave.flushSave(form)}
             error={fieldErrors.scheduled_at ?? null}
+            required
           />
 
           <AddressOrPOIPicker
@@ -318,6 +323,7 @@ export function RideExpressModal(props: Props): JSX.Element {
             onBlur={() => void autosave.flushSave(form)}
             tabIndex={3}
             error={fieldErrors.pickup_address}
+            required
           />
 
           <AddressOrPOIPicker
@@ -334,6 +340,7 @@ export function RideExpressModal(props: Props): JSX.Element {
             onBlur={() => void autosave.flushSave(form)}
             tabIndex={4}
             error={fieldErrors.dropoff_address}
+            required
           />
 
           <ModeUrgencyFields
@@ -341,6 +348,7 @@ export function RideExpressModal(props: Props): JSX.Element {
             urgency={form.urgency ?? 'programmee'}
             onModeChange={(m) => updateField('transport_mode', m)}
             onUrgencyChange={(u) => updateField('urgency', u)}
+            required
           />
 
           <NotesField

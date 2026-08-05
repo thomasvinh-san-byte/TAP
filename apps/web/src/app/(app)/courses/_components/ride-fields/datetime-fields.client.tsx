@@ -5,7 +5,7 @@ import DatePicker, { registerLocale } from 'react-datepicker';
 import { fr } from 'date-fns/locale';
 import { setHours, setMinutes } from 'date-fns';
 import 'react-datepicker/dist/react-datepicker.css';
-import { Label } from '@/components/ui/label';
+import { Field } from '@/components/form/field';
 import {
   SERVICE_END_HOUR,
   SERVICE_START_HOUR,
@@ -56,6 +56,7 @@ export function DateTimeFields({
   onBlur,
   error,
   disabled,
+  required,
 }: {
   /** ISO 8601 UTC ou null. */
   value: string | null;
@@ -64,6 +65,8 @@ export function DateTimeFields({
   onBlur?: () => void;
   error?: string | null;
   disabled?: boolean;
+  /** Marque le champ obligatoire (astérisque + aria-required) via le socle. */
+  required?: boolean;
 }): JSX.Element {
   const [localDate, setLocalDate] = useState<Date | null>(() => projectFromIso(value).date);
   const [localTime, setLocalTime] = useState<Date | null>(() => projectFromIso(value).time);
@@ -110,66 +113,75 @@ export function DateTimeFields({
     return candidate.getTime() > now.getTime();
   };
 
-  const ariaInvalidFlag: 'true' | undefined = error ? 'true' : undefined;
-
+  // Migré sur le socle <Field> en mode CONTRÔLE ENFANT (LOT 2, pattern patient) :
+  // étiquette (astérisque si `required`), erreur et liaisons a11y viennent du
+  // socle ; les deux DatePicker à masque, le sélecteur localisé et la valeur
+  // canonique ISO émise au parent (`onChange`) sont INCHANGÉS.
   return (
-    <div className="space-y-8">
-      <Label htmlFor="ride-scheduled-date">Date et heure</Label>
-      <div className="grid grid-cols-2 gap-12">
-        <DatePicker
-          id="ride-scheduled-date"
-          selected={localDate}
-          onChange={handleDate}
-          onBlur={onBlur}
-          locale="fr"
-          dateFormat="dd/MM/yyyy"
-          minDate={today}
-          strictParsing
-          isClearable
-          placeholderText="jj/mm/aaaa"
-          popperPlacement="bottom-start"
-          showPopperArrow={false}
-          fixedHeight
-          calendarStartDay={1}
-          todayButton="Aujourd'hui"
-          previousMonthAriaLabel="Mois précédent"
-          nextMonthAriaLabel="Mois suivant"
-          disabled={disabled}
-          ariaInvalid={ariaInvalidFlag}
-          wrapperClassName="w-full min-w-0"
-          customInput={<DateMaskedInput />}
-        />
-        <DatePicker
-          id="ride-scheduled-time"
-          selected={localTime}
-          onChange={handleTime}
-          onBlur={onBlur}
-          locale="fr"
-          showTimeSelect
-          showTimeSelectOnly
-          timeIntervals={TIME_INTERVAL_MIN}
-          timeCaption="Heure"
-          minTime={minTime}
-          maxTime={maxTime}
-          filterTime={filterTime}
-          dateFormat="HH:mm"
-          timeFormat="HH:mm"
-          strictParsing
-          isClearable
-          placeholderText="hh:mm"
-          popperPlacement="bottom-start"
-          showPopperArrow={false}
-          disabled={disabled}
-          ariaInvalid={ariaInvalidFlag}
-          wrapperClassName="w-full min-w-0"
-          customInput={<TimeMaskedInput />}
-        />
-      </div>
-      {error && (
-        <p className="text-destructive text-xs" role="alert">
-          {error}
-        </p>
-      )}
-    </div>
+    <Field
+      id="ride-scheduled-date"
+      label="Date et heure"
+      required={required}
+      error={error ?? undefined}
+    >
+      {(control) => {
+        const ariaInvalidFlag: 'true' | undefined = control['aria-invalid'] ? 'true' : undefined;
+        return (
+          <div className="grid grid-cols-2 gap-12">
+            <DatePicker
+              id={control.id}
+              selected={localDate}
+              onChange={handleDate}
+              onBlur={onBlur}
+              locale="fr"
+              dateFormat="dd/MM/yyyy"
+              minDate={today}
+              strictParsing
+              isClearable
+              placeholderText="jj/mm/aaaa"
+              popperPlacement="bottom-start"
+              showPopperArrow={false}
+              fixedHeight
+              calendarStartDay={1}
+              todayButton="Aujourd'hui"
+              previousMonthAriaLabel="Mois précédent"
+              nextMonthAriaLabel="Mois suivant"
+              disabled={disabled}
+              ariaInvalid={ariaInvalidFlag}
+              ariaRequired={control['aria-required'] ? 'true' : undefined}
+              ariaDescribedBy={control['aria-describedby']}
+              wrapperClassName="w-full min-w-0"
+              customInput={<DateMaskedInput />}
+            />
+            <DatePicker
+              id="ride-scheduled-time"
+              selected={localTime}
+              onChange={handleTime}
+              onBlur={onBlur}
+              locale="fr"
+              showTimeSelect
+              showTimeSelectOnly
+              timeIntervals={TIME_INTERVAL_MIN}
+              timeCaption="Heure"
+              minTime={minTime}
+              maxTime={maxTime}
+              filterTime={filterTime}
+              dateFormat="HH:mm"
+              timeFormat="HH:mm"
+              strictParsing
+              isClearable
+              placeholderText="hh:mm"
+              popperPlacement="bottom-start"
+              showPopperArrow={false}
+              disabled={disabled}
+              ariaInvalid={ariaInvalidFlag}
+              ariaRequired={control['aria-required'] ? 'true' : undefined}
+              wrapperClassName="w-full min-w-0"
+              customInput={<TimeMaskedInput />}
+            />
+          </div>
+        );
+      }}
+    </Field>
   );
 }
