@@ -100,7 +100,7 @@ export function DpiaPrefillConfirm(): JSX.Element {
         >
           Annuler
         </Button>
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" variant="accent" disabled={pending}>
           {pending ? 'Création…' : 'Créer la trame (brouillon)'}
         </Button>
       </div>

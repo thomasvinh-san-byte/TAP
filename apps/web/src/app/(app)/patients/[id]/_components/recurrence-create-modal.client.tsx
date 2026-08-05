@@ -261,6 +261,7 @@ export function RecurrenceCreateModal({
             </Button>
             <Button
               type="submit"
+              variant="accent"
               disabled={
                 pending ||
                 days.length === 0 ||

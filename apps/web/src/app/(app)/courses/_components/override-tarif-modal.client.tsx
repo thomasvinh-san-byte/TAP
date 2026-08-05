@@ -197,6 +197,7 @@ export function OverrideTarifModal({
           </Button>
           <Button
             type="button"
+            variant="accent"
             onClick={() => void submit()}
             disabled={!formValid || pending}
             aria-disabled={!formValid || pending}

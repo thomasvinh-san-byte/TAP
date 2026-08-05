@@ -222,7 +222,12 @@ export function RideDrawer({ rideId, open, onOpenChange, onRequestAssign }: Prop
                   )}
                 </div>
               ) : ride.status === 'validee' ? (
-                <Button type="button" onClick={() => onRequestAssign(ride.id)} className="w-full">
+                <Button
+                  type="button"
+                  variant="accent"
+                  onClick={() => onRequestAssign(ride.id)}
+                  className="w-full"
+                >
                   Affecter un chauffeur
                 </Button>
               ) : (

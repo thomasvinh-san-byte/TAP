@@ -214,7 +214,7 @@ export function PrescriberForm({ initial, onSuccess, onCancel, onArchive }: Prop
 function SubmitButton({ edit }: { edit: boolean }): JSX.Element {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending}>
+    <Button type="submit" variant="accent" disabled={pending}>
       {pending
         ? edit
           ? 'Enregistrement…'

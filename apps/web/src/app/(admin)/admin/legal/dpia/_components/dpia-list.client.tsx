@@ -74,7 +74,7 @@ export function DpiaList({ entries }: { entries: Entry[] }) {
   return (
     <>
       <div className="flex justify-end">
-        <Button onClick={() => setCreating(true)}>
+        <Button variant="accent" onClick={() => setCreating(true)}>
           <Plus className="mr-8 h-16 w-16" aria-hidden />
           Nouvelle DPIA
         </Button>

@@ -91,6 +91,7 @@ export function ApplyConfirmationDialog({
           </Button>
           <Button
             type="submit"
+            variant="accent"
             onClick={handleApply}
             disabled={pending}
             aria-busy={pending}

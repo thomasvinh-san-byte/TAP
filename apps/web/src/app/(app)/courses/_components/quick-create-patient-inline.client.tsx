@@ -245,7 +245,13 @@ export function QuickCreatePatientInline({
         <Button type="button" variant="ghost" size="sm" onClick={close} disabled={pending}>
           Annuler
         </Button>
-        <Button type="button" size="sm" onClick={() => void submit()} disabled={pending}>
+        <Button
+          type="button"
+          variant="accent"
+          size="sm"
+          onClick={() => void submit()}
+          disabled={pending}
+        >
           {pending ? 'Création…' : 'Créer et sélectionner'}
         </Button>
       </div>

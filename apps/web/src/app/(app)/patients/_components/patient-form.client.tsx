@@ -26,7 +26,7 @@ interface Props {
 function SubmitButton({ children }: { children: React.ReactNode }) {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending} className="h-10">
+    <Button type="submit" variant="accent" disabled={pending} className="h-10">
       {pending ? 'Enregistrement…' : children}
     </Button>
   );

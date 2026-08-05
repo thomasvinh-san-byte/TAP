@@ -159,7 +159,7 @@ export function DpiaForm({ mode, dpiaId, onClose }: Props) {
             <Button type="button" variant="outline" onClick={onClose} disabled={pending}>
               Annuler
             </Button>
-            <Button type="submit" disabled={pending}>
+            <Button type="submit" variant="accent" disabled={pending}>
               {pending ? 'Enregistrement…' : 'Enregistrer'}
             </Button>
           </FormActions>

@@ -4,6 +4,28 @@ import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@/lib/utils';
 
+/**
+ * Convention de hiérarchie des boutons.
+ *
+ * Un rôle par variante ; la couleur porte la hiérarchie mais jamais seule
+ * (toujours un libellé clair, icône si utile) :
+ *
+ *   - `accent`         ACTION PRINCIPALE d'un écran ou d'une étape (valider un
+ *                      formulaire, créer, confirmer une action constructive).
+ *                      Au plus UNE action principale par écran ou par étape.
+ *   - `outline`        Actions SECONDAIRES (Annuler, Retour, Filtrer, Exporter).
+ *   - `destructive`    Actions DESTRUCTIVES (Supprimer, Désactiver, Archiver,
+ *                      Retirer). Séparées des actions constructives ; une
+ *                      confirmation destructive n'est jamais une simple action
+ *                      principale d'accent. L'annulation reste en `outline`.
+ *   - `ghost` / `link` Actions TERTIAIRES ou de faible priorité.
+ *
+ * `default` (fond `bg-primary`) n'est PAS l'action principale de l'application :
+ * c'est un fond plein neutre, quasi inutilisé. Un bouton d'action principale
+ * doit préciser `variant="accent"` explicitement — ne pas se reposer sur la
+ * variante par défaut, qui donnerait un « mauvais principal ». (Le renommage
+ * éventuel de `default` est un sujet distinct, hors de cette convention.)
+ */
 const buttonVariants = cva(
   'inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50',
   {

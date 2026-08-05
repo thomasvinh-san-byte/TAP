@@ -201,7 +201,7 @@ export function CockpitContent({
               <>
                 <Button
                   asChild
-                  variant="default"
+                  variant="accent"
                   className="min-h-[44px]"
                   data-testid="optimize-day-btn"
                 >

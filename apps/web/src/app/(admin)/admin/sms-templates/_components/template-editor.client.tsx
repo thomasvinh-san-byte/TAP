@@ -166,7 +166,7 @@ export function TemplateEditor({
           >
             Tester l&apos;envoi…
           </Button>
-          <Button type="submit" disabled={pending || over || body.length === 0}>
+          <Button type="submit" variant="accent" disabled={pending || over || body.length === 0}>
             {pending ? 'Enregistrement…' : 'Enregistrer'}
           </Button>
         </FormActions>

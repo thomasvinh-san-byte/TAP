@@ -120,6 +120,7 @@ export function NoShowAlertModal({
 
         <Button
           type="button"
+          variant="accent"
           onClick={handleReschedule}
           disabled={pending || !rescheduleAt}
           className="w-full"

@@ -110,6 +110,7 @@ export function MileageForm({ jour, kmStart, kmEnd }: Props): JSX.Element {
 
       <Button
         type="button"
+        variant="accent"
         onClick={() => void save()}
         disabled={pending}
         className="h-14 w-full text-base"

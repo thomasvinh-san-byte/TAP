@@ -74,7 +74,7 @@ export function DpoForm({ initial }: Props) {
       {success && <p className="text-success text-sm">Contact DPO mis à jour.</p>}
 
       <FormActions>
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" variant="accent" disabled={pending}>
           {pending ? 'Enregistrement…' : 'Enregistrer'}
         </Button>
       </FormActions>
