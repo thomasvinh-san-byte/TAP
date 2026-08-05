@@ -114,7 +114,12 @@ export function UnarchiveConfirmDialog({
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Annuler
             </Button>
-            <Button type="submit" disabled={!checked || isSubmitting} aria-busy={isSubmitting}>
+            <Button
+              type="submit"
+              variant="accent"
+              disabled={!checked || isSubmitting}
+              aria-busy={isSubmitting}
+            >
               {isSubmitting ? 'Désarchivage…' : 'Désarchiver'}
             </Button>
           </DialogFooter>

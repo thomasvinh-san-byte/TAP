@@ -18,7 +18,7 @@ interface Props {
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending} className="h-48">
+    <Button type="submit" variant="accent" disabled={pending} className="h-48">
       {pending ? 'Vérification…' : 'Vérifier mon identité'}
     </Button>
   );

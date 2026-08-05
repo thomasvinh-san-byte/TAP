@@ -111,7 +111,7 @@ export function LoginForm({ next, prefill }: LoginFormProps) {
 
       <Button
         type="submit"
-        variant="default"
+        variant="accent"
         disabled={form.formState.isSubmitting}
         aria-busy={form.formState.isSubmitting}
         className="h-10 w-full"
