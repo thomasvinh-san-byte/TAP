@@ -3,6 +3,8 @@
 import * as React from 'react';
 import { Map, type MapMarker } from '@/components/map/map.client';
 import { type DriverPosition, formatPositionAge, positionTone } from '../_lib/use-driver-positions';
+import { buildRideTrajectories } from '../_lib/ride-map';
+import type { CockpitRide } from '../_lib/types';
 
 /**
  * Phase 10.0 prototype géoloc (DEC-096).
@@ -22,11 +24,17 @@ interface Props {
    *  lifté en COCKPIT-02 pour partager une seule subscription avec l'alerte). */
   positionsByDriver: Map<string, DriverPosition>;
   driverLabels: Record<string, string>;
+  /** Courses du jour — pour tracer les trajets géocodés (COCKPIT-05). */
+  rides: CockpitRide[];
 }
 
 const REUNION_CENTER = { lat: -21.1, lng: 55.55 };
 
-export function DriverPositionsPanel({ positionsByDriver, driverLabels }: Props): JSX.Element {
+export function DriverPositionsPanel({
+  positionsByDriver,
+  driverLabels,
+  rides,
+}: Props): JSX.Element {
   const [now, setNow] = React.useState<Date>(() => new Date());
 
   // Rafraîchir l'âge toutes les 30s — la position ne bouge pas, son âge si.
@@ -39,13 +47,22 @@ export function DriverPositionsPanel({ positionsByDriver, driverLabels }: Props)
     b.captured_at.localeCompare(a.captured_at),
   );
 
-  const markers: MapMarker[] = positions.map((p) => ({
+  const positionMarkers: MapMarker[] = positions.map((p) => ({
     id: p.id,
     lat: p.lat,
     lng: p.lng,
     label: `${driverLabels[p.driver_id] ?? 'Chauffeur'} · ${formatPositionAge(p.captured_at, now)}`,
     tone: positionTone(p.captured_at, now),
   }));
+
+  // Trajets des courses du jour géocodées (départ, arrivée, ligne colorée). Les
+  // positions restent affichées : les trajets s'AJOUTENT.
+  const { markers: rideMarkers, lines } = React.useMemo(
+    () => buildRideTrajectories(rides),
+    [rides],
+  );
+  const markers: MapMarker[] = [...rideMarkers, ...positionMarkers];
+  const hasTrajectories = lines.length > 0;
 
   const hasDemo = positions.some((p) => p.source === 'demo');
 
@@ -72,8 +89,42 @@ export function DriverPositionsPanel({ positionsByDriver, driverLabels }: Props)
       </p>
 
       <div className="h-[320px] w-full">
-        <Map center={REUNION_CENTER} zoom={9} markers={markers} ariaLabel="Carte 974 chauffeurs" />
+        <Map
+          center={REUNION_CENTER}
+          zoom={9}
+          markers={markers}
+          lines={lines}
+          ariaLabel="Carte 974 : positions des chauffeurs et trajets des courses du jour"
+        />
       </div>
+
+      {/* Légende — les symboles ne reposent jamais sur la couleur seule. */}
+      {hasTrajectories && (
+        <ul
+          className="text-muted-foreground flex flex-wrap items-center gap-x-16 gap-y-4 text-xs"
+          aria-label="Légende de la carte"
+        >
+          <li className="flex items-center gap-4">
+            <span
+              className="border-background bg-foreground inline-block h-12 w-12 rounded-sm border-2"
+              aria-hidden
+            />
+            Départ (carré)
+          </li>
+          <li className="flex items-center gap-4">
+            <span
+              className="border-foreground inline-block h-12 w-12 rounded-full border-[3px]"
+              aria-hidden
+            />
+            Arrivée (anneau)
+          </li>
+          <li className="flex items-center gap-4">
+            <span className="bg-primary inline-block h-12 w-12 rounded-full" aria-hidden />
+            Position chauffeur
+          </li>
+          <li>Une couleur par course.</li>
+        </ul>
+      )}
 
       {/* Liste textuelle — accessibilité clavier + lecteur d'écran. */}
       {positions.length === 0 ? (
