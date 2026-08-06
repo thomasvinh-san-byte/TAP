@@ -17,16 +17,15 @@
 
 import { isCompatible } from '@tap/shared';
 import { haversineKm } from '@/lib/optimizer/haversine';
+import { MODE_TO_VEHICLE_TYPE, type VehicleDbType } from '@/lib/optimizer/vehicle-type';
 
-export type ReassignTransportMode = 'taxi_conventionne' | 'tpmr' | 'vsl' | 'ambulance';
-
-/** Mode de transport → type de véhicule requis (cf. solver COMPATIBILITY). */
-const MODE_TO_VEHICLE_TYPE: Record<ReassignTransportMode, string> = {
-  taxi_conventionne: 'taxi',
-  vsl: 'vsl',
-  tpmr: 'tpmr',
-  ambulance: 'ambulance',
-};
+/**
+ * Mode de transport d'une course. Mêmes valeurs que `vehicles.type` en base
+ * (le schéma emploie le vocabulaire des modes) → alias de `VehicleDbType`.
+ * La correspondance mode → type requis vit dans `MODE_TO_VEHICLE_TYPE` (source
+ * unique, cf. `lib/optimizer/vehicle-type`).
+ */
+export type ReassignTransportMode = VehicleDbType;
 
 /** Chaque course déjà affectée au candidat = +5 km équivalents (anti-surcharge). */
 const LOAD_PENALTY_KM = 5;

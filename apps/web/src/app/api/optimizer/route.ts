@@ -12,6 +12,7 @@ import {
   type RideAttributes,
 } from '@tap/optimizer-client';
 import { solveLocal } from '@/lib/optimizer/solve-local';
+import { MODE_TO_VEHICLE_TYPE, type VehicleDbType } from '@/lib/optimizer/vehicle-type';
 import { isPlanningBlocking } from '@tap/shared';
 import {
   getComplianceBlockingMode,
@@ -79,6 +80,15 @@ async function readRidesForDate(
   return (data as RideRowForOptim[] | null) ?? [];
 }
 
+/** Ligne `vehicles` telle que RÉELLEMENT stockée : `type` = vocabulaire base. */
+type VehicleDbRow = {
+  id: string;
+  type: VehicleDbType;
+  places_assises: number;
+  places_tpmr: number;
+  immatriculation: string | null;
+};
+
 async function readActiveVehicles(
   supabase: Awaited<ReturnType<typeof createClient>>,
 ): Promise<VehicleRowForOptim[]> {
@@ -89,7 +99,17 @@ async function readActiveVehicles(
   if (error) {
     console.error('[optimizer/vehicles] Erreur Supabase:', error);
   }
-  return (data as VehicleRowForOptim[] | null) ?? [];
+  // Convertit le `type` base (`taxi_conventionne`) vers le vocabulaire du solveur
+  // (`taxi`) via la correspondance unique — sinon aucun véhicule n'est jugé
+  // compatible d'une course en taxi conventionné. Le type est réellement
+  // conforme après mapping : aucun `as` de contournement.
+  return ((data as VehicleDbRow[] | null) ?? []).map((v) => ({
+    id: v.id,
+    type: MODE_TO_VEHICLE_TYPE[v.type],
+    places_assises: v.places_assises,
+    places_tpmr: v.places_tpmr,
+    immatriculation: v.immatriculation,
+  }));
 }
 
 /**
