@@ -43,59 +43,68 @@ begin
   ) values
     -- Saint-Denis — 4 patients
     ('11111111-0000-0000-0000-000000000001', org_id, 'Patrick', 'Hoarau',     '1958-03-15', 'M',
-     '06 92 99 90 05', '0692999005', '9005 rue des Bambous', '97400', 'Saint-Denis',
+     '06 92 99 90 05', '0692999005', '32 Rue Juliette Dodu', '97400', 'Saint-Denis',
      'sms', true, now(), 'Marie Hoarau', '0692111111',
      null, null, '01 47',
      false, now(), now(), regulateur_id, regulateur_id),
     ('11111111-0000-0000-0000-000000000002', org_id, 'Marie-Ange', 'Payet',  '1962-08-22', 'F',
-     '02 62 99 90 08', '0262999008', '9008 allée du Volcan', '97400', 'Saint-Denis',
+     '02 62 99 90 08', '0262999008', '18 Rue Monseigneur de Beaumont', '97400', 'Saint-Denis',
      'appel', false, null, 'Joseph Payet', '0692222222',
      null, null, '02 89',
      false, now(), now(), regulateur_id, regulateur_id),
     ('11111111-0000-0000-0000-000000000003', org_id, 'Jean-Bernard', 'Grondin', '1945-12-03', 'M',
-     '06 92 99 90 04', '0692999004', '9004 chemin du Piton', '97490', 'Sainte-Clotilde',
+     '06 92 99 90 04', '0692999004', '25 Rue de la Trinité', '97490', 'Sainte-Clotilde',
      'aucun', false, null, null, null,
      null, null, '14 23',
      false, now(), now(), regulateur_id, regulateur_id),
     ('11111111-0000-0000-0000-000000000004', org_id, 'Suzanne', 'Boyer',     '1970-05-18', 'F',
-     '02 62 99 90 02', '0262999002', '9002 rue des Lataniers', '97410', 'Saint-Pierre',
+     '02 62 99 90 02', '0262999002', '22 Rue Auguste Babet', '97410', 'Saint-Pierre',
      'sms', true, now(), 'Anne Boyer', '0692333333',
      null, null, '06 12',
      false, now(), now(), regulateur_id, regulateur_id),
     -- Saint-Pierre — 3 patients
     ('11111111-0000-0000-0000-000000000005', org_id, 'André', 'Dijoux',     '1955-09-30', 'M',
-     '06 92 99 90 03', '0692999003', '9003 allée des Songes', '97410', 'Saint-Pierre',
+     '06 92 99 90 03', '0692999003', '15 Rue François de Mahy', '97410', 'Saint-Pierre',
      'sms', true, now(), 'Henri Dijoux', '0692444444',
      null, null, '08 31',
      false, now(), now(), regulateur_id, regulateur_id),
     ('11111111-0000-0000-0000-000000000006', org_id, 'Marlène', 'Maillot',  '1968-02-14', 'F',
-     '02 62 99 90 07', '0262999007', '9007 rue des Cyclones', '97432', 'Ravine des Cabris',
+     '02 62 99 90 07', '0262999007', '45 Rue du Père Lafosse', '97432', 'Ravine des Cabris',
      'appel', false, null, null, null,
      null, null, '12 05',
      false, now(), now(), regulateur_id, regulateur_id),
     ('11111111-0000-0000-0000-000000000007', org_id, 'Bernard', 'Lebon',    '1949-07-08', 'M',
-     '06 92 99 90 06', '0692999006', '9006 chemin de la Ravine', '97410', 'Saint-Pierre',
+     '06 92 99 90 06', '0692999006', '30 Rue des Bons-Enfants', '97410', 'Saint-Pierre',
      'sms', true, now(), 'Lucie Lebon', '0692555555',
      null, null, '03 67',
      false, now(), now(), regulateur_id, regulateur_id),
     -- Le Tampon — 2 patients
     ('11111111-0000-0000-0000-000000000008', org_id, 'Anne-Sophie', 'Robert', '1975-11-25', 'F',
-     '02 62 99 90 09', '0262999009', '9009 chemin du Lagon', '97430', 'Le Tampon',
+     '02 62 99 90 09', '0262999009', '112 Rue Hubert Delisle', '97430', 'Le Tampon',
      'aucun', false, null, 'Marc Robert', '0692666666',
      null, null, '09 14',
      false, now(), now(), regulateur_id, regulateur_id),
     ('11111111-0000-0000-0000-000000000009', org_id, 'Yves', 'Vergoz',      '1953-04-19', 'M',
-     '06 92 99 90 10', '0692999010', '9010 rue des Galets', '97418', 'La Plaine des Cafres',
+     '06 92 99 90 10', '0692999010', 'Bourg-Murat', '97418', 'La Plaine des Cafres',
      'sms', true, now(), null, null,
      null, null, '11 78',
      false, now(), now(), regulateur_id, regulateur_id),
     -- Saint-Paul — 1 patient
     ('11111111-0000-0000-0000-000000000010', org_id, 'Christiane', 'Bègue', '1960-06-02', 'F',
-     '02 62 99 90 01', '0262999001', '9001 chemin du Vacoa', '97400', 'Saint-Denis',
+     '02 62 99 90 01', '0262999001', '12 Rue Sainte-Anne', '97400', 'Saint-Denis',
      'appel', false, null, 'Philippe Bègue', '0692777777',
      null, null, '04 92',
      false, now(), now(), regulateur_id, regulateur_id)
-  on conflict (id) do nothing;
+  -- Les adresses réelles de démonstration font autorité au ré-seed : on met à
+  -- jour l'adresse même si le patient existe déjà. Nécessaire car la migration
+  -- 20260513000003 (défense en profondeur NFR-001) avait forcé des adresses
+  -- fictives non géocodables ; ce seed (appliqué après les migrations) les
+  -- remplace par de vraies adresses résidentielles. Identité (nom, prénom,
+  -- dates, NIR, consentements) inchangée : seule l'adresse est mise à jour.
+  on conflict (id) do update set
+    adresse_ligne1 = excluded.adresse_ligne1,
+    code_postal = excluded.code_postal,
+    ville = excluded.ville;
 
   -- Quelques notes opérationnelles fictives
   insert into public.patient_operational_note (
@@ -771,6 +780,50 @@ begin
 
   raise notice 'Seed démo : 30 POI métier créés/mis à jour (organization_id=%)', org_id;
 end $$;
+
+-- -----------------------------------------------------------------------------
+-- Coordonnées des lieux de soins (latitude / longitude WGS84)
+-- -----------------------------------------------------------------------------
+-- Coordonnées EN DUR, déterministes (pas de dépendance réseau — le géocodage
+-- BAN/Géoplateforme reste le mécanisme runtime, cf. lib/geocoding). Précision
+-- « commune / secteur » suffisante pour l'optimiseur (distances à vol
+-- d'oiseau). Idempotent : ré-application du seed = mêmes valeurs. Ces mêmes
+-- coordonnées sont réutilisées comme destination des courses vers ces lieux.
+update public.pois_metier p
+set latitude = c.lat, longitude = c.lng
+from (values
+  ('66666666-0000-0000-0000-000000000001'::uuid, -20.8895, 55.4468), -- CHU Félix Guyon, Bellepierre (Saint-Denis)
+  ('66666666-0000-0000-0000-000000000002'::uuid, -21.3436, 55.4900), -- CHU Sud, Terre-Sainte (Saint-Pierre)
+  ('66666666-0000-0000-0000-000000000003'::uuid, -21.0378, 55.7160), -- GHER (Saint-Benoît)
+  ('66666666-0000-0000-0000-000000000004'::uuid, -21.0093, 55.2712), -- CH Gabriel Martin (Saint-Paul)
+  ('66666666-0000-0000-0000-000000000005'::uuid, -20.8828, 55.4585), -- Clinique Saint-Vincent (Saint-Denis)
+  ('66666666-0000-0000-0000-000000000006'::uuid, -20.9083, 55.4808), -- Clinique Sainte-Clotilde
+  ('66666666-0000-0000-0000-000000000007'::uuid, -20.9385, 55.2938), -- Clinique Jeanne d'Arc (Le Port)
+  ('66666666-0000-0000-0000-000000000008'::uuid, -20.8985, 55.5470), -- Dialyse Nord, Duparc (Sainte-Marie)
+  ('66666666-0000-0000-0000-000000000009'::uuid, -21.2788, 55.5158), -- Dialyse Sud (Le Tampon)
+  ('66666666-0000-0000-0000-000000000010'::uuid, -21.0102, 55.2735), -- Dialyse Saint-Paul
+  ('66666666-0000-0000-0000-000000000011'::uuid, -20.9268, 55.3355), -- EHPAD Les Lataniers (La Possession)
+  ('66666666-0000-0000-0000-000000000012'::uuid, -21.2795, 55.5170), -- EHPAD Les Mascareignes (Le Tampon)
+  ('66666666-0000-0000-0000-000000000013'::uuid, -20.8905, 55.4520), -- EHPAD Albert Barbot (Saint-Denis)
+  ('66666666-0000-0000-0000-000000000014'::uuid, -21.3418, 55.4795), -- EHPAD Les Alizés (Saint-Pierre)
+  ('66666666-0000-0000-0000-000000000015'::uuid, -20.9070, 55.6085), -- EHPAD Les Tamarins (Sainte-Suzanne)
+  ('66666666-0000-0000-0000-000000000016'::uuid, -20.8792, 55.4498), -- Cabinet kiné SD Centre
+  ('66666666-0000-0000-0000-000000000017'::uuid, -21.3406, 55.4788), -- Cabinet kiné Saint-Pierre
+  ('66666666-0000-0000-0000-000000000018'::uuid, -21.0110, 55.2698), -- Cabinet kiné Saint-Paul
+  ('66666666-0000-0000-0000-000000000019'::uuid, -20.8801, 55.4521), -- Cabinet ophtalmo Saint-Denis
+  ('66666666-0000-0000-0000-000000000020'::uuid, -21.3389, 55.4801), -- Cabinet ophtalmo Saint-Pierre
+  ('66666666-0000-0000-0000-000000000021'::uuid, -20.8809, 55.4487), -- Cabinet dentaire Saint-Denis
+  ('66666666-0000-0000-0000-000000000022'::uuid, -21.2800, 55.5150), -- Cabinet dentaire Le Tampon
+  ('66666666-0000-0000-0000-000000000023'::uuid, -20.8890, 55.4472), -- Cabinet médecine Bellepierre (Saint-Denis)
+  ('66666666-0000-0000-0000-000000000024'::uuid, -21.3412, 55.4791), -- Cabinet médecine Saint-Pierre
+  ('66666666-0000-0000-0000-000000000025'::uuid, -21.2775, 55.5165), -- Cabinet médecine Le Tampon
+  ('66666666-0000-0000-0000-000000000026'::uuid, -20.8815, 55.4505), -- Centre imagerie Saint-Denis
+  ('66666666-0000-0000-0000-000000000027'::uuid, -21.3395, 55.4779), -- Labo Réunion Bio (Saint-Pierre)
+  ('66666666-0000-0000-0000-000000000028'::uuid, -21.0098, 55.2705), -- Centre radio Saint-Paul
+  ('66666666-0000-0000-0000-000000000029'::uuid, -21.3785, 55.6205), -- Foyer Les Hibiscus (Saint-Joseph)
+  ('66666666-0000-0000-0000-000000000030'::uuid, -20.8968, 55.5490)  -- Pharmacie de l'Océan (Sainte-Marie)
+) as c(id, lat, lng)
+where p.id = c.id;
 
 -- -----------------------------------------------------------------------------
 -- Données futures (commentées tant que migrations Phase 4+ pas en place)
@@ -1761,3 +1814,107 @@ begin
 
   raise notice 'SEED-02 : sociétés 2 et 3 (10 patients, 3 chauffeurs, 3 véhicules, 2 prescripteurs, 5 prescriptions, 10 courses)';
 end$$;
+
+-- =============================================================================
+-- OPTIM-DEMO : courses géocodées pour l'optimiseur de tournées
+-- =============================================================================
+-- L'optimiseur ne traite que les courses `validee` du jour (J0) et exclut
+-- celles sans coordonnées (packages/optimizer-client transform.ts). Ce bloc,
+-- placé en fin de seed (il s'applique APRÈS les blocs rides existants, donc ses
+-- coordonnées priment) :
+--   1) crée un GROUPE de courses regroupables (org1) : 4 patients du secteur
+--      Saint-Pierre / Ravine des Cabris, même matin, vers le même centre de
+--      dialyse (Dialyse Sud Le Tampon). Prise en charge = domicile réel (coords
+--      du domicile) ; destination = lieu de soins du référentiel (coords du POI
+--      66666666-…-0009 réutilisées). C'est le cas d'usage « mutualisation ».
+--   2) complète en coordonnées les courses `validee` J0 déjà présentes du seed
+--      (org1, org2, org3) afin qu'aucune ne soit exclue faute de coordonnées.
+-- Coordonnées EN DUR (déterministe, sans dépendance réseau ; précision
+-- commune/secteur suffisante pour des distances à vol d'oiseau). Idempotent :
+-- `on conflict do update` reporte la date J0 à chaque ré-application du seed.
+insert into public.rides (
+  id, organization_id, patient_id, driver_id, vehicle_id,
+  pickup_address, dropoff_address,
+  pickup_lat, pickup_lng, dropoff_lat, dropoff_lng,
+  scheduled_at, status, transport_mode, urgency,
+  tarif_source, created_at, created_by, updated_by
+) values
+  ('44444444-0000-0000-0000-000000000500',
+   '00000000-0000-0000-0000-000000000001',
+   '11111111-0000-0000-0000-000000000004', null, null,
+   '22 Rue Auguste Babet, 97410 Saint-Pierre',
+   'Dialyse Sud Le Tampon, 97430 Le Tampon',
+   -21.3399, 55.4776, -21.2788, 55.5158,
+   date_trunc('day', now()) + interval '6 hours 30 minutes',
+   'validee', 'taxi_conventionne', 'programmee',
+   'manuel', now() - interval '1 day',
+   '00000000-0000-0000-0000-000000000020', '00000000-0000-0000-0000-000000000020'),
+  ('44444444-0000-0000-0000-000000000501',
+   '00000000-0000-0000-0000-000000000001',
+   '11111111-0000-0000-0000-000000000005', null, null,
+   '15 Rue François de Mahy, 97410 Saint-Pierre',
+   'Dialyse Sud Le Tampon, 97430 Le Tampon',
+   -21.3412, 55.4791, -21.2788, 55.5158,
+   date_trunc('day', now()) + interval '6 hours 35 minutes',
+   'validee', 'taxi_conventionne', 'programmee',
+   'manuel', now() - interval '1 day',
+   '00000000-0000-0000-0000-000000000020', '00000000-0000-0000-0000-000000000020'),
+  ('44444444-0000-0000-0000-000000000502',
+   '00000000-0000-0000-0000-000000000001',
+   '11111111-0000-0000-0000-000000000007', null, null,
+   '30 Rue des Bons-Enfants, 97410 Saint-Pierre',
+   'Dialyse Sud Le Tampon, 97430 Le Tampon',
+   -21.3388, 55.4802, -21.2788, 55.5158,
+   date_trunc('day', now()) + interval '6 hours 40 minutes',
+   'validee', 'taxi_conventionne', 'programmee',
+   'manuel', now() - interval '1 day',
+   '00000000-0000-0000-0000-000000000020', '00000000-0000-0000-0000-000000000020'),
+  ('44444444-0000-0000-0000-000000000503',
+   '00000000-0000-0000-0000-000000000001',
+   '11111111-0000-0000-0000-000000000006', null, null,
+   '45 Rue du Père Lafosse, 97432 Ravine des Cabris',
+   'Dialyse Sud Le Tampon, 97430 Le Tampon',
+   -21.3020, 55.4650, -21.2788, 55.5158,
+   date_trunc('day', now()) + interval '6 hours 45 minutes',
+   'validee', 'taxi_conventionne', 'programmee',
+   'manuel', now() - interval '1 day',
+   '00000000-0000-0000-0000-000000000020', '00000000-0000-0000-0000-000000000020')
+on conflict (id) do update set
+  scheduled_at = excluded.scheduled_at,
+  pickup_address = excluded.pickup_address,
+  dropoff_address = excluded.dropoff_address,
+  pickup_lat = excluded.pickup_lat,
+  pickup_lng = excluded.pickup_lng,
+  dropoff_lat = excluded.dropoff_lat,
+  dropoff_lng = excluded.dropoff_lng,
+  status = excluded.status,
+  transport_mode = excluded.transport_mode,
+  urgency = excluded.urgency,
+  driver_id = excluded.driver_id,
+  vehicle_id = excluded.vehicle_id,
+  created_at = excluded.created_at,
+  tarif_source = excluded.tarif_source,
+  started_at = null,
+  ended_at = null,
+  tarif_amount_eur = null,
+  payment_status = 'non_concerne',
+  payment_method = null,
+  payment_received_at = null,
+  archive = false,
+  cancel_motif = null,
+  notes_regulateur = null;
+
+-- Coordonnées des courses `validee` J0 déjà présentes dans le seed (réutilisent
+-- les coordonnées du secteur de prise en charge et du lieu de soins de destination).
+update public.rides
+  set pickup_lat = -20.8820, pickup_lng = 55.4535, dropoff_lat = -20.8801, dropoff_lng = 55.4521
+  where id = '44444444-0000-0000-0000-000000000013'; -- org1 : Saint-Denis → cabinet ophtalmo Saint-Denis
+update public.rides
+  set pickup_lat = -20.8895, pickup_lng = 55.4468, dropoff_lat = -20.9083, dropoff_lng = 55.4808
+  where id = '44444444-0000-0000-0000-000000000082'; -- org1 : CHU Félix Guyon → Clinique Sainte-Clotilde
+update public.rides
+  set pickup_lat = -21.3410, pickup_lng = 55.4790, dropoff_lat = -21.3406, dropoff_lng = 55.4788
+  where id = '44444444-0000-0000-0000-000000000304'; -- org2 : Saint-Pierre → cabinet kiné Saint-Pierre
+update public.rides
+  set pickup_lat = -20.9390, pickup_lng = 55.2935, dropoff_lat = -20.9385, dropoff_lng = 55.2938
+  where id = '44444444-0000-0000-0000-000000000323'; -- org3 : Le Port → Clinique Jeanne d'Arc
