@@ -39,16 +39,41 @@ describe('buildRideTrajectories', () => {
     expect(start!.label).toContain('Départ');
     expect(end!.label).toContain('Arrivée');
 
-    // Hiérarchie visuelle : la couleur vive « par course » est portée par la LIGNE
-    // seulement ; les marqueurs départ/arrivée restent NEUTRES (en appui), pour ne
-    // pas rivaliser avec la couleur d'identité chauffeur.
+    // Points ACTIFS : couleur vive de la course (ressortent du fond), ligne idem.
     const color0 = getGroupColor(0).hex;
     expect(lines[0]!.color).toBe(color0);
-    expect(start!.color).toBe(COURSE_MARKER_COLOR);
-    expect(end!.color).toBe(COURSE_MARKER_COLOR);
-    expect(start!.color).not.toBe(color0);
+    expect(start!.color).toBe(color0);
+    expect(end!.color).toBe(color0);
+    // Départ actif numéroté (ordre de passage), non estompé.
+    expect(start!.badge).toBe('1');
+    expect(start!.faded).toBeFalsy();
+    expect(lines[0]!.muted).toBeFalsy();
     expect(lines[0]!.from).toEqual({ lat: -21.3388, lng: 55.4802 });
     expect(lines[0]!.to).toEqual({ lat: -21.2788, lng: 55.5158 });
+  });
+
+  it('numérote les départs actifs dans l’ordre chronologique (heure programmée)', () => {
+    const { markers } = buildRideTrajectories([
+      ride({ id: 'midi', scheduled_at: '2026-05-22T12:00:00Z' }),
+      ride({ id: 'tot', scheduled_at: '2026-05-22T06:00:00Z' }),
+    ]);
+    const badgeOf = (rideId: string): string | undefined =>
+      markers.find((m) => m.id === `${rideId}:start`)?.badge;
+    expect(badgeOf('tot')).toBe('1');
+    expect(badgeOf('midi')).toBe('2');
+  });
+
+  it('estompe les courses terminées : points neutres + faded, ligne muted, sans numéro', () => {
+    const { markers, lines } = buildRideTrajectories([ride({ id: 'done', status: 'terminee' })]);
+    const start = markers.find((m) => m.shape === 'start');
+    const end = markers.find((m) => m.shape === 'end');
+    expect(start!.color).toBe(COURSE_MARKER_COLOR);
+    expect(end!.color).toBe(COURSE_MARKER_COLOR);
+    expect(start!.faded).toBe(true);
+    expect(end!.faded).toBe(true);
+    // Terminée = hors numérotation (l'ordre concerne ce qui reste à faire).
+    expect(start!.badge).toBeUndefined();
+    expect(lines[0]!.muted).toBe(true);
   });
 
   it('chaque point de course porte un popup identifiant (patient + adresse) et son groupe', () => {

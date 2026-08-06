@@ -63,6 +63,17 @@ export interface MapMarker {
    */
   selected?: boolean;
   /**
+   * Texte court affiché AU CENTRE du marqueur (ex. numéro d'ordre de passage).
+   * Contraste fort (texte clair + ombre portée) pour rester lisible sur toute
+   * couleur vive. Élargit légèrement le marqueur pour rester lisible.
+   */
+  badge?: string;
+  /**
+   * Marqueur estompé (ex. course terminée) : opacité réduite, gardé visible pour
+   * le contexte. L'atténuation n'est pas le seul repère — cf. `badge`/`shape`.
+   */
+  faded?: boolean;
+  /**
    * Contenu HTML d'un aperçu ouvert au clic (popup native MapLibre). Un seul
    * popup à la fois ; fermeture au clic extérieur, au bouton et à Échap.
    */
@@ -85,6 +96,8 @@ export interface MapLine {
   /** Couleur `#rrggbb` du trait. */
   color: string;
   label?: string;
+  /** Trajet estompé (course terminée) : opacité réduite, gardé visible. */
+  muted?: boolean;
 }
 
 export interface MapProps {
@@ -135,7 +148,7 @@ function linesToGeoJSON(lines: MapLine[]): GeoJSON.FeatureCollection {
       type: 'Feature',
       // `rideId` sert d'identifiant de feature (via `promoteId`) pour piloter le
       // feature-state de mise en évidence depuis le survol d'un marqueur.
-      properties: { color: l.color, rideId: l.id },
+      properties: { color: l.color, rideId: l.id, muted: l.muted ?? false },
       geometry: {
         type: 'LineString',
         coordinates: [
@@ -352,7 +365,9 @@ export function Map({
       // de course (départ/arrivée) sont SECONDAIRES — petits, en appui, pour ne pas
       // dominer ni se chevaucher. Taille en style direct (les classes `h-*`/`w-*`
       // ne priment pas de façon fiable sur l'élément de marqueur MapLibre).
-      const sizePx = shape === 'dot' ? 24 : 14;
+      // Un marqueur portant un numéro (départ) est un peu plus grand pour rester
+      // lisible, tout en restant ≤ la position chauffeur (hiérarchie préservée).
+      const sizePx = shape === 'dot' ? 24 : m.badge ? 20 : 14;
       el.style.width = `${sizePx}px`;
       el.style.height = `${sizePx}px`;
       el.style.boxSizing = 'border-box';
@@ -393,6 +408,22 @@ export function Map({
         el.style.boxShadow = '0 0 0 4px hsl(var(--ring) / 0.35)';
         el.style.zIndex = '10';
       }
+      // Numéro d'ordre centré : texte clair + ombre portée pour rester lisible sur
+      // toute couleur vive (l'ombre garantit le contraste sans calcul de luminance).
+      if (m.badge) {
+        el.textContent = m.badge;
+        el.style.display = 'flex';
+        el.style.alignItems = 'center';
+        el.style.justifyContent = 'center';
+        el.style.color = '#ffffff';
+        el.style.fontSize = '11px';
+        el.style.fontWeight = '700';
+        el.style.lineHeight = '1';
+        el.style.textShadow = '0 1px 2px rgba(0,0,0,0.7)';
+      }
+      // Estompage (course terminée) : opacité réduite, gardé visible pour le
+      // contexte. Signal cumulé à la neutralisation de couleur (jamais seul).
+      if (m.faded) el.style.opacity = '0.45';
       if (m.onClick) el.addEventListener('click', m.onClick);
       if (m.popupHtml) {
         const html = m.popupHtml;
@@ -437,6 +468,8 @@ export function Map({
     // pour ne pas rivaliser avec la couleur d'identité chauffeur (repère primaire).
     // Au survol d'un point de la course, `highlight` (feature-state) épaissit et
     // opacifie SA ligne : on relie ainsi un départ à son arrivée, sans surcharge.
+    // Estompage des courses terminées (`muted`) : opacité fortement réduite, mais
+    // gardées visibles (« c'est fait »). La surbrillance au survol prime.
     map.addLayer({
       id: RIDE_LINES_HALO_LAYER,
       type: 'line',
@@ -445,7 +478,14 @@ export function Map({
       paint: {
         'line-color': '#ffffff',
         'line-width': ['case', ['boolean', ['feature-state', 'highlight'], false], 7, 4],
-        'line-opacity': 0.7,
+        'line-opacity': [
+          'case',
+          ['boolean', ['feature-state', 'highlight'], false],
+          0.85,
+          ['boolean', ['get', 'muted'], false],
+          0.25,
+          0.7,
+        ],
       },
     });
     map.addLayer({
@@ -456,7 +496,14 @@ export function Map({
       paint: {
         'line-color': ['get', 'color'],
         'line-width': ['case', ['boolean', ['feature-state', 'highlight'], false], 4, 2],
-        'line-opacity': ['case', ['boolean', ['feature-state', 'highlight'], false], 1, 0.75],
+        'line-opacity': [
+          'case',
+          ['boolean', ['feature-state', 'highlight'], false],
+          1,
+          ['boolean', ['get', 'muted'], false],
+          0.3,
+          0.75,
+        ],
       },
     });
   }, [lines, mapReady]);

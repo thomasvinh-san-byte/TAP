@@ -54,4 +54,25 @@ describe('renderCoursePointPopupHtml', () => {
     expect(html).toContain('Grondin Marie');
     expect(html).not.toContain('Prévue');
   });
+
+  it('affiche l’ordre de passage d’une course active, et « terminée » sinon', () => {
+    const active = renderCoursePointPopupHtml(
+      buildCoursePointPopupData({ kind: 'start', patient: 'X', address: null, order: 3 }),
+    );
+    expect(active).toContain('n° 3');
+    expect(active).not.toContain('terminée');
+
+    // Terminée : mot d'état, et pas de numéro (hors numérotation).
+    const done = renderCoursePointPopupHtml(
+      buildCoursePointPopupData({
+        kind: 'start',
+        patient: 'X',
+        address: null,
+        order: null,
+        done: true,
+      }),
+    );
+    expect(done).toContain('Course terminée');
+    expect(done).not.toContain('n°');
+  });
 });

@@ -1,6 +1,7 @@
 import type { MapMarker, MapLine } from '@/components/map/map.client';
 import { getGroupColor } from '../optimisation/_lib/group-colors';
 import { buildCoursePointPopupData, renderCoursePointPopupHtml } from './course-popup';
+import { chronologicalOrder, isRideDone, type RideOrderSource } from './ride-order';
 import { formatReunionTime } from './unassigned-h1';
 import type { CockpitRide } from './types';
 
@@ -25,11 +26,10 @@ export interface RideTrajectories {
 }
 
 /**
- * Couleur des marqueurs de course (départ / arrivée) : NEUTRE (jeton de thème),
- * volontairement en appui. La couleur vive « par course » n'est portée que par la
- * LIGNE — ainsi une seule famille de couleurs vives est en jeu (l'identité
- * chauffeur), et les trajets restent un contexte lisible sans rivaliser. La forme
- * (carré = départ, anneau = arrivée) porte l'information, pas la couleur.
+ * Couleur NEUTRE (jeton de thème) : utilisée pour les points d'une course
+ * TERMINÉE (estompée). Les points ACTIFS, eux, prennent la couleur vive de leur
+ * course pour bien ressortir du fond — la forme (carré/anneau) et le numéro
+ * d'ordre portent aussi l'information, jamais la couleur seule.
  */
 export const COURSE_MARKER_COLOR = 'hsl(var(--muted-foreground))';
 
@@ -53,9 +53,15 @@ function patientLabel(r: CockpitRide): string {
   return name || 'Patient';
 }
 
-export function buildRideTrajectories(rides: readonly CockpitRide[]): RideTrajectories {
+export function buildRideTrajectories(
+  rides: readonly CockpitRide[],
+  // Source d'ordre remplaçable : chronologique aujourd'hui, séquence optimisée
+  // demain (même signature) — sans réécrire les marqueurs.
+  orderSource: RideOrderSource = chronologicalOrder,
+): RideTrajectories {
   const markers: MapMarker[] = [];
   const lines: MapLine[] = [];
+  const order = orderSource(rides);
   let rank = 0;
 
   for (const r of rides) {
@@ -70,9 +76,13 @@ export function buildRideTrajectories(rides: readonly CockpitRide[]): RideTrajec
       continue;
     }
 
-    // Couleur vive par course : réservée à la LIGNE. Les marqueurs restent neutres.
-    const lineColor = getGroupColor(rank).hex;
+    // Couleur vive stable par course (palette daltonien-safe). Les points ACTIFS la
+    // portent pour ressortir ; les TERMINÉS passent en neutre + estompés.
+    const courseColor = getGroupColor(rank).hex;
     rank += 1;
+    const done = isRideDone(r);
+    const orderNum = order.get(r.id) ?? null;
+    const markerColor = done ? COURSE_MARKER_COLOR : courseColor;
     const who = patientLabel(r);
     const scheduledLabel = formatReunionTime(r.scheduled_at) || null;
 
@@ -80,9 +90,13 @@ export function buildRideTrajectories(rides: readonly CockpitRide[]): RideTrajec
       id: `${r.id}:start`,
       lat: pickup_lat,
       lng: pickup_lng,
-      label: `Départ — ${who}`,
-      color: COURSE_MARKER_COLOR,
+      label: orderNum != null ? `Départ ${orderNum} — ${who}` : `Départ — ${who}`,
+      color: markerColor,
       shape: 'start',
+      // Numéro d'ordre de passage sur le départ actif (lisible, pastille pleine).
+      // Les terminés n'en portent pas : l'ordre concerne ce qui reste à faire.
+      badge: orderNum != null ? String(orderNum) : undefined,
+      faded: done,
       // Point identifiable au clic (comme les chauffeurs) : patient + adresse de
       // prise en charge. `groupId` relie ce point à sa course (mise en évidence).
       groupId: r.id,
@@ -92,6 +106,8 @@ export function buildRideTrajectories(rides: readonly CockpitRide[]): RideTrajec
           patient: who,
           address: r.pickup_address,
           scheduledLabel,
+          order: orderNum,
+          done,
         }),
       ),
     });
@@ -100,8 +116,9 @@ export function buildRideTrajectories(rides: readonly CockpitRide[]): RideTrajec
       lat: dropoff_lat,
       lng: dropoff_lng,
       label: `Arrivée — ${r.dropoff_address ?? who}`,
-      color: COURSE_MARKER_COLOR,
+      color: markerColor,
       shape: 'end',
+      faded: done,
       groupId: r.id,
       popupHtml: renderCoursePointPopupHtml(
         buildCoursePointPopupData({
@@ -109,6 +126,8 @@ export function buildRideTrajectories(rides: readonly CockpitRide[]): RideTrajec
           patient: who,
           address: r.dropoff_address,
           scheduledLabel,
+          order: orderNum,
+          done,
         }),
       ),
     });
@@ -116,7 +135,10 @@ export function buildRideTrajectories(rides: readonly CockpitRide[]): RideTrajec
       id: r.id,
       from: { lat: pickup_lat, lng: pickup_lng },
       to: { lat: dropoff_lat, lng: dropoff_lng },
-      color: lineColor,
+      color: courseColor,
+      // Ligne d'une course terminée : estompée (opacité réduite) → « c'est fait »
+      // sans disparaître.
+      muted: done,
     });
   }
 

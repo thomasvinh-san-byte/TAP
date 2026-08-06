@@ -159,10 +159,10 @@ export function DriverPositionsPanel({
       </div>
 
       {/* Légende — fidèle 1:1 aux symboles réellement affichés. Hiérarchie :
-          chauffeur = repère primaire (disque plus grand, couleur d'identité vive) ;
-          trajets = contexte secondaire (marqueurs neutres plus petits, couleur de
-          course portée par la ligne seule). Les symboles ne reposent jamais sur la
-          couleur seule (formes + libellés). */}
+          chauffeur = repère primaire (disque plus grand, couleur d'identité) ;
+          points de course = plus petits, mais colorés et numérotés (ordre de
+          passage) quand actifs, atténués quand terminés. L'ordre et l'état ne
+          reposent jamais sur la couleur seule (numéro + forme + opacité). */}
       {(positions.length > 0 || hasTrajectories) && (
         <ul
           className="text-muted-foreground flex flex-wrap items-center gap-x-16 gap-y-4 text-xs"
@@ -183,12 +183,23 @@ export function DriverPositionsPanel({
           {hasTrajectories && (
             <>
               <li className="flex items-center gap-4">
-                <span className="bg-muted-foreground inline-block h-8 w-8 rounded-sm" aria-hidden />
-                Départ (carré)
+                {/* Carré numéroté = départ ; le numéro donne l'ordre de passage. */}
+                <span
+                  className="inline-flex h-16 w-16 items-center justify-center rounded-sm text-[10px] font-bold leading-none text-white"
+                  style={{
+                    backgroundColor: SAMPLE_LINE_COLOR,
+                    textShadow: '0 1px 2px rgba(0,0,0,0.7)',
+                  }}
+                  aria-hidden
+                >
+                  1
+                </span>
+                Départ (carré) — le numéro donne l&apos;ordre de passage (par heure)
               </li>
               <li className="flex items-center gap-4">
                 <span
-                  className="border-muted-foreground inline-block h-8 w-8 rounded-full border-2"
+                  className="inline-block h-8 w-8 rounded-full border-2"
+                  style={{ borderColor: SAMPLE_LINE_COLOR }}
                   aria-hidden
                 />
                 Arrivée (anneau)
@@ -200,6 +211,15 @@ export function DriverPositionsPanel({
                   aria-hidden
                 />
                 Trajet — une couleur par course
+              </li>
+              <li className="flex items-center gap-4">
+                {/* Points et trait grisés + atténués = course terminée. */}
+                <span
+                  className="bg-muted-foreground inline-block h-8 w-8 rounded-sm"
+                  style={{ opacity: 0.45 }}
+                  aria-hidden
+                />
+                Points atténués (gris) — course terminée
               </li>
               {/* Lève la confusion du « détour » : les lignes se croisent parce que
                   ce sont des courses distinctes, pas un itinéraire unique. */}
