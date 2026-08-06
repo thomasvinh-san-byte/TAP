@@ -201,6 +201,12 @@ export function DriverPositionsPanel({
                 />
                 Trajet — une couleur par course
               </li>
+              {/* Lève la confusion du « détour » : les lignes se croisent parce que
+                  ce sont des courses distinctes, pas un itinéraire unique. */}
+              <li className="text-muted-foreground basis-full">
+                Chaque ligne est une course indépendante (domicile → lieu de soins), pas un parcours
+                unique. Cliquez un point pour l&apos;identifier ; survolez-le pour voir sa course.
+              </li>
             </>
           )}
         </ul>
