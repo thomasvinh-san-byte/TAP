@@ -95,7 +95,16 @@ begin
      'appel', false, null, 'Philippe Bègue', '0692777777',
      null, null, '04 92',
      false, now(), now(), regulateur_id, regulateur_id)
-  on conflict (id) do nothing;
+  -- Les adresses réelles de démonstration font autorité au ré-seed : on met à
+  -- jour l'adresse même si le patient existe déjà. Nécessaire car la migration
+  -- 20260513000003 (défense en profondeur NFR-001) avait forcé des adresses
+  -- fictives non géocodables ; ce seed (appliqué après les migrations) les
+  -- remplace par de vraies adresses résidentielles. Identité (nom, prénom,
+  -- dates, NIR, consentements) inchangée : seule l'adresse est mise à jour.
+  on conflict (id) do update set
+    adresse_ligne1 = excluded.adresse_ligne1,
+    code_postal = excluded.code_postal,
+    ville = excluded.ville;
 
   -- Quelques notes opérationnelles fictives
   insert into public.patient_operational_note (
@@ -1805,3 +1814,107 @@ begin
 
   raise notice 'SEED-02 : sociétés 2 et 3 (10 patients, 3 chauffeurs, 3 véhicules, 2 prescripteurs, 5 prescriptions, 10 courses)';
 end$$;
+
+-- =============================================================================
+-- OPTIM-DEMO : courses géocodées pour l'optimiseur de tournées
+-- =============================================================================
+-- L'optimiseur ne traite que les courses `validee` du jour (J0) et exclut
+-- celles sans coordonnées (packages/optimizer-client transform.ts). Ce bloc,
+-- placé en fin de seed (il s'applique APRÈS les blocs rides existants, donc ses
+-- coordonnées priment) :
+--   1) crée un GROUPE de courses regroupables (org1) : 4 patients du secteur
+--      Saint-Pierre / Ravine des Cabris, même matin, vers le même centre de
+--      dialyse (Dialyse Sud Le Tampon). Prise en charge = domicile réel (coords
+--      du domicile) ; destination = lieu de soins du référentiel (coords du POI
+--      66666666-…-0009 réutilisées). C'est le cas d'usage « mutualisation ».
+--   2) complète en coordonnées les courses `validee` J0 déjà présentes du seed
+--      (org1, org2, org3) afin qu'aucune ne soit exclue faute de coordonnées.
+-- Coordonnées EN DUR (déterministe, sans dépendance réseau ; précision
+-- commune/secteur suffisante pour des distances à vol d'oiseau). Idempotent :
+-- `on conflict do update` reporte la date J0 à chaque ré-application du seed.
+insert into public.rides (
+  id, organization_id, patient_id, driver_id, vehicle_id,
+  pickup_address, dropoff_address,
+  pickup_lat, pickup_lng, dropoff_lat, dropoff_lng,
+  scheduled_at, status, transport_mode, urgency,
+  tarif_source, created_at, created_by, updated_by
+) values
+  ('44444444-0000-0000-0000-000000000500',
+   '00000000-0000-0000-0000-000000000001',
+   '11111111-0000-0000-0000-000000000004', null, null,
+   '22 Rue Auguste Babet, 97410 Saint-Pierre',
+   'Dialyse Sud Le Tampon, 97430 Le Tampon',
+   -21.3399, 55.4776, -21.2788, 55.5158,
+   date_trunc('day', now()) + interval '6 hours 30 minutes',
+   'validee', 'taxi_conventionne', 'programmee',
+   'manuel', now() - interval '1 day',
+   '00000000-0000-0000-0000-000000000020', '00000000-0000-0000-0000-000000000020'),
+  ('44444444-0000-0000-0000-000000000501',
+   '00000000-0000-0000-0000-000000000001',
+   '11111111-0000-0000-0000-000000000005', null, null,
+   '15 Rue François de Mahy, 97410 Saint-Pierre',
+   'Dialyse Sud Le Tampon, 97430 Le Tampon',
+   -21.3412, 55.4791, -21.2788, 55.5158,
+   date_trunc('day', now()) + interval '6 hours 35 minutes',
+   'validee', 'taxi_conventionne', 'programmee',
+   'manuel', now() - interval '1 day',
+   '00000000-0000-0000-0000-000000000020', '00000000-0000-0000-0000-000000000020'),
+  ('44444444-0000-0000-0000-000000000502',
+   '00000000-0000-0000-0000-000000000001',
+   '11111111-0000-0000-0000-000000000007', null, null,
+   '30 Rue des Bons-Enfants, 97410 Saint-Pierre',
+   'Dialyse Sud Le Tampon, 97430 Le Tampon',
+   -21.3388, 55.4802, -21.2788, 55.5158,
+   date_trunc('day', now()) + interval '6 hours 40 minutes',
+   'validee', 'taxi_conventionne', 'programmee',
+   'manuel', now() - interval '1 day',
+   '00000000-0000-0000-0000-000000000020', '00000000-0000-0000-0000-000000000020'),
+  ('44444444-0000-0000-0000-000000000503',
+   '00000000-0000-0000-0000-000000000001',
+   '11111111-0000-0000-0000-000000000006', null, null,
+   '45 Rue du Père Lafosse, 97432 Ravine des Cabris',
+   'Dialyse Sud Le Tampon, 97430 Le Tampon',
+   -21.3020, 55.4650, -21.2788, 55.5158,
+   date_trunc('day', now()) + interval '6 hours 45 minutes',
+   'validee', 'taxi_conventionne', 'programmee',
+   'manuel', now() - interval '1 day',
+   '00000000-0000-0000-0000-000000000020', '00000000-0000-0000-0000-000000000020')
+on conflict (id) do update set
+  scheduled_at = excluded.scheduled_at,
+  pickup_address = excluded.pickup_address,
+  dropoff_address = excluded.dropoff_address,
+  pickup_lat = excluded.pickup_lat,
+  pickup_lng = excluded.pickup_lng,
+  dropoff_lat = excluded.dropoff_lat,
+  dropoff_lng = excluded.dropoff_lng,
+  status = excluded.status,
+  transport_mode = excluded.transport_mode,
+  urgency = excluded.urgency,
+  driver_id = excluded.driver_id,
+  vehicle_id = excluded.vehicle_id,
+  created_at = excluded.created_at,
+  tarif_source = excluded.tarif_source,
+  started_at = null,
+  ended_at = null,
+  tarif_amount_eur = null,
+  payment_status = 'non_concerne',
+  payment_method = null,
+  payment_received_at = null,
+  archive = false,
+  cancel_motif = null,
+  notes_regulateur = null;
+
+-- Coordonnées des courses `validee` J0 déjà présentes dans le seed (réutilisent
+-- les coordonnées du secteur de prise en charge et du lieu de soins de destination).
+update public.rides
+  set pickup_lat = -20.8820, pickup_lng = 55.4535, dropoff_lat = -20.8801, dropoff_lng = 55.4521
+  where id = '44444444-0000-0000-0000-000000000013'; -- org1 : Saint-Denis → cabinet ophtalmo Saint-Denis
+update public.rides
+  set pickup_lat = -20.8895, pickup_lng = 55.4468, dropoff_lat = -20.9083, dropoff_lng = 55.4808
+  where id = '44444444-0000-0000-0000-000000000082'; -- org1 : CHU Félix Guyon → Clinique Sainte-Clotilde
+update public.rides
+  set pickup_lat = -21.3410, pickup_lng = 55.4790, dropoff_lat = -21.3406, dropoff_lng = 55.4788
+  where id = '44444444-0000-0000-0000-000000000304'; -- org2 : Saint-Pierre → cabinet kiné Saint-Pierre
+update public.rides
+  set pickup_lat = -20.9390, pickup_lng = 55.2935, dropoff_lat = -20.9385, dropoff_lng = 55.2938
+  where id = '44444444-0000-0000-0000-000000000323'; -- org3 : Le Port → Clinique Jeanne d'Arc
