@@ -1,5 +1,7 @@
 import type { MapMarker, MapLine } from '@/components/map/map.client';
 import { getGroupColor } from '../optimisation/_lib/group-colors';
+import { buildCoursePointPopupData, renderCoursePointPopupHtml } from './course-popup';
+import { formatReunionTime } from './unassigned-h1';
 import type { CockpitRide } from './types';
 
 /**
@@ -72,6 +74,7 @@ export function buildRideTrajectories(rides: readonly CockpitRide[]): RideTrajec
     const lineColor = getGroupColor(rank).hex;
     rank += 1;
     const who = patientLabel(r);
+    const scheduledLabel = formatReunionTime(r.scheduled_at) || null;
 
     markers.push({
       id: `${r.id}:start`,
@@ -80,6 +83,17 @@ export function buildRideTrajectories(rides: readonly CockpitRide[]): RideTrajec
       label: `Départ — ${who}`,
       color: COURSE_MARKER_COLOR,
       shape: 'start',
+      // Point identifiable au clic (comme les chauffeurs) : patient + adresse de
+      // prise en charge. `groupId` relie ce point à sa course (mise en évidence).
+      groupId: r.id,
+      popupHtml: renderCoursePointPopupHtml(
+        buildCoursePointPopupData({
+          kind: 'start',
+          patient: who,
+          address: r.pickup_address,
+          scheduledLabel,
+        }),
+      ),
     });
     markers.push({
       id: `${r.id}:end`,
@@ -88,6 +102,15 @@ export function buildRideTrajectories(rides: readonly CockpitRide[]): RideTrajec
       label: `Arrivée — ${r.dropoff_address ?? who}`,
       color: COURSE_MARKER_COLOR,
       shape: 'end',
+      groupId: r.id,
+      popupHtml: renderCoursePointPopupHtml(
+        buildCoursePointPopupData({
+          kind: 'end',
+          patient: who,
+          address: r.dropoff_address,
+          scheduledLabel,
+        }),
+      ),
     });
     lines.push({
       id: r.id,

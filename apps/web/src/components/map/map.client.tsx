@@ -67,6 +67,13 @@ export interface MapMarker {
    * popup à la fois ; fermeture au clic extérieur, au bouton et à Échap.
    */
   popupHtml?: string;
+  /**
+   * Identifiant du groupe (ex. course) auquel appartient le marqueur, égal à
+   * l'`id` de la `MapLine` correspondante. Au survol / focus du marqueur, la ligne
+   * de ce groupe est mise en évidence (feature-state) — relie visuellement un
+   * départ à son arrivée, sans libellé permanent.
+   */
+  groupId?: string;
   onClick?: () => void;
 }
 
@@ -126,7 +133,9 @@ function linesToGeoJSON(lines: MapLine[]): GeoJSON.FeatureCollection {
     type: 'FeatureCollection',
     features: lines.map((l) => ({
       type: 'Feature',
-      properties: { color: l.color },
+      // `rideId` sert d'identifiant de feature (via `promoteId`) pour piloter le
+      // feature-state de mise en évidence depuis le survol d'un marqueur.
+      properties: { color: l.color, rideId: l.id },
       geometry: {
         type: 'LineString',
         coordinates: [
@@ -179,6 +188,14 @@ export function Map({
       if (popupRef.current === popup) popupRef.current = null;
     });
     popupRef.current = popup;
+  }, []);
+
+  // Met en évidence (ou éteint) la ligne d'une course via feature-state. Sûr si la
+  // source n'existe pas encore (aucune ligne) : on ne fait rien.
+  const setLineHighlight = React.useCallback((rideId: string, on: boolean) => {
+    const map = mapRef.current;
+    if (!map || !map.getSource(RIDE_LINES_SOURCE)) return;
+    map.setFeatureState({ source: RIDE_LINES_SOURCE, id: rideId }, { highlight: on });
   }, []);
 
   // Fermeture clavier (Échap) — complète `closeOnClick` de la popup native.
@@ -309,6 +326,10 @@ export function Map({
 
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
+    // Reconstruire les marqueurs remplace leurs éléments DOM : un `mouseleave`
+    // peut ne jamais arriver. On repart donc d'un feature-state propre (aucune
+    // ligne « collée » en surbrillance) avant de recâbler le survol.
+    if (map.getSource(RIDE_LINES_SOURCE)) map.removeFeatureState({ source: RIDE_LINES_SOURCE });
 
     for (const m of markers) {
       const el = document.createElement('button');
@@ -378,10 +399,21 @@ export function Map({
         const lngLat: [number, number] = [m.lng, m.lat];
         el.addEventListener('click', () => openPopup(lngLat, html));
       }
+      // Relier départ ↔ arrivée : survol/focus d'un point → sa ligne ressort.
+      // Focus/blur couvrent le clavier et le tactile (le tap donne le focus).
+      if (m.groupId) {
+        const gid = m.groupId;
+        const on = (): void => setLineHighlight(gid, true);
+        const off = (): void => setLineHighlight(gid, false);
+        el.addEventListener('mouseenter', on);
+        el.addEventListener('mouseleave', off);
+        el.addEventListener('focus', on);
+        el.addEventListener('blur', off);
+      }
       const marker = new maplibregl.Marker({ element: el }).setLngLat([m.lng, m.lat]).addTo(map);
       markersRef.current.push(marker);
     }
-  }, [markers, mapReady, openPopup]);
+  }, [markers, mapReady, openPopup, setLineHighlight]);
 
   // Trace les lignes (trajets) via une source GeoJSON + un liseré blanc (halo)
   // sous un trait coloré. Nécessite le style chargé (`mapReady`).
@@ -395,24 +427,37 @@ export function Map({
       existing.setData(data);
       return;
     }
-    map.addSource(RIDE_LINES_SOURCE, { type: 'geojson', data });
+    // `promoteId` : la propriété `rideId` devient l'id de feature, ce qui permet de
+    // cibler une ligne par `setFeatureState` (mise en évidence au survol/focus d'un
+    // point de la course).
+    map.addSource(RIDE_LINES_SOURCE, { type: 'geojson', data, promoteId: 'rideId' });
     // Trajets = CONTEXTE (secondaire) : trait fin et légèrement transparent, halo
     // discret. La couleur par course reste PORTÉE PAR LA LIGNE (seul support de la
     // teinte vive de course) — les marqueurs départ/arrivée, eux, sont neutres —
     // pour ne pas rivaliser avec la couleur d'identité chauffeur (repère primaire).
+    // Au survol d'un point de la course, `highlight` (feature-state) épaissit et
+    // opacifie SA ligne : on relie ainsi un départ à son arrivée, sans surcharge.
     map.addLayer({
       id: RIDE_LINES_HALO_LAYER,
       type: 'line',
       source: RIDE_LINES_SOURCE,
       layout: { 'line-cap': 'round', 'line-join': 'round' },
-      paint: { 'line-color': '#ffffff', 'line-width': 4, 'line-opacity': 0.7 },
+      paint: {
+        'line-color': '#ffffff',
+        'line-width': ['case', ['boolean', ['feature-state', 'highlight'], false], 7, 4],
+        'line-opacity': 0.7,
+      },
     });
     map.addLayer({
       id: RIDE_LINES_LAYER,
       type: 'line',
       source: RIDE_LINES_SOURCE,
       layout: { 'line-cap': 'round', 'line-join': 'round' },
-      paint: { 'line-color': ['get', 'color'], 'line-width': 2, 'line-opacity': 0.75 },
+      paint: {
+        'line-color': ['get', 'color'],
+        'line-width': ['case', ['boolean', ['feature-state', 'highlight'], false], 4, 2],
+        'line-opacity': ['case', ['boolean', ['feature-state', 'highlight'], false], 1, 0.75],
+      },
     });
   }, [lines, mapReady]);
 

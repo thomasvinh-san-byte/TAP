@@ -51,6 +51,25 @@ describe('buildRideTrajectories', () => {
     expect(lines[0]!.to).toEqual({ lat: -21.2788, lng: 55.5158 });
   });
 
+  it('chaque point de course porte un popup identifiant (patient + adresse) et son groupe', () => {
+    const { markers } = buildRideTrajectories([ride({ id: 'r1' })]);
+    const start = markers.find((m) => m.shape === 'start');
+    const end = markers.find((m) => m.shape === 'end');
+
+    // Départ : patient + adresse de prise en charge.
+    expect(start!.popupHtml).toContain('Départ');
+    expect(start!.popupHtml).toContain('Lebon Bernard');
+    expect(start!.popupHtml).toContain('Saint-Pierre'); // pickup_address
+    // Arrivée : lieu de soins / adresse de destination.
+    expect(end!.popupHtml).toContain('Arrivée');
+    expect(end!.popupHtml).toContain('Le Tampon'); // dropoff_address
+
+    // `groupId` = id de la course, partagé départ/arrivée → relie les deux points
+    // (et cible la ligne pour la mise en évidence).
+    expect(start!.groupId).toBe('r1');
+    expect(end!.groupId).toBe('r1');
+  });
+
   it('ignore proprement les courses sans coordonnées complètes', () => {
     const rides: CockpitRide[] = [
       ride({ id: 'ok' }),
