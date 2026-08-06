@@ -221,6 +221,7 @@ export function CockpitContent({
             <DriverPositionsPanel
               positionsByDriver={positionsByDriver}
               driverLabels={driverLabels}
+              rides={rides}
             />
           </div>
         </section>

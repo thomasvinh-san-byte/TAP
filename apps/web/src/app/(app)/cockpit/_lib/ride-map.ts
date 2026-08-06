@@ -1,0 +1,91 @@
+import type { MapMarker, MapLine } from '@/components/map/map.client';
+import { getGroupColor } from '../optimisation/_lib/group-colors';
+import type { CockpitRide } from './types';
+
+/**
+ * Construit les trajets des courses du jour pour la carte du cockpit : pour
+ * chaque course GÉOCODÉE (départ + arrivée), un marqueur de départ (carré plein),
+ * un marqueur d'arrivée (anneau creux) et une ligne droite entre les deux.
+ *
+ * Code couleur PAR COURSE (rang), via la palette de groupements partagée
+ * (daltonien-safe). On ne colore PAS par groupement : les groupements sont
+ * produits par l'optimiseur (autre écran, à la demande) et n'existent pas sur le
+ * cockpit au repos. Colorer par chauffeur n'aurait pas de sens ici non plus : les
+ * courses du jour à regrouper sont non affectées (`driver_id` nul).
+ *
+ * Les courses sans coordonnées complètes sont ignorées (non traçables) ; elles
+ * restent visibles ailleurs dans le cockpit.
+ */
+
+export interface RideTrajectories {
+  markers: MapMarker[];
+  lines: MapLine[];
+}
+
+function isFiniteNum(v: number | null | undefined): v is number {
+  return typeof v === 'number' && Number.isFinite(v);
+}
+
+/** Vrai si la course a des coordonnées complètes (départ ET arrivée). */
+export function rideIsGeocoded(r: CockpitRide): boolean {
+  return (
+    isFiniteNum(r.pickup_lat) &&
+    isFiniteNum(r.pickup_lng) &&
+    isFiniteNum(r.dropoff_lat) &&
+    isFiniteNum(r.dropoff_lng)
+  );
+}
+
+function patientLabel(r: CockpitRide): string {
+  const p = r.patient;
+  const name = p ? [p.nom, p.prenom].filter(Boolean).join(' ').trim() : '';
+  return name || 'Patient';
+}
+
+export function buildRideTrajectories(rides: readonly CockpitRide[]): RideTrajectories {
+  const markers: MapMarker[] = [];
+  const lines: MapLine[] = [];
+  let rank = 0;
+
+  for (const r of rides) {
+    const { pickup_lat, pickup_lng, dropoff_lat, dropoff_lng } = r;
+    // Type guards : narrow `number | null` → `number` sans `as`.
+    if (
+      !isFiniteNum(pickup_lat) ||
+      !isFiniteNum(pickup_lng) ||
+      !isFiniteNum(dropoff_lat) ||
+      !isFiniteNum(dropoff_lng)
+    ) {
+      continue;
+    }
+
+    const color = getGroupColor(rank).hex;
+    rank += 1;
+    const who = patientLabel(r);
+
+    markers.push({
+      id: `${r.id}:start`,
+      lat: pickup_lat,
+      lng: pickup_lng,
+      label: `Départ — ${who}`,
+      color,
+      shape: 'start',
+    });
+    markers.push({
+      id: `${r.id}:end`,
+      lat: dropoff_lat,
+      lng: dropoff_lng,
+      label: `Arrivée — ${r.dropoff_address ?? who}`,
+      color,
+      shape: 'end',
+    });
+    lines.push({
+      id: r.id,
+      from: { lat: pickup_lat, lng: pickup_lng },
+      to: { lat: dropoff_lat, lng: dropoff_lng },
+      color,
+    });
+  }
+
+  return { markers, lines };
+}

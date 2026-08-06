@@ -20,6 +20,14 @@ export interface CockpitRide {
   status: string;
   pickup_address: string;
   dropoff_address: string | null;
+  // COCKPIT-05 : coordonnées prise en charge / destination pour tracer les
+  // trajets sur la carte. Optionnelles/nullables — fournies par le fetch initial,
+  // parfois absentes d'une course arrivée en temps réel ; une course sans coords
+  // n'est simplement pas traçable.
+  pickup_lat?: number | null;
+  pickup_lng?: number | null;
+  dropoff_lat?: number | null;
+  dropoff_lng?: number | null;
   // COCKPIT-02 : nécessaire pour croiser positions ↔ courses (« en service »).
   driver_id: string | null;
   patient: CockpitPersonName | null;
