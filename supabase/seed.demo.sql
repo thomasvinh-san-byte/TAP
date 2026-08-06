@@ -334,14 +334,26 @@ begin
     -- Notes runtime (réinit null)
     notes_regulateur = null;
 
-  -- 4 courses du jour (J0), GÉOCODÉES — c'est CE bloc qui s'affiche dans « Ma
-  -- journée » et alimente l'optimiseur. Trois sont regroupables (secteur Sud,
-  -- même centre de dialyse, créneaux du matin qui se chevauchent) ; la 4e est
-  -- isolée (Saint-Denis, après-midi) mais géocodée elle aussi — aucune course du
-  -- jour sans coordonnées. Prise en charge = domicile RÉEL du patient (coords du
-  -- domicile) ; destination = lieu de soins du référentiel (coords du POI
-  -- réutilisées). Toutes `validee` + non affectées : c'est ce que l'optimiseur
-  -- reçoit comme « la journée » à regrouper. Coordonnées EN DUR, déterministes.
+  -- 8 courses du jour (J0), GÉOCODÉES — c'est CE bloc qui s'affiche dans « Ma
+  -- journée » et alimente l'optimiseur. Journée pensée pour une démonstration
+  -- « avant / après » parlante : au départ, tout est dispersé et non affecté ;
+  -- l'optimiseur doit révéler DEUX regroupements évidents et laisser les isolées
+  -- seules.
+  --   - Groupe A (secteur Sud, taxi conventionné) : 3 patients vers le même
+  --     centre de dialyse (Le Tampon), créneaux du matin qui se chevauchent →
+  --     mutualisables sur un véhicule taxi (Dacia).
+  --   - Groupe B (secteur Ouest, TPMR) : 3 patients vers le même centre de
+  --     dialyse (Saint-Paul), créneaux du matin qui se chevauchent → mutualisables
+  --     sur le véhicule TPMR (Master). Mode distinct = véhicule distinct : les deux
+  --     tournées ne se mélangent pas.
+  --   - 2 courses ISOLÉES : Saint-Denis (après-midi) et Saint-Benoît → Saint-Denis
+  --     (fin de matinée) — créneaux et secteurs qui ne chevauchent aucun groupe :
+  --     l'optimiseur les laisse seules (il discerne, il ne regroupe pas tout).
+  -- Aucune course sans coordonnées. Prise en charge = domicile RÉEL du patient ;
+  -- destination = lieu de soins du référentiel. Toutes `validee` + non affectées
+  -- (driver/vehicle nuls) + NON pré-regroupées (aucun ride_group_id) : le
+  -- regroupement est ce que l'optimisation doit produire. Coordonnées EN DUR,
+  -- déterministes.
   insert into public.rides (
     id, organization_id, patient_id, driver_id, vehicle_id,
     pickup_address, dropoff_address,
@@ -379,13 +391,53 @@ begin
      'validee', 'taxi_conventionne', 'programmee',
      'manuel', now() - interval '1 day', regulateur_id, regulateur_id),
 
-    -- Robert (Le Tampon) → Dialyse Sud Le Tampon. Groupe.
+    -- Robert (Le Tampon) → Dialyse Sud Le Tampon. Groupe A.
     ('44444444-0000-0000-0000-000000000013', org_id,
      patient_ids[9], null, null,
      '112 Rue Hubert Delisle, 97430 Le Tampon',
      'Dialyse Sud Le Tampon, 97430 Le Tampon',
      -21.2785, 55.5160, -21.2788, 55.5158,
      date_trunc('day', now()) + interval '6 hours 50 minutes',
+     'validee', 'taxi_conventionne', 'programmee',
+     'manuel', now() - interval '1 day', regulateur_id, regulateur_id),
+
+    -- Groupe B (secteur Ouest, TPMR → Dialyse Saint-Paul, matin qui se chevauche).
+    -- Même destination, pickups proches : mutualisables sur le véhicule TPMR.
+    ('44444444-0000-0000-0000-000000000014', org_id,
+     patient_ids[1], null, null,
+     '12 Rue Marius et Ary Leblond, 97460 Saint-Paul',
+     'Dialyse Saint-Paul, 97460 Saint-Paul',
+     -21.0096, 55.2690, -21.0300, 55.2760,
+     date_trunc('day', now()) + interval '7 hours',
+     'validee', 'tpmr', 'programmee',
+     'manuel', now() - interval '1 day', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-000000000015', org_id,
+     patient_ids[2], null, null,
+     '20 Rue du Commerce, 97460 Saint-Paul',
+     'Dialyse Saint-Paul, 97460 Saint-Paul',
+     -21.0180, 55.2720, -21.0300, 55.2760,
+     date_trunc('day', now()) + interval '7 hours 10 minutes',
+     'validee', 'tpmr', 'programmee',
+     'manuel', now() - interval '1 day', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-000000000016', org_id,
+     patient_ids[3], null, null,
+     '8 Route de Savanna, 97460 Saint-Paul',
+     'Dialyse Saint-Paul, 97460 Saint-Paul',
+     -21.0450, 55.2830, -21.0300, 55.2760,
+     date_trunc('day', now()) + interval '7 hours 20 minutes',
+     'validee', 'tpmr', 'programmee',
+     'manuel', now() - interval '1 day', regulateur_id, regulateur_id),
+
+    -- Isolée 2 (secteur Est, fin de matinée) : Saint-Benoît → CHU Saint-Denis.
+    -- Créneau et secteur hors de tout groupe → l'optimiseur la laisse seule.
+    ('44444444-0000-0000-0000-000000000017', org_id,
+     patient_ids[4], null, null,
+     '3 Rue Amiral Bouvet, 97470 Saint-Benoît',
+     'CHU Félix Guyon, 97400 Saint-Denis',
+     -21.0340, 55.7130, -20.8853, 55.4504,
+     date_trunc('day', now()) + interval '11 hours 30 minutes',
      'validee', 'taxi_conventionne', 'programmee',
      'manuel', now() - interval '1 day', regulateur_id, regulateur_id)
   -- DEC-039 : seed glissant — DO UPDATE pour bloc J0 rides démo (reporte la
