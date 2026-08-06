@@ -2,9 +2,11 @@
 
 import * as React from 'react';
 import { Map, type MapMarker } from '@/components/map/map.client';
+import { cn } from '@/lib/utils';
 import { type DriverPosition, formatPositionAge, positionTone } from '../_lib/use-driver-positions';
 import { buildRideTrajectories } from '../_lib/ride-map';
 import { buildDriverPopupData, renderDriverPopupHtml } from '../_lib/driver-popup';
+import { driverColor } from '../_lib/driver-map-link';
 import { DRIVER_LOAD_STATUSES } from '../_lib/driver-load';
 import { formatReunionTime } from '../_lib/unassigned-h1';
 import type { CockpitRide } from '../_lib/types';
@@ -46,11 +48,25 @@ export function DriverPositionsPanel({
   driverIdByProfileId,
 }: Props): JSX.Element {
   const [now, setNow] = React.useState<Date>(() => new Date());
+  // Ligne active (lien liste ↔ carte) : identifiant de la position sélectionnée.
+  const [selectedId, setSelectedId] = React.useState<string | null>(null);
+  // Cible de recentrage — objet NEUF à chaque clic pour rejouer le `flyTo` même
+  // sur le même chauffeur (l'effet carte dépend de l'identité de l'objet).
+  const [focusTarget, setFocusTarget] = React.useState<{
+    lat: number;
+    lng: number;
+    zoom: number;
+  } | null>(null);
 
   // Rafraîchir l'âge toutes les 30s — la position ne bouge pas, son âge si.
   React.useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(id);
+  }, []);
+
+  const selectDriver = React.useCallback((p: DriverPosition): void => {
+    setSelectedId(p.id);
+    setFocusTarget({ lat: p.lat, lng: p.lng, zoom: 13 });
   }, []);
 
   const positions = Array.from(positionsByDriver.values()).sort((a, b) =>
@@ -81,7 +97,12 @@ export function DriverPositionsPanel({
       lat: p.lat,
       lng: p.lng,
       label: `${name} · ${formatPositionAge(p.captured_at, now)}`,
+      // Remplissage = fraîcheur (inchangé) ; liseré = identité (couleur stable).
       tone: positionTone(p.captured_at, now),
+      outlineColor: driverColor(p.driver_id).hex,
+      selected: selectedId === p.id,
+      // Brushing carte → liste : cliquer le marqueur active aussi sa ligne.
+      onClick: () => selectDriver(p),
       popupHtml: renderDriverPopupHtml(popup),
     };
   });
@@ -116,7 +137,9 @@ export function DriverPositionsPanel({
 
       <p className="text-muted-foreground text-sm">
         Dernière position connue à chaque pointage. Pas de suivi continu. Le marqueur indique
-        l&apos;âge de la donnée : il ne reflète pas une position « en direct ».
+        l&apos;âge de la donnée : il ne reflète pas une position « en direct ». Chaque chauffeur a
+        une couleur de repère, rappelée dans la liste ci-dessous ; cliquez une ligne pour centrer la
+        carte sur lui.
       </p>
 
       <div className="h-[320px] w-full">
@@ -125,6 +148,7 @@ export function DriverPositionsPanel({
           zoom={9}
           markers={markers}
           lines={lines}
+          focusTarget={focusTarget}
           ariaLabel="Carte 974 : positions des chauffeurs et trajets des courses du jour"
         />
       </div>
@@ -157,23 +181,47 @@ export function DriverPositionsPanel({
         </ul>
       )}
 
-      {/* Liste textuelle — accessibilité clavier + lecteur d'écran. */}
+      {/* Liste textuelle — équivalent accessible de la carte (clavier + lecteur
+          d'écran). Chaque ligne recentre la carte sur le chauffeur et met en
+          évidence son marqueur. Pastille = rappel de la couleur d'identité (jamais
+          le seul repère : le nom reste primaire, la sélection ajoute anneau + fond). */}
       {positions.length === 0 ? (
         <p className="text-muted-foreground text-base">
           Aucune position connue. Les positions apparaissent au prochain pointage chauffeur.
         </p>
       ) : (
         <ul className="space-y-4" aria-label="Liste des dernières positions">
-          {positions.map((p) => (
-            <li key={p.id} className="flex items-center justify-between gap-8 text-sm">
-              <span className="text-foreground font-medium">
-                {driverLabels[p.driver_id] ?? p.driver_id.slice(0, 8)}
-              </span>
-              <span className="text-muted-foreground text-xs tabular-nums">
-                {formatPositionAge(p.captured_at, now)}
-              </span>
-            </li>
-          ))}
+          {positions.map((p) => {
+            const name = driverLabels[p.driver_id] ?? p.driver_id.slice(0, 8);
+            const color = driverColor(p.driver_id);
+            const isSelected = selectedId === p.id;
+            return (
+              <li key={p.id}>
+                <button
+                  type="button"
+                  onClick={() => selectDriver(p)}
+                  aria-pressed={isSelected}
+                  className={cn(
+                    'flex w-full items-center justify-between gap-8 rounded-md px-8 py-4 text-left text-sm transition',
+                    'hover:bg-muted focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2',
+                    isSelected && 'bg-muted ring-ring ring-2',
+                  )}
+                >
+                  <span className="flex min-w-0 items-center gap-8">
+                    <span
+                      className={cn('h-8 w-8 shrink-0 rounded-full', color.dot)}
+                      title={`Repère ${color.label}`}
+                      aria-hidden
+                    />
+                    <span className="text-foreground truncate font-medium">{name}</span>
+                  </span>
+                  <span className="text-muted-foreground shrink-0 text-xs tabular-nums">
+                    {formatPositionAge(p.captured_at, now)}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>

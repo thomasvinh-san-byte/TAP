@@ -48,6 +48,19 @@ export interface MapMarker {
    */
   shape?: 'dot' | 'start' | 'end';
   /**
+   * Liseré `#rrggbb` posé en OUTLINE, distinct du remplissage (`tone`/`color`).
+   * Sert de rappel d'identité (couleur stable par chauffeur) sans écraser
+   * l'information de fraîcheur portée par le remplissage. Jamais le seul repère :
+   * le nom reste primaire, et la sélection ci-dessous ajoute un signal de taille.
+   */
+  outlineColor?: string;
+  /**
+   * Marqueur sélectionné (ligne active de la liste). Mise en évidence par un
+   * halo et un liseré renforcé — un signal de PROÉMINENCE, pas seulement de
+   * couleur.
+   */
+  selected?: boolean;
+  /**
    * Contenu HTML d'un aperçu ouvert au clic (popup native MapLibre). Un seul
    * popup à la fois ; fermeture au clic extérieur, au bouton et à Échap.
    */
@@ -71,6 +84,13 @@ export interface MapProps {
   markers?: MapMarker[];
   /** Trajets (segments) à tracer, en plus des marqueurs. Rétro-compat : optionnel. */
   lines?: MapLine[];
+  /**
+   * Cible de recentrage dynamique (survient APRÈS l'init). Un nouvel objet
+   * déclenche un `flyTo` doux. `null`/absent : aucun recentrage. Respecte
+   * `prefers-reduced-motion` (pas de `essential:true`) → saut immédiat si l'OS
+   * demande de réduire les animations.
+   */
+  focusTarget?: { lat: number; lng: number; zoom?: number } | null;
   className?: string;
   ariaLabel: string;
 }
@@ -121,6 +141,7 @@ export function Map({
   zoom = 10,
   markers = [],
   lines = [],
+  focusTarget = null,
   className,
   ariaLabel,
 }: MapProps): JSX.Element {
@@ -327,6 +348,22 @@ export function Map({
           el.style.backgroundColor = m.color;
         }
       }
+      // Liseré d'identité (couleur stable par chauffeur) en OUTLINE : hors du
+      // liseré blanc et du remplissage `tone`, donc n'écrase pas la fraîcheur.
+      // L'inline prime même sur `focus-visible:outline-none` → reste visible au
+      // focus clavier, en plus de l'anneau de focus (box-shadow, autre propriété).
+      if (m.outlineColor) {
+        el.style.outlineStyle = 'solid';
+        el.style.outlineColor = m.outlineColor;
+        el.style.outlineWidth = m.selected ? '3px' : '2px';
+        el.style.outlineOffset = m.selected ? '2px' : '1px';
+      }
+      // Sélection = proéminence (halo + z-index), pas seulement une teinte. Le
+      // halo (box-shadow) remplace l'ombre `shadow-md` le temps de la sélection.
+      if (m.selected) {
+        el.style.boxShadow = '0 0 0 4px hsl(var(--ring) / 0.35)';
+        el.style.zIndex = '10';
+      }
       if (m.onClick) el.addEventListener('click', m.onClick);
       if (m.popupHtml) {
         const html = m.popupHtml;
@@ -366,6 +403,20 @@ export function Map({
       paint: { 'line-color': ['get', 'color'], 'line-width': 3 },
     });
   }, [lines, mapReady]);
+
+  // Recentrage dynamique doux sur une cible (clic sur une ligne de la liste).
+  // Un nouvel objet `focusTarget` (identité) relance un `flyTo` — recentrer sur
+  // le MÊME chauffeur au clic répété fonctionne donc si l'appelant passe un objet
+  // neuf. `essential` non posé → `prefers-reduced-motion` respecté (saut immédiat).
+  React.useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady || !focusTarget) return;
+    map.flyTo({
+      center: [focusTarget.lng, focusTarget.lat],
+      zoom: focusTarget.zoom ?? map.getZoom(),
+      duration: 700,
+    });
+  }, [focusTarget, mapReady]);
 
   return (
     <div
