@@ -36,8 +36,10 @@ export interface MapMarker {
   /** Couleur tokens 06.14 : 'primary' (frais), 'muted' (ancien). */
   tone?: 'primary' | 'muted';
   /**
-   * Couleur `#rrggbb` explicite (ex. palette de courses). Prioritaire sur `tone`.
-   * La couleur n'est jamais le seul signal — cf. `shape`.
+   * Couleur CSS de REMPLISSAGE du marqueur, prioritaire sur `tone` : hex de
+   * palette (`#rrggbb`) ou jeton de thème (`hsl(var(--muted-foreground))` pour
+   * les marqueurs neutres en appui). Appliquée en style direct (DOM), donc toute
+   * couleur CSS est acceptée. La couleur n'est jamais le seul signal — cf. `shape`.
    */
   color?: string;
   /**
@@ -324,13 +326,19 @@ export function Map({
         // Défaut `tone` (positions chauffeurs) — inchangé quand aucune couleur.
         !m.color && (m.tone === 'muted' ? 'bg-muted-foreground/60' : 'bg-primary'),
       );
-      // Taille confortable (~20 px), cible cliquable suffisante. La position
-      // chauffeur (repère principal) est un peu plus grande que départ/arrivée.
-      const sizePx = shape === 'dot' ? 24 : 20;
+      // Hiérarchie visuelle : la position chauffeur (repère PRIMAIRE de « la carte
+      // des chauffeurs ») est nettement plus grande et cliquable ; les marqueurs
+      // de course (départ/arrivée) sont SECONDAIRES — petits, en appui, pour ne pas
+      // dominer ni se chevaucher. Taille en style direct (les classes `h-*`/`w-*`
+      // ne priment pas de façon fiable sur l'élément de marqueur MapLibre).
+      const sizePx = shape === 'dot' ? 24 : 14;
       el.style.width = `${sizePx}px`;
       el.style.height = `${sizePx}px`;
       el.style.boxSizing = 'border-box';
       el.style.padding = '0';
+      // Empilement : la position chauffeur reste AU-DESSUS des marqueurs de course
+      // (contexte) quand ils se superposent. La sélection passe encore au-dessus.
+      el.style.zIndex = shape === 'dot' ? '2' : '1';
       // Formes distinctes (l'info passe sans la couleur seule) : disque
       // (position / arrivée) vs carré arrondi (départ). Border-radius en direct
       // pour la même raison de fiabilité que la taille.
@@ -388,19 +396,23 @@ export function Map({
       return;
     }
     map.addSource(RIDE_LINES_SOURCE, { type: 'geojson', data });
+    // Trajets = CONTEXTE (secondaire) : trait fin et légèrement transparent, halo
+    // discret. La couleur par course reste PORTÉE PAR LA LIGNE (seul support de la
+    // teinte vive de course) — les marqueurs départ/arrivée, eux, sont neutres —
+    // pour ne pas rivaliser avec la couleur d'identité chauffeur (repère primaire).
     map.addLayer({
       id: RIDE_LINES_HALO_LAYER,
       type: 'line',
       source: RIDE_LINES_SOURCE,
       layout: { 'line-cap': 'round', 'line-join': 'round' },
-      paint: { 'line-color': '#ffffff', 'line-width': 6, 'line-opacity': 0.85 },
+      paint: { 'line-color': '#ffffff', 'line-width': 4, 'line-opacity': 0.7 },
     });
     map.addLayer({
       id: RIDE_LINES_LAYER,
       type: 'line',
       source: RIDE_LINES_SOURCE,
       layout: { 'line-cap': 'round', 'line-join': 'round' },
-      paint: { 'line-color': ['get', 'color'], 'line-width': 3 },
+      paint: { 'line-color': ['get', 'color'], 'line-width': 2, 'line-opacity': 0.75 },
     });
   }, [lines, mapReady]);
 

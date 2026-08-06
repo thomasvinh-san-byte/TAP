@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildRideTrajectories, rideIsGeocoded } from './ride-map';
+import { buildRideTrajectories, rideIsGeocoded, COURSE_MARKER_COLOR } from './ride-map';
 import { getGroupColor } from '../optimisation/_lib/group-colors';
 import type { CockpitRide } from './types';
 
@@ -39,11 +39,14 @@ describe('buildRideTrajectories', () => {
     expect(start!.label).toContain('Départ');
     expect(end!.label).toContain('Arrivée');
 
-    // Couleur issue de la palette partagée, cohérente départ = arrivée = ligne.
+    // Hiérarchie visuelle : la couleur vive « par course » est portée par la LIGNE
+    // seulement ; les marqueurs départ/arrivée restent NEUTRES (en appui), pour ne
+    // pas rivaliser avec la couleur d'identité chauffeur.
     const color0 = getGroupColor(0).hex;
-    expect(start!.color).toBe(color0);
-    expect(end!.color).toBe(color0);
     expect(lines[0]!.color).toBe(color0);
+    expect(start!.color).toBe(COURSE_MARKER_COLOR);
+    expect(end!.color).toBe(COURSE_MARKER_COLOR);
+    expect(start!.color).not.toBe(color0);
     expect(lines[0]!.from).toEqual({ lat: -21.3388, lng: 55.4802 });
     expect(lines[0]!.to).toEqual({ lat: -21.2788, lng: 55.5158 });
   });

@@ -22,6 +22,15 @@ export interface RideTrajectories {
   lines: MapLine[];
 }
 
+/**
+ * Couleur des marqueurs de course (départ / arrivée) : NEUTRE (jeton de thème),
+ * volontairement en appui. La couleur vive « par course » n'est portée que par la
+ * LIGNE — ainsi une seule famille de couleurs vives est en jeu (l'identité
+ * chauffeur), et les trajets restent un contexte lisible sans rivaliser. La forme
+ * (carré = départ, anneau = arrivée) porte l'information, pas la couleur.
+ */
+export const COURSE_MARKER_COLOR = 'hsl(var(--muted-foreground))';
+
 function isFiniteNum(v: number | null | undefined): v is number {
   return typeof v === 'number' && Number.isFinite(v);
 }
@@ -59,7 +68,8 @@ export function buildRideTrajectories(rides: readonly CockpitRide[]): RideTrajec
       continue;
     }
 
-    const color = getGroupColor(rank).hex;
+    // Couleur vive par course : réservée à la LIGNE. Les marqueurs restent neutres.
+    const lineColor = getGroupColor(rank).hex;
     rank += 1;
     const who = patientLabel(r);
 
@@ -68,7 +78,7 @@ export function buildRideTrajectories(rides: readonly CockpitRide[]): RideTrajec
       lat: pickup_lat,
       lng: pickup_lng,
       label: `Départ — ${who}`,
-      color,
+      color: COURSE_MARKER_COLOR,
       shape: 'start',
     });
     markers.push({
@@ -76,14 +86,14 @@ export function buildRideTrajectories(rides: readonly CockpitRide[]): RideTrajec
       lat: dropoff_lat,
       lng: dropoff_lng,
       label: `Arrivée — ${r.dropoff_address ?? who}`,
-      color,
+      color: COURSE_MARKER_COLOR,
       shape: 'end',
     });
     lines.push({
       id: r.id,
       from: { lat: pickup_lat, lng: pickup_lng },
       to: { lat: dropoff_lat, lng: dropoff_lng },
-      color,
+      color: lineColor,
     });
   }
 
