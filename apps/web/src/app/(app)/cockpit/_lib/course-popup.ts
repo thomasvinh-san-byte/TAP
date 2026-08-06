@@ -25,6 +25,12 @@ export interface CoursePointPopupData {
   order: number | null;
   /** Course terminée (réalisée) → estompée sur la carte. */
   done: boolean;
+  /**
+   * Libellé de la tournée d'affectation (chauffeur, ou à défaut véhicule) si la
+   * course est affectée ; `null` = non affectée. Non-couleur : identifie la
+   * tournée en toutes lettres (le regroupement ne repose pas sur la couleur seule).
+   */
+  tournee: string | null;
 }
 
 export interface BuildCoursePointPopupInput {
@@ -34,6 +40,7 @@ export interface BuildCoursePointPopupInput {
   scheduledLabel?: string | null;
   order?: number | null;
   done?: boolean;
+  tournee?: string | null;
 }
 
 export function buildCoursePointPopupData(input: BuildCoursePointPopupInput): CoursePointPopupData {
@@ -45,6 +52,7 @@ export function buildCoursePointPopupData(input: BuildCoursePointPopupInput): Co
     scheduledLabel: input.scheduledLabel ?? null,
     order: input.order ?? null,
     done: input.done ?? false,
+    tournee: input.tournee ?? null,
   };
 }
 
@@ -78,12 +86,20 @@ export function renderCoursePointPopupHtml(data: CoursePointPopupData): string {
     : data.order != null
       ? `<p class="text-foreground text-xs">Ordre de passage · n° ${data.order}</p>`
       : '';
+  // Tournée (non-couleur) : nomme le regroupement en toutes lettres, ou signale
+  // qu'aucune affectation n'a encore eu lieu. Masqué pour une course terminée.
+  const tournee = data.done
+    ? ''
+    : data.tournee
+      ? `<p class="text-foreground text-xs font-medium">Tournée · ${esc(data.tournee)}</p>`
+      : '<p class="text-muted-foreground text-xs">Non affectée</p>';
   return [
     '<div class="space-y-4 text-sm">',
     `<p class="text-muted-foreground text-xs font-medium">${esc(data.kindLabel)}</p>`,
     `<p class="text-foreground font-semibold">${esc(data.patient)}</p>`,
     address,
     scheduled,
+    tournee,
     state,
     '</div>',
   ].join('');

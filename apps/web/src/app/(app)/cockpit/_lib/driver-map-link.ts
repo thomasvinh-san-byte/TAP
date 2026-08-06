@@ -17,20 +17,32 @@ import { getGroupColor, type GroupColor } from '../optimisation/_lib/group-color
  */
 
 /** Hachage déterministe (djb2 simplifié) d'un identifiant en entier positif. */
-function hashDriverId(driverId: string): number {
+function hashId(id: string): number {
   let hash = 0;
-  for (let i = 0; i < driverId.length; i += 1) {
+  for (let i = 0; i < id.length; i += 1) {
     // `| 0` borne en entier 32 bits signé ; `getGroupColor` normalise ensuite.
-    hash = (hash * 31 + driverId.charCodeAt(i)) | 0;
+    hash = (hash * 31 + id.charCodeAt(i)) | 0;
   }
   return Math.abs(hash);
 }
 
 /**
+ * Couleur STABLE d'une clé (chauffeur, véhicule…) via la palette partagée. Source
+ * UNIQUE : la même clé donne toujours la même couleur, quelles que soient les
+ * autres clés présentes. Utilisée pour teinter une TOURNÉE (les courses d'un même
+ * chauffeur, ou à défaut d'un même véhicule) sur la carte.
+ */
+export function tourneeColor(key: string): GroupColor {
+  return getGroupColor(hashId(key));
+}
+
+/**
  * Couleur de repère stable d'un chauffeur (source UNIQUE liste + marqueur).
  * `.dot` (classe Tailwind) pour la pastille de la liste, `.hex` pour le liseré
- * du marqueur MapLibre (canvas, hors classes), `.label` pour l'aria.
+ * du marqueur MapLibre (canvas, hors classes), `.label` pour l'aria. Partage le
+ * hachage de `tourneeColor` : la couleur d'un chauffeur sur la liste/position
+ * ÉGALE celle de sa tournée sur la carte (même clé `driver_id`).
  */
 export function driverColor(driverId: string): GroupColor {
-  return getGroupColor(hashDriverId(driverId));
+  return tourneeColor(driverId);
 }

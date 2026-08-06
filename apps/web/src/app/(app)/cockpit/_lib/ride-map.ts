@@ -1,7 +1,7 @@
 import type { MapMarker, MapLine } from '@/components/map/map.client';
-import { getGroupColor } from '../optimisation/_lib/group-colors';
 import { buildCoursePointPopupData, renderCoursePointPopupHtml } from './course-popup';
 import { chronologicalOrder, isRideDone, type RideOrderSource } from './ride-order';
+import { tourneeColor } from './driver-map-link';
 import { formatReunionTime } from './unassigned-h1';
 import type { CockpitRide } from './types';
 
@@ -10,11 +10,15 @@ import type { CockpitRide } from './types';
  * chaque course GÉOCODÉE (départ + arrivée), un marqueur de départ (carré plein),
  * un marqueur d'arrivée (anneau creux) et une ligne droite entre les deux.
  *
- * Code couleur PAR COURSE (rang), via la palette de groupements partagée
- * (daltonien-safe). On ne colore PAS par groupement : les groupements sont
- * produits par l'optimiseur (autre écran, à la demande) et n'existent pas sur le
- * cockpit au repos. Colorer par chauffeur n'aurait pas de sens ici non plus : les
- * courses du jour à regrouper sont non affectées (`driver_id` nul).
+ * Code couleur PAR TOURNÉE (COCKPIT-09) : les courses d'une même tournée partagent
+ * une couleur stable de la palette partagée (daltonien-safe). La clé de tournée est
+ * le chauffeur affecté (`driver_id`) ou, à défaut, le véhicule affecté
+ * (`vehicle_id`) — l'application d'une optimisation pose le véhicule. On NE
+ * détourne PAS la table de demandes groupées (sémantique B2B) : une tournée = les
+ * courses d'un même chauffeur/véhicule ce jour-là. Les courses NON affectées
+ * restent NEUTRES (distinctes) ; ainsi le passage « dispersées → regroupées » se
+ * voit. La couleur n'est jamais le seul repère : forme, numéro d'ordre et libellé
+ * de tournée dans l'aperçu portent aussi l'information.
  *
  * Les courses sans coordonnées complètes sont ignorées (non traçables) ; elles
  * restent visibles ailleurs dans le cockpit.
@@ -26,15 +30,39 @@ export interface RideTrajectories {
 }
 
 /**
- * Couleur NEUTRE (jeton de thème) : utilisée pour les points d'une course
- * TERMINÉE (estompée). Les points ACTIFS, eux, prennent la couleur vive de leur
- * course pour bien ressortir du fond — la forme (carré/anneau) et le numéro
- * d'ordre portent aussi l'information, jamais la couleur seule.
+ * Couleur NEUTRE (jeton de thème, DOM) : points d'une course TERMINÉE (estompée)
+ * ou NON AFFECTÉE (pas encore de tournée). Les points d'une course affectée
+ * prennent la couleur de leur tournée.
  */
 export const COURSE_MARKER_COLOR = 'hsl(var(--muted-foreground))';
 
+/**
+ * Couleur NEUTRE des LIGNES non affectées / terminées. Hex en dur (le trait est
+ * rendu en WebGL, qui ne résout pas les variables CSS) — gris neutre lisible en
+ * clair comme en sombre.
+ */
+export const COURSE_LINE_NEUTRAL = '#94a3b8';
+
 function isFiniteNum(v: number | null | undefined): v is number {
   return typeof v === 'number' && Number.isFinite(v);
+}
+
+/** Clé de tournée : chauffeur affecté, sinon véhicule affecté, sinon aucune. */
+function tourneeKeyOf(r: CockpitRide): string | null {
+  return r.driver_id ?? r.vehicle_id ?? null;
+}
+
+/**
+ * Libellé humain de la tournée (aperçu) : nom du chauffeur si affecté, sinon
+ * immatriculation du véhicule. `null` si la course n'est pas affectée.
+ */
+function tourneeLabelOf(r: CockpitRide): string | null {
+  if (r.driver_id) return r.driver?.nom_affichage?.trim() || 'Chauffeur';
+  if (r.vehicle_id) {
+    const imm = r.vehicle?.immatriculation?.trim();
+    return imm ? `Véh. ${imm}` : 'Véhicule';
+  }
+  return null;
 }
 
 /** Vrai si la course a des coordonnées complètes (départ ET arrivée). */
@@ -62,7 +90,6 @@ export function buildRideTrajectories(
   const markers: MapMarker[] = [];
   const lines: MapLine[] = [];
   const order = orderSource(rides);
-  let rank = 0;
 
   for (const r of rides) {
     const { pickup_lat, pickup_lng, dropoff_lat, dropoff_lng } = r;
@@ -76,13 +103,16 @@ export function buildRideTrajectories(
       continue;
     }
 
-    // Couleur vive stable par course (palette daltonien-safe). Les points ACTIFS la
-    // portent pour ressortir ; les TERMINÉS passent en neutre + estompés.
-    const courseColor = getGroupColor(rank).hex;
-    rank += 1;
     const done = isRideDone(r);
     const orderNum = order.get(r.id) ?? null;
-    const markerColor = done ? COURSE_MARKER_COLOR : courseColor;
+    const tournee = tourneeLabelOf(r);
+    // Couleur de TOURNÉE (stable) si la course est affectée ; sinon neutre. Une
+    // course terminée passe en neutre (elle est estompée par ailleurs). C'est ce
+    // qui rend visible « non affectée (neutre) → affectée (couleur de tournée) ».
+    const tourneeKey = tourneeKeyOf(r);
+    const tourneeHex = tourneeKey ? tourneeColor(tourneeKey).hex : null;
+    const markerColor = done || !tourneeHex ? COURSE_MARKER_COLOR : tourneeHex;
+    const lineColor = !done && tourneeHex ? tourneeHex : COURSE_LINE_NEUTRAL;
     const who = patientLabel(r);
     const scheduledLabel = formatReunionTime(r.scheduled_at) || null;
 
@@ -108,6 +138,7 @@ export function buildRideTrajectories(
           scheduledLabel,
           order: orderNum,
           done,
+          tournee,
         }),
       ),
     });
@@ -128,6 +159,7 @@ export function buildRideTrajectories(
           scheduledLabel,
           order: orderNum,
           done,
+          tournee,
         }),
       ),
     });
@@ -135,7 +167,7 @@ export function buildRideTrajectories(
       id: r.id,
       from: { lat: pickup_lat, lng: pickup_lng },
       to: { lat: dropoff_lat, lng: dropoff_lng },
-      color: courseColor,
+      color: lineColor,
       // Ligne d'une course terminée : estompée (opacité réduite) → « c'est fait »
       // sans disparaître.
       muted: done,

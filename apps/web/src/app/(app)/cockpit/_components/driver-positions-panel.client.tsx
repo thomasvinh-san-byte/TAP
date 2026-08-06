@@ -4,7 +4,7 @@ import * as React from 'react';
 import { Map, type MapMarker } from '@/components/map/map.client';
 import { cn } from '@/lib/utils';
 import { type DriverPosition, formatPositionAge, positionTone } from '../_lib/use-driver-positions';
-import { buildRideTrajectories } from '../_lib/ride-map';
+import { buildRideTrajectories, COURSE_LINE_NEUTRAL } from '../_lib/ride-map';
 import { buildDriverPopupData, renderDriverPopupHtml } from '../_lib/driver-popup';
 import { driverColor } from '../_lib/driver-map-link';
 import { getGroupColor } from '../optimisation/_lib/group-colors';
@@ -205,7 +205,15 @@ export function DriverPositionsPanel({
                   style={{ backgroundColor: SAMPLE_LINE_COLOR }}
                   aria-hidden
                 />
-                Trajet (ligne)
+                Tournée (couleur)
+              </li>
+              <li className="flex items-center gap-4">
+                <span
+                  className="inline-block h-[3px] w-16 rounded-full"
+                  style={{ backgroundColor: COURSE_LINE_NEUTRAL }}
+                  aria-hidden
+                />
+                Non affectée (gris)
               </li>
               <li className="flex items-center gap-4">
                 <span
