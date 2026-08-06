@@ -144,7 +144,8 @@ export function DriverPositionsPanel({
         Dernière position connue à chaque pointage. Pas de suivi continu. Le marqueur indique
         l&apos;âge de la donnée : il ne reflète pas une position « en direct ». Chaque chauffeur a
         une couleur de repère, rappelée dans la liste ci-dessous ; cliquez une ligne pour centrer la
-        carte sur lui.
+        carte sur lui. Sur la carte, chaque ligne = une course (cliquez un point pour
+        l&apos;identifier).
       </p>
 
       <div className="h-[320px] w-full">
@@ -158,11 +159,9 @@ export function DriverPositionsPanel({
         />
       </div>
 
-      {/* Légende — fidèle 1:1 aux symboles réellement affichés. Hiérarchie :
-          chauffeur = repère primaire (disque plus grand, couleur d'identité) ;
-          points de course = plus petits, mais colorés et numérotés (ordre de
-          passage) quand actifs, atténués quand terminés. L'ordre et l'état ne
-          reposent jamais sur la couleur seule (numéro + forme + opacité). */}
+      {/* Légende = symbole + étiquette courte (1-3 mots), lisible d'un coup d'œil.
+          Le détail vit dans les interactions (popup au clic, mise en évidence au
+          survol) et l'intro ci-dessus. Repère non-coloré (forme) conservé. */}
       {(positions.length > 0 || hasTrajectories) && (
         <ul
           className="text-muted-foreground flex flex-wrap items-center gap-x-16 gap-y-4 text-xs"
@@ -170,20 +169,16 @@ export function DriverPositionsPanel({
         >
           {positions.length > 0 && (
             <li className="flex items-center gap-4">
-              {/* Disque = position ; le liseré porte la couleur d'identité (varie
-                  par chauffeur — l'accent n'est qu'un exemple, la vraie couleur est
-                  rappelée dans la liste). */}
               <span
                 className="bg-primary outline-accent inline-block h-12 w-12 rounded-full outline outline-2 outline-offset-1"
                 aria-hidden
               />
-              Chauffeur (disque) — couleur d&apos;identité, rappelée dans la liste
+              Chauffeur (disque)
             </li>
           )}
           {hasTrajectories && (
             <>
               <li className="flex items-center gap-4">
-                {/* Carré numéroté = départ ; le numéro donne l'ordre de passage. */}
                 <span
                   className="inline-flex h-16 w-16 items-center justify-center rounded-sm text-[10px] font-bold leading-none text-white"
                   style={{
@@ -194,7 +189,7 @@ export function DriverPositionsPanel({
                 >
                   1
                 </span>
-                Départ (carré) — le numéro donne l&apos;ordre de passage (par heure)
+                Départ (carré, numéroté)
               </li>
               <li className="flex items-center gap-4">
                 <span
@@ -210,22 +205,15 @@ export function DriverPositionsPanel({
                   style={{ backgroundColor: SAMPLE_LINE_COLOR }}
                   aria-hidden
                 />
-                Trajet — une couleur par course
+                Trajet (ligne)
               </li>
               <li className="flex items-center gap-4">
-                {/* Points et trait grisés + atténués = course terminée. */}
                 <span
                   className="bg-muted-foreground inline-block h-8 w-8 rounded-sm"
                   style={{ opacity: 0.45 }}
                   aria-hidden
                 />
-                Points atténués (gris) — course terminée
-              </li>
-              {/* Lève la confusion du « détour » : les lignes se croisent parce que
-                  ce sont des courses distinctes, pas un itinéraire unique. */}
-              <li className="text-muted-foreground basis-full">
-                Chaque ligne est une course indépendante (domicile → lieu de soins), pas un parcours
-                unique. Cliquez un point pour l&apos;identifier ; survolez-le pour voir sa course.
+                Terminée (atténué)
               </li>
             </>
           )}
