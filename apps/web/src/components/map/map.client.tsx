@@ -293,20 +293,30 @@ export function Map({
       el.setAttribute('aria-label', m.label);
       el.title = m.label;
       const shape = m.shape ?? 'dot';
-      // Formes distinctes (l'info passe sans la couleur seule) : disque plein
-      // (position), carré plein (départ), anneau creux (arrivée).
-      const shapeCls =
-        shape === 'start'
-          ? 'h-12 w-12 rounded-sm'
-          : shape === 'end'
-            ? 'h-12 w-12 rounded-full'
-            : 'h-16 w-16 rounded-full';
+      // Bordure / ombre / anneau de focus / couleur `tone` par classes. La
+      // TAILLE, la FORME et le curseur sont posés en STYLE DIRECT : les classes
+      // de taille (`h-*`/`w-*`) ne priment pas de façon fiable sur l'élément de
+      // marqueur MapLibre, ce qui réduisait les marqueurs à quelques pixels
+      // (donc impossibles à cliquer). Même approche que couleur/bordure.
       el.className = cn(
         'border-2 border-background shadow-md transition focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none',
-        shapeCls,
         // Défaut `tone` (positions chauffeurs) — inchangé quand aucune couleur.
         !m.color && (m.tone === 'muted' ? 'bg-muted-foreground/60' : 'bg-primary'),
       );
+      // Taille confortable (~20 px), cible cliquable suffisante. La position
+      // chauffeur (repère principal) est un peu plus grande que départ/arrivée.
+      const sizePx = shape === 'dot' ? 24 : 20;
+      el.style.width = `${sizePx}px`;
+      el.style.height = `${sizePx}px`;
+      el.style.boxSizing = 'border-box';
+      el.style.padding = '0';
+      // Formes distinctes (l'info passe sans la couleur seule) : disque
+      // (position / arrivée) vs carré arrondi (départ). Border-radius en direct
+      // pour la même raison de fiabilité que la taille.
+      el.style.borderRadius = shape === 'start' ? '4px' : '9999px';
+      // Curseur « main » seulement pour les marqueurs interactifs (chauffeurs) —
+      // les marqueurs départ/arrivée ne portent pas d'action.
+      if (m.onClick || m.popupHtml) el.style.cursor = 'pointer';
       if (m.color) {
         if (shape === 'end') {
           // Anneau creux : centre au fond de la carte, bord épais coloré.
