@@ -7,6 +7,7 @@ import { type DriverPosition, formatPositionAge, positionTone } from '../_lib/us
 import { buildRideTrajectories } from '../_lib/ride-map';
 import { buildDriverPopupData, renderDriverPopupHtml } from '../_lib/driver-popup';
 import { driverColor } from '../_lib/driver-map-link';
+import { getGroupColor } from '../optimisation/_lib/group-colors';
 import { DRIVER_LOAD_STATUSES } from '../_lib/driver-load';
 import { formatReunionTime } from '../_lib/unassigned-h1';
 import type { CockpitRide } from '../_lib/types';
@@ -40,6 +41,10 @@ interface Props {
 }
 
 const REUNION_CENTER = { lat: -21.1, lng: 55.55 };
+
+// Couleur d'exemple pour le trait « trajet » de la légende — une des teintes de la
+// palette de courses (la couleur réelle varie par course). Source = palette partagée.
+const SAMPLE_LINE_COLOR = getGroupColor(0).hex;
 
 export function DriverPositionsPanel({
   positionsByDriver,
@@ -153,31 +158,51 @@ export function DriverPositionsPanel({
         />
       </div>
 
-      {/* Légende — les symboles ne reposent jamais sur la couleur seule. */}
-      {hasTrajectories && (
+      {/* Légende — fidèle 1:1 aux symboles réellement affichés. Hiérarchie :
+          chauffeur = repère primaire (disque plus grand, couleur d'identité vive) ;
+          trajets = contexte secondaire (marqueurs neutres plus petits, couleur de
+          course portée par la ligne seule). Les symboles ne reposent jamais sur la
+          couleur seule (formes + libellés). */}
+      {(positions.length > 0 || hasTrajectories) && (
         <ul
           className="text-muted-foreground flex flex-wrap items-center gap-x-16 gap-y-4 text-xs"
           aria-label="Légende de la carte"
         >
-          <li className="flex items-center gap-4">
-            <span
-              className="border-background bg-foreground inline-block h-12 w-12 rounded-sm border-2"
-              aria-hidden
-            />
-            Départ (carré)
-          </li>
-          <li className="flex items-center gap-4">
-            <span
-              className="border-foreground inline-block h-12 w-12 rounded-full border-[3px]"
-              aria-hidden
-            />
-            Arrivée (anneau)
-          </li>
-          <li className="flex items-center gap-4">
-            <span className="bg-primary inline-block h-12 w-12 rounded-full" aria-hidden />
-            Position chauffeur
-          </li>
-          <li>Une couleur par course.</li>
+          {positions.length > 0 && (
+            <li className="flex items-center gap-4">
+              {/* Disque = position ; le liseré porte la couleur d'identité (varie
+                  par chauffeur — l'accent n'est qu'un exemple, la vraie couleur est
+                  rappelée dans la liste). */}
+              <span
+                className="bg-primary outline-accent inline-block h-12 w-12 rounded-full outline outline-2 outline-offset-1"
+                aria-hidden
+              />
+              Chauffeur (disque) — couleur d&apos;identité, rappelée dans la liste
+            </li>
+          )}
+          {hasTrajectories && (
+            <>
+              <li className="flex items-center gap-4">
+                <span className="bg-muted-foreground inline-block h-8 w-8 rounded-sm" aria-hidden />
+                Départ (carré)
+              </li>
+              <li className="flex items-center gap-4">
+                <span
+                  className="border-muted-foreground inline-block h-8 w-8 rounded-full border-2"
+                  aria-hidden
+                />
+                Arrivée (anneau)
+              </li>
+              <li className="flex items-center gap-4">
+                <span
+                  className="inline-block h-[3px] w-16 rounded-full"
+                  style={{ backgroundColor: SAMPLE_LINE_COLOR }}
+                  aria-hidden
+                />
+                Trajet — une couleur par course
+              </li>
+            </>
+          )}
         </ul>
       )}
 
