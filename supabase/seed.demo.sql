@@ -773,6 +773,50 @@ begin
 end $$;
 
 -- -----------------------------------------------------------------------------
+-- Coordonnées des lieux de soins (latitude / longitude WGS84)
+-- -----------------------------------------------------------------------------
+-- Coordonnées EN DUR, déterministes (pas de dépendance réseau — le géocodage
+-- BAN/Géoplateforme reste le mécanisme runtime, cf. lib/geocoding). Précision
+-- « commune / secteur » suffisante pour l'optimiseur (distances à vol
+-- d'oiseau). Idempotent : ré-application du seed = mêmes valeurs. Ces mêmes
+-- coordonnées sont réutilisées comme destination des courses vers ces lieux.
+update public.pois_metier p
+set latitude = c.lat, longitude = c.lng
+from (values
+  ('66666666-0000-0000-0000-000000000001'::uuid, -20.8895, 55.4468), -- CHU Félix Guyon, Bellepierre (Saint-Denis)
+  ('66666666-0000-0000-0000-000000000002'::uuid, -21.3436, 55.4900), -- CHU Sud, Terre-Sainte (Saint-Pierre)
+  ('66666666-0000-0000-0000-000000000003'::uuid, -21.0378, 55.7160), -- GHER (Saint-Benoît)
+  ('66666666-0000-0000-0000-000000000004'::uuid, -21.0093, 55.2712), -- CH Gabriel Martin (Saint-Paul)
+  ('66666666-0000-0000-0000-000000000005'::uuid, -20.8828, 55.4585), -- Clinique Saint-Vincent (Saint-Denis)
+  ('66666666-0000-0000-0000-000000000006'::uuid, -20.9083, 55.4808), -- Clinique Sainte-Clotilde
+  ('66666666-0000-0000-0000-000000000007'::uuid, -20.9385, 55.2938), -- Clinique Jeanne d'Arc (Le Port)
+  ('66666666-0000-0000-0000-000000000008'::uuid, -20.8985, 55.5470), -- Dialyse Nord, Duparc (Sainte-Marie)
+  ('66666666-0000-0000-0000-000000000009'::uuid, -21.2788, 55.5158), -- Dialyse Sud (Le Tampon)
+  ('66666666-0000-0000-0000-000000000010'::uuid, -21.0102, 55.2735), -- Dialyse Saint-Paul
+  ('66666666-0000-0000-0000-000000000011'::uuid, -20.9268, 55.3355), -- EHPAD Les Lataniers (La Possession)
+  ('66666666-0000-0000-0000-000000000012'::uuid, -21.2795, 55.5170), -- EHPAD Les Mascareignes (Le Tampon)
+  ('66666666-0000-0000-0000-000000000013'::uuid, -20.8905, 55.4520), -- EHPAD Albert Barbot (Saint-Denis)
+  ('66666666-0000-0000-0000-000000000014'::uuid, -21.3418, 55.4795), -- EHPAD Les Alizés (Saint-Pierre)
+  ('66666666-0000-0000-0000-000000000015'::uuid, -20.9070, 55.6085), -- EHPAD Les Tamarins (Sainte-Suzanne)
+  ('66666666-0000-0000-0000-000000000016'::uuid, -20.8792, 55.4498), -- Cabinet kiné SD Centre
+  ('66666666-0000-0000-0000-000000000017'::uuid, -21.3406, 55.4788), -- Cabinet kiné Saint-Pierre
+  ('66666666-0000-0000-0000-000000000018'::uuid, -21.0110, 55.2698), -- Cabinet kiné Saint-Paul
+  ('66666666-0000-0000-0000-000000000019'::uuid, -20.8801, 55.4521), -- Cabinet ophtalmo Saint-Denis
+  ('66666666-0000-0000-0000-000000000020'::uuid, -21.3389, 55.4801), -- Cabinet ophtalmo Saint-Pierre
+  ('66666666-0000-0000-0000-000000000021'::uuid, -20.8809, 55.4487), -- Cabinet dentaire Saint-Denis
+  ('66666666-0000-0000-0000-000000000022'::uuid, -21.2800, 55.5150), -- Cabinet dentaire Le Tampon
+  ('66666666-0000-0000-0000-000000000023'::uuid, -20.8890, 55.4472), -- Cabinet médecine Bellepierre (Saint-Denis)
+  ('66666666-0000-0000-0000-000000000024'::uuid, -21.3412, 55.4791), -- Cabinet médecine Saint-Pierre
+  ('66666666-0000-0000-0000-000000000025'::uuid, -21.2775, 55.5165), -- Cabinet médecine Le Tampon
+  ('66666666-0000-0000-0000-000000000026'::uuid, -20.8815, 55.4505), -- Centre imagerie Saint-Denis
+  ('66666666-0000-0000-0000-000000000027'::uuid, -21.3395, 55.4779), -- Labo Réunion Bio (Saint-Pierre)
+  ('66666666-0000-0000-0000-000000000028'::uuid, -21.0098, 55.2705), -- Centre radio Saint-Paul
+  ('66666666-0000-0000-0000-000000000029'::uuid, -21.3785, 55.6205), -- Foyer Les Hibiscus (Saint-Joseph)
+  ('66666666-0000-0000-0000-000000000030'::uuid, -20.8968, 55.5490)  -- Pharmacie de l'Océan (Sainte-Marie)
+) as c(id, lat, lng)
+where p.id = c.id;
+
+-- -----------------------------------------------------------------------------
 -- Données futures (commentées tant que migrations Phase 4+ pas en place)
 -- -----------------------------------------------------------------------------
 -- TODO Phase 4 (récurrences) :
