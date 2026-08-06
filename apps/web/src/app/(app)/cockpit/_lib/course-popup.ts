@@ -21,6 +21,10 @@ export interface CoursePointPopupData {
   address: string | null;
   /** Heure prévue lisible (HH:mm, fuseau Réunion) si disponible. */
   scheduledLabel: string | null;
+  /** Numéro d'ordre de passage (1-based) si la course est active, sinon `null`. */
+  order: number | null;
+  /** Course terminée (réalisée) → estompée sur la carte. */
+  done: boolean;
 }
 
 export interface BuildCoursePointPopupInput {
@@ -28,6 +32,8 @@ export interface BuildCoursePointPopupInput {
   patient: string;
   address: string | null;
   scheduledLabel?: string | null;
+  order?: number | null;
+  done?: boolean;
 }
 
 export function buildCoursePointPopupData(input: BuildCoursePointPopupInput): CoursePointPopupData {
@@ -37,6 +43,8 @@ export function buildCoursePointPopupData(input: BuildCoursePointPopupInput): Co
     patient: input.patient,
     address: input.address ?? null,
     scheduledLabel: input.scheduledLabel ?? null,
+    order: input.order ?? null,
+    done: input.done ?? false,
   };
 }
 
@@ -64,12 +72,19 @@ export function renderCoursePointPopupHtml(data: CoursePointPopupData): string {
   const scheduled = data.scheduledLabel
     ? `<p class="text-foreground text-xs">Prévue · ${esc(data.scheduledLabel)}</p>`
     : '';
+  // État / ordre (jamais la couleur seule) : mot « Terminée » ou n° de passage.
+  const state = data.done
+    ? '<p class="text-muted-foreground text-xs font-medium">Course terminée</p>'
+    : data.order != null
+      ? `<p class="text-foreground text-xs">Ordre de passage · n° ${data.order}</p>`
+      : '';
   return [
     '<div class="space-y-4 text-sm">',
     `<p class="text-muted-foreground text-xs font-medium">${esc(data.kindLabel)}</p>`,
     `<p class="text-foreground font-semibold">${esc(data.patient)}</p>`,
     address,
     scheduled,
+    state,
     '</div>',
   ].join('');
 }
