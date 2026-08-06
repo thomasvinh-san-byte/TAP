@@ -202,6 +202,14 @@ export function Map({
                     attribution: '© OpenStreetMap contributors',
                   },
                 },
+          // Fond vectoriel ÉPURÉ (schéma Protomaps basemaps, cohérent avec les
+          // glyphs) : couches utiles seulement (eau, routes, limites) et SURTOUT
+          // AUCUNE couche `places` — les libellés / gros points de communes
+          // masqueraient marqueurs et trajets. Couleurs via jetons de thème
+          // (jour/nuit), même convention que le fond existant. Rendu effectif
+          // une fois l'extrait de tuiles 974 en place ; sinon la carte reste sur
+          // son repli OSM raster (inchangé). Un source-layer absent des tuiles
+          // ne rend simplement rien — pas d'erreur.
           layers:
             source === 'pmtiles'
               ? [
@@ -209,6 +217,36 @@ export function Map({
                     id: 'background',
                     type: 'background',
                     paint: { 'background-color': 'hsl(var(--muted))' },
+                  },
+                  {
+                    id: 'water',
+                    type: 'fill',
+                    source: 'reunion',
+                    'source-layer': 'water',
+                    paint: {
+                      'fill-color': 'hsl(var(--muted-foreground))',
+                      'fill-opacity': 0.12,
+                    },
+                  },
+                  {
+                    id: 'roads',
+                    type: 'line',
+                    source: 'reunion',
+                    'source-layer': 'roads',
+                    layout: { 'line-cap': 'round', 'line-join': 'round' },
+                    paint: { 'line-color': 'hsl(var(--border))', 'line-width': 1 },
+                  },
+                  {
+                    id: 'boundaries',
+                    type: 'line',
+                    source: 'reunion',
+                    'source-layer': 'boundaries',
+                    paint: {
+                      'line-color': 'hsl(var(--muted-foreground))',
+                      'line-opacity': 0.4,
+                      'line-width': 1,
+                      'line-dasharray': [2, 2],
+                    },
                   },
                 ]
               : [
