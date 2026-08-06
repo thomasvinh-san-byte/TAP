@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import maplibregl, { type Map as MapLibreMap, type Marker } from 'maplibre-gl';
+import maplibregl, { type Map as MapLibreMap, type Marker, type GeoJSONSource } from 'maplibre-gl';
 import { Protocol } from 'pmtiles';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { cn } from '@/lib/utils';
@@ -30,13 +30,37 @@ export interface MapMarker {
   label: string;
   /** Couleur tokens 06.14 : 'primary' (frais), 'muted' (ancien). */
   tone?: 'primary' | 'muted';
+  /**
+   * Couleur `#rrggbb` explicite (ex. palette de courses). Prioritaire sur `tone`.
+   * La couleur n'est jamais le seul signal — cf. `shape`.
+   */
+  color?: string;
+  /**
+   * Forme du marqueur, pour distinguer sans la couleur :
+   *   - `dot`   : disque plein (défaut ; positions chauffeurs)
+   *   - `start` : carré plein (départ d'une course)
+   *   - `end`   : anneau creux (arrivée d'une course)
+   */
+  shape?: 'dot' | 'start' | 'end';
   onClick?: () => void;
+}
+
+/** Segment droit départ→arrivée (pas de routage réel : souverain, hors-ligne). */
+export interface MapLine {
+  id: string;
+  from: { lat: number; lng: number };
+  to: { lat: number; lng: number };
+  /** Couleur `#rrggbb` du trait. */
+  color: string;
+  label?: string;
 }
 
 export interface MapProps {
   center: { lat: number; lng: number };
   zoom?: number;
   markers?: MapMarker[];
+  /** Trajets (segments) à tracer, en plus des marqueurs. Rétro-compat : optionnel. */
+  lines?: MapLine[];
   className?: string;
   ariaLabel: string;
 }
@@ -61,10 +85,32 @@ async function detectPmtilesAvailable(): Promise<boolean> {
   }
 }
 
+const RIDE_LINES_SOURCE = 'ride-lines';
+const RIDE_LINES_HALO_LAYER = 'ride-lines-halo';
+const RIDE_LINES_LAYER = 'ride-lines-line';
+
+function linesToGeoJSON(lines: MapLine[]): GeoJSON.FeatureCollection {
+  return {
+    type: 'FeatureCollection',
+    features: lines.map((l) => ({
+      type: 'Feature',
+      properties: { color: l.color },
+      geometry: {
+        type: 'LineString',
+        coordinates: [
+          [l.from.lng, l.from.lat],
+          [l.to.lng, l.to.lat],
+        ],
+      },
+    })),
+  };
+}
+
 export function Map({
   center,
   zoom = 10,
   markers = [],
+  lines = [],
   className,
   ariaLabel,
 }: MapProps): JSX.Element {
@@ -72,6 +118,9 @@ export function Map({
   const mapRef = React.useRef<MapLibreMap | null>(null);
   const markersRef = React.useRef<Marker[]>([]);
   const [tileSource, setTileSource] = React.useState<'pmtiles' | 'osm-fallback'>('osm-fallback');
+  // Vrai une fois le style chargé — les couches (lignes) ne peuvent être ajoutées
+  // qu'après `load`. Sert aussi à (re)poser marqueurs et lignes de façon fiable.
+  const [mapReady, setMapReady] = React.useState(false);
 
   React.useEffect(() => {
     const el = containerRef.current;
@@ -128,10 +177,14 @@ export function Map({
         attributionControl: { compact: true },
       });
       mapRef.current = map;
+      map.on('load', () => {
+        if (!cancelled) setMapReady(true);
+      });
     });
 
     return () => {
       cancelled = true;
+      setMapReady(false);
       markersRef.current.forEach((m) => m.remove());
       markersRef.current = [];
       mapRef.current?.remove();
@@ -154,15 +207,65 @@ export function Map({
       el.type = 'button';
       el.setAttribute('aria-label', m.label);
       el.title = m.label;
+      const shape = m.shape ?? 'dot';
+      // Formes distinctes (l'info passe sans la couleur seule) : disque plein
+      // (position), carré plein (départ), anneau creux (arrivée).
+      const shapeCls =
+        shape === 'start'
+          ? 'h-12 w-12 rounded-sm'
+          : shape === 'end'
+            ? 'h-12 w-12 rounded-full'
+            : 'h-16 w-16 rounded-full';
       el.className = cn(
-        'h-16 w-16 rounded-full border-2 border-background shadow-md transition focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none',
-        m.tone === 'muted' ? 'bg-muted-foreground/60' : 'bg-primary',
+        'border-2 border-background shadow-md transition focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none',
+        shapeCls,
+        // Défaut `tone` (positions chauffeurs) — inchangé quand aucune couleur.
+        !m.color && (m.tone === 'muted' ? 'bg-muted-foreground/60' : 'bg-primary'),
       );
+      if (m.color) {
+        if (shape === 'end') {
+          // Anneau creux : centre au fond de la carte, bord épais coloré.
+          el.style.backgroundColor = 'hsl(var(--background))';
+          el.style.borderColor = m.color;
+          el.style.borderWidth = '3px';
+        } else {
+          el.style.backgroundColor = m.color;
+        }
+      }
       if (m.onClick) el.addEventListener('click', m.onClick);
       const marker = new maplibregl.Marker({ element: el }).setLngLat([m.lng, m.lat]).addTo(map);
       markersRef.current.push(marker);
     }
-  }, [markers]);
+  }, [markers, mapReady]);
+
+  // Trace les lignes (trajets) via une source GeoJSON + un liseré blanc (halo)
+  // sous un trait coloré. Nécessite le style chargé (`mapReady`).
+  React.useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapReady) return;
+
+    const data = linesToGeoJSON(lines);
+    const existing = map.getSource(RIDE_LINES_SOURCE) as GeoJSONSource | undefined;
+    if (existing) {
+      existing.setData(data);
+      return;
+    }
+    map.addSource(RIDE_LINES_SOURCE, { type: 'geojson', data });
+    map.addLayer({
+      id: RIDE_LINES_HALO_LAYER,
+      type: 'line',
+      source: RIDE_LINES_SOURCE,
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: { 'line-color': '#ffffff', 'line-width': 6, 'line-opacity': 0.85 },
+    });
+    map.addLayer({
+      id: RIDE_LINES_LAYER,
+      type: 'line',
+      source: RIDE_LINES_SOURCE,
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: { 'line-color': ['get', 'color'], 'line-width': 3 },
+    });
+  }, [lines, mapReady]);
 
   return (
     <div

@@ -6,9 +6,12 @@
  * Au-delà de 8 groupements la palette boucle (modulo) — un cas rare en
  * pratique (~5 groupements/jour côté régulatrice).
  *
- * Chaque couleur est exposée sous deux formes :
+ * Chaque couleur est exposée sous trois formes, source UNIQUE :
  *   - `border` : classe Tailwind `border-l-*` pour la bordure gauche des cards
  *   - `dot`    : classe Tailwind `bg-*` pour la pastille pleine
+ *   - `hex`    : valeur `#rrggbb` pour les contextes HORS HTML (canvas carte
+ *                MapLibre, qui ne comprend pas les classes Tailwind). Valeurs
+ *                Tailwind `*-500` officielles, alignées sur les classes ci-dessus.
  *
  * Le `label` est un nom couleur fr accessible (aria-label).
  */
@@ -17,18 +20,49 @@ export type GroupColor = {
   readonly name: string;
   readonly border: string;
   readonly dot: string;
+  readonly hex: string;
   readonly label: string;
 };
 
 export const GROUP_COLORS: readonly GroupColor[] = [
-  { name: 'blue', border: 'border-l-blue-500', dot: 'bg-blue-500', label: 'Bleu' },
-  { name: 'purple', border: 'border-l-purple-500', dot: 'bg-purple-500', label: 'Violet' },
-  { name: 'green', border: 'border-l-green-500', dot: 'bg-green-500', label: 'Vert' },
-  { name: 'orange', border: 'border-l-orange-500', dot: 'bg-orange-500', label: 'Orange' },
-  { name: 'pink', border: 'border-l-pink-500', dot: 'bg-pink-500', label: 'Rose' },
-  { name: 'cyan', border: 'border-l-cyan-500', dot: 'bg-cyan-500', label: 'Cyan' },
-  { name: 'amber', border: 'border-l-amber-500', dot: 'bg-amber-500', label: 'Ambre' },
-  { name: 'indigo', border: 'border-l-indigo-500', dot: 'bg-indigo-500', label: 'Indigo' },
+  { name: 'blue', border: 'border-l-blue-500', dot: 'bg-blue-500', hex: '#3b82f6', label: 'Bleu' },
+  {
+    name: 'purple',
+    border: 'border-l-purple-500',
+    dot: 'bg-purple-500',
+    hex: '#a855f7',
+    label: 'Violet',
+  },
+  {
+    name: 'green',
+    border: 'border-l-green-500',
+    dot: 'bg-green-500',
+    hex: '#22c55e',
+    label: 'Vert',
+  },
+  {
+    name: 'orange',
+    border: 'border-l-orange-500',
+    dot: 'bg-orange-500',
+    hex: '#f97316',
+    label: 'Orange',
+  },
+  { name: 'pink', border: 'border-l-pink-500', dot: 'bg-pink-500', hex: '#ec4899', label: 'Rose' },
+  { name: 'cyan', border: 'border-l-cyan-500', dot: 'bg-cyan-500', hex: '#06b6d4', label: 'Cyan' },
+  {
+    name: 'amber',
+    border: 'border-l-amber-500',
+    dot: 'bg-amber-500',
+    hex: '#f59e0b',
+    label: 'Ambre',
+  },
+  {
+    name: 'indigo',
+    border: 'border-l-indigo-500',
+    dot: 'bg-indigo-500',
+    hex: '#6366f1',
+    label: 'Indigo',
+  },
 ] as const;
 
 /**
