@@ -46,6 +46,7 @@ export function CockpitContent({
   initialAlerts,
   initialPositions,
   driverLabels,
+  driverIdByProfileId,
   complianceAlerts,
   prescriptionAlerts,
   alertPreferences,
@@ -55,6 +56,7 @@ export function CockpitContent({
   initialAlerts: CockpitAlert[];
   initialPositions: DriverPosition[];
   driverLabels: Record<string, string>;
+  driverIdByProfileId: Record<string, string>;
   complianceAlerts: ComplianceAlertEnriched[];
   prescriptionAlerts: PrescriptionAlertEnriched[];
   alertPreferences: CockpitAlertPreferences;
@@ -222,6 +224,7 @@ export function CockpitContent({
               positionsByDriver={positionsByDriver}
               driverLabels={driverLabels}
               rides={rides}
+              driverIdByProfileId={driverIdByProfileId}
             />
           </div>
         </section>

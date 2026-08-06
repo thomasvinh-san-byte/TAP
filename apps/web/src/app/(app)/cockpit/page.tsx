@@ -109,9 +109,11 @@ async function getDriverIncidentAlerts(supabase: SupabaseServerClient): Promise<
  * cette fonction (vraie dépendance), mais la fonction entière est indépendante
  * des autres fetchs → parallélisable. try/catch + fallback gracieux préservés.
  */
-async function getDriverPositionsWithLabels(
-  supabase: SupabaseServerClient,
-): Promise<{ positions: DriverPosition[]; driverLabels: Record<string, string> }> {
+async function getDriverPositionsWithLabels(supabase: SupabaseServerClient): Promise<{
+  positions: DriverPosition[];
+  driverLabels: Record<string, string>;
+  driverIdByProfileId: Record<string, string>;
+}> {
   try {
     const { data: posData } = await supabase
       .from('driver_positions')
@@ -121,25 +123,30 @@ async function getDriverPositionsWithLabels(
     const positions = (posData as DriverPosition[] | null) ?? [];
 
     let driverLabels: Record<string, string> = {};
+    // Pont profile_id → drivers.id : les positions portent le profile_id (identité
+    // de connexion), les courses la clé primaire `drivers.id`. Ce pont permet de
+    // relier une position à ses courses (charge du jour, course en cours).
+    const driverIdByProfileId: Record<string, string> = {};
     if (positions.length > 0) {
-      // `driver_positions.driver_id` = identité de connexion (profiles.id). On
-      // résout donc le nom via la colonne de liaison `drivers.profile_id`, PAS
-      // via la clé primaire `drivers.id` (qui ne matcherait jamais). Le
-      // dictionnaire est indexé par `profile_id` = la valeur portée par les
-      // positions.
+      // Résolution du nom via la colonne de liaison `drivers.profile_id`, PAS via
+      // la clé primaire `drivers.id` (qui ne matcherait jamais).
       const driverAuthIds = Array.from(new Set(positions.map((p) => p.driver_id)));
       const { data: drvData } = await supabase
         .from('drivers')
-        .select('profile_id, nom_affichage')
+        .select('id, profile_id, nom_affichage')
         .in('profile_id', driverAuthIds);
-      driverLabels = buildDriverLabels(
-        (drvData as { profile_id: string | null; nom_affichage: string }[] | null) ?? [],
-      );
+      const drv =
+        (drvData as { id: string; profile_id: string | null; nom_affichage: string }[] | null) ??
+        [];
+      driverLabels = buildDriverLabels(drv);
+      for (const d of drv) {
+        if (d.profile_id) driverIdByProfileId[d.profile_id] = d.id;
+      }
     }
-    return { positions, driverLabels };
+    return { positions, driverLabels, driverIdByProfileId };
   } catch (err) {
     console.error('[cockpit] driver_positions non disponible:', err);
-    return { positions: [], driverLabels: {} };
+    return { positions: [], driverLabels: {}, driverIdByProfileId: {} };
   }
 }
 
@@ -192,6 +199,7 @@ export default async function CockpitPage() {
         initialAlerts={alerts}
         initialPositions={positionsResult.positions}
         driverLabels={positionsResult.driverLabels}
+        driverIdByProfileId={positionsResult.driverIdByProfileId}
         complianceAlerts={complianceAlerts}
         prescriptionAlerts={prescriptionAlerts}
         alertPreferences={alertPreferences}
