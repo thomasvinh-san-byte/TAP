@@ -60,13 +60,22 @@ export function ApplyConfirmationDialog({
         }
       }
 
+      // Échec partiel : rester honnête — on informe, on rafraîchit sur place, on
+      // NE redirige PAS (ne pas laisser croire que tout a réussi).
       if (errorCount > 0) {
         toast.error(`${successCount} course(s) enregistrée(s), ${errorCount} erreur(s).`);
-      } else {
-        toast.success(`${count} groupement(s) enregistré(s).`, { id: 'sonner-toast' });
+        router.refresh();
+        onCancel();
+        return;
       }
-      router.refresh();
+      // Succès complet : fermer la boucle — retour au cockpit pour VOIR l'effet.
+      // `assignVehicleAction` a déjà revalidé /cockpit ; `push` récupère les
+      // données à jour. Le repère `?optimise=applied` affiche un bandeau discret.
+      toast.success(`${count} groupement(s) appliqué(s). Retour au cockpit.`, {
+        id: 'sonner-toast',
+      });
       onCancel();
+      router.push('/cockpit?optimise=applied');
     });
   }
 
