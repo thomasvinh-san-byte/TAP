@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { CockpitContent } from './_components/cockpit-content.client';
 import type { CockpitAlert, CockpitRide } from './_lib/types';
 import type { DriverPosition } from './_lib/use-driver-positions';
+import { buildDriverLabels } from './_lib/driver-labels';
 import { getComplianceAlerts } from '../../(admin)/admin/conformite/_lib/get-compliance-alerts';
 import { getPrescriptionAlerts } from './_lib/get-prescription-alerts';
 import { getCockpitAlertPreferences } from '@/lib/notifications/preferences';
@@ -120,13 +121,19 @@ async function getDriverPositionsWithLabels(
 
     let driverLabels: Record<string, string> = {};
     if (positions.length > 0) {
-      const driverIds = Array.from(new Set(positions.map((p) => p.driver_id)));
+      // `driver_positions.driver_id` = identité de connexion (profiles.id). On
+      // résout donc le nom via la colonne de liaison `drivers.profile_id`, PAS
+      // via la clé primaire `drivers.id` (qui ne matcherait jamais). Le
+      // dictionnaire est indexé par `profile_id` = la valeur portée par les
+      // positions.
+      const driverAuthIds = Array.from(new Set(positions.map((p) => p.driver_id)));
       const { data: drvData } = await supabase
         .from('drivers')
-        .select('id, nom_affichage')
-        .in('id', driverIds);
-      const drv = (drvData as { id: string; nom_affichage: string }[] | null) ?? [];
-      driverLabels = Object.fromEntries(drv.map((d) => [d.id, d.nom_affichage]));
+        .select('profile_id, nom_affichage')
+        .in('profile_id', driverAuthIds);
+      driverLabels = buildDriverLabels(
+        (drvData as { profile_id: string | null; nom_affichage: string }[] | null) ?? [],
+      );
     }
     return { positions, driverLabels };
   } catch (err) {
