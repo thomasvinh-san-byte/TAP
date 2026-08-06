@@ -4,6 +4,9 @@ import * as React from 'react';
 import { Map, type MapMarker } from '@/components/map/map.client';
 import { type DriverPosition, formatPositionAge, positionTone } from '../_lib/use-driver-positions';
 import { buildRideTrajectories } from '../_lib/ride-map';
+import { buildDriverPopupData, renderDriverPopupHtml } from '../_lib/driver-popup';
+import { DRIVER_LOAD_STATUSES } from '../_lib/driver-load';
+import { formatReunionTime } from '../_lib/unassigned-h1';
 import type { CockpitRide } from '../_lib/types';
 
 /**
@@ -26,6 +29,12 @@ interface Props {
   driverLabels: Record<string, string>;
   /** Courses du jour — pour tracer les trajets géocodés (COCKPIT-05). */
   rides: CockpitRide[];
+  /**
+   * Pont `profile_id` (identité de connexion portée par les positions) → clé
+   * primaire `drivers.id` (portée par `rides.driver_id`). Permet de calculer la
+   * charge du jour et la course en cours pour l'aperçu au clic (COCKPIT-06).
+   */
+  driverIdByProfileId: Record<string, string>;
 }
 
 const REUNION_CENTER = { lat: -21.1, lng: 55.55 };
@@ -34,6 +43,7 @@ export function DriverPositionsPanel({
   positionsByDriver,
   driverLabels,
   rides,
+  driverIdByProfileId,
 }: Props): JSX.Element {
   const [now, setNow] = React.useState<Date>(() => new Date());
 
@@ -47,13 +57,34 @@ export function DriverPositionsPanel({
     b.captured_at.localeCompare(a.captured_at),
   );
 
-  const positionMarkers: MapMarker[] = positions.map((p) => ({
-    id: p.id,
-    lat: p.lat,
-    lng: p.lng,
-    label: `${driverLabels[p.driver_id] ?? 'Chauffeur'} · ${formatPositionAge(p.captured_at, now)}`,
-    tone: positionTone(p.captured_at, now),
-  }));
+  const positionMarkers: MapMarker[] = positions.map((p) => {
+    const name = driverLabels[p.driver_id] ?? 'Chauffeur';
+    // `p.driver_id` = profile_id ; les courses portent `drivers.id` → pont.
+    const driverPk = driverIdByProfileId[p.driver_id];
+    const driverRides = driverPk ? rides.filter((r) => r.driver_id === driverPk) : [];
+    const loadCount = driverRides.filter((r) => DRIVER_LOAD_STATUSES.has(r.status)).length;
+    const enCours = driverRides.find((r) => r.status === 'en_cours') ?? null;
+    const popup = buildDriverPopupData({
+      name,
+      capturedAt: p.captured_at,
+      now,
+      loadCount,
+      currentRide: enCours
+        ? {
+            scheduledLabel: formatReunionTime(enCours.scheduled_at),
+            dropoff: enCours.dropoff_address,
+          }
+        : null,
+    });
+    return {
+      id: p.id,
+      lat: p.lat,
+      lng: p.lng,
+      label: `${name} · ${formatPositionAge(p.captured_at, now)}`,
+      tone: positionTone(p.captured_at, now),
+      popupHtml: renderDriverPopupHtml(popup),
+    };
+  });
 
   // Trajets des courses du jour géocodées (départ, arrivée, ligne colorée). Les
   // positions restent affichées : les trajets s'AJOUTENT.

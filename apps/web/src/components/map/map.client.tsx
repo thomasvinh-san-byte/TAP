@@ -1,7 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import maplibregl, { type Map as MapLibreMap, type Marker, type GeoJSONSource } from 'maplibre-gl';
+import maplibregl, {
+  type Map as MapLibreMap,
+  type Marker,
+  type Popup,
+  type GeoJSONSource,
+} from 'maplibre-gl';
 import { Protocol } from 'pmtiles';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { cn } from '@/lib/utils';
@@ -42,6 +47,11 @@ export interface MapMarker {
    *   - `end`   : anneau creux (arrivée d'une course)
    */
   shape?: 'dot' | 'start' | 'end';
+  /**
+   * Contenu HTML d'un aperçu ouvert au clic (popup native MapLibre). Un seul
+   * popup à la fois ; fermeture au clic extérieur, au bouton et à Échap.
+   */
+  popupHtml?: string;
   onClick?: () => void;
 }
 
@@ -117,10 +127,45 @@ export function Map({
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const mapRef = React.useRef<MapLibreMap | null>(null);
   const markersRef = React.useRef<Marker[]>([]);
+  // Un SEUL aperçu à la fois : ouvrir un nouveau popup ferme le précédent.
+  const popupRef = React.useRef<Popup | null>(null);
   const [tileSource, setTileSource] = React.useState<'pmtiles' | 'osm-fallback'>('osm-fallback');
   // Vrai une fois le style chargé — les couches (lignes) ne peuvent être ajoutées
   // qu'après `load`. Sert aussi à (re)poser marqueurs et lignes de façon fiable.
   const [mapReady, setMapReady] = React.useState(false);
+
+  // Ouvre un aperçu au niveau du marqueur, décalé pour ne pas le cacher. La
+  // popup native MapLibre gère focus, bouton de fermeture et fermeture au clic
+  // extérieur (`closeOnClick`). Échap est géré ci-dessous.
+  const openPopup = React.useCallback((lngLat: [number, number], html: string) => {
+    const map = mapRef.current;
+    if (!map) return;
+    popupRef.current?.remove();
+    const popup = new maplibregl.Popup({
+      closeButton: true,
+      closeOnClick: true,
+      focusAfterOpen: true,
+      offset: 16,
+      maxWidth: '260px',
+      className: 'cockpit-map-popup',
+    })
+      .setLngLat(lngLat)
+      .setHTML(html)
+      .addTo(map);
+    popup.on('close', () => {
+      if (popupRef.current === popup) popupRef.current = null;
+    });
+    popupRef.current = popup;
+  }, []);
+
+  // Fermeture clavier (Échap) — complète `closeOnClick` de la popup native.
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') popupRef.current?.remove();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
 
   React.useEffect(() => {
     const el = containerRef.current;
@@ -185,6 +230,8 @@ export function Map({
     return () => {
       cancelled = true;
       setMapReady(false);
+      popupRef.current?.remove();
+      popupRef.current = null;
       markersRef.current.forEach((m) => m.remove());
       markersRef.current = [];
       mapRef.current?.remove();
@@ -233,10 +280,15 @@ export function Map({
         }
       }
       if (m.onClick) el.addEventListener('click', m.onClick);
+      if (m.popupHtml) {
+        const html = m.popupHtml;
+        const lngLat: [number, number] = [m.lng, m.lat];
+        el.addEventListener('click', () => openPopup(lngLat, html));
+      }
       const marker = new maplibregl.Marker({ element: el }).setLngLat([m.lng, m.lat]).addTo(map);
       markersRef.current.push(marker);
     }
-  }, [markers, mapReady]);
+  }, [markers, mapReady, openPopup]);
 
   // Trace les lignes (trajets) via une source GeoJSON + un liseré blanc (halo)
   // sous un trait coloré. Nécessite le style chargé (`mapReady`).
