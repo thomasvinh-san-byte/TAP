@@ -150,7 +150,7 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
   const incidentsDelta = deltaPoints(data.incidents.taux, data.incidentsPrec.taux);
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-12">
       <PageHeader
         title="Tableau de bord"
         description={<>Vue d&apos;ensemble de votre activité · {periode}</>}
@@ -158,14 +158,14 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
       />
 
       {/* Rangée 1 — À traiter (3 colonnes : facturation · alertes · délais légaux). */}
-      <section className="space-y-8" aria-labelledby="bloc-action">
+      <section className="space-y-4" aria-labelledby="bloc-action">
         <h2
           id="bloc-action"
           className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
         >
           À traiter
         </h2>
-        <div className="grid items-stretch gap-12 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid items-stretch gap-8 sm:grid-cols-2 lg:grid-cols-3">
           <KpiCard
             variant="simple"
             label="Courses à facturer"
@@ -188,19 +188,19 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
           Grille 12 colonnes (langage cockpit / fiche patient), écart uniforme,
           hauteurs définies, ordre DOM = ordre visuel = ordre de priorité.
           Calculs et props des KPIs strictement inchangés — présentation seule. */}
-      <section className="space-y-8" aria-labelledby="bloc-sante">
+      <section className="space-y-4" aria-labelledby="bloc-sante">
         <h2
           id="bloc-sante"
           className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
         >
           Activité du mois
         </h2>
-        <div className="grid grid-cols-1 items-stretch gap-12 sm:grid-cols-2 lg:grid-cols-12">
+        <div className="grid grid-cols-1 items-stretch gap-8 sm:grid-cols-2 lg:grid-cols-12">
           {/* HÉROS — santé financière (entrées vs argent bloqué), avec tendance/seuil. */}
           <KpiCard
             variant="simple"
             size="hero"
-            className="lg:col-span-6 lg:min-h-[180px]"
+            className="lg:col-span-6 lg:min-h-[120px]"
             label="CA encaissé du mois"
             value={eur.format(data.caMois.total_eur)}
             context={ventilationContext}
@@ -215,7 +215,7 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
           <KpiCard
             variant="simple"
             size="hero"
-            className="lg:col-span-6 lg:min-h-[180px]"
+            className="lg:col-span-6 lg:min-h-[120px]"
             label="Encours impayé"
             value={eur.format(data.encoursImpaye.total_eur)}
             state={encours.state}
@@ -285,28 +285,28 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
       </section>
 
       {/* Rangée 3 — Prescriptions + tops commerciaux (CdG §5.20, DEC-164/165). */}
-      <section className="space-y-8" aria-labelledby="bloc-prescriptions">
+      <section className="space-y-4" aria-labelledby="bloc-prescriptions">
         <h2
           id="bloc-prescriptions"
           className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
         >
           Prescriptions &amp; tops commerciaux
         </h2>
-        <div className="grid items-stretch gap-12 lg:grid-cols-2">
+        <div className="grid items-stretch gap-8 lg:grid-cols-2">
           <PrescriptionsCard prescriptions={data.prescriptions} />
           <CommercialTopsCard commercial={data.commercial} />
         </div>
       </section>
 
       {/* Rangée 4 — Conformité & échéances (2 colonnes condensées). */}
-      <section className="space-y-8" aria-labelledby="bloc-conformite">
+      <section className="space-y-4" aria-labelledby="bloc-conformite">
         <h2
           id="bloc-conformite"
           className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
         >
           Conformité &amp; échéances
         </h2>
-        <div className="grid items-stretch gap-12 lg:grid-cols-2">
+        <div className="grid items-stretch gap-8 lg:grid-cols-2">
           <ComplianceCard conformite={data.conformite} />
           <ComplianceAlertsPanel alerts={complianceAlerts} variant="card" limit={5} />
         </div>

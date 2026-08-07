@@ -38,10 +38,14 @@ const STATE_CLASS: Record<KpiState, string> = {
  */
 export type KpiSize = 'hero' | 'normal' | 'compact';
 
+// Densité resserrée (norme dashboard exécutif : dense mais organisé, scannable
+// en une vue). Paddings et écarts réduits d'un cran ; la hiérarchie tient par la
+// taille relative du chiffre (VALUE_SIZE_CLASS) et le padding stepped, pas par de
+// l'air. Héros > primaires > secondaires reste net.
 const CARD_SIZE_CLASS: Record<KpiSize, string> = {
-  hero: 'gap-12 p-24',
-  normal: 'gap-8 p-16',
-  compact: 'gap-8 p-12',
+  hero: 'gap-8 p-16',
+  normal: 'gap-4 p-12',
+  compact: 'gap-4 p-8',
 };
 
 const VALUE_SIZE_CLASS: Record<KpiSize, string> = {
