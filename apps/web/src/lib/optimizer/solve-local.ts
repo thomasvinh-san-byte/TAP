@@ -126,8 +126,9 @@ function preFilterRides(rides: ReadonlyArray<RideNode>): {
  * contrainte de précédence pickup→dropoff est respectée par construction.
  *
  * Retourne `{ order, kmAVide }` :
- *   - `order` : UUIDs dans l'ordre de passage (un UUID par stop, donc
- *     2*n entrées pour n courses dans le groupement).
+ *   - `order` : UUIDs dans l'ordre de passage — UNE entrée par course (n entrées
+ *     pour n courses). La séquence de stops pickup→dropoff (2n) utilisée par le
+ *     contrôle de détour est dérivée à la demande côté `buildGroupings`.
  *   - `kmAVide` : km Haversine corrigés sans passager (entre un dropoff et
  *     le pickup suivant).
  */
@@ -173,7 +174,8 @@ function orderGroupNearestNeighbor(
   for (let i = 0; i < orderedRideIdx.length; i += 1) {
     const rideIdx = orderedRideIdx[i]!;
     const ride = rides[rideIdx]!;
-    order.push(ride.id);
+    // UNE entrée par course (ordre de passage). Le km à vide ci-dessous itère sur
+    // `orderedRideIdx`, pas sur `order` — il n'est pas affecté.
     order.push(ride.id);
     if (i + 1 < orderedRideIdx.length) {
       const dropoffNode = 2 + 2 * rideIdx;
@@ -358,10 +360,13 @@ function buildGroupings(
     // détour dépasse les limites, le partage n'est pas remboursable : on REJETTE
     // le groupement entier (option a, déterministe) → les courses redeviennent
     // individuelles (retirées de `used`, sans consommer de véhicule).
-    const stops: DetourStop[] = order.map((rideId, idx) => ({
-      rideId,
-      kind: idx % 2 === 0 ? 'pickup' : 'dropoff',
-    }));
+    // `order` porte une entrée par course ; la conformité du détour raisonne sur
+    // la séquence de STOPS pickup→dropoff par course — on l'étend ici (résultat
+    // identique à l'ancienne séquence 2N, sans dupliquer l'ordre stocké/affiché).
+    const stops: DetourStop[] = order.flatMap((rideId) => [
+      { rideId, kind: 'pickup' as const },
+      { rideId, kind: 'dropoff' as const },
+    ]);
     if (!checkRegulatoryDetour(group, stops, correctionFactor).compliant) {
       group.forEach((g) => used.delete(g.id));
       ecartesDetour += 1;
