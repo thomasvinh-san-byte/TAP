@@ -64,12 +64,15 @@ export function CoursesTable({
   rides,
   newRideIds,
   className,
+  onRowClick,
 }: {
   rides: CockpitRide[];
   newRideIds: Set<string>;
   /** Classe transmise au conteneur du tableau (ex. neutraliser la bordure quand
    *  le tableau est posé dans une tuile bento qui porte déjà le chrome de carte). */
   className?: string;
+  /** Clic/activation clavier d'une ligne → ouvre le détail course (RideDrawer). */
+  onRowClick?: (ride: CockpitRide) => void;
 }): JSX.Element {
   return (
     <DataTable
@@ -78,6 +81,7 @@ export function CoursesTable({
       rowKey={(ride) => `${ride.id}:${ride.status}`}
       className={className}
       ariaLabel="Liste des courses en cours dans le cockpit régulateur"
+      onRowClick={onRowClick ? (ride) => onRowClick(ride) : undefined}
       rowClassName={(ride) => (newRideIds.has(ride.id) ? 'cockpit-row-fade-in' : '')}
       emptyState={
         <EmptyState
