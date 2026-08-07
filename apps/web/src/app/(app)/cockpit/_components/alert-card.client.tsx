@@ -7,6 +7,7 @@ import {
   Wrench,
   CalendarClock,
   MapPinOff,
+  ChevronDown,
 } from 'lucide-react';
 import type { CockpitAlert, CockpitAlertType } from '../_lib/types';
 import { formatReunionTime, minutesUntil, H1_WINDOW_MIN } from '../_lib/unassigned-h1';
@@ -101,33 +102,56 @@ function formatRelativeTime(iso: string): string {
   return `il y a ${diffD} j`;
 }
 
+/**
+ * Alerte COMPACTE : une seule ligne dense scannable (icône de gravité + intitulé
+ * + détail), padding/bordures réduits — plus de grosse carte colorée par alerte.
+ * Le « pourquoi » détaillé n'est plus déplié par défaut : il est accessible à la
+ * demande via un `<details>` natif (clavier + lecteur d'écran), pour les alertes
+ * calculées qui en portent un. La couleur/l'icône restent le repère de gravité.
+ */
 export function AlertCard({ alert }: { alert: CockpitAlert }): JSX.Element {
-  const tone =
-    alert.event_type === 'ride_delayed'
-      ? 'border-amber-200 bg-amber-50'
-      : 'border-destructive/30 bg-destructive/5';
+  const title = TITLES[alert.event_type];
+  const detail =
+    unassignedH1Detail(alert) ?? stalePositionDetail(alert) ?? formatRelativeTime(alert.created_at);
   // Explication du déclencheur (alertes calculées uniquement ; null sinon).
   const reason = alertReason(alert);
-  return (
-    <article
-      className={`flex items-start gap-12 rounded-md border p-12 ${tone}`}
-      aria-label={TITLES[alert.event_type]}
-    >
+
+  const line = (
+    <>
       {iconFor(alert.event_type)}
-      <div className="min-w-0 flex-1">
-        <p className="text-foreground text-sm font-medium">{TITLES[alert.event_type]}</p>
-        <p className="text-muted-foreground mt-2 text-xs">
-          {unassignedH1Detail(alert) ??
-            stalePositionDetail(alert) ??
-            formatRelativeTime(alert.created_at)}
-        </p>
-        {reason && (
-          <p className="text-muted-foreground mt-4 text-xs">
-            <span className="font-medium">Pourquoi : </span>
-            {reason}
-          </p>
-        )}
+      <span className="min-w-0 flex-1 truncate text-sm">
+        <span className="text-foreground font-medium">{title}</span>
+        {detail && <span className="text-muted-foreground"> — {detail}</span>}
+      </span>
+    </>
+  );
+
+  // Sans « pourquoi » : simple ligne (pas de dépliable).
+  if (!reason) {
+    return (
+      <div className="flex items-center gap-8 py-4" aria-label={title}>
+        {line}
       </div>
-    </article>
+    );
+  }
+
+  // Avec « pourquoi » : ligne + détail à la demande (natif, accessible).
+  return (
+    <details className="group [&_summary::-webkit-details-marker]:hidden">
+      <summary
+        className="focus-visible:ring-ring flex list-none items-center gap-8 rounded-md py-4 focus:outline-none focus-visible:ring-2"
+        aria-label={`${title} — ${detail}. Pourquoi : ${reason}.`}
+      >
+        {line}
+        <ChevronDown
+          className="text-muted-foreground h-12 w-12 shrink-0 transition-transform group-open:rotate-180"
+          aria-hidden
+        />
+      </summary>
+      <p className="text-muted-foreground pb-4 pl-24 text-xs">
+        <span className="font-medium">Pourquoi : </span>
+        {reason}
+      </p>
+    </details>
   );
 }
