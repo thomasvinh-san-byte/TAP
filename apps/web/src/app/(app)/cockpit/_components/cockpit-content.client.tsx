@@ -359,7 +359,9 @@ export function CockpitContent({
                 </div>
               )}
               <div id="cockpit-panel-alerts" tabIndex={-1} className={PANEL_ANCHOR_CLASS}>
-                <AlertsPanel alerts={panelAlerts} />
+                {/* Une alerte portant une course ouvre le drawer (état unique) : de
+                    là le régulateur affecte un chauffeur. Pas d'affectation dupliquée. */}
+                <AlertsPanel alerts={panelAlerts} onOpenRide={setOpenRideId} />
               </div>
             </div>
           )}

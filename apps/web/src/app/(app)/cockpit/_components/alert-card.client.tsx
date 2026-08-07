@@ -37,13 +37,25 @@ function iconFor(type: CockpitAlertType): JSX.Element {
   return <Clock aria-hidden className={`${cls} text-amber-600`} />;
 }
 
-/** Ligne secondaire spécifique : patient + heure de créneau pour H-1. */
+/** Urgence du créneau, en très court : « dans 12 min » / « dépassé de 52 min ».
+ *  Le mot « créneau » n'est pas répété (l'heure du créneau est déjà sur la ligne). */
+function slotUrgency(scheduledAtIso: string): string {
+  const m = Math.round(minutesUntil(scheduledAtIso, Date.now()));
+  if (m >= 1) return `dans ${m} min`;
+  if (m <= -1) return `dépassé de ${-m} min`;
+  return 'imminent';
+}
+
+/**
+ * Ligne factuelle pour H-1 : patient · créneau · urgence. La nature « non
+ * affectée » est portée par le titre — on ne la répète pas ici.
+ */
 function unassignedH1Detail(alert: CockpitAlert): string | null {
   if (alert.event_type !== 'ride_unassigned_h1') return null;
   const p = alert.payload as { patient_label?: string; scheduled_at?: string } | null;
   const label = p?.patient_label ?? 'Patient';
-  const heure = p?.scheduled_at ? formatReunionTime(p.scheduled_at) : '';
-  return heure ? `${label} · créneau ${heure} — non affectée` : `${label} — non affectée`;
+  if (!p?.scheduled_at) return label;
+  return `${label} · ${formatReunionTime(p.scheduled_at)} · ${slotUrgency(p.scheduled_at)}`;
 }
 
 /** Ligne secondaire spécifique : chauffeur + âge de la position pour géoloc. */
@@ -51,21 +63,14 @@ function stalePositionDetail(alert: CockpitAlert): string | null {
   if (alert.event_type !== 'driver_position_stale') return null;
   const p = alert.payload as { driver_label?: string; captured_at?: string | null } | null;
   const label = p?.driver_label ?? 'Chauffeur';
-  if (!p?.captured_at) return `${label} · position jamais remontée`;
+  // « non remontée » est déjà dans le titre : on ne le répète pas.
+  if (!p?.captured_at) return `${label} · jamais remontée`;
   return `${label} · ${formatPositionAge(p.captured_at)}`;
 }
 
 /** Seuil en langage clair : 60 → « 1 h », 5 → « 5 min ». */
 function thresholdLabel(min: number): string {
   return min % 60 === 0 ? `${min / 60} h` : `${min} min`;
-}
-
-/** Proximité du créneau en langage clair (réutilise `minutesUntil`, pas de détection). */
-function slotProximity(scheduledAtIso: string): string {
-  const m = Math.round(minutesUntil(scheduledAtIso, Date.now()));
-  if (m >= 1) return `créneau dans ${m} min`;
-  if (m <= -1) return `créneau dépassé de ${-m} min`;
-  return 'créneau imminent';
 }
 
 /**
@@ -79,12 +84,12 @@ function alertReason(alert: CockpitAlert): string | null {
   if (alert.event_type === 'driver_position_stale') {
     const p = alert.payload as { captured_at?: string | null } | null;
     if (!p?.captured_at) return 'aucune position reçue pour ce chauffeur en service';
-    return `position au-delà du seuil de ${thresholdLabel(POSITION_STALE_MIN)} sans mise à jour`;
+    return `seuil : ${thresholdLabel(POSITION_STALE_MIN)} sans mise à jour`;
   }
   if (alert.event_type === 'ride_unassigned_h1') {
-    const p = alert.payload as { scheduled_at?: string } | null;
-    const proximite = p?.scheduled_at ? slotProximity(p.scheduled_at) : 'créneau proche';
-    return `course validée sans chauffeur, ${proximite} (seuil ${thresholdLabel(H1_WINDOW_MIN)})`;
+    // Patient, créneau et urgence sont déjà sur la ligne : le « pourquoi »
+    // n'ajoute que le seuil qui déclenche l'alerte (pas de répétition).
+    return `seuil d'affectation : ${thresholdLabel(H1_WINDOW_MIN)} avant le créneau`;
   }
   return null;
 }
@@ -108,8 +113,21 @@ function formatRelativeTime(iso: string): string {
  * Le « pourquoi » détaillé n'est plus déplié par défaut : il est accessible à la
  * demande via un `<details>` natif (clavier + lecteur d'écran), pour les alertes
  * calculées qui en portent un. La couleur/l'icône restent le repère de gravité.
+ *
+ * Quand l'alerte porte une course (`ride_id`) et qu'un ouvreur de drawer est
+ * fourni, une action explicite ouvre le drawer course (le même que depuis la
+ * liste et la carte) : l'alerte devient le point d'entrée de sa résolution.
+ * L'action N'affecte PAS elle-même — elle ouvre le drawer, qui porte
+ * l'affectation et son garde-fou de validation. Aucune logique dupliquée.
  */
-export function AlertCard({ alert }: { alert: CockpitAlert }): JSX.Element {
+export function AlertCard({
+  alert,
+  onOpenRide,
+}: {
+  alert: CockpitAlert;
+  /** Ouvre le drawer course (état unique du cockpit). Absent → pas d'action. */
+  onOpenRide?: (rideId: string) => void;
+}): JSX.Element {
   const title = TITLES[alert.event_type];
   const detail =
     unassignedH1Detail(alert) ?? stalePositionDetail(alert) ?? formatRelativeTime(alert.created_at);
@@ -126,16 +144,38 @@ export function AlertCard({ alert }: { alert: CockpitAlert }): JSX.Element {
     </>
   );
 
-  // Sans « pourquoi » : simple ligne (pas de dépliable).
+  // Action « ouvrir la course » : présente dès que l'alerte porte un `ride_id`
+  // et qu'un ouvreur est fourni. Libellé « Affecter » pour une course non
+  // affectée (la résolution attendue = affecter), « Ouvrir » pour les autres.
+  // Dans un `<summary>`, `preventDefault` empêche le clic de replier/déplier le
+  // détail ; le bouton reste focusable et activable au clavier séparément.
+  const rideId = alert.ride_id;
+  const action =
+    rideId && onOpenRide ? (
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onOpenRide(rideId);
+        }}
+        className="border-border text-foreground hover:bg-muted focus-visible:ring-ring shrink-0 rounded-md border px-8 py-2 text-xs font-medium focus:outline-none focus-visible:ring-2"
+      >
+        {alert.event_type === 'ride_unassigned_h1' ? 'Affecter' : 'Ouvrir'}
+      </button>
+    ) : null;
+
+  // Sans « pourquoi » : simple ligne (pas de dépliable) + action éventuelle.
   if (!reason) {
     return (
       <div className="flex items-center gap-8 py-4" aria-label={title}>
         {line}
+        {action}
       </div>
     );
   }
 
-  // Avec « pourquoi » : ligne + détail à la demande (natif, accessible).
+  // Avec « pourquoi » : ligne + détail à la demande (natif, accessible) + action.
   return (
     <details className="group [&_summary::-webkit-details-marker]:hidden">
       <summary
@@ -143,6 +183,7 @@ export function AlertCard({ alert }: { alert: CockpitAlert }): JSX.Element {
         aria-label={`${title} — ${detail}. Pourquoi : ${reason}.`}
       >
         {line}
+        {action}
         <ChevronDown
           className="text-muted-foreground h-12 w-12 shrink-0 transition-transform group-open:rotate-180"
           aria-hidden

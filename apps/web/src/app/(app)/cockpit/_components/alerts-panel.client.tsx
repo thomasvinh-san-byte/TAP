@@ -12,7 +12,15 @@ import type { CockpitAlert } from '../_lib/types';
  */
 const DEFAULT_VISIBLE = 4;
 
-export function AlertsPanel({ alerts }: { alerts: CockpitAlert[] }): JSX.Element {
+export function AlertsPanel({
+  alerts,
+  onOpenRide,
+}: {
+  alerts: CockpitAlert[];
+  /** Ouvre le drawer course depuis une alerte qui porte un `ride_id` (état unique
+   *  du cockpit). Transmis tel quel à chaque `AlertCard`. */
+  onOpenRide?: (rideId: string) => void;
+}): JSX.Element {
   const [showAll, setShowAll] = useState(false);
   const visible = showAll ? alerts : alerts.slice(0, DEFAULT_VISIBLE);
   const hiddenCount = alerts.length - visible.length;
@@ -39,7 +47,7 @@ export function AlertsPanel({ alerts }: { alerts: CockpitAlert[] }): JSX.Element
           <ul className="divide-border max-h-[280px] divide-y overflow-y-auto pr-4">
             {visible.map((alert) => (
               <li key={alert.id}>
-                <AlertCard alert={alert} />
+                <AlertCard alert={alert} onOpenRide={onOpenRide} />
               </li>
             ))}
           </ul>
