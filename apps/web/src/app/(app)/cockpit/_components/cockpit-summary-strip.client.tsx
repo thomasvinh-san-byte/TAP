@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import {
   CalendarClock,
@@ -7,6 +8,7 @@ import {
   MapPinOff,
   FilePen,
   ShieldAlert,
+  ArrowUpRight,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -48,6 +50,15 @@ interface StripItem {
   targetId: string;
   /** Contexte annoncé aux technologies d'assistance. */
   describe: (count: number) => string;
+  /**
+   * RENVOI (navigation) vers l'écran détaillé — distinct de l'action interne
+   * (scroll/onglet) portée par le corps de l'indicateur. Repère visuel = flèche
+   * sortante. `undefined` = pas de renvoi (ex. alertes critiques = interne seul).
+   * Ne pointe QUE vers des écrans accessibles au rôle courant (pas de cul-de-sac).
+   */
+  href?: string;
+  /** Libellé accessible du renvoi (« Voir … »). */
+  navLabel?: string;
 }
 
 const TONE_CLASS: Record<Tone, string> = {
@@ -80,6 +91,7 @@ export function CockpitSummaryStrip({
   stalePositionsCount,
   complianceCount,
   onNavigate,
+  isDirigeant = false,
 }: {
   unassignedH1Count: number;
   criticalAlertsCount: number;
@@ -90,6 +102,11 @@ export function CockpitSummaryStrip({
    * l'onglet tertiaire concerné puis défiler). Sinon, défilement direct par ancre.
    */
   onNavigate?: (targetId: string) => void;
+  /**
+   * Rôle dirigeant : débloque les renvois vers les écrans dirigeant-only
+   * (conformité). Le régulateur n'y a pas accès → aucun renvoi (pas de cul-de-sac).
+   */
+  isDirigeant?: boolean;
 }): JSX.Element {
   // Même cache que `DraftsIndicator` : lecture partagée, pas de logique dupliquée.
   const { data: drafts } = useQuery({
@@ -110,6 +127,9 @@ export function CockpitSummaryStrip({
       targetId: 'cockpit-panel-unassigned-h1',
       describe: (c) =>
         `${c} course${c > 1 ? 's' : ''} non affectée${c > 1 ? 's' : ''} à moins d'une heure du créneau`,
+      // Renvoi : traiter les non affectées sur l'écran de replanification.
+      href: '/replanification',
+      navLabel: 'Traiter les courses non affectées (replanification)',
     },
     {
       key: 'critical-alerts',
@@ -119,6 +139,7 @@ export function CockpitSummaryStrip({
       activeTone: 'alert',
       targetId: 'cockpit-panel-alerts',
       describe: (c) => `${c} alerte${c > 1 ? 's' : ''} critique${c > 1 ? 's' : ''}`,
+      // Pas de renvoi : le panneau d'alertes est dans le cockpit (action interne).
     },
     {
       key: 'stale-positions',
@@ -129,6 +150,9 @@ export function CockpitSummaryStrip({
       targetId: 'cockpit-panel-positions',
       describe: (c) =>
         `${c} chauffeur${c > 1 ? 's' : ''} en service dont la position n'est plus fraîche`,
+      // Renvoi : état des chauffeurs (accessible au régulateur).
+      href: '/admin/chauffeurs',
+      navLabel: 'Voir l’état des chauffeurs',
     },
     {
       key: 'drafts',
@@ -140,6 +164,10 @@ export function CockpitSummaryStrip({
       activeTone: 'neutral',
       targetId: 'cockpit-panel-drafts',
       describe: (c) => `${c} brouillon${c > 1 ? 's' : ''} non finalisé${c > 1 ? 's' : ''}`,
+      // Renvoi : la liste des courses (pas de filtre brouillons par URL supporté →
+      // renvoi sans filtre plutôt qu'un paramètre inventé).
+      href: '/courses',
+      navLabel: 'Voir les courses',
     },
     {
       key: 'compliance',
@@ -150,6 +178,10 @@ export function CockpitSummaryStrip({
       targetId: 'cockpit-panel-compliance',
       describe: (c) =>
         `${c} échéance${c > 1 ? 's' : ''} réglementaire${c > 1 ? 's' : ''} à surveiller`,
+      // Renvoi RÉSERVÉ au dirigeant : /admin/conformite redirige un régulateur
+      // (dirigeant-only). On n'affiche donc PAS de renvoi au régulateur.
+      href: isDirigeant ? '/admin/conformite' : undefined,
+      navLabel: 'Voir la conformité',
     },
   ];
 
@@ -163,15 +195,15 @@ export function CockpitSummaryStrip({
           const tone: Tone = item.count > 0 ? item.activeTone : 'neutral';
           const Icon = item.icon;
           return (
-            <li key={item.key}>
+            <li key={item.key} className="relative">
               <button
                 type="button"
                 onClick={() =>
                   onNavigate ? onNavigate(item.targetId) : scrollToPanel(item.targetId)
                 }
-                aria-label={`${item.describe(item.count)}. Voir le détail.`}
+                aria-label={`${item.describe(item.count)}. Voir le détail dans le cockpit.`}
                 className={cn(
-                  'focus-visible:ring-ring flex w-full items-center gap-12 rounded-md border px-12 py-12 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+                  'focus-visible:ring-ring flex w-full items-center gap-12 rounded-md border px-12 py-12 pr-32 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
                   TONE_CLASS[tone],
                   tone === 'neutral' ? 'hover:bg-muted/50' : 'hover:brightness-105',
                 )}
@@ -184,6 +216,19 @@ export function CockpitSummaryStrip({
                   <span className="mt-4 block truncate text-xs font-medium">{item.label}</span>
                 </span>
               </button>
+              {/* Renvoi (navigation) — repère flèche sortante, distinct de l'action
+                  interne du corps de l'indicateur. Élément séparé (pas imbriqué dans
+                  le bouton) : focus + activation clavier propres. */}
+              {item.href && (
+                <Link
+                  href={item.href}
+                  aria-label={item.navLabel ?? 'Voir le détail sur un autre écran'}
+                  title={item.navLabel}
+                  className="text-muted-foreground hover:text-foreground focus-visible:ring-ring absolute right-4 top-4 z-[1] inline-flex h-24 w-24 items-center justify-center rounded-md focus:outline-none focus-visible:ring-2"
+                >
+                  <ArrowUpRight className="h-16 w-16" aria-hidden />
+                </Link>
+              )}
             </li>
           );
         })}

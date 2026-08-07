@@ -1,6 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
+import Link from 'next/link';
+import { ArrowUpRight } from 'lucide-react';
 import { computeDriverLoads } from '../_lib/driver-load';
 import type { CockpitRide } from '../_lib/types';
 
@@ -13,9 +15,13 @@ import type { CockpitRide } from '../_lib/types';
 export function DriverLoadPanel({
   rides,
   driverLabels,
+  detailHref,
 }: {
   rides: CockpitRide[];
   driverLabels: Record<string, string>;
+  /** Renvoi optionnel vers la vue détaillée (tableau de bord) — n'est fourni que
+   *  si l'écran cible est accessible au rôle courant (sinon pas de renvoi). */
+  detailHref?: string;
 }): JSX.Element {
   const { loads, max } = useMemo(
     () => computeDriverLoads(rides, driverLabels),
@@ -24,13 +30,24 @@ export function DriverLoadPanel({
 
   return (
     <div className="flex h-full flex-col">
-      <header className="mb-12">
-        <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-          Charge par chauffeur
-        </h2>
-        <p className="text-muted-foreground mt-2 text-xs">
-          Nombre de courses du jour (comparatif).
-        </p>
+      <header className="mb-12 flex items-start justify-between gap-8">
+        <div>
+          <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+            Charge par chauffeur
+          </h2>
+          <p className="text-muted-foreground mt-2 text-xs">
+            Nombre de courses du jour (comparatif).
+          </p>
+        </div>
+        {detailHref && (
+          <Link
+            href={detailHref}
+            className="text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex shrink-0 items-center gap-4 rounded-md text-xs font-medium focus:outline-none focus-visible:ring-2"
+          >
+            Voir tout
+            <ArrowUpRight className="h-12 w-12" aria-hidden />
+          </Link>
+        )}
       </header>
 
       {loads.length === 0 ? (
