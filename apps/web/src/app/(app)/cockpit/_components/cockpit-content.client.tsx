@@ -256,7 +256,7 @@ export function CockpitContent({
           id="cockpit-panel-positions"
           tabIndex={-1}
           className={cn(
-            'flex min-h-0 flex-col md:col-span-2 md:min-h-[520px] lg:col-span-6',
+            'flex min-h-0 flex-col md:col-span-2 md:min-h-[520px] lg:col-span-4',
             PANEL_ANCHOR_CLASS,
           )}
         >
@@ -272,7 +272,7 @@ export function CockpitContent({
             interne ; « Optimiser » en tête du panneau courses. */}
         <section
           aria-labelledby="ma-journee-title"
-          className="bg-background border-border flex min-h-0 min-w-0 flex-col rounded-lg border md:col-span-1 md:min-h-[520px] lg:col-span-3"
+          className="bg-background border-border flex min-h-0 min-w-0 flex-col rounded-lg border md:col-span-1 md:min-h-[520px] lg:col-span-5"
         >
           <div className="flex flex-wrap items-start justify-between gap-8 p-16 pb-12">
             <div className="min-w-0">
@@ -299,11 +299,15 @@ export function CockpitContent({
               <RealtimeStatusBadge status={status} />
             </div>
           </div>
-          <div className="border-border min-h-0 flex-1 overflow-y-auto border-t">
+          {/* Défilement vertical ET horizontal INTERNE : repli gracieux si la
+              tuile reste plus étroite que la largeur minimale du tableau — les
+              colonnes essentielles (chauffeur, statut) ne sont jamais coupées,
+              elles défilent. `min-w` garde le tableau lisible plutôt qu'écrasé. */}
+          <div className="border-border min-h-0 flex-1 overflow-auto border-t">
             <CoursesTable
               rides={rides}
               newRideIds={newRideIds}
-              className="!rounded-none !border-0"
+              className="min-w-[600px] !rounded-none !border-0"
             />
           </div>
         </section>

@@ -38,8 +38,10 @@ const COLUMNS: DataTableColumn<CockpitRide>[] = [
   {
     key: 'depart',
     header: 'Départ',
+    // Adresse = colonne non essentielle : tronquée proprement (max-width réduite)
+    // pour laisser la largeur aux colonnes essentielles (chauffeur, statut).
     cell: (ride) => (
-      <span className="text-muted-foreground block max-w-[280px] truncate">
+      <span className="text-muted-foreground block max-w-[160px] truncate">
         {ride.pickup_address || '—'}
       </span>
     ),
@@ -47,7 +49,9 @@ const COLUMNS: DataTableColumn<CockpitRide>[] = [
   {
     key: 'chauffeur',
     header: 'Chauffeur',
-    cell: (ride) => ride.driver?.nom_affichage ?? '—',
+    // Essentiel : jamais coupé — pas de retour à la ligne (défile avec la tuile
+    // si la largeur manque plutôt que d'être tronqué).
+    cell: (ride) => <span className="whitespace-nowrap">{ride.driver?.nom_affichage ?? '—'}</span>,
   },
   {
     key: 'statut',
