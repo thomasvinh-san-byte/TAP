@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { Sparkles, CloudLightning } from 'lucide-react';
+import { Sparkles, CloudLightning, ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { cn } from '@/lib/utils';
@@ -46,6 +46,20 @@ const MAX_PANEL_ALERTS = 20;
 const PANEL_ANCHOR_CLASS =
   'scroll-mt-24 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2';
 
+/** Renvoi « Voir tout » vers un écran détaillé — repère flèche sortante, distinct
+ *  des actions internes (onglet/scroll). Focusable et clavier-activable (Link). */
+function drillLink(href: string, label: string): JSX.Element {
+  return (
+    <Link
+      href={href}
+      className="text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex items-center gap-4 rounded-md text-xs font-medium focus:outline-none focus-visible:ring-2"
+    >
+      {label}
+      <ArrowUpRight className="h-12 w-12" aria-hidden />
+    </Link>
+  );
+}
+
 /** Libellé d'onglet contexte : texte + pastille de compte (masquée si 0). */
 function contextTabLabel(text: string, count: number): JSX.Element {
   return (
@@ -70,6 +84,7 @@ export function CockpitContent({
   prescriptionAlerts,
   alertPreferences,
   weatherAlert,
+  isDirigeant = false,
 }: {
   initialRides: CockpitRide[];
   initialAlerts: CockpitAlert[];
@@ -80,6 +95,8 @@ export function CockpitContent({
   prescriptionAlerts: PrescriptionAlertEnriched[];
   alertPreferences: CockpitAlertPreferences;
   weatherAlert: WeatherAlert | null;
+  /** Rôle dirigeant : débloque les renvois vers les écrans dirigeant-only. */
+  isDirigeant?: boolean;
 }): JSX.Element {
   const { rides, status, newRideIds } = useCockpitRides(initialRides);
   const { alerts } = useCockpitAlerts(initialAlerts);
@@ -252,6 +269,7 @@ export function CockpitContent({
         stalePositionsCount={stalePositionsCount}
         complianceCount={complianceAlerts.length}
         onNavigate={handleCounterNavigate}
+        isDirigeant={isDirigeant}
       />
       {/* Layout BENTO — grille CSS 12 colonnes (2 dimensions), écart uniforme
           16px, hauteurs minimales par tuile pour éviter le « saut » au chargement.
@@ -346,7 +364,11 @@ export function CockpitContent({
             </div>
           )}
           <div className="bg-background border-border rounded-lg border p-16">
-            <DriverLoadPanel rides={rides} driverLabels={driverLabels} />
+            <DriverLoadPanel
+              rides={rides}
+              driverLabels={driverLabels}
+              detailHref={isDirigeant ? '/tableau-de-bord' : undefined}
+            />
           </div>
           {weatherAlert && (
             <div
@@ -391,11 +413,23 @@ export function CockpitContent({
           <div role="tabpanel" aria-label={`Contexte : ${contextTab}`}>
             {contextTab === 'brouillons' && (
               <div id="cockpit-panel-drafts" tabIndex={-1} className={PANEL_ANCHOR_CLASS}>
+                {/* Renvoi « voir tout » : la liste des courses (pas de filtre
+                    brouillons par URL supporté → renvoi sans filtre). */}
+                <div className="mb-8 flex justify-end">
+                  {drillLink('/courses', 'Voir les courses')}
+                </div>
                 <DraftsIndicator />
               </div>
             )}
             {contextTab === 'conformite' && (
               <div id="cockpit-panel-compliance" tabIndex={-1} className={PANEL_ANCHOR_CLASS}>
+                {/* Renvoi « voir tout » RÉSERVÉ au dirigeant : /admin/conformite
+                    redirige un régulateur (pas de cul-de-sac). */}
+                {isDirigeant && (
+                  <div className="mb-8 flex justify-end">
+                    {drillLink('/admin/conformite', 'Voir la conformité')}
+                  </div>
+                )}
                 <ComplianceAlertsPanel alerts={complianceAlerts} variant="panel" limit={4} />
               </div>
             )}

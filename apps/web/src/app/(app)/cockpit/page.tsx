@@ -8,6 +8,7 @@ import { getComplianceAlerts } from '../../(admin)/admin/conformite/_lib/get-com
 import { getPrescriptionAlerts } from './_lib/get-prescription-alerts';
 import { getCockpitAlertPreferences } from '@/lib/notifications/preferences';
 import { getActiveWeatherAlert } from '../meteo/_lib/queries';
+import { getAuthContext } from '@/lib/auth/get-auth-context';
 import { OfflineGate } from './_components/offline-gate.client';
 
 export const metadata = { title: 'Cockpit' };
@@ -158,6 +159,11 @@ export default async function CockpitPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
+  // Rôle : conditionne les renvois vers les écrans dirigeant-only (conformité,
+  // tableau de bord). Le régulateur n'y a pas accès → aucun renvoi (pas de cul-de-sac).
+  const authCtx = await getAuthContext();
+  const isDirigeant = authCtx?.role === 'dirigeant';
+
   const today = new Date().toISOString().slice(0, 10);
 
   // DEC-150 perf : les 5 sources sont INDÉPENDANTES → lancées en parallèle
@@ -205,6 +211,7 @@ export default async function CockpitPage() {
         prescriptionAlerts={prescriptionAlerts}
         alertPreferences={alertPreferences}
         weatherAlert={weatherAlert}
+        isDirigeant={isDirigeant}
       />
     </OfflineGate>
   );
