@@ -19,9 +19,13 @@ import { cn } from '@/lib/utils';
 
 export type KpiState = 'neutre' | 'succes' | 'attention' | 'alerte';
 
+// Couleur RÉSERVÉE aux exceptions (norme dashboard exécutif : « si tout est
+// coloré, rien n'est urgent »). Un état « succès » (sous le seuil) = pas
+// d'exception → neutre, comme `neutre`. Seuls `attention` (ambre) et `alerte`
+// (rouge) portent une couleur, pour que les vrais dépassements ressortent.
 const STATE_CLASS: Record<KpiState, string> = {
   neutre: 'text-foreground',
-  succes: 'text-success',
+  succes: 'text-foreground',
   attention: 'text-warning',
   alerte: 'text-destructive',
 };
@@ -57,15 +61,13 @@ const ACTION_CLASS =
   'text-sm font-medium hover:underline focus-visible:outline-none focus-visible:ring-2';
 
 /**
- * Couleur du delta selon le sens de la métrique.
- * - `positive` : ↗ = vert (favorable), ↘ = rouge si fort, ambre sinon.
- * - `inverse`  : ↗ = rouge si fort, ambre sinon ; ↘ = vert.
- * Seuil « fort » : |delta| ≥ 10.
+ * Couleur du delta — réservée aux exceptions (couleur parcimonieuse). Une
+ * tendance favorable ou stable reste NEUTRE (la flèche ↗/↘ porte déjà le sens) ;
+ * seule une tendance défavorable est signalée : ambre, ou rouge si forte
+ * (|delta| ≥ 10). Ainsi la couleur ne marque que ce qui appelle l'attention.
  */
 function deltaClass(delta: number, sign: 'positive' | 'inverse' = 'positive'): string {
-  const favorable = sign === 'positive' ? delta > 0 : delta < 0;
   const defavorable = sign === 'positive' ? delta < 0 : delta > 0;
-  if (favorable) return 'text-success';
   if (defavorable) return Math.abs(delta) >= 10 ? 'text-destructive' : 'text-warning';
   return 'text-muted-foreground';
 }
