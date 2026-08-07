@@ -26,6 +26,32 @@ const STATE_CLASS: Record<KpiState, string> = {
   alerte: 'text-destructive',
 };
 
+/**
+ * Hiérarchie de taille (normes dashboard exécutif) : la taille communique la
+ * priorité avant qu'on lise un libellé. `hero` = grand (santé financière),
+ * `normal` = primaire, `compact` = secondaire. La largeur (col-span) est portée
+ * par l'appelant via `className` ; ici on module padding, écart et taille du chiffre.
+ */
+export type KpiSize = 'hero' | 'normal' | 'compact';
+
+const CARD_SIZE_CLASS: Record<KpiSize, string> = {
+  hero: 'gap-12 p-24',
+  normal: 'gap-8 p-16',
+  compact: 'gap-8 p-12',
+};
+
+const VALUE_SIZE_CLASS: Record<KpiSize, string> = {
+  hero: 'text-4xl',
+  normal: 'text-2xl',
+  compact: 'text-xl',
+};
+
+const LABEL_SIZE_CLASS: Record<KpiSize, string> = {
+  hero: 'text-sm',
+  normal: 'text-sm',
+  compact: 'text-xs',
+};
+
 const ACTION_CLASS =
   'text-primary focus-visible:ring-ring mt-auto inline-flex min-h-[44px] items-center ' +
   'text-sm font-medium hover:underline focus-visible:outline-none focus-visible:ring-2';
@@ -63,6 +89,10 @@ interface KpiAction {
 interface KpiCardBase {
   label: string;
   action?: KpiAction;
+  /** Rang de taille (hiérarchie exécutive). Défaut `normal` — comportement inchangé. */
+  size?: KpiSize;
+  /** Classe additionnelle sur la carte (largeur bento : col-span, min-h). */
+  className?: string;
 }
 
 interface KpiSimple extends KpiCardBase {
@@ -113,13 +143,15 @@ interface KpiAlerte extends KpiCardBase {
 export type KpiCardProps = KpiSimple | KpiVentilation | KpiMulti | KpiAlerte;
 
 function KpiBody(props: KpiCardProps): JSX.Element {
+  const size = props.size ?? 'normal';
   switch (props.variant) {
     case 'simple':
       return (
         <div className="flex flex-col gap-4">
           <p
             className={cn(
-              'text-2xl font-semibold tabular-nums',
+              VALUE_SIZE_CLASS[size],
+              'font-semibold tabular-nums',
               props.state && STATE_CLASS[props.state],
             )}
           >
@@ -131,7 +163,13 @@ function KpiBody(props: KpiCardProps): JSX.Element {
             </p>
           ) : null}
           {props.delta !== undefined && props.previousLabel ? (
-            <p className={cn('text-xs tabular-nums', deltaClass(props.delta, props.deltaSign))}>
+            <p
+              className={cn(
+                size === 'hero' ? 'text-sm' : 'text-xs',
+                'tabular-nums',
+                deltaClass(props.delta, props.deltaSign),
+              )}
+            >
               {deltaArrow(props.delta)} {deltaFormat(props.delta, props.deltaUnit ?? '%')} vs{' '}
               {props.previousLabel}
               {props.previousValue ? ` (${props.previousValue})` : ''}
@@ -197,9 +235,18 @@ function KpiBody(props: KpiCardProps): JSX.Element {
 }
 
 export function KpiCard(props: KpiCardProps): JSX.Element {
+  const size = props.size ?? 'normal';
   return (
-    <div className="border-border bg-background flex h-full flex-col gap-8 rounded-lg border p-16">
-      <h3 className="text-muted-foreground text-sm font-medium">{props.label}</h3>
+    <div
+      className={cn(
+        'border-border bg-background flex h-full flex-col rounded-lg border',
+        CARD_SIZE_CLASS[size],
+        props.className,
+      )}
+    >
+      <h3 className={cn('text-muted-foreground font-medium', LABEL_SIZE_CLASS[size])}>
+        {props.label}
+      </h3>
       <KpiBody {...props} />
       {props.action ? (
         <Link href={props.action.href} className={ACTION_CLASS}>
