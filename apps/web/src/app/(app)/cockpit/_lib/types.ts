@@ -30,8 +30,15 @@ export interface CockpitRide {
   dropoff_lng?: number | null;
   // COCKPIT-02 : nécessaire pour croiser positions ↔ courses (« en service »).
   driver_id: string | null;
+  // COCKPIT-09 : véhicule affecté (l'application d'une optimisation pose le
+  // véhicule). Sert de clé de TOURNÉE de repli quand aucun chauffeur n'est encore
+  // affecté — le regroupement visuel se fait par `driver_id ?? vehicle_id`.
+  vehicle_id?: string | null;
   patient: CockpitPersonName | null;
   driver: CockpitDriverName | null;
+  // Libellé véhicule (immatriculation) pour nommer la tournée dans l'aperçu quand
+  // elle n'a pas encore de chauffeur. Optionnel : absent des courses temps réel.
+  vehicle?: { immatriculation: string | null } | null;
 }
 
 export type CockpitAlertType =

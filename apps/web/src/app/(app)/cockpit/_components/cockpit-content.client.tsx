@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Sparkles, CloudLightning } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -64,6 +65,10 @@ export function CockpitContent({
 }): JSX.Element {
   const { rides, status, newRideIds } = useCockpitRides(initialRides);
   const { alerts } = useCockpitAlerts(initialAlerts);
+  // Repère discret « plan d'optimisation appliqué » : posé par la redirection
+  // depuis l'écran d'optimisation (COCKPIT-09). Aucun chiffre inventé — la
+  // preuve est visuelle (courses regroupées par tournée sur la carte).
+  const optimiseApplied = useSearchParams().get('optimise') === 'applied';
   const [dismissedNoShowIds, setDismissedNoShowIds] = useState<Set<string>>(() => new Set());
 
   // COCKPIT-01 (§5.13) : courses validées non affectées à H-1 (calculées, ticker).
@@ -168,6 +173,18 @@ export function CockpitContent({
 
   return (
     <div className="space-y-16">
+      {optimiseApplied && (
+        <div
+          role="status"
+          className="border-accent/40 bg-accent/10 text-foreground flex items-center gap-12 rounded-lg border px-16 py-12 text-sm"
+        >
+          <Sparkles className="text-accent h-16 w-16 shrink-0" aria-hidden />
+          <span>
+            Optimisation appliquée. Les courses affectées apparaissent regroupées par tournée
+            (couleur) sur la carte des chauffeurs ; les non affectées restent neutres.
+          </span>
+        </div>
+      )}
       {weatherAlert && (
         <div
           role="status"

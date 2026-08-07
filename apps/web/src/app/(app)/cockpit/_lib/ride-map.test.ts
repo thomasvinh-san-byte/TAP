@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { buildRideTrajectories, rideIsGeocoded, COURSE_MARKER_COLOR } from './ride-map';
-import { getGroupColor } from '../optimisation/_lib/group-colors';
+import {
+  buildRideTrajectories,
+  rideIsGeocoded,
+  COURSE_MARKER_COLOR,
+  COURSE_LINE_NEUTRAL,
+} from './ride-map';
+import { tourneeColor, driverColor } from './driver-map-link';
 import type { CockpitRide } from './types';
 
 function ride(over: Partial<CockpitRide>): CockpitRide {
@@ -39,17 +44,42 @@ describe('buildRideTrajectories', () => {
     expect(start!.label).toContain('Départ');
     expect(end!.label).toContain('Arrivée');
 
-    // Points ACTIFS : couleur vive de la course (ressortent du fond), ligne idem.
-    const color0 = getGroupColor(0).hex;
-    expect(lines[0]!.color).toBe(color0);
-    expect(start!.color).toBe(color0);
-    expect(end!.color).toBe(color0);
+    // Course NON affectée (driver/vehicle nuls) : neutre — c'est l'état « avant »,
+    // dispersé, qui contraste avec les tournées colorées « après ».
+    expect(start!.color).toBe(COURSE_MARKER_COLOR);
+    expect(end!.color).toBe(COURSE_MARKER_COLOR);
+    expect(lines[0]!.color).toBe(COURSE_LINE_NEUTRAL);
     // Départ actif numéroté (ordre de passage), non estompé.
     expect(start!.badge).toBe('1');
     expect(start!.faded).toBeFalsy();
     expect(lines[0]!.muted).toBeFalsy();
     expect(lines[0]!.from).toEqual({ lat: -21.3388, lng: 55.4802 });
     expect(lines[0]!.to).toEqual({ lat: -21.2788, lng: 55.5158 });
+  });
+
+  it('regroupe par tournée : même chauffeur → même couleur ; = la couleur d’identité', () => {
+    const driverId = 'd0000000-0000-0000-0000-000000000001';
+    const { markers, lines } = buildRideTrajectories([
+      ride({ id: 'a', driver_id: driverId, driver: { nom_affichage: 'Vergoz Jean' } }),
+      ride({ id: 'b', driver_id: driverId, driver: { nom_affichage: 'Vergoz Jean' } }),
+    ]);
+    const expected = tourneeColor(driverId).hex;
+    // Les deux courses du même chauffeur partagent la couleur de tournée…
+    expect(markers.every((m) => m.color === expected)).toBe(true);
+    expect(lines.every((l) => l.color === expected)).toBe(true);
+    // …et cette couleur est bien la couleur d'identité du chauffeur (même clé).
+    expect(expected).toBe(driverColor(driverId).hex);
+    // Le regroupement ne repose pas sur la couleur seule : l'aperçu nomme la tournée.
+    expect(markers[0]!.popupHtml).toContain('Tournée · Vergoz Jean');
+  });
+
+  it('tournée par VÉHICULE à défaut de chauffeur (application optimisation = véhicule)', () => {
+    const vehId = 'v0000000-0000-0000-0000-000000000009';
+    const { markers } = buildRideTrajectories([
+      ride({ id: 'a', vehicle_id: vehId, vehicle: { immatriculation: 'AB-123-CD' } }),
+    ]);
+    expect(markers[0]!.color).toBe(tourneeColor(vehId).hex);
+    expect(markers[0]!.popupHtml).toContain('Tournée · Véh. AB-123-CD');
   });
 
   it('numérote les départs actifs dans l’ordre chronologique (heure programmée)', () => {
@@ -108,16 +138,17 @@ describe('buildRideTrajectories', () => {
     expect(markers).toHaveLength(2);
   });
 
-  it('attribue une couleur distincte par course (rang) via la palette', () => {
-    const { lines } = buildRideTrajectories([
-      ride({ id: 'a' }),
-      ride({ id: 'b' }),
-      ride({ id: 'c' }),
+  it('distingue affectée (couleur de tournée) et non affectée (neutre)', () => {
+    const driverId = 'd0000000-0000-0000-0000-000000000002';
+    const { markers } = buildRideTrajectories([
+      ride({ id: 'assignee', driver_id: driverId, driver: { nom_affichage: 'Boyer Sophie' } }),
+      ride({ id: 'libre' }),
     ]);
-    expect(lines.map((l) => l.color)).toEqual([
-      getGroupColor(0).hex,
-      getGroupColor(1).hex,
-      getGroupColor(2).hex,
-    ]);
+    const colorOf = (rideId: string): string | undefined =>
+      markers.find((m) => m.id === `${rideId}:start`)?.color;
+    expect(colorOf('assignee')).toBe(tourneeColor(driverId).hex);
+    expect(colorOf('libre')).toBe(COURSE_MARKER_COLOR);
+    // La non affectée le dit en toutes lettres (pas seulement « pas de couleur »).
+    expect(markers.find((m) => m.id === 'libre:start')!.popupHtml).toContain('Non affectée');
   });
 });
