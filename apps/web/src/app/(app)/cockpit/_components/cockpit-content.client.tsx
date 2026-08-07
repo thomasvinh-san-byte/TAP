@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { Sparkles, CloudLightning, ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -100,10 +99,6 @@ export function CockpitContent({
 }): JSX.Element {
   const { rides, status, newRideIds } = useCockpitRides(initialRides);
   const { alerts } = useCockpitAlerts(initialAlerts);
-  // Repère discret « plan d'optimisation appliqué » : posé par la redirection
-  // depuis l'écran d'optimisation (COCKPIT-09). Aucun chiffre inventé — la
-  // preuve est visuelle (courses regroupées par tournée sur la carte).
-  const optimiseApplied = useSearchParams().get('optimise') === 'applied';
 
   // R1 — zone tertiaire en onglets (contexte à un clic). Un seul panneau monté à
   // la fois ; les autres sont à un clic. Défaut : brouillons.
@@ -251,18 +246,6 @@ export function CockpitContent({
 
   return (
     <div className="space-y-16">
-      {optimiseApplied && (
-        <div
-          role="status"
-          className="border-accent/40 bg-accent/10 text-foreground flex items-center gap-12 rounded-lg border px-16 py-12 text-sm"
-        >
-          <Sparkles className="text-accent h-16 w-16 shrink-0" aria-hidden />
-          <span>
-            Optimisation appliquée. Les courses affectées apparaissent regroupées par tournée
-            (couleur) sur la carte des chauffeurs ; les non affectées restent neutres.
-          </span>
-        </div>
-      )}
       <CockpitSummaryStrip
         unassignedH1Count={unassignedH1Count}
         criticalAlertsCount={criticalAlertsCount}
