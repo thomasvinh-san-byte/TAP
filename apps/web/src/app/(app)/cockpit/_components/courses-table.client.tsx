@@ -59,15 +59,20 @@ const COLUMNS: DataTableColumn<CockpitRide>[] = [
 export function CoursesTable({
   rides,
   newRideIds,
+  className,
 }: {
   rides: CockpitRide[];
   newRideIds: Set<string>;
+  /** Classe transmise au conteneur du tableau (ex. neutraliser la bordure quand
+   *  le tableau est posé dans une tuile bento qui porte déjà le chrome de carte). */
+  className?: string;
 }): JSX.Element {
   return (
     <DataTable
       columns={COLUMNS}
       rows={rides}
       rowKey={(ride) => `${ride.id}:${ride.status}`}
+      className={className}
       ariaLabel="Liste des courses en cours dans le cockpit régulateur"
       rowClassName={(ride) => (newRideIds.has(ride.id) ? 'cockpit-row-fade-in' : '')}
       emptyState={
