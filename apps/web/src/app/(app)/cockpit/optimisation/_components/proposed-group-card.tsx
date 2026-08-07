@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Check, X, SlidersHorizontal, CheckCircle, Car } from 'lucide-react';
+import { Check, X, SlidersHorizontal, CheckCircle, Car, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { HautsBadge } from './hauts-badge';
 import { RideBadge } from './ride-badge';
@@ -14,6 +14,7 @@ import type { AdjustedGroupement } from '../_lib/use-optimization.client';
 type GroupDecision = 'idle' | 'accepted' | 'rejected';
 
 type VehicleOption = { id: string; label: string };
+type DriverOption = { id: string; label: string };
 
 type Props = {
   groupement: Groupement;
@@ -23,6 +24,11 @@ type Props = {
   onReject: () => void;
   onAdjust: (adjusted: AdjustedGroupement) => void;
   availableVehicles: VehicleOption[];
+  /** Chauffeurs actifs disponibles pour l'affectation de ce groupement. */
+  availableDrivers: DriverOption[];
+  /** Chauffeur actuellement choisi (suggéré puis modifiable), `null` si aucun. */
+  selectedDriverId: string | null;
+  onDriverChange: (driverId: string | null) => void;
   /** Labels lisibles par UUID de course (Wave 4) — heure + ville → ville + initiales. */
   rideLabels?: Record<string, string>;
   /** Label du véhicule de ce groupement (Wave 4) — immatriculation + type. */
@@ -46,6 +52,9 @@ export function ProposedGroupCard({
   onReject,
   onAdjust,
   availableVehicles,
+  availableDrivers,
+  selectedDriverId,
+  onDriverChange,
   rideLabels = {},
   vehicleLabel,
   rideCitycodes,
@@ -113,6 +122,32 @@ export function ProposedGroupCard({
         <span className="text-muted-foreground">
           Véhicule suggéré : {vehicleLabel ?? groupement.vehicle_id.slice(0, 8)}
         </span>
+      </div>
+
+      {/* Chauffeur suggéré + validation humaine : le régulateur voit la suggestion
+          et peut en choisir un autre avant d'appliquer (garde-fou transport de
+          patients). « Aucun » = groupement laissé non affecté. */}
+      <div className="mt-8 flex items-center gap-8 text-sm">
+        <User className="text-muted-foreground h-16 w-16 shrink-0" aria-hidden />
+        <label htmlFor={`driver-${groupement.vehicle_id}`} className="text-muted-foreground">
+          Chauffeur :
+        </label>
+        <select
+          id={`driver-${groupement.vehicle_id}`}
+          className="border-input bg-background min-h-[36px] rounded-md border px-8 py-4 text-sm"
+          value={selectedDriverId ?? ''}
+          onChange={(e) => onDriverChange(e.target.value === '' ? null : e.target.value)}
+        >
+          <option value="">Aucun (non affecté)</option>
+          {availableDrivers.map((d) => (
+            <option key={d.id} value={d.id}>
+              {d.label}
+            </option>
+          ))}
+        </select>
+        {selectedDriverId === null && (
+          <span className="text-warning text-xs">Ce groupement ne sera pas affecté.</span>
+        )}
       </div>
 
       {groupement.motif && (

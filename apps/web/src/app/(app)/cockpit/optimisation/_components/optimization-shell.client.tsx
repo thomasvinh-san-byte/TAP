@@ -29,8 +29,18 @@ type Props = {
  * Lance l'optimisation au mount automatiquement pour UX fluide.
  */
 export function OptimizationShell({ initialRides, date }: Props): JSX.Element {
-  const { state, decisions, adjustments, launch, accept, reject, adjust, acceptedGroupements } =
-    useOptimization(date);
+  const {
+    state,
+    decisions,
+    adjustments,
+    driverByGroupement,
+    launch,
+    accept,
+    reject,
+    adjust,
+    setDriver,
+    acceptedGroupements,
+  } = useOptimization(date);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const hasAccepted = acceptedGroupements.length > 0;
@@ -38,6 +48,8 @@ export function OptimizationShell({ initialRides, date }: Props): JSX.Element {
   // Wave 4 — véhicules et labels viennent enrichis par le Route Handler.
   const availableVehicles: { id: string; label: string }[] =
     state.status === 'result' ? (state.proposal.vehicles ?? []) : [];
+  const availableDrivers: { id: string; label: string }[] =
+    state.status === 'result' ? (state.proposal.drivers ?? []) : [];
   const rideLabels = state.status === 'result' ? (state.proposal.rideLabels ?? {}) : {};
 
   // Message empty spécifique quand toutes les courses sont exclues sans coordonnées.
@@ -153,6 +165,9 @@ export function OptimizationShell({ initialRides, date }: Props): JSX.Element {
             currentRides={initialRides}
             decisions={decisions}
             availableVehicles={availableVehicles}
+            availableDrivers={availableDrivers}
+            driverByGroupement={driverByGroupement}
+            onSetDriver={setDriver}
             rideLabels={rideLabels}
             onAccept={accept}
             onReject={reject}
@@ -176,6 +191,7 @@ export function OptimizationShell({ initialRides, date }: Props): JSX.Element {
             onCancel={() => setConfirmOpen(false)}
             acceptedGroupements={acceptedGroupements}
             adjustments={adjustments}
+            driverByGroupement={driverByGroupement}
           />
         </>
       )}

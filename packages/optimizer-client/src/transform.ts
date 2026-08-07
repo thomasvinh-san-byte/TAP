@@ -61,6 +61,17 @@ export type OptimizationProposal = {
    */
   vehicles?: Array<{ id: string; label: string }>;
   /**
+   * Chauffeurs actifs du tenant pour le sélecteur d'affectation (optimisation →
+   * affectation). Construit côté Route Handler. Optionnel — fallback `[]` côté UI.
+   */
+  drivers?: Array<{ id: string; label: string }>;
+  /**
+   * Chauffeur SUGGÉRÉ par groupement (clé = `vehicle_id` du groupement), ou `null`
+   * si aucun chauffeur libre. Simple proposition, modifiable par le régulateur
+   * avant validation. Construit côté Route Handler (règle déterministe pure).
+   */
+  suggestedDriverByGroupement?: Record<string, string | null>;
+  /**
    * Attributs métier par UUID de course pour les badges UI (Wave 2 Phase 06.11).
    * Construit côté Route Handler à partir des `RideRow` déjà fetchées.
    * Optionnel — UI omet silencieusement les badges si absent.
