@@ -141,11 +141,7 @@ export function DriverPositionsPanel({
       </header>
 
       <p className="text-muted-foreground text-sm">
-        Dernière position connue à chaque pointage. Pas de suivi continu. Le marqueur indique
-        l&apos;âge de la donnée : il ne reflète pas une position « en direct ». Chaque chauffeur a
-        une couleur de repère, rappelée dans la liste ci-dessous ; cliquez une ligne pour centrer la
-        carte sur lui. Sur la carte, chaque ligne = une course (cliquez un point pour
-        l&apos;identifier).
+        Dernière position connue au pointage, pas un suivi en temps réel.
       </p>
 
       <div className="h-[320px] w-full">
