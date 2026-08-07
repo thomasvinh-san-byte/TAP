@@ -94,11 +94,16 @@ export function ApplyConfirmationDialog({
         unassignedGroups > 0
           ? ` ${unassignedGroups} groupement(s) sans chauffeur disponible, à affecter manuellement.`
           : '';
+      // Confirmation UNIQUE et transitoire : le toast (sonner, monté au layout)
+      // survit à la navigation et disparaît de lui-même. On ne pose plus de
+      // paramètre `optimise=applied` dans l'URL — il laissait un bandeau permanent
+      // en tête du cockpit. La preuve reste visuelle : courses regroupées par
+      // tournée sur la carte après le rafraîchissement.
       toast.success(`${successCount} course(s) affectée(s). Retour au cockpit.${suffix}`, {
         id: 'sonner-toast',
       });
       onCancel();
-      router.push('/cockpit?optimise=applied');
+      router.push('/cockpit');
     });
   }
 
