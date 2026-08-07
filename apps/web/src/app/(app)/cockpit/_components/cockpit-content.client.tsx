@@ -8,7 +8,6 @@ import { Sparkles, CloudLightning } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { cn } from '@/lib/utils';
-import { PageHeader } from '@/components/page-header';
 import { listDraftsAction } from '../../courses/actions';
 import type { WeatherAlert } from '../../meteo/_lib/queries';
 import { useCockpitAlerts } from '../_lib/use-cockpit-alerts';
@@ -242,37 +241,50 @@ export function CockpitContent({
         complianceCount={complianceAlerts.length}
         onNavigate={handleCounterNavigate}
       />
-      {/* PRIMAIRE — alertes critiques : jamais enterrées, en tête (au-dessus du
-          diptyque), affichées seulement s'il y a de quoi agir. */}
-      {panelAlerts.length > 0 && (
-        <div className="space-y-8">
-          {unassignedH1Count > 0 && (
-            <div
-              id="cockpit-panel-unassigned-h1"
-              tabIndex={-1}
-              className={cn('space-y-8', PANEL_ANCHOR_CLASS)}
-            >
-              <UnassignedH1Indicator count={unassignedH1Count} />
-            </div>
+      {/* Layout BENTO — grille CSS 12 colonnes (2 dimensions), écart uniforme
+          16px, hauteurs minimales par tuile pour éviter le « saut » au chargement.
+          La taille encode l'importance : carte (span 6) + liste (span 3) primaires
+          côte à côte ; colonne droite (span 3, deux lignes) = alertes critiques +
+          charge ; contexte (span 9) en onglets sous la carte+liste. Ordre du DOM =
+          ordre visuel (carte, liste, colonne droite, contexte) → tabulation et
+          lecteurs d'écran suivent l'œil. Retombe en 2 colonnes (md) puis 1 (mobile),
+          primaire d'abord. */}
+      <div className="grid grid-cols-1 gap-16 md:grid-cols-2 lg:grid-cols-12">
+        {/* TUILE — Carte des chauffeurs (grande, primaire). Carte déjà « carte »
+            (bordure/padding) : le conteneur ne double pas le chrome. */}
+        <div
+          id="cockpit-panel-positions"
+          tabIndex={-1}
+          className={cn(
+            'flex min-h-0 flex-col md:col-span-2 md:min-h-[520px] lg:col-span-6',
+            PANEL_ANCHOR_CLASS,
           )}
-          <div id="cockpit-panel-alerts" tabIndex={-1} className={PANEL_ANCHOR_CLASS}>
-            <AlertsPanel alerts={panelAlerts} />
-          </div>
+        >
+          <DriverPositionsPanel
+            positionsByDriver={positionsByDriver}
+            driverLabels={driverLabels}
+            rides={rides}
+            driverIdByProfileId={driverIdByProfileId}
+          />
         </div>
-      )}
 
-      {/* PRIMAIRE — diptyque tableau « Ma journée » | carte, visibles ensemble. */}
-      <section className="flex min-w-0 flex-col gap-16">
-        <PageHeader
-          title="Ma journée"
-          description={
-            <>
-              {rides.length} course{rides.length > 1 ? 's' : ''} planifiée
-              {rides.length > 1 ? 's' : ''} aujourd&apos;hui
-            </>
-          }
-          actions={
-            <>
+        {/* TUILE — Ma journée (liste, primaire). En-tête + tableau à défilement
+            interne ; « Optimiser » en tête du panneau courses. */}
+        <section
+          aria-labelledby="ma-journee-title"
+          className="bg-background border-border flex min-h-0 min-w-0 flex-col rounded-lg border md:col-span-1 md:min-h-[520px] lg:col-span-3"
+        >
+          <div className="flex flex-wrap items-start justify-between gap-8 p-16 pb-12">
+            <div className="min-w-0">
+              <h2 id="ma-journee-title" className="text-base font-semibold">
+                Ma journée
+              </h2>
+              <p className="text-muted-foreground text-sm">
+                {rides.length} course{rides.length > 1 ? 's' : ''} planifiée
+                {rides.length > 1 ? 's' : ''} aujourd&apos;hui
+              </p>
+            </div>
+            <div className="flex items-center gap-8">
               <Button
                 asChild
                 variant="accent"
@@ -285,92 +297,98 @@ export function CockpitContent({
                 </Link>
               </Button>
               <RealtimeStatusBadge status={status} />
-            </>
-          }
-        />
-        {/* Côte à côte sur grand écran (xl), empilé en dessous. Hauteur bornée +
-            défilement interne du tableau → les deux panneaux visibles sans scroll. */}
-        <div className="flex flex-col gap-16 xl:h-[calc(100vh-12rem)] xl:min-h-[520px] xl:flex-row xl:items-stretch">
-          <div className="flex min-h-0 flex-col xl:flex-1">
-            <div className="min-h-0 flex-1 xl:overflow-y-auto">
-              <CoursesTable rides={rides} newRideIds={newRideIds} />
             </div>
           </div>
-          <div
-            id="cockpit-panel-positions"
-            tabIndex={-1}
-            className={cn('min-h-0 xl:flex-1', PANEL_ANCHOR_CLASS)}
-          >
-            <DriverPositionsPanel
-              positionsByDriver={positionsByDriver}
-              driverLabels={driverLabels}
+          <div className="border-border min-h-0 flex-1 overflow-y-auto border-t">
+            <CoursesTable
               rides={rides}
-              driverIdByProfileId={driverIdByProfileId}
+              newRideIds={newRideIds}
+              className="!rounded-none !border-0"
             />
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* SECONDAIRE — contexte utile, calme : charge par chauffeur, météo (si
-          active), son d'alerte. Sous le diptyque, sans concurrencer le primaire. */}
-      <div className="flex flex-col gap-16 lg:flex-row lg:items-start">
-        <div className="min-w-0 lg:flex-1">
-          <DriverLoadPanel rides={rides} driverLabels={driverLabels} />
-        </div>
-        {weatherAlert && (
-          <div
-            role="status"
-            className="border-destructive/40 bg-destructive/10 text-destructive flex items-center gap-8 rounded-lg border px-12 py-8 text-sm lg:flex-1"
-          >
-            <CloudLightning className="h-16 w-16 shrink-0" aria-hidden />
-            <span className="min-w-0">
-              Mode alerte météo actif — {weatherAlert.motif}
-              {weatherAlert.zone ? ` (zone ${weatherAlert.zone})` : ''}.
-            </span>
-            <Link href="/meteo" className="ml-auto shrink-0 underline">
-              Gérer
-            </Link>
+        {/* COLONNE DROITE (span 3, deux lignes) — alertes critiques (jamais
+            enterrées) puis charge, météo, son. Contexte d'action / suivi, calme. */}
+        <div className="flex flex-col gap-16 self-start md:col-span-1 lg:col-span-3 lg:row-span-2">
+          {panelAlerts.length > 0 && (
+            <div className="bg-background border-border rounded-lg border p-16">
+              {unassignedH1Count > 0 && (
+                <div
+                  id="cockpit-panel-unassigned-h1"
+                  tabIndex={-1}
+                  className={cn('mb-12', PANEL_ANCHOR_CLASS)}
+                >
+                  <UnassignedH1Indicator count={unassignedH1Count} />
+                </div>
+              )}
+              <div id="cockpit-panel-alerts" tabIndex={-1} className={PANEL_ANCHOR_CLASS}>
+                <AlertsPanel alerts={panelAlerts} />
+              </div>
+            </div>
+          )}
+          <div className="bg-background border-border rounded-lg border p-16">
+            <DriverLoadPanel rides={rides} driverLabels={driverLabels} />
           </div>
-        )}
-        <div className="shrink-0">
+          {weatherAlert && (
+            <div
+              role="status"
+              className="border-destructive/40 bg-destructive/10 text-destructive flex items-start gap-8 rounded-lg border px-12 py-8 text-sm"
+            >
+              <CloudLightning className="mt-2 h-16 w-16 shrink-0" aria-hidden />
+              <span className="min-w-0">
+                Mode alerte météo actif — {weatherAlert.motif}
+                {weatherAlert.zone ? ` (zone ${weatherAlert.zone})` : ''}.{' '}
+                <Link href="/meteo" className="underline">
+                  Gérer
+                </Link>
+              </span>
+            </div>
+          )}
           <AlertSoundToggle armed={sound.armed} onArm={sound.arm} onDisarm={sound.disarm} />
         </div>
-      </div>
 
-      {/* TERTIAIRE — contexte de référence en onglets (à un clic) : un seul panneau
-          monté à la fois ; pastille de compte par onglet. */}
-      <section aria-label="Contexte" className="space-y-12">
-        <SegmentedControl
-          options={[
-            { value: 'brouillons', label: contextTabLabel('Brouillons', draftsCount) },
-            { value: 'conformite', label: contextTabLabel('Conformité', complianceAlerts.length) },
-            {
-              value: 'prescriptions',
-              label: contextTabLabel('Prescriptions', prescriptionAlerts.length),
-            },
-          ]}
-          value={contextTab}
-          onValueChange={setContextTab}
-          ariaLabel="Contexte : brouillons, conformité, prescriptions"
-        />
-        <div role="tabpanel" aria-label={`Contexte : ${contextTab}`}>
-          {contextTab === 'brouillons' && (
-            <div id="cockpit-panel-drafts" tabIndex={-1} className={PANEL_ANCHOR_CLASS}>
-              <DraftsIndicator />
-            </div>
-          )}
-          {contextTab === 'conformite' && (
-            <div id="cockpit-panel-compliance" tabIndex={-1} className={PANEL_ANCHOR_CLASS}>
-              <ComplianceAlertsPanel alerts={complianceAlerts} variant="panel" limit={4} />
-            </div>
-          )}
-          {contextTab === 'prescriptions' && (
-            <div id="cockpit-panel-prescriptions" tabIndex={-1} className={PANEL_ANCHOR_CLASS}>
-              <PrescriptionAlertsPanel alerts={prescriptionAlerts} />
-            </div>
-          )}
-        </div>
-      </section>
+        {/* TUILE — Contexte (tertiaire) en onglets, à un clic. Un seul panneau
+            monté ; pastille de compte par onglet. */}
+        <section
+          aria-label="Contexte"
+          className="bg-background border-border flex flex-col gap-12 rounded-lg border p-16 md:col-span-2 lg:col-span-9"
+        >
+          <SegmentedControl
+            options={[
+              { value: 'brouillons', label: contextTabLabel('Brouillons', draftsCount) },
+              {
+                value: 'conformite',
+                label: contextTabLabel('Conformité', complianceAlerts.length),
+              },
+              {
+                value: 'prescriptions',
+                label: contextTabLabel('Prescriptions', prescriptionAlerts.length),
+              },
+            ]}
+            value={contextTab}
+            onValueChange={setContextTab}
+            ariaLabel="Contexte : brouillons, conformité, prescriptions"
+          />
+          <div role="tabpanel" aria-label={`Contexte : ${contextTab}`}>
+            {contextTab === 'brouillons' && (
+              <div id="cockpit-panel-drafts" tabIndex={-1} className={PANEL_ANCHOR_CLASS}>
+                <DraftsIndicator />
+              </div>
+            )}
+            {contextTab === 'conformite' && (
+              <div id="cockpit-panel-compliance" tabIndex={-1} className={PANEL_ANCHOR_CLASS}>
+                <ComplianceAlertsPanel alerts={complianceAlerts} variant="panel" limit={4} />
+              </div>
+            )}
+            {contextTab === 'prescriptions' && (
+              <div id="cockpit-panel-prescriptions" tabIndex={-1} className={PANEL_ANCHOR_CLASS}>
+                <PrescriptionAlertsPanel alerts={prescriptionAlerts} />
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
 
       {recentNoShowRide && <NoShowAlertModal ride={recentNoShowRide} onClose={dismissNoShow} />}
     </div>
