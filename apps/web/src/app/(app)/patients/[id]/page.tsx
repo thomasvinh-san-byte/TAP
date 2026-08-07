@@ -1,8 +1,9 @@
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { maskNir } from '@/lib/utils';
+import { cn, maskNir } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/server';
 import type { RideRecurrence } from '@/types/recurrence';
 import { getPatientById } from '../queries';
@@ -22,6 +23,25 @@ import { listActiveDrivers } from '../../courses/_lib/queries';
 
 interface PageProps {
   params: Promise<{ id: string }>;
+}
+
+/**
+ * Tuile bento (même langage que le cockpit) : carte à fond, bordure et rayon
+ * uniformes. La taille (col-span, min-h) est portée par l'appelant — méritée par
+ * le contenu. Étirée en hauteur par la grille pour aligner les tuiles d'une ligne.
+ */
+function BentoTile({
+  className,
+  children,
+}: {
+  className?: string;
+  children: ReactNode;
+}): JSX.Element {
+  return (
+    <div className={cn('bg-background border-border rounded-lg border p-16', className)}>
+      {children}
+    </div>
+  );
 }
 
 /**
@@ -142,7 +162,7 @@ export default async function PatientPage(props: PageProps) {
     : null;
 
   return (
-    <div className="space-y-24">
+    <div className="space-y-16">
       {/* BANNER D'IDENTIFICATION (norme dossier patient) — regroupe les
           identifiants (nom + date de naissance + NIR partiel) pour confirmer sans
           ambiguïté le bon dossier (règle « deux identifiants indépendants »). Le
@@ -179,66 +199,92 @@ export default async function PatientPage(props: PageProps) {
         </Button>
       </header>
 
-      <section className="space-y-12">
-        <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-          Coordonnées
-        </h2>
-        {p.telephone && <p className="text-base tabular-nums">{p.telephone}</p>}
-        <p className="text-base">
-          {p.adresse_ligne1}
-          {p.adresse_ligne2 ? `, ${p.adresse_ligne2}` : ''}
-          <br />
-          {p.code_postal} {p.ville}
-        </p>
-      </section>
+      {/* GRILLE BENTO HIÉRARCHISÉE — même langage que le cockpit (grille 12
+          colonnes, écart uniforme, taille méritée, hauteurs définies, ordre DOM =
+          ordre visuel). Priorité normée « actionnable d'abord » : bons + incidents
+          (ce qui conditionne une course) en tuiles importantes, récurrences +
+          préférences chauffeur en moyennes, coordonnées + contact en compactes.
+          Une colonne sur étroit → banner puis actionnable d'abord (ordre DOM). */}
+      <div className="grid grid-cols-1 gap-16 md:grid-cols-2 lg:grid-cols-12">
+        {/* Actionnable — bons de transport (un bon expiré bloque une course). */}
+        <BentoTile className="lg:col-span-6 lg:min-h-[320px]">
+          <PrescriptionsSection
+            patientId={p.id}
+            prescriptions={prescriptions}
+            prescribers={prescribers}
+          />
+        </BentoTile>
 
-      <RecurrencesSection
-        patientId={p.id}
-        recurrences={recurrences}
-        futureCounts={futureCounts}
-        prescriptionOptions={prescriptions
-          .filter((pr) => pr.statut === 'active')
-          .map((pr) => ({ id: pr.id, numero: pr.numero }))}
-      />
+        {/* Actionnable — incidents (historique conditionnant la régulation). */}
+        <BentoTile className="lg:col-span-6 lg:min-h-[320px]">
+          <PatientIncidentsSection
+            patientId={p.id}
+            recap={{
+              incidents: incidentsRecap.incidents,
+              countsByType: incidentsRecap.countsByType,
+              windowTotal: incidentsRecap.windowTotal,
+              tone: incidentsRecap.tone,
+            }}
+            rideOptions={rideOptions}
+          />
+        </BentoTile>
 
-      <PrescriptionsSection
-        patientId={p.id}
-        prescriptions={prescriptions}
-        prescribers={prescribers}
-      />
+        {/* Moyen — récurrences. */}
+        <BentoTile className="lg:col-span-6 lg:min-h-[240px]">
+          <RecurrencesSection
+            patientId={p.id}
+            recurrences={recurrences}
+            futureCounts={futureCounts}
+            prescriptionOptions={prescriptions
+              .filter((pr) => pr.statut === 'active')
+              .map((pr) => ({ id: pr.id, numero: pr.numero }))}
+          />
+        </BentoTile>
 
-      <PatientIncidentsSection
-        patientId={p.id}
-        recap={{
-          incidents: incidentsRecap.incidents,
-          countsByType: incidentsRecap.countsByType,
-          windowTotal: incidentsRecap.windowTotal,
-          tone: incidentsRecap.tone,
-        }}
-        rideOptions={rideOptions}
-      />
+        {/* Moyen — préférences chauffeur. */}
+        <BentoTile className="lg:col-span-6 lg:min-h-[240px]">
+          <PatientDriverPreferencesSection
+            patientId={p.id}
+            prefere={driverPreferences.prefere}
+            evite={driverPreferences.evite}
+            driverOptions={driverOptions}
+          />
+        </BentoTile>
 
-      <PatientDriverPreferencesSection
-        patientId={p.id}
-        prefere={driverPreferences.prefere}
-        evite={driverPreferences.evite}
-        driverOptions={driverOptions}
-      />
+        {/* Contexte — coordonnées (compact). */}
+        <BentoTile className="lg:col-span-4">
+          <section className="space-y-12">
+            <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+              Coordonnées
+            </h2>
+            {p.telephone && <p className="text-base tabular-nums">{p.telephone}</p>}
+            <p className="text-base">
+              {p.adresse_ligne1}
+              {p.adresse_ligne2 ? `, ${p.adresse_ligne2}` : ''}
+              <br />
+              {p.code_postal} {p.ville}
+            </p>
+          </section>
+        </BentoTile>
 
-      <section className="space-y-8">
-        <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-          Préférences
-        </h2>
-        <p className="text-base">
-          Canal : <strong>{p.canal_contact_prefere}</strong>
-        </p>
-        <p className="text-base">
-          Consentement SMS :{' '}
-          {p.consentement_sms
-            ? `oui (${new Date(p.consentement_sms_at!).toLocaleDateString('fr-FR')})`
-            : 'non'}
-        </p>
-      </section>
+        {/* Contexte — préférences de contact (canal / SMS) (compact). */}
+        <BentoTile className="lg:col-span-8">
+          <section className="space-y-8">
+            <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+              Préférences de contact
+            </h2>
+            <p className="text-base">
+              Canal : <strong>{p.canal_contact_prefere}</strong>
+            </p>
+            <p className="text-base">
+              Consentement SMS :{' '}
+              {p.consentement_sms
+                ? `oui (${new Date(p.consentement_sms_at!).toLocaleDateString('fr-FR')})`
+                : 'non'}
+            </p>
+          </section>
+        </BentoTile>
+      </div>
     </div>
   );
 }
