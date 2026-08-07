@@ -139,6 +139,7 @@ export function buildRideTrajectories(
           order: orderNum,
           done,
           tournee,
+          rideId: r.id,
         }),
       ),
     });
@@ -160,6 +161,7 @@ export function buildRideTrajectories(
           order: orderNum,
           done,
           tournee,
+          rideId: r.id,
         }),
       ),
     });

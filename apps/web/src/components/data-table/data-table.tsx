@@ -219,10 +219,24 @@ export function DataTable<T>({
                 key={rowKey(row)}
                 className={cn(
                   'hover:bg-muted/40 transition-colors',
-                  onRowClick && 'cursor-pointer',
+                  onRowClick &&
+                    'focus-visible:ring-ring cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-inset',
                   rowClassName?.(row, index),
                 )}
                 onClick={onRowClick ? () => onRowClick(row, index) : undefined}
+                // Activation clavier des lignes cliquables (Entrée / Espace),
+                // sans altérer la sémantique de tableau ni le tri.
+                tabIndex={onRowClick ? 0 : undefined}
+                onKeyDown={
+                  onRowClick
+                    ? (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          onRowClick(row, index);
+                        }
+                      }
+                    : undefined
+                }
               >
                 {columns.map((col) => (
                   <td

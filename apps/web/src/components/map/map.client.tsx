@@ -119,6 +119,12 @@ export interface MapProps {
    * d'objets (filtre de couches) dont un marqueur avait un popup ouvert.
    */
   dismissPopupToken?: number;
+  /**
+   * Action « ouvrir la course » depuis un aperçu de point de course : appelée avec
+   * l'id de course quand l'utilisateur clique le bouton `data-open-ride` du popup.
+   * L'appelant (cockpit) ouvre alors le RideDrawer. Le popup se ferme.
+   */
+  onOpenRide?: (rideId: string) => void;
   className?: string;
   ariaLabel: string;
 }
@@ -173,6 +179,7 @@ export function Map({
   lines = [],
   focusTarget = null,
   dismissPopupToken,
+  onOpenRide,
   className,
   ariaLabel,
 }: MapProps): JSX.Element {
@@ -185,6 +192,12 @@ export function Map({
   // Vrai une fois le style chargé — les couches (lignes) ne peuvent être ajoutées
   // qu'après `load`. Sert aussi à (re)poser marqueurs et lignes de façon fiable.
   const [mapReady, setMapReady] = React.useState(false);
+  // Callback « ouvrir la course » stocké en ref : `openPopup` reste stable ([] deps)
+  // tout en appelant toujours la dernière valeur du prop.
+  const onOpenRideRef = React.useRef(onOpenRide);
+  React.useEffect(() => {
+    onOpenRideRef.current = onOpenRide;
+  });
 
   // Ouvre un aperçu au niveau du marqueur, décalé pour ne pas le cacher. La
   // popup native MapLibre gère focus, bouton de fermeture et fermeture au clic
@@ -207,6 +220,15 @@ export function Map({
     popup.on('close', () => {
       if (popupRef.current === popup) popupRef.current = null;
     });
+    // Câble l'action « ouvrir la course » du contenu HTML (bouton data-open-ride).
+    const openBtn = popup.getElement()?.querySelector<HTMLElement>('[data-open-ride]');
+    if (openBtn) {
+      openBtn.addEventListener('click', () => {
+        const id = openBtn.getAttribute('data-open-ride');
+        if (id) onOpenRideRef.current?.(id);
+        popup.remove();
+      });
+    }
     popupRef.current = popup;
   }, []);
 
