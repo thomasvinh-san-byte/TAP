@@ -19,11 +19,41 @@ import { cn } from '@/lib/utils';
 
 export type KpiState = 'neutre' | 'succes' | 'attention' | 'alerte';
 
+// Couleur RÉSERVÉE aux exceptions (norme dashboard exécutif : « si tout est
+// coloré, rien n'est urgent »). Un état « succès » (sous le seuil) = pas
+// d'exception → neutre, comme `neutre`. Seuls `attention` (ambre) et `alerte`
+// (rouge) portent une couleur, pour que les vrais dépassements ressortent.
 const STATE_CLASS: Record<KpiState, string> = {
   neutre: 'text-foreground',
-  succes: 'text-success',
+  succes: 'text-foreground',
   attention: 'text-warning',
   alerte: 'text-destructive',
+};
+
+/**
+ * Hiérarchie de taille (normes dashboard exécutif) : la taille communique la
+ * priorité avant qu'on lise un libellé. `hero` = grand (santé financière),
+ * `normal` = primaire, `compact` = secondaire. La largeur (col-span) est portée
+ * par l'appelant via `className` ; ici on module padding, écart et taille du chiffre.
+ */
+export type KpiSize = 'hero' | 'normal' | 'compact';
+
+const CARD_SIZE_CLASS: Record<KpiSize, string> = {
+  hero: 'gap-12 p-24',
+  normal: 'gap-8 p-16',
+  compact: 'gap-8 p-12',
+};
+
+const VALUE_SIZE_CLASS: Record<KpiSize, string> = {
+  hero: 'text-4xl',
+  normal: 'text-2xl',
+  compact: 'text-xl',
+};
+
+const LABEL_SIZE_CLASS: Record<KpiSize, string> = {
+  hero: 'text-sm',
+  normal: 'text-sm',
+  compact: 'text-xs',
 };
 
 const ACTION_CLASS =
@@ -31,15 +61,13 @@ const ACTION_CLASS =
   'text-sm font-medium hover:underline focus-visible:outline-none focus-visible:ring-2';
 
 /**
- * Couleur du delta selon le sens de la métrique.
- * - `positive` : ↗ = vert (favorable), ↘ = rouge si fort, ambre sinon.
- * - `inverse`  : ↗ = rouge si fort, ambre sinon ; ↘ = vert.
- * Seuil « fort » : |delta| ≥ 10.
+ * Couleur du delta — réservée aux exceptions (couleur parcimonieuse). Une
+ * tendance favorable ou stable reste NEUTRE (la flèche ↗/↘ porte déjà le sens) ;
+ * seule une tendance défavorable est signalée : ambre, ou rouge si forte
+ * (|delta| ≥ 10). Ainsi la couleur ne marque que ce qui appelle l'attention.
  */
 function deltaClass(delta: number, sign: 'positive' | 'inverse' = 'positive'): string {
-  const favorable = sign === 'positive' ? delta > 0 : delta < 0;
   const defavorable = sign === 'positive' ? delta < 0 : delta > 0;
-  if (favorable) return 'text-success';
   if (defavorable) return Math.abs(delta) >= 10 ? 'text-destructive' : 'text-warning';
   return 'text-muted-foreground';
 }
@@ -63,6 +91,10 @@ interface KpiAction {
 interface KpiCardBase {
   label: string;
   action?: KpiAction;
+  /** Rang de taille (hiérarchie exécutive). Défaut `normal` — comportement inchangé. */
+  size?: KpiSize;
+  /** Classe additionnelle sur la carte (largeur bento : col-span, min-h). */
+  className?: string;
 }
 
 interface KpiSimple extends KpiCardBase {
@@ -113,13 +145,15 @@ interface KpiAlerte extends KpiCardBase {
 export type KpiCardProps = KpiSimple | KpiVentilation | KpiMulti | KpiAlerte;
 
 function KpiBody(props: KpiCardProps): JSX.Element {
+  const size = props.size ?? 'normal';
   switch (props.variant) {
     case 'simple':
       return (
         <div className="flex flex-col gap-4">
           <p
             className={cn(
-              'text-2xl font-semibold tabular-nums',
+              VALUE_SIZE_CLASS[size],
+              'font-semibold tabular-nums',
               props.state && STATE_CLASS[props.state],
             )}
           >
@@ -131,7 +165,13 @@ function KpiBody(props: KpiCardProps): JSX.Element {
             </p>
           ) : null}
           {props.delta !== undefined && props.previousLabel ? (
-            <p className={cn('text-xs tabular-nums', deltaClass(props.delta, props.deltaSign))}>
+            <p
+              className={cn(
+                size === 'hero' ? 'text-sm' : 'text-xs',
+                'tabular-nums',
+                deltaClass(props.delta, props.deltaSign),
+              )}
+            >
               {deltaArrow(props.delta)} {deltaFormat(props.delta, props.deltaUnit ?? '%')} vs{' '}
               {props.previousLabel}
               {props.previousValue ? ` (${props.previousValue})` : ''}
@@ -197,9 +237,18 @@ function KpiBody(props: KpiCardProps): JSX.Element {
 }
 
 export function KpiCard(props: KpiCardProps): JSX.Element {
+  const size = props.size ?? 'normal';
   return (
-    <div className="border-border bg-background flex h-full flex-col gap-8 rounded-lg border p-16">
-      <h3 className="text-muted-foreground text-sm font-medium">{props.label}</h3>
+    <div
+      className={cn(
+        'border-border bg-background flex h-full flex-col rounded-lg border',
+        CARD_SIZE_CLASS[size],
+        props.className,
+      )}
+    >
+      <h3 className={cn('text-muted-foreground font-medium', LABEL_SIZE_CLASS[size])}>
+        {props.label}
+      </h3>
       <KpiBody {...props} />
       {props.action ? (
         <Link href={props.action.href} className={ACTION_CLASS}>
