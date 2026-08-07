@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { PageHeader } from '@/components/page-header';
 import { maskNir } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/server';
 import type { RideRecurrence } from '@/types/recurrence';
@@ -136,27 +135,49 @@ export default async function PatientPage(props: PageProps) {
   ]);
   const driverOptions = activeDrivers.map((d) => ({ id: d.id, label: d.nom_affichage }));
 
+  // Date de naissance en JJ/MM/AAAA sans construire de `Date` (évite tout décalage
+  // de fuseau sur une date seule « AAAA-MM-JJ »).
+  const dateNaissanceFr = p.date_naissance
+    ? p.date_naissance.slice(0, 10).split('-').reverse().join('/')
+    : null;
+
   return (
     <div className="space-y-24">
-      <PageHeader
-        title={`${p.nom} ${p.prenom}`}
-        actions={
-          <Button asChild variant="outline">
-            <Link href={`/patients/${p.id}/edit`}>
-              <Pencil className="mr-8 h-16 w-16" aria-hidden />
-              Modifier
-            </Link>
-          </Button>
-        }
-      />
-
-      <section className="space-y-12">
-        <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-          Identité administrative
-        </h2>
-        {p.has_nir && <PatientNirDisplay patientId={p.id} maskedNir={maskNir(p.nir_last4)} />}
-        <p className="text-base">Né(e) le {p.date_naissance}</p>
-      </section>
+      {/* BANNER D'IDENTIFICATION (norme dossier patient) — regroupe les
+          identifiants (nom + date de naissance + NIR partiel) pour confirmer sans
+          ambiguïté le bon dossier (règle « deux identifiants indépendants »). Le
+          bouton Modifier reste dans le banner. Aucun statut inventé : la base n'en
+          porte pas. */}
+      <header
+        aria-label={`Identification du patient ${p.nom} ${p.prenom}`}
+        className="bg-background border-border flex flex-wrap items-start justify-between gap-16 rounded-lg border p-16"
+      >
+        <div className="min-w-0">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {p.nom} {p.prenom}
+          </h1>
+          <div className="mt-8 flex flex-wrap items-center gap-x-16 gap-y-8 text-sm">
+            {dateNaissanceFr && (
+              <span className="text-muted-foreground">
+                Né(e) le{' '}
+                <span className="text-foreground font-medium tabular-nums">{dateNaissanceFr}</span>
+              </span>
+            )}
+            {p.has_nir && (
+              <span className="flex items-center gap-8">
+                <span className="text-muted-foreground">NIR</span>
+                <PatientNirDisplay patientId={p.id} maskedNir={maskNir(p.nir_last4)} />
+              </span>
+            )}
+          </div>
+        </div>
+        <Button asChild variant="outline">
+          <Link href={`/patients/${p.id}/edit`}>
+            <Pencil className="mr-8 h-16 w-16" aria-hidden />
+            Modifier
+          </Link>
+        </Button>
+      </header>
 
       <section className="space-y-12">
         <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
