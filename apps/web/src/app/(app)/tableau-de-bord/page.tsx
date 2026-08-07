@@ -183,7 +183,11 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
         </div>
       </section>
 
-      {/* Rangée 2 — Activité du mois (6 KPIs sur une rangée). */}
+      {/* Rangée 2 — Activité du mois en bento ASYMÉTRIQUE (norme dashboard
+          exécutif) : la taille porte la priorité avant qu'on lise un libellé.
+          Grille 12 colonnes (langage cockpit / fiche patient), écart uniforme,
+          hauteurs définies, ordre DOM = ordre visuel = ordre de priorité.
+          Calculs et props des KPIs strictement inchangés — présentation seule. */}
       <section className="space-y-8" aria-labelledby="bloc-sante">
         <h2
           id="bloc-sante"
@@ -191,13 +195,12 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
         >
           Activité du mois
         </h2>
-        {/* KPI-01 : ~6 cartes de poids égal. Vrais KPIs (CA encaissé, panier
-            moyen, no-show à seuil) en tête ; volumes bruts en tendance (delta)
-            puis « Aujourd'hui » en fin de bloc (le moins actionnable). La carte
-            « CA du mois » dupliquée a été fusionnée dans « CA encaissé du mois ». */}
-        <div className="grid grid-cols-2 items-stretch gap-12 sm:grid-cols-3 lg:grid-cols-7">
+        <div className="grid grid-cols-1 items-stretch gap-12 sm:grid-cols-2 lg:grid-cols-12">
+          {/* HÉROS — santé financière (entrées vs argent bloqué), avec tendance/seuil. */}
           <KpiCard
             variant="simple"
+            size="hero"
+            className="lg:col-span-6 lg:min-h-[180px]"
             label="CA encaissé du mois"
             value={eur.format(data.caMois.total_eur)}
             context={ventilationContext}
@@ -208,10 +211,11 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
             previousValue={eur.format(data.caMoisPrec.total_eur)}
           />
           {/* KPI-02 — trésorerie à risque : stock cumulé (12 mois) des courses
-              dues non encaissées. Placé en tête du cluster financier ; seuil/état
-              déclenchant une relance d'encaissement. */}
+              dues non encaissées. La couleur d'état (seuil) porte l'exception. */}
           <KpiCard
             variant="simple"
+            size="hero"
+            className="lg:col-span-6 lg:min-h-[180px]"
             label="Encours impayé"
             value={eur.format(data.encoursImpaye.total_eur)}
             state={encours.state}
@@ -221,16 +225,22 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
             } à encaisser`}
             action={{ href: '/courses/caisse?vue=a_encaisser', label: 'Encaisser' }}
           />
+
+          {/* PRIMAIRES — volume / no-show / panier (moyens). */}
           <KpiCard
             variant="simple"
-            label="Panier moyen / course"
-            value={eur.format(panierMoyen)}
-            context={`sur ${data.caMois.count} course${data.caMois.count > 1 ? 's' : ''} encaissée${
-              data.caMois.count > 1 ? 's' : ''
-            }`}
+            className="lg:col-span-4"
+            label="Volume du mois"
+            value={String(data.volume.mois)}
+            delta={volDelta}
+            deltaUnit="%"
+            deltaSign="positive"
+            previousLabel={moisPrecLibelle}
+            previousValue={String(data.volMoisPrec)}
           />
           <KpiCard
             variant="simple"
+            className="lg:col-span-4"
             label="No-show"
             value={`${data.incidents.taux} %`}
             state={taux.state}
@@ -246,23 +256,27 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
           />
           <KpiCard
             variant="simple"
-            label="Volume du mois"
-            value={String(data.volume.mois)}
-            delta={volDelta}
-            deltaUnit="%"
-            deltaSign="positive"
-            previousLabel={moisPrecLibelle}
-            previousValue={String(data.volMoisPrec)}
+            className="lg:col-span-4"
+            label="Panier moyen / course"
+            value={eur.format(panierMoyen)}
+            context={`sur ${data.caMois.count} course${data.caMois.count > 1 ? 's' : ''} encaissée${
+              data.caMois.count > 1 ? 's' : ''
+            }`}
           />
+
+          {/* SECONDAIRES — chauffeurs / aujourd'hui (petits, contexte). */}
           <KpiCard
             variant="simple"
+            size="compact"
+            className="lg:col-span-6"
             label="Chauffeurs"
             value={`${data.chauffeurs.actifsAvecCourse} / ${data.chauffeurs.totalActifs}`}
             context={`actifs aujourd'hui · ~${data.chauffeurs.moyenneParChauffeur}/chauffeur`}
           />
-          {/* Volume brut le moins actionnable → fin de bloc (KPI-01). */}
           <KpiCard
             variant="simple"
+            size="compact"
+            className="lg:col-span-6"
             label="Aujourd'hui"
             value={String(data.volume.aujourdhui)}
             context={`7 derniers jours : ${data.volume.semaine}`}
