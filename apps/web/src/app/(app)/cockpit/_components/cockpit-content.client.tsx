@@ -207,7 +207,7 @@ export function CockpitContent({
         complianceCount={complianceAlerts.length}
       />
       <div className="flex flex-col gap-16 lg:flex-row lg:items-stretch lg:gap-24">
-        <section className="min-w-0 flex-1 space-y-16">
+        <section className="flex min-w-0 flex-1 flex-col gap-16">
           <PageHeader
             title="Ma journée"
             description={
@@ -235,14 +235,27 @@ export function CockpitContent({
               </>
             }
           />
-          <CoursesTable rides={rides} newRideIds={newRideIds} />
-          <div id="cockpit-panel-positions" tabIndex={-1} className={PANEL_ANCHOR_CLASS}>
-            <DriverPositionsPanel
-              positionsByDriver={positionsByDriver}
-              driverLabels={driverLabels}
-              rides={rides}
-              driverIdByProfileId={driverIdByProfileId}
-            />
+          {/* Diptyque tableau | carte : côte à côte sur grand écran (xl), empilé en
+              dessous. Hauteur bornée + défilement interne du tableau → les deux
+              panneaux restent visibles ensemble sans allonger la page. */}
+          <div className="flex flex-col gap-16 xl:h-[calc(100vh-12rem)] xl:min-h-[520px] xl:flex-row xl:items-stretch">
+            <div className="flex min-h-0 flex-col xl:flex-1">
+              <div className="min-h-0 flex-1 xl:overflow-y-auto">
+                <CoursesTable rides={rides} newRideIds={newRideIds} />
+              </div>
+            </div>
+            <div
+              id="cockpit-panel-positions"
+              tabIndex={-1}
+              className={cn('min-h-0 xl:flex-1', PANEL_ANCHOR_CLASS)}
+            >
+              <DriverPositionsPanel
+                positionsByDriver={positionsByDriver}
+                driverLabels={driverLabels}
+                rides={rides}
+                driverIdByProfileId={driverIdByProfileId}
+              />
+            </div>
           </div>
         </section>
         <aside className="lg:border-border flex w-full shrink-0 flex-col gap-24 lg:w-80 lg:border-l lg:pl-24">

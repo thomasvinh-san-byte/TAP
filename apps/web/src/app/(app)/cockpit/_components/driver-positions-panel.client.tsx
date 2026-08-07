@@ -126,7 +126,7 @@ export function DriverPositionsPanel({
   return (
     <section
       aria-label="Positions des chauffeurs"
-      className="bg-background border-border flex flex-col gap-12 rounded-lg border p-16"
+      className="bg-background border-border flex h-full min-h-0 flex-col gap-12 rounded-lg border p-16"
     >
       <header className="flex items-center justify-between">
         <h2 className="text-base font-semibold">Carte des chauffeurs</h2>
@@ -144,7 +144,9 @@ export function DriverPositionsPanel({
         Dernière position connue au pointage, pas un suivi en temps réel.
       </p>
 
-      <div className="h-[320px] w-full">
+      {/* Carte à hauteur fluide : occupe l'espace restant du panneau (diptyque)
+          tout en gardant une hauteur minimale utile. */}
+      <div className="min-h-[280px] w-full flex-1">
         <Map
           center={REUNION_CENTER}
           zoom={9}
