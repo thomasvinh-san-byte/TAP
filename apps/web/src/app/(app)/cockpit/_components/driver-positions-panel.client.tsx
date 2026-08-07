@@ -41,6 +41,8 @@ interface Props {
    * charge du jour et la course en cours pour l'aperçu au clic (COCKPIT-06).
    */
   driverIdByProfileId: Record<string, string>;
+  /** Ouvre le détail d'une course (RideDrawer) depuis l'aperçu carte (COCKPIT-10). */
+  onOpenRide?: (rideId: string) => void;
 }
 
 const REUNION_CENTER = { lat: -21.1, lng: 55.55 };
@@ -54,6 +56,7 @@ export function DriverPositionsPanel({
   driverLabels,
   rides,
   driverIdByProfileId,
+  onOpenRide,
 }: Props): JSX.Element {
   const [now, setNow] = React.useState<Date>(() => new Date());
   // Ligne active (lien liste ↔ carte) : identifiant de la position sélectionnée.
@@ -235,6 +238,7 @@ export function DriverPositionsPanel({
           lines={lines}
           focusTarget={focusTarget}
           dismissPopupToken={dismissPopupToken}
+          onOpenRide={onOpenRide}
           ariaLabel="Carte 974 : positions des chauffeurs et trajets des courses du jour"
         />
         <button

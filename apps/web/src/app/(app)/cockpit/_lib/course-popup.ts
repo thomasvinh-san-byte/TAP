@@ -31,6 +31,11 @@ export interface CoursePointPopupData {
    * tournée en toutes lettres (le regroupement ne repose pas sur la couleur seule).
    */
   tournee: string | null;
+  /**
+   * Id de la course : porte l'action « ouvrir la course » (ouvre le RideDrawer).
+   * `null` = pas d'action (l'aperçu reste purement informatif).
+   */
+  rideId: string | null;
 }
 
 export interface BuildCoursePointPopupInput {
@@ -41,6 +46,7 @@ export interface BuildCoursePointPopupInput {
   order?: number | null;
   done?: boolean;
   tournee?: string | null;
+  rideId?: string | null;
 }
 
 export function buildCoursePointPopupData(input: BuildCoursePointPopupInput): CoursePointPopupData {
@@ -50,6 +56,7 @@ export function buildCoursePointPopupData(input: BuildCoursePointPopupInput): Co
     patient: input.patient,
     address: input.address ?? null,
     scheduledLabel: input.scheduledLabel ?? null,
+    rideId: input.rideId ?? null,
     order: input.order ?? null,
     done: input.done ?? false,
     tournee: input.tournee ?? null,
@@ -93,6 +100,12 @@ export function renderCoursePointPopupHtml(data: CoursePointPopupData): string {
     : data.tournee
       ? `<p class="text-foreground text-xs font-medium">Tournée · ${esc(data.tournee)}</p>`
       : '<p class="text-muted-foreground text-xs">Non affectée</p>';
+  // Action « ouvrir la course » : `data-open-ride` capté par le composant carte,
+  // qui délègue au cockpit l'ouverture du RideDrawer (contexte complet + actions).
+  // L'affectation NE se fait PAS ici (popup exigu) — seulement l'ouverture du drawer.
+  const openAction = data.rideId
+    ? `<button type="button" data-open-ride="${esc(data.rideId)}" class="text-primary mt-4 text-xs font-medium underline underline-offset-2">Ouvrir la course</button>`
+    : '';
   return [
     '<div class="space-y-4 text-sm">',
     `<p class="text-muted-foreground text-xs font-medium">${esc(data.kindLabel)}</p>`,
@@ -101,6 +114,7 @@ export function renderCoursePointPopupHtml(data: CoursePointPopupData): string {
     scheduled,
     tournee,
     state,
+    openAction,
     '</div>',
   ].join('');
 }

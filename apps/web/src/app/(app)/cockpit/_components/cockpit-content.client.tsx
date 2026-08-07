@@ -33,6 +33,8 @@ import { DriverPositionsPanel } from './driver-positions-panel.client';
 import { NoShowAlertModal } from './no-show-alert-modal.client';
 import { RealtimeStatusBadge } from './realtime-status-badge.client';
 import { CockpitSummaryStrip, scrollToPanel } from './cockpit-summary-strip.client';
+import { RideDrawer } from '../../courses/_components/ride-drawer.client';
+import { AssignModal } from '../../courses/_components/assign-modal.client';
 
 const NOSHOW_DETECTION_WINDOW_MS = 60_000;
 const NOSHOW_DISMISSED_KEY = 'cockpit:noshow-dismissed';
@@ -100,6 +102,16 @@ export function CockpitContent({
     refetchInterval: 10_000,
   });
   const draftsCount = Array.isArray(draftsData) ? draftsData.length : 0;
+
+  // COCKPIT-10 — détail course actionnable : un SEUL état de drawer au niveau du
+  // cockpit, ouvert depuis la liste « Ma journée » ET depuis l'aperçu carte. On
+  // réutilise `RideDrawer` (détail, timeline, chat, actions affecter/réaffecter/
+  // désaffecter/annuler avec leurs garde-fous) et `AssignModal` — rien de recréé.
+  // Le provider `RideExpressOrchestrator` est déjà monté au layout (app) : le
+  // drawer fonctionne ici comme sur la page des courses. Le rafraîchissement du
+  // cockpit passe par le realtime existant + la revalidation des Server Actions.
+  const [openRideId, setOpenRideId] = useState<string | null>(null);
+  const [assignRideId, setAssignRideId] = useState<string | null>(null);
 
   // Navigation depuis la bande de synthèse : les cibles tertiaires ouvrent d'abord
   // leur onglet, puis on défile (le panneau n'est monté qu'une fois l'onglet actif).
@@ -265,6 +277,7 @@ export function CockpitContent({
             driverLabels={driverLabels}
             rides={rides}
             driverIdByProfileId={driverIdByProfileId}
+            onOpenRide={setOpenRideId}
           />
         </div>
 
@@ -308,6 +321,7 @@ export function CockpitContent({
               rides={rides}
               newRideIds={newRideIds}
               className="min-w-[600px] !rounded-none !border-0"
+              onRowClick={(ride) => setOpenRideId(ride.id)}
             />
           </div>
         </section>
@@ -395,6 +409,25 @@ export function CockpitContent({
       </div>
 
       {recentNoShowRide && <NoShowAlertModal ride={recentNoShowRide} onClose={dismissNoShow} />}
+
+      {/* Détail course actionnable — RideDrawer + AssignModal réutilisés (un seul
+          état, ouvert depuis la liste ou la carte). Panneau latéral non bloquant :
+          liste et carte restent visibles ; fermeture bouton / Échap / clic extérieur
+          (gérée par Sheet). Les actions et leurs garde-fous sont ceux de l'existant. */}
+      <RideDrawer
+        rideId={openRideId}
+        open={openRideId !== null}
+        onOpenChange={(o) => !o && setOpenRideId(null)}
+        onRequestAssign={(rid) => {
+          setOpenRideId(null);
+          setAssignRideId(rid);
+        }}
+      />
+      <AssignModal
+        rideId={assignRideId}
+        open={assignRideId !== null}
+        onOpenChange={(o) => !o && setAssignRideId(null)}
+      />
     </div>
   );
 }

@@ -75,4 +75,18 @@ describe('renderCoursePointPopupHtml', () => {
     expect(done).toContain('Course terminée');
     expect(done).not.toContain('n°');
   });
+
+  it('porte l’action « ouvrir la course » (data-open-ride) si un rideId est fourni', () => {
+    const withId = renderCoursePointPopupHtml(
+      buildCoursePointPopupData({ kind: 'start', patient: 'X', address: null, rideId: 'ride-42' }),
+    );
+    expect(withId).toContain('Ouvrir la course');
+    expect(withId).toContain('data-open-ride="ride-42"');
+
+    // Sans rideId : aperçu purement informatif, pas d'action.
+    const withoutId = renderCoursePointPopupHtml(
+      buildCoursePointPopupData({ kind: 'start', patient: 'X', address: null }),
+    );
+    expect(withoutId).not.toContain('data-open-ride');
+  });
 });
