@@ -1,13 +1,16 @@
 'use client';
 
 import * as React from 'react';
+import { Maximize2, Minimize2 } from 'lucide-react';
 import { Map, type MapMarker } from '@/components/map/map.client';
+import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { type DriverPosition, formatPositionAge, positionTone } from '../_lib/use-driver-positions';
 import { buildRideTrajectories, COURSE_LINE_NEUTRAL } from '../_lib/ride-map';
 import { buildDriverPopupData, renderDriverPopupHtml } from '../_lib/driver-popup';
 import { driverColor } from '../_lib/driver-map-link';
 import { getGroupColor } from '../optimisation/_lib/group-colors';
+import { isRideDone } from '../_lib/ride-order';
 import { DRIVER_LOAD_STATUSES } from '../_lib/driver-load';
 import { formatReunionTime } from '../_lib/unassigned-h1';
 import type { CockpitRide } from '../_lib/types';
@@ -62,12 +65,36 @@ export function DriverPositionsPanel({
     lng: number;
     zoom: number;
   } | null>(null);
+  // Grand format (plein écran) — même composant, mêmes interactions ; on ne change
+  // que l'enveloppe (tuile ↔ surcouche `fixed inset-0`).
+  const [expanded, setExpanded] = React.useState(false);
+  // Filtres de couches : masquer/afficher des familles d'objets. Le filtrage agit
+  // EN AMONT (sur les données passées à la carte), pas sur des couches internes.
+  const [layers, setLayers] = React.useState({ positions: true, trajets: true, terminees: true });
+  // Jeton de fermeture d'aperçu : incrémenté à chaque changement de filtre pour que
+  // la carte ferme un popup devenu orphelin (marqueur masqué).
+  const [dismissPopupToken, setDismissPopupToken] = React.useState(0);
+
+  const toggleLayer = React.useCallback((key: 'positions' | 'trajets' | 'terminees'): void => {
+    setLayers((prev) => ({ ...prev, [key]: !prev[key] }));
+    setDismissPopupToken((t) => t + 1);
+  }, []);
 
   // Rafraîchir l'âge toutes les 30s — la position ne bouge pas, son âge si.
   React.useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(id);
   }, []);
+
+  // Échap ferme le grand format (retour évident, en plus du bouton).
+  React.useEffect(() => {
+    if (!expanded) return;
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') setExpanded(false);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [expanded]);
 
   const selectDriver = React.useCallback((p: DriverPosition): void => {
     setSelectedId(p.id);
@@ -112,13 +139,28 @@ export function DriverPositionsPanel({
     };
   });
 
+  // Filtre « courses terminées » appliqué EN AMONT : on retire les courses
+  // terminées de la source avant de construire les trajets (aucun résidu sur la
+  // carte, pas seulement estompé).
+  const ridesForMap = React.useMemo(
+    () => (layers.terminees ? rides : rides.filter((r) => !isRideDone(r))),
+    [rides, layers.terminees],
+  );
+
   // Trajets des courses du jour géocodées (départ, arrivée, ligne colorée). Les
   // positions restent affichées : les trajets s'AJOUTENT.
-  const { markers: rideMarkers, lines } = React.useMemo(
-    () => buildRideTrajectories(rides),
-    [rides],
+  const { markers: rideMarkers, lines: rideLines } = React.useMemo(
+    () => buildRideTrajectories(ridesForMap),
+    [ridesForMap],
   );
-  const markers: MapMarker[] = [...rideMarkers, ...positionMarkers];
+
+  // Application des filtres de couches EN AMONT : une famille masquée ne fournit
+  // simplement aucun marqueur/ligne à la carte (disparition propre, sans résidu).
+  const lines = layers.trajets ? rideLines : [];
+  const markers: MapMarker[] = [
+    ...(layers.trajets ? rideMarkers : []),
+    ...(layers.positions ? positionMarkers : []),
+  ];
   const hasTrajectories = lines.length > 0;
 
   const hasDemo = positions.some((p) => p.source === 'demo');
@@ -126,13 +168,17 @@ export function DriverPositionsPanel({
   return (
     <section
       aria-label="Positions des chauffeurs"
-      className="bg-background border-border flex h-full min-h-0 flex-col gap-12 rounded-lg border p-16"
+      className={cn(
+        'bg-background flex min-h-0 flex-col gap-12 p-16',
+        // Grand format = surcouche plein écran ; réduit = tuile du bento.
+        expanded ? 'fixed inset-0 z-50' : 'border-border h-full rounded-lg border',
+      )}
     >
-      <header className="flex items-center justify-between">
+      <header className="flex items-center justify-between gap-8">
         <h2 className="text-base font-semibold">Carte des chauffeurs</h2>
         {hasDemo && (
           <span
-            className="border-border bg-muted text-muted-foreground rounded-full border px-8 py-2 text-xs font-medium"
+            className="border-border bg-muted text-muted-foreground ml-auto rounded-full border px-8 py-2 text-xs font-medium"
             title="Positions fictives. Aucune vraie position n'est persistée tant que HDS n'est pas en place (DEC-075)."
           >
             DÉMO
@@ -144,28 +190,77 @@ export function DriverPositionsPanel({
         Dernière position connue au pointage, pas un suivi en temps réel.
       </p>
 
-      {/* Carte à hauteur fluide : occupe l'espace restant du panneau (diptyque)
-          tout en gardant une hauteur minimale utile. */}
-      <div className="min-h-[280px] w-full flex-1">
+      {/* Filtres de couches — masquer/afficher des familles d'objets. Cases à
+          cocher réutilisées (`Checkbox`, clavier + focus). Mêmes filtres en réduit
+          et en grand format. */}
+      <div
+        role="group"
+        aria-label="Filtres de la carte"
+        className="flex flex-wrap items-center gap-x-16 gap-y-8"
+      >
+        <span className="text-muted-foreground text-xs font-medium">Afficher :</span>
+        <label className="flex cursor-pointer items-center gap-8 text-sm">
+          <Checkbox
+            checked={layers.positions}
+            onChange={() => toggleLayer('positions')}
+            aria-label="Afficher les positions des chauffeurs"
+          />
+          Chauffeurs
+        </label>
+        <label className="flex cursor-pointer items-center gap-8 text-sm">
+          <Checkbox
+            checked={layers.trajets}
+            onChange={() => toggleLayer('trajets')}
+            aria-label="Afficher les trajets des courses"
+          />
+          Trajets
+        </label>
+        <label className="flex cursor-pointer items-center gap-8 text-sm">
+          <Checkbox
+            checked={layers.terminees}
+            onChange={() => toggleLayer('terminees')}
+            aria-label="Afficher les courses terminées"
+          />
+          Terminées
+        </label>
+      </div>
+
+      {/* Carte à hauteur fluide : occupe l'espace restant du panneau (ou de l'écran
+          en grand format). Bouton d'agrandissement dans le coin de la carte. */}
+      <div className="relative min-h-[280px] w-full flex-1">
         <Map
           center={REUNION_CENTER}
           zoom={9}
           markers={markers}
           lines={lines}
           focusTarget={focusTarget}
+          dismissPopupToken={dismissPopupToken}
           ariaLabel="Carte 974 : positions des chauffeurs et trajets des courses du jour"
         />
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          aria-label={expanded ? 'Réduire la carte' : 'Agrandir la carte (plein écran)'}
+          aria-pressed={expanded}
+          className="bg-background/90 border-border text-foreground hover:bg-background focus-visible:ring-ring absolute right-8 top-8 z-[1] inline-flex h-32 w-32 items-center justify-center rounded-md border shadow-sm focus:outline-none focus-visible:ring-2"
+        >
+          {expanded ? (
+            <Minimize2 className="h-16 w-16" aria-hidden />
+          ) : (
+            <Maximize2 className="h-16 w-16" aria-hidden />
+          )}
+        </button>
       </div>
 
       {/* Légende = symbole + étiquette courte (1-3 mots), lisible d'un coup d'œil.
           Le détail vit dans les interactions (popup au clic, mise en évidence au
           survol) et l'intro ci-dessus. Repère non-coloré (forme) conservé. */}
-      {(positions.length > 0 || hasTrajectories) && (
+      {((layers.positions && positions.length > 0) || hasTrajectories) && (
         <ul
           className="text-muted-foreground flex flex-wrap items-center gap-x-16 gap-y-4 text-xs"
           aria-label="Légende de la carte"
         >
-          {positions.length > 0 && (
+          {layers.positions && positions.length > 0 && (
             <li className="flex items-center gap-4">
               <span
                 className="bg-primary outline-accent inline-block h-12 w-12 rounded-full outline outline-2 outline-offset-1"
@@ -213,14 +308,16 @@ export function DriverPositionsPanel({
                 />
                 Non affectée (gris)
               </li>
-              <li className="flex items-center gap-4">
-                <span
-                  className="bg-muted-foreground inline-block h-8 w-8 rounded-sm"
-                  style={{ opacity: 0.45 }}
-                  aria-hidden
-                />
-                Terminée (atténué)
-              </li>
+              {layers.terminees && (
+                <li className="flex items-center gap-4">
+                  <span
+                    className="bg-muted-foreground inline-block h-8 w-8 rounded-sm"
+                    style={{ opacity: 0.45 }}
+                    aria-hidden
+                  />
+                  Terminée (atténué)
+                </li>
+              )}
             </>
           )}
         </ul>

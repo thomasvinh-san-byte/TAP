@@ -113,6 +113,12 @@ export interface MapProps {
    * demande de réduire les animations.
    */
   focusTarget?: { lat: number; lng: number; zoom?: number } | null;
+  /**
+   * Jeton de fermeture d'aperçu : à chaque changement de valeur, la popup ouverte
+   * est fermée. Sert à éviter un popup ORPHELIN quand l'appelant masque une famille
+   * d'objets (filtre de couches) dont un marqueur avait un popup ouvert.
+   */
+  dismissPopupToken?: number;
   className?: string;
   ariaLabel: string;
 }
@@ -166,6 +172,7 @@ export function Map({
   markers = [],
   lines = [],
   focusTarget = null,
+  dismissPopupToken,
   className,
   ariaLabel,
 }: MapProps): JSX.Element {
@@ -211,6 +218,12 @@ export function Map({
     map.setFeatureState({ source: RIDE_LINES_SOURCE, id: rideId }, { highlight: on });
   }, []);
 
+  // Ferme l'aperçu ouvert quand l'appelant le demande (changement de couche/filtre)
+  // — évite un popup orphelin resté sur un marqueur désormais masqué.
+  React.useEffect(() => {
+    popupRef.current?.remove();
+  }, [dismissPopupToken]);
+
   // Fermeture clavier (Échap) — complète `closeOnClick` de la popup native.
   React.useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
@@ -218,6 +231,17 @@ export function Map({
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
+  }, []);
+
+  // Suivi de la taille du CONTENEUR (pas seulement de la fenêtre) : quand la carte
+  // passe en plein écran (ou change de tuile), MapLibre ne se redimensionne pas
+  // tout seul sur un simple changement de conteneur → on force `resize()`.
+  React.useEffect(() => {
+    const el = containerRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => mapRef.current?.resize());
+    ro.observe(el);
+    return () => ro.disconnect();
   }, []);
 
   React.useEffect(() => {
