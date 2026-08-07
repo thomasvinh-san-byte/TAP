@@ -87,8 +87,14 @@ export function RecurrencesSection({
         <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
           Récurrences
         </h2>
-        <Button variant="accent" size="sm" onClick={() => setCreateOpen(true)}>
-          <Plus aria-hidden className="mr-8 h-16 w-16" />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => setCreateOpen(true)}
+          className="gap-8"
+        >
+          <Plus className="h-12 w-12" aria-hidden />
           Nouvelle récurrence
         </Button>
       </header>
