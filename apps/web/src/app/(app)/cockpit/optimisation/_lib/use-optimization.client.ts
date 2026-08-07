@@ -25,12 +25,16 @@ type Action =
   | { type: 'ERROR'; message: string }
   | { type: 'ACCEPT'; id: string }
   | { type: 'REJECT'; id: string }
-  | { type: 'ADJUST'; id: string; adjusted: AdjustedGroupement };
+  | { type: 'ADJUST'; id: string; adjusted: AdjustedGroupement }
+  | { type: 'SET_DRIVER'; id: string; driverId: string | null };
 
 type State = {
   optimization: OptimizationState;
   decisions: Map<string, GroupDecision>;
   adjustments: Map<string, AdjustedGroupement>;
+  // Chauffeur choisi par groupement (clé = vehicle_id). Initialisé depuis la
+  // suggestion du Route Handler, modifiable par le régulateur (validation humaine).
+  driverByGroupement: Map<string, string | null>;
 };
 
 function reducer(state: State, action: Action): State {
@@ -41,9 +45,20 @@ function reducer(state: State, action: Action): State {
         optimization: { status: 'loading' },
         decisions: new Map(),
         adjustments: new Map(),
+        driverByGroupement: new Map(),
       };
-    case 'SUCCESS':
-      return { ...state, optimization: { status: 'result', proposal: action.proposal } };
+    case 'SUCCESS': {
+      // Amorce le choix de chauffeur avec la suggestion déterministe du serveur.
+      const suggested = action.proposal.suggestedDriverByGroupement ?? {};
+      const driverByGroupement = new Map<string, string | null>(
+        action.proposal.groupements.map((g) => [g.vehicle_id, suggested[g.vehicle_id] ?? null]),
+      );
+      return {
+        ...state,
+        optimization: { status: 'result', proposal: action.proposal },
+        driverByGroupement,
+      };
+    }
     case 'EMPTY':
       return {
         ...state,
@@ -68,6 +83,11 @@ function reducer(state: State, action: Action): State {
       adj.set(action.id, action.adjusted);
       return { ...state, decisions: d, adjustments: adj };
     }
+    case 'SET_DRIVER': {
+      const dbg = new Map(state.driverByGroupement);
+      dbg.set(action.id, action.driverId);
+      return { ...state, driverByGroupement: dbg };
+    }
     default:
       return state;
   }
@@ -77,6 +97,7 @@ const INITIAL_STATE: State = {
   optimization: { status: 'idle' },
   decisions: new Map(),
   adjustments: new Map(),
+  driverByGroupement: new Map(),
 };
 
 const ERROR_MSG =
@@ -114,6 +135,10 @@ export function useOptimization(date: string) {
     (id: string, adjusted: AdjustedGroupement) => dispatch({ type: 'ADJUST', id, adjusted }),
     [],
   );
+  const setDriver = useCallback(
+    (id: string, driverId: string | null) => dispatch({ type: 'SET_DRIVER', id, driverId }),
+    [],
+  );
 
   const acceptedGroupements: Groupement[] =
     state.optimization.status === 'result'
@@ -126,10 +151,12 @@ export function useOptimization(date: string) {
     state: state.optimization,
     decisions: state.decisions,
     adjustments: state.adjustments,
+    driverByGroupement: state.driverByGroupement,
     launch,
     accept,
     reject,
     adjust,
+    setDriver,
     acceptedGroupements,
   };
 }

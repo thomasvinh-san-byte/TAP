@@ -14,12 +14,18 @@ type CurrentRide = {
 };
 
 type VehicleOption = { id: string; label: string };
+type DriverOption = { id: string; label: string };
 
 type Props = {
   proposal: OptimizationProposal;
   currentRides: CurrentRide[];
   decisions: Map<string, GroupDecision>;
   availableVehicles: VehicleOption[];
+  /** Chauffeurs actifs pour le sélecteur d'affectation par groupement. */
+  availableDrivers: DriverOption[];
+  /** Chauffeur choisi par groupement (clé = vehicle_id). */
+  driverByGroupement: Map<string, string | null>;
+  onSetDriver: (id: string, driverId: string | null) => void;
   /** Labels lisibles par UUID de course (Wave 4) — fournis par le Route Handler. */
   rideLabels?: Record<string, string>;
   onAccept: (id: string) => void;
@@ -36,6 +42,9 @@ export function ComparativeView({
   currentRides,
   decisions,
   availableVehicles,
+  availableDrivers,
+  driverByGroupement,
+  onSetDriver,
   rideLabels = {},
   onAccept,
   onReject,
@@ -130,6 +139,9 @@ export function ComparativeView({
                   onReject={() => onReject(group.vehicle_id)}
                   onAdjust={(adj) => onAdjust(group.vehicle_id, adj)}
                   availableVehicles={availableVehicles}
+                  availableDrivers={availableDrivers}
+                  selectedDriverId={driverByGroupement.get(group.vehicle_id) ?? null}
+                  onDriverChange={(driverId) => onSetDriver(group.vehicle_id, driverId)}
                   rideLabels={rideLabels}
                   vehicleLabel={vehiclesById.get(group.vehicle_id)}
                   rideCitycodes={rideCitycodes}

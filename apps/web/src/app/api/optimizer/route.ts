@@ -13,6 +13,10 @@ import {
 } from '@tap/optimizer-client';
 import { solveLocal } from '@/lib/optimizer/solve-local';
 import { MODE_TO_VEHICLE_TYPE, type VehicleDbType } from '@/lib/optimizer/vehicle-type';
+import {
+  suggestDriversForGroupements,
+  type GroupWindow,
+} from '@/app/(app)/cockpit/optimisation/_lib/suggest-drivers';
 import { isPlanningBlocking } from '@tap/shared';
 import {
   getComplianceBlockingMode,
@@ -80,6 +84,26 @@ async function readRidesForDate(
   return (data as RideRowForOptim[] | null) ?? [];
 }
 
+type DriverForOptim = { id: string; label: string };
+
+async function readActiveDrivers(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+): Promise<DriverForOptim[]> {
+  const { data, error } = await supabase
+    .from('drivers')
+    .select('id, nom_affichage')
+    .eq('actif', true)
+    .eq('archive', false)
+    .order('nom_affichage');
+  if (error) {
+    console.error('[optimizer/drivers] Erreur Supabase:', error);
+  }
+  return ((data as { id: string; nom_affichage: string }[] | null) ?? []).map((d) => ({
+    id: d.id,
+    label: d.nom_affichage,
+  }));
+}
+
 /** Ligne `vehicles` telle que RÉELLEMENT stockée : `type` = vocabulaire base. */
 type VehicleDbRow = {
   id: string;
@@ -126,6 +150,7 @@ function enrichProposal(
   proposal: OptimizationProposal,
   rides: RideRowForOptim[],
   vehicles: VehicleRowForOptim[],
+  drivers: DriverForOptim[],
 ): OptimizationProposal {
   const rideLabels: Record<string, string> = {};
   for (const ride of rides) {
@@ -156,10 +181,28 @@ function enrichProposal(
     };
   }
 
+  // Suggestion d'un chauffeur par groupement (règle pure déterministe). Fenêtre du
+  // groupement = [min, max] des heures de ses courses. La suggestion reste
+  // modifiable côté UI avant validation (garde-fou validation humaine).
+  const timeById = new Map<string, number>(
+    rides.map((r) => [r.id, new Date(r.scheduled_at).getTime()]),
+  );
+  const groupWindows: GroupWindow[] = proposal.groupements.map((g) => {
+    const times = g.ride_ids
+      .map((id) => timeById.get(id))
+      .filter((t): t is number => typeof t === 'number' && Number.isFinite(t));
+    const start = times.length > 0 ? Math.min(...times) : 0;
+    const end = times.length > 0 ? Math.max(...times) : 0;
+    return { key: g.vehicle_id, startMs: start, endMs: end };
+  });
+  const suggestedDriverByGroupement = suggestDriversForGroupements(groupWindows, drivers);
+
   return {
     ...proposal,
     rideLabels,
     vehicles: vehiclesLabels,
+    drivers,
+    suggestedDriverByGroupement,
     rideAttributes,
   };
 }
@@ -189,9 +232,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   // 4. Lecture des données (sans PII — D-08).
-  const [rides, vehicles] = await Promise.all([
+  const [rides, vehicles, drivers] = await Promise.all([
     readRidesForDate(supabase, date),
     readActiveVehicles(supabase),
+    readActiveDrivers(supabase),
   ]);
 
   // 4bis. Phase 06.35 DEC-114 : contrôle conformité véhicules.
@@ -242,7 +286,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       excluded,
     );
     return NextResponse.json(
-      { ...enrichProposal(emptyProposal, rides, vehicles), complianceWarnings },
+      { ...enrichProposal(emptyProposal, rides, vehicles, drivers), complianceWarnings },
       { status: 200 },
     );
   }
@@ -254,7 +298,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const response = solveLocal(payload);
     const proposal = solveResponseToProposal(response, rides.length, excluded);
     return NextResponse.json(
-      { ...enrichProposal(proposal, rides, vehicles), complianceWarnings },
+      { ...enrichProposal(proposal, rides, vehicles, drivers), complianceWarnings },
       { status: 200 },
     );
   } catch (err) {

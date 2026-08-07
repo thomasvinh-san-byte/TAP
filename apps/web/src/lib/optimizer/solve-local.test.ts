@@ -89,7 +89,7 @@ describe('solveLocal — scénario 2 : fenêtres incompatibles', () => {
 });
 
 describe('solveLocal — scénario 3 : mutualisation temporelle', () => {
-  it("produit un order de 4 stops quand 2 courses s'enchaînent", () => {
+  it('produit un order d’une entrée par course (2 courses → 2 entrées, sans doublon)', () => {
     const req = buildRequest(
       [
         ride(UUID1, '2026-05-22T04:00:00Z', [-21.0, 55.3], [-21.35, 55.5]),
@@ -101,7 +101,9 @@ describe('solveLocal — scénario 3 : mutualisation temporelle', () => {
     expect(response.groupements).toHaveLength(1);
     const g = response.groupements[0]!;
     expect(new Set(g.ride_ids)).toEqual(new Set([UUID1, UUID2]));
-    expect(g.order).toHaveLength(4);
+    // Une entrée par course (N), pas 2N : le groupement de 2 courses → 2 lignes.
+    expect(g.order).toHaveLength(2);
+    expect(new Set(g.order)).toEqual(new Set([UUID1, UUID2]));
   });
 });
 

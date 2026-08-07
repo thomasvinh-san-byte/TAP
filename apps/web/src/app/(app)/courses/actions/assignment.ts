@@ -98,6 +98,8 @@ export async function assignRideAction(
   });
 
   revalidatePath('/courses');
+  // L'affectation change ce que montre le cockpit (tournée + alerte non affectée).
+  revalidatePath('/cockpit');
   return { success: true, id: parsed.data.rideId };
 }
 

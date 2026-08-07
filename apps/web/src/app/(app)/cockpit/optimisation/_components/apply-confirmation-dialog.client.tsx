@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { assignVehicleAction } from '@/app/(app)/courses/actions';
+import { assignRideAction } from '@/app/(app)/courses/actions';
 import type { Groupement } from '@tap/optimizer-client';
 import type { AdjustedGroupement } from '../_lib/use-optimization.client';
 
@@ -21,19 +21,24 @@ type Props = {
   onCancel: () => void;
   acceptedGroupements: Groupement[];
   adjustments: Map<string, AdjustedGroupement>;
+  /** Chauffeur choisi par groupement (clé = vehicle_id) — suggéré puis validé. */
+  driverByGroupement: Map<string, string | null>;
 };
 
 /**
  * Modale de confirmation de l'application des groupements acceptés (D-14/D-16).
  *
- * Appelle assignVehicleAction pour chaque course des groupements acceptés.
- * Toast Sonner de succès — jamais alert() natif.
+ * Affecte CHAUFFEUR + véhicule via `assignRideAction` (transition validée →
+ * affectée, machine à états + compare-and-set + traçabilité). Un groupement sans
+ * chauffeur choisi reste NON affecté (signalé, pas d'affectation à vide). Échec
+ * partiel géré honnêtement. Toast Sonner — jamais alert() natif.
  */
 export function ApplyConfirmationDialog({
   open,
   onCancel,
   acceptedGroupements,
   adjustments,
+  driverByGroupement,
 }: Props): JSX.Element {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -44,14 +49,23 @@ export function ApplyConfirmationDialog({
     startTransition(async () => {
       let successCount = 0;
       let errorCount = 0;
+      let unassignedGroups = 0;
 
       for (const group of acceptedGroupements) {
         const adj = adjustments.get(group.vehicle_id);
         const rideIds = adj ? adj.rideIds : group.ride_ids;
         const vehicleId = adj ? adj.vehicleId : group.vehicle_id;
+        const driverId = driverByGroupement.get(group.vehicle_id) ?? null;
+
+        // Aucun chauffeur disponible/choisi → on ne l'affecte PAS à vide : le
+        // groupement reste non affecté et sera signalé (course non affectée).
+        if (!driverId) {
+          unassignedGroups++;
+          continue;
+        }
 
         for (const rideId of rideIds) {
-          const res = await assignVehicleAction({ rideId, vehicleId });
+          const res = await assignRideAction({ rideId, driverId, vehicleId });
           if (res.error) {
             errorCount++;
           } else {
@@ -60,18 +74,27 @@ export function ApplyConfirmationDialog({
         }
       }
 
-      // Échec partiel : rester honnête — on informe, on rafraîchit sur place, on
-      // NE redirige PAS (ne pas laisser croire que tout a réussi).
+      // Échec DUR (une affectation a échoué) : rester honnête — informer,
+      // rafraîchir sur place, NE PAS rediriger comme si tout avait réussi.
       if (errorCount > 0) {
-        toast.error(`${successCount} course(s) enregistrée(s), ${errorCount} erreur(s).`);
+        toast.error(
+          `${successCount} course(s) affectée(s), ${errorCount} erreur(s)` +
+            (unassignedGroups > 0 ? `, ${unassignedGroups} sans chauffeur` : '') +
+            '.',
+        );
         router.refresh();
         onCancel();
         return;
       }
-      // Succès complet : fermer la boucle — retour au cockpit pour VOIR l'effet.
-      // `assignVehicleAction` a déjà revalidé /cockpit ; `push` récupère les
-      // données à jour. Le repère `?optimise=applied` affiche un bandeau discret.
-      toast.success(`${count} groupement(s) appliqué(s). Retour au cockpit.`, {
+
+      // Succès : les courses sont réellement affectées (statut « affectée »). On
+      // ferme la boucle → retour au cockpit. Les groupements sans chauffeur
+      // disponible restent non affectés (signalés au cockpit) : on le dit.
+      const suffix =
+        unassignedGroups > 0
+          ? ` ${unassignedGroups} groupement(s) sans chauffeur disponible, à affecter manuellement.`
+          : '';
+      toast.success(`${successCount} course(s) affectée(s). Retour au cockpit.${suffix}`, {
         id: 'sonner-toast',
       });
       onCancel();
@@ -90,8 +113,9 @@ export function ApplyConfirmationDialog({
         <DialogHeader>
           <DialogTitle>Appliquer les groupements acceptés ?</DialogTitle>
           <DialogDescription>
-            {count} groupement(s) accepté(s) seront enregistrés. Cette action reste réversible
-            depuis la liste des courses.
+            {count} groupement(s) accepté(s) : chaque course sera affectée à son chauffeur et à son
+            véhicule (statut « affectée »). Un groupement sans chauffeur disponible restera non
+            affecté. Réversible depuis la liste des courses.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
