@@ -61,7 +61,9 @@ export function PrescriptionsSection({
   const [open, setOpen] = React.useState(false);
 
   return (
-    <section className="space-y-12">
+    // Ancre stable `#prescriptions` : cible des renvois « bon expiré » du cockpit
+    // (arrivée directe sur la section). `scroll-mt` évite l'arrivée collée au bord.
+    <section id="prescriptions" className="scroll-mt-24 space-y-12">
       <div className="flex items-center justify-between">
         <h2 className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
           Prescriptions / bons de transport

@@ -1,6 +1,7 @@
 'use client';
 
-import { FileText } from 'lucide-react';
+import Link from 'next/link';
+import { FileText, ArrowUpRight } from 'lucide-react';
 import type { PrescriptionAlertEnriched } from '../_lib/get-prescription-alerts';
 
 const KIND_LABELS: Record<PrescriptionAlertEnriched['kind'], string> = {
@@ -33,18 +34,30 @@ export function PrescriptionAlertsPanel({
       </h2>
       <ul className="space-y-8">
         {alerts.slice(0, 6).map((a) => (
-          <li
-            key={a.prescription_id}
-            className={`flex items-start gap-12 rounded-md border p-12 ${tone(a.kind)}`}
-          >
-            <FileText className="text-muted-foreground h-16 w-16 shrink-0" aria-hidden />
-            <div className="min-w-0 flex-1">
-              <p className="text-foreground text-sm font-medium">{KIND_LABELS[a.kind]}</p>
-              <p className="text-muted-foreground mt-2 truncate text-xs">
-                {a.patient_label} · bon {a.numero} · {a.trajets_restants} trajet
-                {a.trajets_restants > 1 ? 's' : ''} restant{a.trajets_restants > 1 ? 's' : ''}
-              </p>
-            </div>
+          <li key={a.prescription_id}>
+            {/* Renvoi (navigation) vers la fiche patient, section prescriptions,
+                où le bon se renouvelle. Toute l'alerte est un lien réel, focusable
+                et clavier-activable ; le renouvellement N'EST PAS dupliqué ici — on
+                ne fait qu'y mener. Repère « naviguer » = flèche sortante, cohérent
+                avec les autres renvois du cockpit. */}
+            <Link
+              href={`/patients/${a.patient_id}#prescriptions`}
+              aria-label={`Voir la fiche de ${a.patient_label}, section prescriptions, pour renouveler le bon ${a.numero}`}
+              className={`focus-visible:ring-ring group flex items-start gap-12 rounded-md border p-12 transition-[filter,color] hover:brightness-[.98] focus:outline-none focus-visible:ring-2 ${tone(a.kind)}`}
+            >
+              <FileText className="text-muted-foreground h-16 w-16 shrink-0" aria-hidden />
+              <div className="min-w-0 flex-1">
+                <p className="text-foreground text-sm font-medium">{KIND_LABELS[a.kind]}</p>
+                <p className="text-muted-foreground mt-2 truncate text-xs">
+                  {a.patient_label} · bon {a.numero} · {a.trajets_restants} trajet
+                  {a.trajets_restants > 1 ? 's' : ''} restant{a.trajets_restants > 1 ? 's' : ''}
+                </p>
+                <span className="text-muted-foreground group-hover:text-foreground mt-4 inline-flex items-center gap-4 text-xs font-medium">
+                  Voir le patient
+                  <ArrowUpRight className="h-12 w-12" aria-hidden />
+                </span>
+              </div>
+            </Link>
           </li>
         ))}
       </ul>
