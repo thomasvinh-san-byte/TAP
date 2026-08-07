@@ -56,7 +56,12 @@ const TONE_CLASS: Record<Tone, string> = {
   neutral: 'border-border bg-muted/30 text-muted-foreground',
 };
 
-function scrollToPanel(targetId: string): void {
+/**
+ * Défile jusqu'au panneau cible et lui donne le focus (tabindex=-1). Exporté pour
+ * que le cockpit puisse l'appeler APRÈS avoir ouvert l'onglet contenant la cible
+ * (panneaux tertiaires en onglets — R1).
+ */
+export function scrollToPanel(targetId: string): void {
   if (typeof document === 'undefined') return;
   const el = document.getElementById(targetId);
   if (!el) return;
@@ -74,11 +79,17 @@ export function CockpitSummaryStrip({
   criticalAlertsCount,
   stalePositionsCount,
   complianceCount,
+  onNavigate,
 }: {
   unassignedH1Count: number;
   criticalAlertsCount: number;
   stalePositionsCount: number;
   complianceCount: number;
+  /**
+   * Ouverture d'un indicateur : si fourni, le cockpit gère la destination (ouvrir
+   * l'onglet tertiaire concerné puis défiler). Sinon, défilement direct par ancre.
+   */
+  onNavigate?: (targetId: string) => void;
 }): JSX.Element {
   // Même cache que `DraftsIndicator` : lecture partagée, pas de logique dupliquée.
   const { data: drafts } = useQuery({
@@ -155,7 +166,9 @@ export function CockpitSummaryStrip({
             <li key={item.key}>
               <button
                 type="button"
-                onClick={() => scrollToPanel(item.targetId)}
+                onClick={() =>
+                  onNavigate ? onNavigate(item.targetId) : scrollToPanel(item.targetId)
+                }
                 aria-label={`${item.describe(item.count)}. Voir le détail.`}
                 className={cn(
                   'focus-visible:ring-ring flex w-full items-center gap-12 rounded-md border px-12 py-12 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
