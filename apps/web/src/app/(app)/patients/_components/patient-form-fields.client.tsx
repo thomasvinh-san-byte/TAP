@@ -91,12 +91,7 @@ export function BirthDateField({
   // socle ; le DatePicker et le champ caché canonique (valeur ISO transmise au
   // serveur) sont INCHANGÉS.
   return (
-    <Field
-      id={id}
-      label="Date de naissance"
-      required={required}
-      hint="Format attendu : JJ/MM/AAAA."
-    >
+    <Field id={id} label="Date de naissance" required={required}>
       {(control) => (
         <>
           <div className="relative">
@@ -207,14 +202,9 @@ export function NirField({ defaultValue }: NirFieldProps): JSX.Element {
         </span>
       </div>
       <p id="nir-help" className="text-muted-foreground text-sm">
-        {isNirChecksumStrict
-          ? '15 chiffres + clé INSEE valide. Exemple : 1 76 05 25 974 001 69.'
-          : '15 chiffres : sexe + année + mois + département + commune + ordre + clé. Exemple : 1 76 05 25 974 001 12.'}
+        {isNirChecksumStrict ? 'Ex : 1 76 05 25 974 001 69.' : 'Ex : 1 76 05 25 974 001 12.'}
       </p>
-      <p className="text-muted-foreground text-sm">
-        Le NIR peut être laissé vide. Si renseigné, il sera chiffré et stocké conformément RGPD. Si
-        le chiffrement échoue, vous pouvez créer le patient sans NIR et le compléter plus tard.
-      </p>
+      <p className="text-muted-foreground text-xs">Facultatif. Chiffré (RGPD).</p>
       <p
         id="nir-live"
         aria-live="polite"
@@ -275,7 +265,7 @@ export function TelField({ defaultValue, required }: TelFieldProps): JSX.Element
         </p>
       ) : (
         <p id="telephone-help" className="text-muted-foreground text-sm">
-          Fixe ou mobile Réunion : 0262, 0263, 0692, 0693.
+          Réunion : 0262, 0263, 0692, 0693.
         </p>
       )}
       <input type="hidden" name="telephone" value={raw} />
@@ -351,7 +341,6 @@ export function CityPostalCodeField({
           placeholder="Sélectionnez une commune"
           triggerClassName="w-full"
         />
-        <p className="text-muted-foreground text-sm">24 communes Réunion.</p>
         <input type="hidden" name="ville" value={ville} />
       </div>
     </div>

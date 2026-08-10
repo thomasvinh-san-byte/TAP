@@ -41,7 +41,6 @@ export function IdentitySection({ dv }: { dv: PatientFormDefaults }) {
           defaultValue={dv.nom}
           autoComplete="family-name"
           className="capitalize"
-          hint="Lettres, accents, tirets et apostrophes autorisés."
         />
         <Field
           id="prenom"
@@ -141,8 +140,7 @@ export function ReferentLegalSection({ dv }: { dv: PatientFormDefaults }) {
         </div>
       </FormRow>
       <p className="text-muted-foreground text-sm">
-        Obligatoire pour un patient mineur ou sous tutelle. Le scan de l&apos;autorisation /
-        jugement sera ajouté ultérieurement.
+        Obligatoire pour un patient mineur ou sous tutelle.
       </p>
     </FormSection>
   );

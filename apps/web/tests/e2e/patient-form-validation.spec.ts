@@ -1,14 +1,17 @@
 // =============================================================================
 // E2E Playwright — Validation formulaire patient (PLAN-2 T2.3 / Phase 04.5)
 // =============================================================================
-// Couvre les 5 frictions UAT 2026-05-14 + 2 cas happy path/observabilité :
-//   1. Nom avec chiffres : aria-invalid + helper visible (refus serveur Zod)
+// Couvre les frictions UAT 2026-05-14 + cas happy path/observabilité :
 //   2. NIR 20 caractères : tronqué à 15 par le masque côté composant
 //   3. Date 30/02/1990 : le DatePicker FR ne propose pas le 30 février
 //   4. Téléphone format US : message erreur en temps réel (préfixe Réunion)
 //   5. Code postal métropole : préfixe 974 forcé, 2 chiffres seulement
 //   6. Indicateur clé NIR : valid/invalid en temps réel sans submit
 //   7. Auto-complétion CP → Ville dominante 974
+//
+// La friction 1 (aide « Lettres, accents… » sous le champ Nom) est retirée :
+// cette aide redondante avec le label a été supprimée (épuration des aides).
+// La validation serveur Zod des noms reste inchangée.
 //
 // V1 non-idempotent acceptable : aucun INSERT au final (les tests s'arrêtent
 // avant submit pour les cas erreur — pas de cleanup BDD requis).
@@ -92,7 +95,9 @@ test.describe('Patient form — masques + validation Zod', () => {
   test('S4bis — Téléphone mobile Réunion accepté (pas de message erreur)', async ({ page }) => {
     const telInput = page.getByLabel('Téléphone');
     await telInput.fill('0692000001');
-    await expect(page.locator('#telephone-help')).toContainText('Fixe ou mobile Réunion');
+    // Aide informative (préfixes Réunion), pas le message d'erreur : distingue
+    // l'état valide (« Réunion : … ») de l'erreur (« Le numéro doit commencer… »).
+    await expect(page.locator('#telephone-help')).toContainText('Réunion : 0262, 0263, 0692, 0693');
   });
 
   test('S5 — Code postal : préfixe 974 forcé, suffix 2 chiffres uniquement', async ({ page }) => {
@@ -108,16 +113,5 @@ test.describe('Patient form — masques + validation Zod', () => {
     await page.getByLabel(/Code postal, 2 derniers chiffres/i).fill('00');
     // Le Select Ville devrait afficher "Saint-Denis" après effet auto
     await expect(page.getByRole('button', { name: 'Ville' }).first()).toContainText('Saint-Denis');
-  });
-
-  test('S1 — Nom avec chiffres : helper explicite sous le champ', async ({ page }) => {
-    // Le helper est toujours visible (« Lettres, accents, tirets et
-    // apostrophes autorisés. »). On vérifie sa présence comme indication
-    // utilisateur. Le refus final est côté serveur Zod (state.error).
-    // LOT 2 : le champ Nom est migré sur le socle <Field> — l'aide persistante
-    // porte désormais l'id `nom-hint` (auto-généré `${id}-hint`). Texte inchangé.
-    await expect(page.locator('#nom-hint')).toContainText(
-      'Lettres, accents, tirets et apostrophes',
-    );
   });
 });
