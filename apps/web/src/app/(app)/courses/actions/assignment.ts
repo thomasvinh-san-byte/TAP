@@ -216,3 +216,40 @@ export async function unassignRideAction(rideId: string): Promise<ActionState> {
   revalidatePath('/courses');
   return { success: true, id: parsed.data };
 }
+
+const bulkUnassignInputSchema = z.array(z.string().uuid()).min(1).max(200);
+
+export interface BulkUnassignResult {
+  /** Courses réellement désaffectées (assignée → validée). */
+  done: number;
+  /** Courses écartées proprement (non éligibles : en cours / terminée / déjà à affecter…). */
+  ignored: number;
+  /** Total demandé. */
+  total: number;
+}
+
+/**
+ * Désaffectation EN LOT (Lot 4/4) — cas « chauffeur indisponible » : détacher
+ * toutes ses courses d'un coup, pour les redistribuer ENSUITE (une par une via le
+ * drawer, ou via l'optimiseur). RÉUTILISE `unassignRideAction` course par course
+ * → tous ses garde-fous sont préservés (seule une course `assignée` est
+ * désaffectée ; atomicité compare-and-set). Les courses non éligibles sont
+ * IGNORÉES proprement (comptées, aucun échec bloquant, aucun contournement).
+ *
+ * PAS d'affectation en lot (anti-pattern métier : chevauchements de créneaux).
+ */
+export async function bulkUnassignRidesAction(
+  rideIds: string[],
+): Promise<BulkUnassignResult | { error: string }> {
+  const parsed = bulkUnassignInputSchema.safeParse(rideIds);
+  if (!parsed.success) return { error: 'Sélection invalide.' };
+
+  let done = 0;
+  let ignored = 0;
+  for (const id of parsed.data) {
+    const res = await unassignRideAction(id);
+    if (res.success) done += 1;
+    else ignored += 1;
+  }
+  return { done, ignored, total: parsed.data.length };
+}
