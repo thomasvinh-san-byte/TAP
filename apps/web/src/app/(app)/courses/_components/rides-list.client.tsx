@@ -330,6 +330,9 @@ export function RidesList(): JSX.Element {
             rowKey={(r) => `${r.id}-${r.status}`}
             ariaLabel="Liste des courses"
             density={density}
+            // `group` sur chaque ligne : support des actions révélées au survol /
+            // focus (cf. bouton « Assigner »).
+            rowClassName={() => 'group'}
             onRowClick={(r) => setOpenRideId(r.id)}
             // Tri client réutilisant le mécanisme du tableau (en-tête bouton +
             // flèche + aria-sort). Retour page 1 au changement, comme les filtres.
@@ -532,6 +535,12 @@ function RIDE_COLUMNS(onAssign: (rideId: string) => void): DataTableColumn<RideR
             <span className="max-w-[140px] truncate">{ride.driver.nom_affichage}</span>
           </div>
         ) : ride.status === 'validee' ? (
+          // Action de ligne RÉVÉLÉE au survol de la ligne (`group-hover`) ET au
+          // focus clavier (`group-focus-within` sur la ligne focusable +
+          // `focus-visible` sur le bouton lui-même) — jamais survol-souris seul.
+          // Le bouton reste dans le flux (opacity, pas display:none) donc
+          // focusable au clavier. Logique inchangée : stopPropagation évite
+          // d'ouvrir le drawer, onAssign court-circuite vers l'affectation.
           <Button
             type="button"
             size="sm"
@@ -540,6 +549,7 @@ function RIDE_COLUMNS(onAssign: (rideId: string) => void): DataTableColumn<RideR
               e.stopPropagation();
               onAssign(ride.id);
             }}
+            className="opacity-0 transition-opacity focus-visible:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100"
           >
             Assigner
           </Button>
