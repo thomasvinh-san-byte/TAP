@@ -4,6 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 
 /**
@@ -117,6 +118,49 @@ export interface DataTableProps<T> {
    * pour éviter le déclenchement.
    */
   onRowClick?: (row: T, index: number) => void;
+  // ---------------------------------------------------------------------------
+  // Sélection multiple (opt-in). Absente → aucune colonne de case, rendu inchangé
+  // (rétrocompatibilité stricte). L'état de sélection est POSSÉDÉ par l'appelant.
+  // ---------------------------------------------------------------------------
+  /** Active la colonne de cases à cocher (en-tête « tout » + par ligne). */
+  selectable?: boolean;
+  /** Identité de sélection d'une ligne (défaut = `rowKey`). Découple l'id métier
+   *  stable de la clé React (qui peut inclure un champ mutable). */
+  selectionKey?: (row: T) => string;
+  /** Clés actuellement sélectionnées (possédées par l'appelant). */
+  selectedKeys?: ReadonlySet<string>;
+  /** Bascule une ligne. La case appelle `stopPropagation` (n'ouvre pas la ligne). */
+  onToggleRow?: (key: string) => void;
+  /** Bascule toutes les lignes AFFICHÉES (page courante). `selectAll` = cocher. */
+  onToggleAllRows?: (keysOnPage: string[], selectAll: boolean) => void;
+}
+
+/**
+ * Case d'en-tête « tout sélectionner » — gère l'état indéterminé (partiel) via
+ * la propriété DOM `indeterminate` (non exprimable en attribut), pour un signal
+ * a11y correct (`aria-checked="mixed"`).
+ */
+function SelectAllCheckbox({
+  allSelected,
+  someSelected,
+  onToggle,
+}: {
+  allSelected: boolean;
+  someSelected: boolean;
+  onToggle: () => void;
+}): JSX.Element {
+  const ref = React.useRef<HTMLInputElement>(null);
+  React.useEffect(() => {
+    if (ref.current) ref.current.indeterminate = someSelected && !allSelected;
+  }, [someSelected, allSelected]);
+  return (
+    <Checkbox
+      ref={ref}
+      checked={allSelected}
+      onChange={onToggle}
+      aria-label="Tout sélectionner sur cette page"
+    />
+  );
 }
 
 const ALIGN_CLASS: Record<NonNullable<DataTableColumn<unknown>['align']>, string> = {
@@ -184,18 +228,38 @@ export function DataTable<T>({
   className,
   rowClassName,
   onRowClick,
+  selectable,
+  selectionKey,
+  selectedKeys,
+  onToggleRow,
+  onToggleAllRows,
 }: DataTableProps<T>): JSX.Element {
   if (!loading && rows.length === 0 && emptyState !== undefined) {
     return <>{emptyState}</>;
   }
 
   const pad = DENSITY_PAD[density];
+  const selKey = selectionKey ?? rowKey;
+  const pageKeys = selectable ? rows.map(selKey) : [];
+  const allSelected = pageKeys.length > 0 && pageKeys.every((k) => selectedKeys?.has(k));
+  const someSelected = pageKeys.some((k) => selectedKeys?.has(k));
+  // Colonne de sélection en tête → colSpan des lignes pleines (skeleton/vide).
+  const fullColSpan = columns.length + (selectable ? 1 : 0);
 
   return (
     <div className={cn('border-border overflow-hidden rounded-md border', className)}>
       <table className="divide-border w-full divide-y" aria-label={ariaLabel}>
         <thead className="bg-muted/40">
           <tr>
+            {selectable && (
+              <th scope="col" className={cn('w-[44px] px-12', pad.th)}>
+                <SelectAllCheckbox
+                  allSelected={allSelected}
+                  someSelected={someSelected}
+                  onToggle={() => onToggleAllRows?.(pageKeys, !allSelected)}
+                />
+              </th>
+            )}
             {columns.map((col) => (
               <th
                 key={col.key}
@@ -218,6 +282,11 @@ export function DataTable<T>({
           {loading ? (
             Array.from({ length: loadingRows }).map((_, i) => (
               <tr key={`skeleton-${i}`}>
+                {selectable && (
+                  <td className={cn('px-12', pad.td)}>
+                    <Skeleton className="h-16 w-16" />
+                  </td>
+                )}
                 {columns.map((col) => (
                   <td key={col.key} className={cn('px-12', pad.td)}>
                     <Skeleton className="h-16 w-full" />
@@ -228,7 +297,7 @@ export function DataTable<T>({
           ) : rows.length === 0 ? (
             <tr>
               <td
-                colSpan={columns.length}
+                colSpan={fullColSpan}
                 className="text-muted-foreground px-12 py-24 text-center text-sm"
               >
                 Aucun résultat à afficher.
@@ -259,6 +328,22 @@ export function DataTable<T>({
                     : undefined
                 }
               >
+                {selectable && (
+                  <td
+                    className={cn('px-12', pad.td)}
+                    // La case ne doit pas déclencher le clic-ligne (drawer) — ni au
+                    // clic, ni au clavier (Espace/Entrée sur la case reste à la case,
+                    // sans remonter au `onKeyDown` de la ligne).
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                  >
+                    <Checkbox
+                      checked={selectedKeys?.has(selKey(row)) ?? false}
+                      onChange={() => onToggleRow?.(selKey(row))}
+                      aria-label="Sélectionner la ligne"
+                    />
+                  </td>
+                )}
                 {columns.map((col) => (
                   <td
                     key={col.key}
