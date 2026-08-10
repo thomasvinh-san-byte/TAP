@@ -364,6 +364,9 @@ export function RidesList(): JSX.Element {
             rowKey={(r) => `${r.id}-${r.status}`}
             ariaLabel="Liste des courses"
             density={density}
+            // Hauteur bornée : le corps défile, les en-têtes restent figés, la
+            // barre d'outils au-dessus et la pagination en dessous restent visibles.
+            maxHeight="60vh"
             // `group` sur chaque ligne : support des actions révélées au survol /
             // focus (cf. bouton « Assigner »).
             rowClassName={() => 'group'}

@@ -92,6 +92,13 @@ export interface DataTableProps<T> {
    * resserre le padding vertical (en-tête + cellules) pour voir plus de lignes.
    */
   density?: DataTableDensity;
+  /**
+   * Hauteur maximale (opt-in) — ex. `'60vh'`, `'560px'`. Absente → rendu
+   * inchangé (pas de borne). Quand fournie : le corps défile à l'intérieur d'une
+   * zone bornée (vertical ET horizontal) et les EN-TÊTES restent figés (sticky)
+   * en haut pendant le défilement.
+   */
+  maxHeight?: string;
   /** Si vrai, affiche un skeleton miroir (5 lignes par défaut). */
   loading?: boolean;
   /** Nombre de lignes du skeleton (défaut 5). */
@@ -221,6 +228,7 @@ export function DataTable<T>({
   ariaLabel,
   sort,
   density = 'normal',
+  maxHeight,
   loading,
   loadingRows = 5,
   emptyState,
@@ -247,9 +255,24 @@ export function DataTable<T>({
   const fullColSpan = columns.length + (selectable ? 1 : 0);
 
   return (
-    <div className={cn('border-border overflow-hidden rounded-md border', className)}>
+    <div
+      className={cn(
+        'border-border rounded-md border',
+        // Hauteur bornée (opt-in) → défilement interne (2 axes) ; sinon rendu
+        // historique (overflow masqué, pas de borne).
+        maxHeight ? 'overflow-auto' : 'overflow-hidden',
+        className,
+      )}
+      style={maxHeight ? { maxHeight } : undefined}
+    >
       <table className="divide-border w-full divide-y" aria-label={ariaLabel}>
-        <thead className="bg-muted/40">
+        <thead
+          className={cn(
+            // En-têtes figés + fond OPAQUE uniquement en mode borné (sinon les
+            // lignes défilantes transparaîtraient sous un `bg-muted/40`).
+            maxHeight ? 'bg-muted sticky top-0 z-10' : 'bg-muted/40',
+          )}
+        >
           <tr>
             {selectable && (
               <th scope="col" className={cn('w-[44px] px-12', pad.th)}>
