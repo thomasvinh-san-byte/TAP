@@ -28,6 +28,7 @@ import { AssignModal } from './assign-modal.client';
 import { useRideOrchestrator } from './ride-orchestrator-context.client';
 import { CoursesBulkActions } from './courses-bulk-actions.client';
 import { useTableDensity } from '@/lib/use-table-density.client';
+import { useTablePageSize, PAGE_SIZE_OPTIONS } from '@/lib/use-table-page-size.client';
 
 // Source canonique des statuts actifs : STATUS_LABELS_FR (ride-status-fr.ts) et
 // la machine à états (@tap/shared). Liste maintenue à la main ici pour l'ordre
@@ -82,9 +83,8 @@ function shortAddress(full: string): string {
  * une ligne non assignée court-circuite le drawer pour passer direct à la
  * modal (gain de clic régulatrice 8h/jour).
  */
-const PAGE_SIZE = 50;
 // Borne de fetch journalière (le filtre date par défaut = aujourd'hui → set
-// borné). On pagine ensuite côté client par plage de PAGE_SIZE (DEC-132).
+// borné). On pagine ensuite côté client par plage réglable (voir useTablePageSize).
 // Source de vérité UNIQUE partagée avec le schéma de l'action et les requêtes
 // (évite le cas client > schéma qui vidait la liste en silence).
 const FETCH_CAP = RIDES_LIST_FETCH_CAP;
@@ -120,6 +120,8 @@ export function RidesList(): JSX.Element {
   const orchestrator = useRideOrchestrator();
   // Lot 3/4 — densité de tableau persistée (préférence UI, pattern useHighContrast).
   const { density, toggle: toggleDensity } = useTableDensity();
+  // Taille de page réglable + persistée (défaut 25, options 10/25/50/100).
+  const { pageSize, setPageSize } = useTablePageSize();
 
   const resetPage = () => setPage(0);
   // Revenir page 1 quand la recherche change (cohérence de plage).
@@ -218,7 +220,7 @@ export function RidesList(): JSX.Element {
   // page à l'autre. Le tri s'applique aux données déjà chargées (client).
   const sorted = sortRides(filtered, sort.column, sort.dir);
   const total = sorted.length;
-  const paged = sorted.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  const paged = sorted.slice(page * pageSize, (page + 1) * pageSize);
 
   return (
     <div className="space-y-16">
@@ -364,6 +366,9 @@ export function RidesList(): JSX.Element {
             rowKey={(r) => `${r.id}-${r.status}`}
             ariaLabel="Liste des courses"
             density={density}
+            // Hauteur bornée : le corps défile, les en-têtes restent figés, la
+            // barre d'outils au-dessus et la pagination en dessous restent visibles.
+            maxHeight="60vh"
             // `group` sur chaque ligne : support des actions révélées au survol /
             // focus (cf. bouton « Assigner »).
             rowClassName={() => 'group'}
@@ -386,7 +391,18 @@ export function RidesList(): JSX.Element {
               },
             }}
           />
-          <Pagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={setPage} />
+          <Pagination
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+            // Taille de page réglable : recalcule la pagination et revient page 1.
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setPage(0);
+            }}
+            pageSizeOptions={[...PAGE_SIZE_OPTIONS]}
+          />
         </>
       )}
 
