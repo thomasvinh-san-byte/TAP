@@ -2,7 +2,7 @@
 
 import { type ReactNode, useDeferredValue, useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, Calendar, Check, Plus } from 'lucide-react';
+import { ArrowRight, Calendar, Check, Plus, Rows3 } from 'lucide-react';
 import { listRidesEnrichedAction } from '../actions';
 import type { RideRowEnriched, RideStatus, RideTransportMode } from '../_lib/queries';
 import { RIDES_LIST_FETCH_CAP } from '../_lib/list-config';
@@ -26,6 +26,7 @@ import { ModeBadge, PaymentBadge, StatusBadge, UrgencyBadge } from './ride-badge
 import { RideDrawer } from './ride-drawer.client';
 import { AssignModal } from './assign-modal.client';
 import { useRideOrchestrator } from './ride-orchestrator-context.client';
+import { useTableDensity } from '@/lib/use-table-density.client';
 
 // Source canonique des statuts actifs : STATUS_LABELS_FR (ride-status-fr.ts) et
 // la machine à états (@tap/shared). Liste maintenue à la main ici pour l'ordre
@@ -113,6 +114,8 @@ export function RidesList(): JSX.Element {
   const [assignRideId, setAssignRideId] = useState<string | null>(null);
   const dq = useDeferredValue(q);
   const orchestrator = useRideOrchestrator();
+  // Lot 3/4 — densité de tableau persistée (préférence UI, pattern useHighContrast).
+  const { density, toggle: toggleDensity } = useTableDensity();
 
   const resetPage = () => setPage(0);
   // Revenir page 1 quand la recherche change (cohérence de plage).
@@ -260,11 +263,32 @@ export function RidesList(): JSX.Element {
           </>
         }
         actions={
-          <ExportCsvButton
-            dateFilter={dateFilter}
-            statusFilter={statusFilter}
-            modeFilter={modeFilter}
-          />
+          <div className="flex items-center gap-8">
+            {/* Lot 3/4 — bascule densité (compact ↔ normal), préférence persistée.
+                État actif perceptible au-delà de la couleur : aria-pressed + fond
+                plein vs contour + libellé. */}
+            <Button
+              type="button"
+              size="sm"
+              variant={density === 'compact' ? 'secondary' : 'outline'}
+              aria-pressed={density === 'compact'}
+              onClick={toggleDensity}
+              aria-label={
+                density === 'compact'
+                  ? 'Densité compacte activée — cliquer pour la densité normale'
+                  : 'Activer la densité compacte'
+              }
+              className="gap-4"
+            >
+              <Rows3 className="h-16 w-16" aria-hidden />
+              <span className="hidden sm:inline">Compact</span>
+            </Button>
+            <ExportCsvButton
+              dateFilter={dateFilter}
+              statusFilter={statusFilter}
+              modeFilter={modeFilter}
+            />
+          </div>
         }
       />
 
@@ -305,6 +329,10 @@ export function RidesList(): JSX.Element {
             // précédent Phase 03.2 #4).
             rowKey={(r) => `${r.id}-${r.status}`}
             ariaLabel="Liste des courses"
+            density={density}
+            // `group` sur chaque ligne : support des actions révélées au survol /
+            // focus (cf. bouton « Assigner »).
+            rowClassName={() => 'group'}
             onRowClick={(r) => setOpenRideId(r.id)}
             // Tri client réutilisant le mécanisme du tableau (en-tête bouton +
             // flèche + aria-sort). Retour page 1 au changement, comme les filtres.
@@ -507,6 +535,12 @@ function RIDE_COLUMNS(onAssign: (rideId: string) => void): DataTableColumn<RideR
             <span className="max-w-[140px] truncate">{ride.driver.nom_affichage}</span>
           </div>
         ) : ride.status === 'validee' ? (
+          // Action de ligne RÉVÉLÉE au survol de la ligne (`group-hover`) ET au
+          // focus clavier (`group-focus-within` sur la ligne focusable +
+          // `focus-visible` sur le bouton lui-même) — jamais survol-souris seul.
+          // Le bouton reste dans le flux (opacity, pas display:none) donc
+          // focusable au clavier. Logique inchangée : stopPropagation évite
+          // d'ouvrir le drawer, onAssign court-circuite vers l'affectation.
           <Button
             type="button"
             size="sm"
@@ -515,6 +549,7 @@ function RIDE_COLUMNS(onAssign: (rideId: string) => void): DataTableColumn<RideR
               e.stopPropagation();
               onAssign(ride.id);
             }}
+            className="opacity-0 transition-opacity focus-visible:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100"
           >
             Assigner
           </Button>

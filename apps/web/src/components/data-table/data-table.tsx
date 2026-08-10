@@ -65,6 +65,18 @@ export interface DataTableSort {
   onSortChange?: (column: string, dir: 'asc' | 'desc') => void;
 }
 
+/** Densité verticale des lignes (opt-in). Défaut `normal` = rendu historique. */
+export type DataTableDensity = 'normal' | 'compact';
+
+// Padding vertical par densité. `normal` reprend EXACTEMENT les valeurs
+// historiques (rétrocompatibilité stricte : une table qui ne passe pas `density`
+// ne change pas). `compact` resserre sans coller — lignes lisibles, cible de clic
+// (la ligne entière) conservée.
+const DENSITY_PAD: Record<DataTableDensity, { th: string; td: string }> = {
+  normal: { th: 'py-8', td: 'py-12' },
+  compact: { th: 'py-4', td: 'py-8' },
+};
+
 export interface DataTableProps<T> {
   columns: DataTableColumn<T>[];
   rows: T[];
@@ -74,6 +86,11 @@ export interface DataTableProps<T> {
   ariaLabel: string;
   /** État de tri (V1 — caisse-table seule l'utilise). */
   sort?: DataTableSort;
+  /**
+   * Densité des lignes (opt-in). Absente ou `normal` → rendu inchangé. `compact`
+   * resserre le padding vertical (en-tête + cellules) pour voir plus de lignes.
+   */
+  density?: DataTableDensity;
   /** Si vrai, affiche un skeleton miroir (5 lignes par défaut). */
   loading?: boolean;
   /** Nombre de lignes du skeleton (défaut 5). */
@@ -159,6 +176,7 @@ export function DataTable<T>({
   rowKey,
   ariaLabel,
   sort,
+  density = 'normal',
   loading,
   loadingRows = 5,
   emptyState,
@@ -170,6 +188,8 @@ export function DataTable<T>({
   if (!loading && rows.length === 0 && emptyState !== undefined) {
     return <>{emptyState}</>;
   }
+
+  const pad = DENSITY_PAD[density];
 
   return (
     <div className={cn('border-border overflow-hidden rounded-md border', className)}>
@@ -183,7 +203,8 @@ export function DataTable<T>({
                 aria-sort={ariaSortValue(col, sort)}
                 style={col.width ? { width: col.width } : undefined}
                 className={cn(
-                  'text-muted-foreground px-12 py-8 text-xs font-medium uppercase tracking-wide',
+                  'text-muted-foreground px-12 text-xs font-medium uppercase tracking-wide',
+                  pad.th,
                   ALIGN_CLASS[col.align ?? 'left'],
                   col.headerClassName,
                 )}
@@ -198,7 +219,7 @@ export function DataTable<T>({
             Array.from({ length: loadingRows }).map((_, i) => (
               <tr key={`skeleton-${i}`}>
                 {columns.map((col) => (
-                  <td key={col.key} className="px-12 py-12">
+                  <td key={col.key} className={cn('px-12', pad.td)}>
                     <Skeleton className="h-16 w-full" />
                   </td>
                 ))}
@@ -242,7 +263,8 @@ export function DataTable<T>({
                   <td
                     key={col.key}
                     className={cn(
-                      'px-12 py-12 text-sm',
+                      'px-12 text-sm',
+                      pad.td,
                       ALIGN_CLASS[col.align ?? 'left'],
                       col.cellClassName,
                     )}
