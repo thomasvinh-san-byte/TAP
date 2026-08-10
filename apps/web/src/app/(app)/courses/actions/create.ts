@@ -16,7 +16,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { rideExpressInputSchema, rideDraftSchema } from '@tap/shared';
 import { geocodeIfMissing } from '@/lib/geocoding/geocode-safety-net';
-import { getAuthContext, type ActionState } from './_shared';
+import { getAuthContext, REGULATEUR_OR_DIRIGEANT, type ActionState } from './_shared';
 
 // --------------------------------------------------------------------------
 // CREATE RIDE (D-06)
@@ -68,6 +68,23 @@ export async function createRideAction(
   const ctx = await getAuthContext();
   if (!ctx) return { error: 'Session expirée. Reconnectez-vous.' };
   const { supabase, user, organization_id } = ctx;
+
+  // Garde-fou applicatif EN MIROIR de la policy RLS `rides_insert_regulateur_
+  // dirigeant` (org + created_by + rôle regulateur/dirigeant + profil actif) :
+  // sans lui, un rôle non autorisé ou un profil inactif ne recevait qu'un échec
+  // RLS opaque. On reflète le prédicat tôt, avec un message clair. RLS Postgres
+  // reste la source de vérité — ce check ne la contourne pas, il la double.
+  if (!ctx.actif || !REGULATEUR_OR_DIRIGEANT.includes(ctx.role)) {
+    console.error('[createRideAction] Droits insuffisants (pré-insert)', {
+      user_id: user.id,
+      role: ctx.role,
+      actif: ctx.actif,
+      organization_id,
+    });
+    return {
+      error: "Vous n'avez pas les droits pour créer une course dans cette organisation.",
+    };
+  }
 
   // DEC-094 Phase 06.19 : filet serveur de géocodage si coords absentes.
   // Garantit que les courses créées sans picker (ex : API tierce, seed,
