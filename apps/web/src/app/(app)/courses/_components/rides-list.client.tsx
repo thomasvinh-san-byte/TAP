@@ -2,7 +2,7 @@
 
 import { type ReactNode, useDeferredValue, useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, Calendar, Check, FilterX, Plus, Rows3 } from 'lucide-react';
+import { ArrowRight, Calendar, Check, FilterX, Plus, Rows3, X } from 'lucide-react';
 import { listRidesEnrichedAction } from '../actions';
 import type { RideRowEnriched, RideStatus, RideTransportMode } from '../_lib/queries';
 import { RIDES_LIST_FETCH_CAP } from '../_lib/list-config';
@@ -210,6 +210,65 @@ export function RidesList(): JSX.Element {
     resetPage();
   };
 
+  // Puces de filtres ACTIFS (une par dimension au-delà du défaut). Réutilise les
+  // libellés lisibles (STATUS_FILTERS / MODE_FILTERS) et les setters par
+  // dimension — pas de second système. Le × remet CETTE dimension au défaut
+  // (page 1), sans toucher aux autres. Date : puce seulement si ≠ aujourd'hui
+  // (défaut) ; le retrait ramène à aujourd'hui (cohérent avec resetFilters).
+  const activeFilterChips: { key: string; label: string; onRemove: () => void }[] = [];
+  if (statusFilter !== 'all') {
+    activeFilterChips.push({
+      key: 'status',
+      label: `Statut : ${STATUS_FILTERS.find((f) => f.value === statusFilter)?.label ?? statusFilter}`,
+      onRemove: () => {
+        setStatusFilter('all');
+        resetPage();
+      },
+    });
+  }
+  if (modeFilter !== 'all') {
+    activeFilterChips.push({
+      key: 'mode',
+      label: `Mode : ${MODE_FILTERS.find((f) => f.value === modeFilter)?.label ?? modeFilter}`,
+      onRemove: () => {
+        setModeFilter('all');
+        resetPage();
+      },
+    });
+  }
+  if (urgencyFilter === 'urgent') {
+    activeFilterChips.push({
+      key: 'urgency',
+      label: 'Urgence : urgente / immédiate',
+      onRemove: () => {
+        setUrgencyFilter('all');
+        resetPage();
+      },
+    });
+  }
+  if (dq.trim() !== '') {
+    activeFilterChips.push({
+      key: 'search',
+      label: `Recherche : "${dq.trim()}"`,
+      onRemove: () => {
+        setQ('');
+        resetPage();
+      },
+    });
+  }
+  if (dateFilter !== today) {
+    activeFilterChips.push({
+      key: 'date',
+      label: dateFilter
+        ? `Date : ${dateFilter.slice(0, 10).split('-').reverse().join('/')}`
+        : 'Date : toutes',
+      onRemove: () => {
+        setDateFilter(today);
+        resetPage();
+      },
+    });
+  }
+
   const { data, isPending } = useQuery({
     queryKey: ['rides', { status: statusFilter, mode: modeFilter, date: dateFilter }],
     queryFn: () =>
@@ -365,6 +424,15 @@ export function RidesList(): JSX.Element {
         }
       />
 
+      {/* Puces de filtres actifs (retirables) — rien si aucun filtre actif. */}
+      {activeFilterChips.length > 0 && (
+        <div className="flex flex-wrap items-center gap-8" role="group" aria-label="Filtres actifs">
+          {activeFilterChips.map((chip) => (
+            <ActiveFilterChip key={chip.key} label={chip.label} onRemove={chip.onRemove} />
+          ))}
+        </div>
+      )}
+
       {/* Lot 4/4 — barre d'actions groupées, visible seulement si sélection. */}
       <CoursesBulkActions selectedIds={[...selectedIds]} onClear={clearSelection} />
 
@@ -518,6 +586,33 @@ function QuickFilterChip({
       {active && <Check className="h-12 w-12" aria-hidden />}
       {children}
     </Button>
+  );
+}
+
+/**
+ * Puce de FILTRE ACTIF (retirable) — libellé lisible + bouton × qui remet la
+ * dimension au défaut. Le × est un contrôle clavier avec un libellé explicite ;
+ * l'état est perceptible au-delà de la couleur (texte + icône ×).
+ */
+function ActiveFilterChip({
+  label,
+  onRemove,
+}: {
+  label: string;
+  onRemove: () => void;
+}): JSX.Element {
+  return (
+    <span className="border-border bg-muted/40 inline-flex items-center gap-4 rounded-full border py-2 pl-8 pr-2 text-xs">
+      <span className="text-foreground">{label}</span>
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label={`Retirer le filtre — ${label}`}
+        className="text-muted-foreground hover:text-foreground focus-visible:ring-ring inline-flex h-16 w-16 items-center justify-center rounded-full focus:outline-none focus-visible:ring-2"
+      >
+        <X className="h-12 w-12" aria-hidden />
+      </button>
+    </span>
   );
 }
 
