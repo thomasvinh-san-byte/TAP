@@ -2,7 +2,7 @@
 
 import { type ReactNode, useDeferredValue, useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, Calendar, Check, Plus, Rows3 } from 'lucide-react';
+import { ArrowRight, Calendar, Check, FilterX, Plus, Rows3 } from 'lucide-react';
 import { listRidesEnrichedAction } from '../actions';
 import type { RideRowEnriched, RideStatus, RideTransportMode } from '../_lib/queries';
 import { RIDES_LIST_FETCH_CAP } from '../_lib/list-config';
@@ -188,6 +188,28 @@ export function RidesList(): JSX.Element {
     resetPage();
   };
 
+  // Filtres actifs par rapport à la VUE PAR DÉFAUT (aujourd'hui, tous statuts /
+  // modes, sans urgence ni recherche). Réutilise les mêmes dimensions que les
+  // presets — pas de détection dupliquée. La date « défaut » est AUJOURD'HUI
+  // (vue d'accueil régulatrice), cohérent avec le preset « Aujourd'hui ».
+  const hasActiveFilters =
+    statusFilter !== 'all' ||
+    modeFilter !== 'all' ||
+    urgencyFilter !== 'all' ||
+    dateFilter !== today ||
+    dq.trim() !== '';
+
+  // Réinitialisation globale : remet chaque dimension au défaut (mêmes setters
+  // que les presets), date = aujourd'hui, recherche vidée, retour page 1.
+  const resetFilters = () => {
+    setStatusFilter('all');
+    setModeFilter('all');
+    setUrgencyFilter('all');
+    setDateFilter(today);
+    setQ('');
+    resetPage();
+  };
+
   const { data, isPending } = useQuery({
     queryKey: ['rides', { status: statusFilter, mode: modeFilter, date: dateFilter }],
     queryFn: () =>
@@ -293,6 +315,20 @@ export function RidesList(): JSX.Element {
               items={[...MODE_FILTERS]}
               triggerClassName="min-w-[180px]"
             />
+            {/* Réinitialiser TOUS les filtres (visible seulement si un filtre est
+                actif), cohérent avec le « Effacer » de la date. */}
+            {hasActiveFilters && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={resetFilters}
+                className="gap-4"
+              >
+                <FilterX className="h-12 w-12" aria-hidden />
+                Réinitialiser les filtres
+              </Button>
+            )}
           </>
         }
         actions={
@@ -336,7 +372,21 @@ export function RidesList(): JSX.Element {
         </div>
       )}
 
-      {!isPending && filtered.length === 0 && (
+      {/* État vide CONTEXTUEL : des filtres masquent-ils des résultats, ou la vue
+          par défaut est-elle réellement vide ? Deux messages / deux actions. */}
+      {!isPending && filtered.length === 0 && hasActiveFilters && (
+        <EmptyState
+          icon={FilterX}
+          title="Aucune course ne correspond aux filtres"
+          description="Des filtres actifs masquent peut-être des courses. Réinitialisez-les pour revoir toutes les courses."
+          action={{
+            onClick: resetFilters,
+            label: 'Réinitialiser les filtres',
+            icon: FilterX,
+          }}
+        />
+      )}
+      {!isPending && filtered.length === 0 && !hasActiveFilters && (
         <EmptyState
           icon={Calendar}
           title="Aucune course aujourd'hui"
