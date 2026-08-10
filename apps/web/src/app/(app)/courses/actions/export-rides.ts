@@ -24,8 +24,15 @@ import { toCsv, escapeCsv, formatEurFr, formatDateFr } from '@/lib/csv';
 
 const exportSchema = z
   .object({
-    from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format AAAA-MM-JJ attendu pour from.'),
-    to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format AAAA-MM-JJ attendu pour to.'),
+    // Plage de dates OU sélection d'identifiants (mutuellement suffisantes).
+    from: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Format AAAA-MM-JJ attendu pour from.')
+      .optional(),
+    to: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Format AAAA-MM-JJ attendu pour to.')
+      .optional(),
     driverId: z.string().uuid().optional(),
     status: z
       .enum([
@@ -40,8 +47,14 @@ const exportSchema = z
       ])
       .optional(),
     transportMode: z.enum(['taxi_conventionne', 'tpmr', 'vsl', 'ambulance']).optional(),
+    // Export de la SÉLECTION (Lot 4/4) : ne cibler que ces courses. Prioritaire
+    // sur la plage/filtres quand fourni.
+    ids: z.array(z.string().uuid()).min(1).max(2000).optional(),
   })
-  .refine((v) => v.from <= v.to, {
+  .refine((v) => (v.ids && v.ids.length > 0) || (v.from && v.to), {
+    message: 'Fournir une sélection ou une plage de dates.',
+  })
+  .refine((v) => !v.from || !v.to || v.from <= v.to, {
     message: 'La date de fin doit être postérieure ou égale à la date de début.',
     path: ['to'],
   });
@@ -98,8 +111,6 @@ export async function exportRidesCsvAction(input: ExportRidesInput): Promise<Exp
   if (!ctx) return { error: 'Action réservée au régulateur ou dirigeant.' };
 
   const supabase = await createClient();
-  const fromIso = `${parsed.data.from}T00:00:00.000Z`;
-  const toIso = `${parsed.data.to}T23:59:59.999Z`;
 
   let q = supabase
     .from('rides')
@@ -108,14 +119,21 @@ export async function exportRidesCsvAction(input: ExportRidesInput): Promise<Exp
         'pickup_address, pickup_city, dropoff_address, dropoff_city, ' +
         'tarif_amount_eur, driver_id, patient_id',
     )
-    .gte('scheduled_at', fromIso)
-    .lte('scheduled_at', toIso)
     .eq('archive', false)
     .order('scheduled_at', { ascending: true })
     .limit(5000);
-  if (parsed.data.driverId) q = q.eq('driver_id', parsed.data.driverId);
-  if (parsed.data.status) q = q.eq('status', parsed.data.status);
-  if (parsed.data.transportMode) q = q.eq('transport_mode', parsed.data.transportMode);
+  // Mode SÉLECTION : ne cibler que les ids fournis (RLS scope déjà l'org, donc un
+  // id d'une autre org n'est jamais retourné). Sinon : plage de dates + filtres.
+  if (parsed.data.ids && parsed.data.ids.length > 0) {
+    q = q.in('id', parsed.data.ids);
+  } else {
+    q = q
+      .gte('scheduled_at', `${parsed.data.from}T00:00:00.000Z`)
+      .lte('scheduled_at', `${parsed.data.to}T23:59:59.999Z`);
+    if (parsed.data.driverId) q = q.eq('driver_id', parsed.data.driverId);
+    if (parsed.data.status) q = q.eq('status', parsed.data.status);
+    if (parsed.data.transportMode) q = q.eq('transport_mode', parsed.data.transportMode);
+  }
 
   const { data, error } = await q;
   if (error) return { error: 'Lecture des courses impossible.' };
@@ -180,6 +198,9 @@ export async function exportRidesCsvAction(input: ExportRidesInput): Promise<Exp
   // importé pour signalement explicite de la protection injection formula.
   void escapeCsv;
 
-  const filename = `courses_${parsed.data.from}_${parsed.data.to}.csv`;
+  const filename =
+    parsed.data.ids && parsed.data.ids.length > 0
+      ? `courses_selection_${parsed.data.ids.length}.csv`
+      : `courses_${parsed.data.from}_${parsed.data.to}.csv`;
   return { csv, filename };
 }

@@ -23,7 +23,12 @@ export { checkDuplicateRideAction } from './check-duplicate';
 export { checkRecurrenceSuggestionAction } from './check-recurrence';
 export type { RecurrenceMatch } from './check-recurrence';
 export { cancelRideAction } from './cancel';
-export { assignRideAction, unassignRideAction, assignVehicleAction } from './assignment';
+export {
+  assignRideAction,
+  unassignRideAction,
+  bulkUnassignRidesAction,
+  assignVehicleAction,
+} from './assignment';
 export { updateRidePaymentAction } from './payment';
 export { exportCaisseCsvAction, exportCaisseReportByDriverCsvAction } from './caisse';
 export type { ExportCaisseResult } from './caisse';

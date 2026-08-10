@@ -26,6 +26,7 @@ import { ModeBadge, PaymentBadge, StatusBadge, UrgencyBadge } from './ride-badge
 import { RideDrawer } from './ride-drawer.client';
 import { AssignModal } from './assign-modal.client';
 import { useRideOrchestrator } from './ride-orchestrator-context.client';
+import { CoursesBulkActions } from './courses-bulk-actions.client';
 import { useTableDensity } from '@/lib/use-table-density.client';
 
 // Source canonique des statuts actifs : STATUS_LABELS_FR (ride-status-fr.ts) et
@@ -112,6 +113,9 @@ export function RidesList(): JSX.Element {
   const [page, setPage] = useState<number>(0);
   const [openRideId, setOpenRideId] = useState<string | null>(null);
   const [assignRideId, setAssignRideId] = useState<string | null>(null);
+  // Lot 4/4 — sélection multiple (par id de course, survit à la pagination et au
+  // tri). Réinitialisée quand l'ensemble filtré change (voir effet plus bas).
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const dq = useDeferredValue(q);
   const orchestrator = useRideOrchestrator();
   // Lot 3/4 — densité de tableau persistée (préférence UI, pattern useHighContrast).
@@ -122,6 +126,33 @@ export function RidesList(): JSX.Element {
   useEffect(() => {
     setPage(0);
   }, [dq]);
+
+  // Sélection cohérente avec le résultat affiché : on la vide quand l'ensemble
+  // FILTRÉ change (statut / mode / date / urgence / recherche). La pagination et
+  // le tri ne la vident pas (même ensemble) → la sélection survit à la pagination.
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [statusFilter, modeFilter, dateFilter, urgencyFilter, dq]);
+
+  const toggleRowSelection = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+  const toggleAllRowsSelection = (keys: string[], selectAll: boolean) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      for (const k of keys) {
+        if (selectAll) next.add(k);
+        else next.delete(k);
+      }
+      return next;
+    });
+  };
+  const clearSelection = () => setSelectedIds(new Set());
 
   // Lot 2/4 — filtres rapides : raccourcis qui POSITIONNENT les états de filtre
   // existants (pas un canal parallèle). L'état « actif » est DÉRIVÉ des filtres
@@ -292,6 +323,9 @@ export function RidesList(): JSX.Element {
         }
       />
 
+      {/* Lot 4/4 — barre d'actions groupées, visible seulement si sélection. */}
+      <CoursesBulkActions selectedIds={[...selectedIds]} onClear={clearSelection} />
+
       {isPending && (
         <div className="space-y-8" aria-label="Chargement des courses">
           {[0, 1, 2, 3, 4].map((i) => (
@@ -334,6 +368,13 @@ export function RidesList(): JSX.Element {
             // focus (cf. bouton « Assigner »).
             rowClassName={() => 'group'}
             onRowClick={(r) => setOpenRideId(r.id)}
+            // Sélection multiple (Lot 4/4) — clé métier = id course (stable après
+            // mutation), distincte de la clé React (id-statut).
+            selectable
+            selectionKey={(r) => r.id}
+            selectedKeys={selectedIds}
+            onToggleRow={toggleRowSelection}
+            onToggleAllRows={toggleAllRowsSelection}
             // Tri client réutilisant le mécanisme du tableau (en-tête bouton +
             // flèche + aria-sort). Retour page 1 au changement, comme les filtres.
             sort={{
