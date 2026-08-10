@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ArrowRight, Calendar, Plus } from 'lucide-react';
 import { listRidesEnrichedAction } from '../actions';
 import type { RideRowEnriched, RideStatus, RideTransportMode } from '../_lib/queries';
+import { RIDES_LIST_FETCH_CAP } from '../_lib/list-config';
 import { ExportCsvButton } from './export-csv-button.client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
@@ -82,7 +83,9 @@ function shortAddress(full: string): string {
 const PAGE_SIZE = 50;
 // Borne de fetch journalière (le filtre date par défaut = aujourd'hui → set
 // borné). On pagine ensuite côté client par plage de PAGE_SIZE (DEC-132).
-const FETCH_CAP = 500;
+// Source de vérité UNIQUE partagée avec le schéma de l'action et les requêtes
+// (évite le cas client > schéma qui vidait la liste en silence).
+const FETCH_CAP = RIDES_LIST_FETCH_CAP;
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
