@@ -97,6 +97,12 @@ export function RidesList(): JSX.Element {
   const [modeFilter, setModeFilter] = useState<string>('all');
   // Hotfix 04.7-bis : filtre date — défaut aujourd'hui pour focus régulatrice
   const [dateFilter, setDateFilter] = useState<string>(todayIso());
+  // Tri client (Lot 1/4) : colonnes heure / statut / mode / urgence. Défaut =
+  // créneau décroissant, identique à l'ordre serveur (aucun saut au 1er rendu).
+  const [sort, setSort] = useState<{ column: string; dir: 'asc' | 'desc' }>({
+    column: 'heure',
+    dir: 'desc',
+  });
   // Pagination par page (DEC-132) — remplace l'offset cumulatif « Voir plus ».
   const [page, setPage] = useState<number>(0);
   const [openRideId, setOpenRideId] = useState<string | null>(null);
@@ -134,8 +140,11 @@ export function RidesList(): JSX.Element {
       `${r.patient?.nom ?? ''} ${r.patient?.prenom ?? ''}`.toLowerCase().includes(lower)
     );
   });
-  const total = filtered.length;
-  const paged = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  // Tri de l'ENSEMBLE filtré, PUIS pagination : l'ordre reste cohérent d'une
+  // page à l'autre. Le tri s'applique aux données déjà chargées (client).
+  const sorted = sortRides(filtered, sort.column, sort.dir);
+  const total = sorted.length;
+  const paged = sorted.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   return (
     <div className="space-y-16">
@@ -242,6 +251,16 @@ export function RidesList(): JSX.Element {
             rowKey={(r) => `${r.id}-${r.status}`}
             ariaLabel="Liste des courses"
             onRowClick={(r) => setOpenRideId(r.id)}
+            // Tri client réutilisant le mécanisme du tableau (en-tête bouton +
+            // flèche + aria-sort). Retour page 1 au changement, comme les filtres.
+            sort={{
+              column: sort.column,
+              dir: sort.dir,
+              onSortChange: (column, dir) => {
+                setSort({ column, dir });
+                resetPage();
+              },
+            }}
           />
           <Pagination page={page} pageSize={PAGE_SIZE} total={total} onPageChange={setPage} />
         </>
@@ -265,6 +284,67 @@ export function RidesList(): JSX.Element {
   );
 }
 
+// Ordres métier des colonnes triables par énumération (pas alphabétiques) :
+// le tri « regroupe » selon un ordre utile à la régulation (cycle de vie de la
+// course, niveau d'urgence). Une valeur hors énumération → `null` (fin de tri).
+const STATUS_ORDER: Record<string, number> = {
+  validee: 0,
+  assignee: 1,
+  en_cours: 2,
+  terminee: 3,
+  annulee_regulateur: 4,
+  annulee_patient: 5,
+  annulee_chauffeur: 6,
+  annulee_meteo: 7,
+  brouillon: 8,
+};
+const URGENCY_ORDER: Record<string, number> = { programmee: 0, urgente: 1, immediate: 2 };
+const MODE_ORDER: Record<string, number> = {
+  taxi_conventionne: 0,
+  tpmr: 1,
+  vsl: 2,
+  ambulance: 3,
+};
+
+/** Clé de comparaison d'une course pour une colonne triable ; `null` = manquant. */
+function sortKey(ride: RideRowEnriched, column: string): number | string | null {
+  switch (column) {
+    case 'heure':
+      return ride.scheduled_at || null;
+    case 'statut':
+      return STATUS_ORDER[ride.status] ?? null;
+    case 'mode':
+      return MODE_ORDER[ride.transport_mode] ?? null;
+    case 'urgence':
+      return URGENCY_ORDER[ride.urgency] ?? null;
+    default:
+      return null;
+  }
+}
+
+/**
+ * Tri client de l'ensemble filtré. Les valeurs manquantes (`null`) sont toujours
+ * ordonnées EN FIN, quel que soit le sens. `Array.sort` est stable → les égalités
+ * conservent leur ordre relatif (créneau serveur).
+ */
+function sortRides(
+  rides: RideRowEnriched[],
+  column: string,
+  dir: 'asc' | 'desc',
+): RideRowEnriched[] {
+  const factor = dir === 'asc' ? 1 : -1;
+  return [...rides].sort((a, b) => {
+    const av = sortKey(a, column);
+    const bv = sortKey(b, column);
+    if (av === null && bv === null) return 0;
+    if (av === null) return 1; // manquant en fin
+    if (bv === null) return -1;
+    if (av < bv) return -1 * factor;
+    if (av > bv) return 1 * factor;
+    return 0;
+  });
+}
+
 /**
  * Définition des colonnes de la liste courses (Phase 06.15 D-04). Le clic
  * de ligne ouvre le drawer (`onRowClick` sur DataTable). Le bouton
@@ -276,6 +356,7 @@ function RIDE_COLUMNS(onAssign: (rideId: string) => void): DataTableColumn<RideR
     {
       key: 'heure',
       header: 'Heure',
+      sortable: true,
       cell: (ride) => {
         const today = isToday(ride.scheduled_at);
         return (
@@ -323,11 +404,13 @@ function RIDE_COLUMNS(onAssign: (rideId: string) => void): DataTableColumn<RideR
     {
       key: 'mode',
       header: 'Mode',
+      sortable: true,
       cell: (ride) => <ModeBadge mode={ride.transport_mode} />,
     },
     {
       key: 'urgence',
       header: 'Urgence',
+      sortable: true,
       cell: (ride) => <UrgencyBadge urgency={ride.urgency} />,
     },
     {
@@ -358,6 +441,7 @@ function RIDE_COLUMNS(onAssign: (rideId: string) => void): DataTableColumn<RideR
     {
       key: 'statut',
       header: 'Statut',
+      sortable: true,
       cell: (ride) => <StatusBadge status={ride.status} />,
     },
     {
