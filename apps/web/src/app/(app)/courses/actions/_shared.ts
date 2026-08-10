@@ -28,13 +28,15 @@ export type ActionState = {
 };
 
 /**
- * Auth + profile org_id en une étape. Retourne `null` si non authentifié
- * ou profil absent — l'action appelante doit short-circuit avec une erreur FR.
+ * Auth + profil (org_id, rôle, statut actif) en une étape. Retourne `null` si
+ * non authentifié ou profil absent — l'action appelante doit short-circuit avec
+ * une erreur FR.
  *
- * Variante « minimale » historique de `@/lib/auth/get-auth-context`
- * (sans le rôle ni le profile complet — moins de colonnes requises sur
- * `profiles`). Conservée car utilisée par les actions Phase 2 sans
- * gating de rôle applicatif (la sécurité repose sur RLS Postgres).
+ * `role` et `actif` sont exposés pour permettre aux actions de mutation un
+ * garde-fou applicatif de defense in depth EN MIROIR de la policy RLS (qui
+ * exige un rôle regulateur/dirigeant et un profil actif) — sans se substituer
+ * à elle : RLS Postgres reste la source de vérité. La sécurité ne dépend jamais
+ * de ce seul check applicatif.
  */
 export async function getAuthContext() {
   const supabase = await createClient();
@@ -44,12 +46,22 @@ export async function getAuthContext() {
   if (!user) return null;
   const profileRes = await supabase
     .from('profiles')
-    .select('organization_id')
+    .select('organization_id, role, actif')
     .eq('id', user.id)
     .single();
-  const profile = profileRes.data as { organization_id: string } | null;
+  const profile = profileRes.data as {
+    organization_id: string;
+    role: string;
+    actif: boolean;
+  } | null;
   if (!profile) return null;
-  return { supabase, user, organization_id: profile.organization_id };
+  return {
+    supabase,
+    user,
+    organization_id: profile.organization_id,
+    role: profile.role,
+    actif: profile.actif,
+  };
 }
 
 /**
