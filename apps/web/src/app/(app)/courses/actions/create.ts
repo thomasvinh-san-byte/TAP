@@ -27,6 +27,36 @@ const createRideInputSchema = z.object({
   fromDraftId: z.string().uuid().optional(),
 });
 
+/**
+ * Forme minimale d'une erreur PostgREST/Postgres remontée par supabase-js.
+ * (Le type `PostgrestError` n'est pas exporté ici — on lit les champs utiles.)
+ */
+interface PostgrestLikeError {
+  message?: string;
+  code?: string;
+  details?: string;
+  hint?: string;
+}
+
+/**
+ * Reformule une erreur d'insertion en message CLIENT sobre, sans exposer de
+ * détail technique sensible : on distingue les grandes familles à partir du
+ * code SQLSTATE. Le détail exact reste dans les logs serveur (cf. appelant).
+ *   - 42501 : violation RLS / privilège insuffisant → droits.
+ *   - 23xxx : contraintes (NOT NULL, FK, CHECK, unique) → saisie.
+ *   - 22xxx : type/enum invalide (ex. 22P02) → saisie.
+ *   - défaut : technique.
+ */
+function clientMessageForInsertError(code: string | undefined): string {
+  if (code === '42501') {
+    return "Vous n'avez pas les droits pour créer une course dans cette organisation.";
+  }
+  if (code && (code.startsWith('23') || code.startsWith('22'))) {
+    return 'Certaines informations de la course sont invalides ou incomplètes.';
+  }
+  return 'Création course impossible (erreur technique). Réessayez ou contactez le support.';
+}
+
 export async function createRideAction(
   args: z.infer<typeof createRideInputSchema>,
 ): Promise<ActionState> {
@@ -77,12 +107,37 @@ export async function createRideAction(
     .single();
   const insertedRow = row as { id: string } | null;
   if (error || !insertedRow) {
-    return { error: 'Création course impossible.' };
+    // Journalisation de la CAUSE réelle (message + code + détails Postgres/RLS)
+    // — auparavant avalée derrière un message générique. Diagnostic serveur
+    // uniquement : le client reçoit un message sobre (famille d'erreur), sans
+    // détail technique sensible.
+    const pgError = (error ?? {}) as PostgrestLikeError;
+    console.error('[createRideAction] Échec insert rides', {
+      message: pgError.message,
+      code: pgError.code,
+      details: pgError.details,
+      hint: pgError.hint,
+      organization_id,
+      user_id: user.id,
+    });
+    return { error: clientMessageForInsertError(pgError.code) };
   }
 
   // Si la saisie venait d'un brouillon : DELETE (RLS auto-filtre author_id).
   if (parsed.data.fromDraftId) {
-    await supabase.from('ride_draft').delete().eq('id', parsed.data.fromDraftId);
+    const { error: draftDeleteError } = await supabase
+      .from('ride_draft')
+      .delete()
+      .eq('id', parsed.data.fromDraftId);
+    // Non bloquant (la course est créée) mais journalisé : un brouillon
+    // orphelin ne doit pas rester invisible s'il échoue à être nettoyé.
+    if (draftDeleteError) {
+      console.error('[createRideAction] Échec suppression brouillon après création', {
+        message: draftDeleteError.message,
+        code: draftDeleteError.code,
+        draft_id: parsed.data.fromDraftId,
+      });
+    }
   }
 
   revalidatePath('/courses');
