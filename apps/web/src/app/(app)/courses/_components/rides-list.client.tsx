@@ -19,7 +19,7 @@ import {
   Pagination,
   type DataTableColumn,
 } from '@/components/data-table';
-import { DateFieldFr } from '@/components/date-field-fr.client';
+import { DatePickerFieldFr } from '@/components/date-picker-fr.client';
 import { InitialsAvatar } from '@/components/ui/initials-avatar';
 import { formatShortDateFr, formatTimeFr, isToday } from '@/lib/dates-fr';
 import { ModeBadge, PaymentBadge, StatusBadge, UrgencyBadge } from './ride-badges';
@@ -150,14 +150,14 @@ export function RidesList(): JSX.Element {
         }
         filters={
           <>
-            <DateFieldFr
+            <DatePickerFieldFr
               value={dateFilter}
               onChange={(v) => {
                 setDateFilter(v);
                 resetPage();
               }}
               ariaLabel="Filtre date des courses"
-              className="h-10 w-[160px] tabular-nums"
+              className="w-[160px]"
             />
             {dateFilter && (
               <Button
