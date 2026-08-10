@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
@@ -65,6 +66,10 @@ interface Props {
 
 export function RideExpressModal(props: Props): JSX.Element {
   const isEditMode = Boolean(props.rideId);
+  // Cache React Query de la liste des courses : à invalider après création/
+  // édition, comme le font déjà `assign-modal` et `ride-drawer` — sinon la
+  // liste garde son cache et « rien ne bouge » malgré la revalidation serveur.
+  const qc = useQueryClient();
   const [form, setForm] = useState<FormState>({
     patient_id: props.initialPatientId,
     transport_mode: 'taxi_conventionne',
@@ -237,6 +242,10 @@ export function RideExpressModal(props: Props): JSX.Element {
     onSuccess: (createdRideId) => {
       dup.reset(); // D-B3-5 : reset AVANT onClose
       recurrence.reset();
+      // Invalidation AVANT tout branchement de succès : que l'on enchaîne sur
+      // « affecter au plus proche » (return anticipé) ou que l'on ferme, la
+      // liste doit refléter la création/édition. Même clé que les autres flux.
+      void qc.invalidateQueries({ queryKey: ['rides'] });
       // EXPRESS-03 : en création, proposer « affecter au plus proche » avant de
       // fermer. En édition (pas d'id remonté), fermeture immédiate comme avant.
       if (createdRideId) {
