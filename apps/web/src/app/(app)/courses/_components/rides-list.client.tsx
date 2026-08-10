@@ -1,8 +1,8 @@
 'use client';
 
-import { useDeferredValue, useEffect, useState } from 'react';
+import { type ReactNode, useDeferredValue, useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, Calendar, Plus } from 'lucide-react';
+import { ArrowRight, Calendar, Check, Plus } from 'lucide-react';
 import { listRidesEnrichedAction } from '../actions';
 import type { RideRowEnriched, RideStatus, RideTransportMode } from '../_lib/queries';
 import { RIDES_LIST_FETCH_CAP } from '../_lib/list-config';
@@ -97,6 +97,10 @@ export function RidesList(): JSX.Element {
   const [modeFilter, setModeFilter] = useState<string>('all');
   // Hotfix 04.7-bis : filtre date — défaut aujourd'hui pour focus régulatrice
   const [dateFilter, setDateFilter] = useState<string>(todayIso());
+  // Lot 2/4 — filtre urgence, piloté par le preset « Urgentes ». Pas de sélecteur
+  // dédié (parcimonie) : filtrage client (urgente + immediate) sur les données
+  // déjà chargées. `all` = pas de filtre d'urgence.
+  const [urgencyFilter, setUrgencyFilter] = useState<'all' | 'urgent'>('all');
   // Tri client (Lot 1/4) : colonnes heure / statut / mode / urgence. Défaut =
   // créneau décroissant, identique à l'ordre serveur (aucun saut au 1er rendu).
   const [sort, setSort] = useState<{ column: string; dir: 'asc' | 'desc' }>({
@@ -116,6 +120,38 @@ export function RidesList(): JSX.Element {
     setPage(0);
   }, [dq]);
 
+  // Lot 2/4 — filtres rapides : raccourcis qui POSITIONNENT les états de filtre
+  // existants (pas un canal parallèle). L'état « actif » est DÉRIVÉ des filtres
+  // courants → modifier un filtre à la main désactive automatiquement le preset,
+  // et les sélecteurs reflètent toujours ce qui est filtré. Toggle : recliquer un
+  // preset actif remet sa dimension au défaut ; « Toutes » réinitialise tout.
+  const today = todayIso();
+  const isPresetToutes =
+    statusFilter === 'all' && modeFilter === 'all' && urgencyFilter === 'all' && !dateFilter;
+  const isPresetNonAssignees = statusFilter === 'validee';
+  const isPresetUrgentes = urgencyFilter === 'urgent';
+  const isPresetAujourdhui = dateFilter === today;
+
+  const applyToutes = () => {
+    setStatusFilter('all');
+    setModeFilter('all');
+    setUrgencyFilter('all');
+    setDateFilter('');
+    resetPage();
+  };
+  const toggleNonAssignees = () => {
+    setStatusFilter(isPresetNonAssignees ? 'all' : 'validee');
+    resetPage();
+  };
+  const toggleUrgentes = () => {
+    setUrgencyFilter(isPresetUrgentes ? 'all' : 'urgent');
+    resetPage();
+  };
+  const toggleAujourdhui = () => {
+    setDateFilter(isPresetAujourdhui ? '' : today);
+    resetPage();
+  };
+
   const { data, isPending } = useQuery({
     queryKey: ['rides', { status: statusFilter, mode: modeFilter, date: dateFilter }],
     queryFn: () =>
@@ -132,6 +168,10 @@ export function RidesList(): JSX.Element {
 
   const rides = (data ?? []) as RideRowEnriched[];
   const filtered = rides.filter((r) => {
+    // Preset « Urgentes » (client) : urgente + immediate (par opposition à programmée).
+    if (urgencyFilter === 'urgent' && r.urgency !== 'urgente' && r.urgency !== 'immediate') {
+      return false;
+    }
     if (!dq) return true;
     const lower = dq.toLowerCase();
     return (
@@ -148,6 +188,21 @@ export function RidesList(): JSX.Element {
 
   return (
     <div className="space-y-16">
+      {/* Lot 2/4 — filtres rapides : puces au-dessus de la liste, en un clic. */}
+      <div className="flex flex-wrap items-center gap-8" role="group" aria-label="Filtres rapides">
+        <QuickFilterChip active={isPresetToutes} onClick={applyToutes}>
+          Toutes
+        </QuickFilterChip>
+        <QuickFilterChip active={isPresetNonAssignees} onClick={toggleNonAssignees}>
+          Non assignées
+        </QuickFilterChip>
+        <QuickFilterChip active={isPresetUrgentes} onClick={toggleUrgentes}>
+          Urgentes
+        </QuickFilterChip>
+        <QuickFilterChip active={isPresetAujourdhui} onClick={toggleAujourdhui}>
+          Aujourd&apos;hui
+        </QuickFilterChip>
+      </div>
       <ListToolbar
         search={
           <Input
@@ -281,6 +336,35 @@ export function RidesList(): JSX.Element {
         onOpenChange={(o) => !o && setAssignRideId(null)}
       />
     </div>
+  );
+}
+
+/**
+ * Puce de filtre rapide (Lot 2/4) — bouton toggle. État sélectionné perceptible
+ * au-delà de la couleur : `aria-pressed` (lecteur d'écran), fond plein vs contour
+ * (variante), et coche visible quand actif. Activable au clavier (bouton natif).
+ */
+function QuickFilterChip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: ReactNode;
+}): JSX.Element {
+  return (
+    <Button
+      type="button"
+      size="sm"
+      variant={active ? 'secondary' : 'outline'}
+      aria-pressed={active}
+      onClick={onClick}
+      className="gap-4"
+    >
+      {active && <Check className="h-12 w-12" aria-hidden />}
+      {children}
+    </Button>
   );
 }
 
