@@ -243,6 +243,10 @@ export function RidesList(): JSX.Element {
   const sorted = sortRides(filtered, sort.column, sort.dir);
   const total = sorted.length;
   const paged = sorted.slice(page * pageSize, (page + 1) * pageSize);
+  // Récap par statut sur l'ENSEMBLE filtré (pas la page) — se met à jour avec les
+  // filtres / la recherche. Colonnes du tableau extraites pour le colSpan du pied.
+  const statusRecap = buildStatusRecap(filtered);
+  const columns = RIDE_COLUMNS((rid) => setAssignRideId(rid));
 
   return (
     <div className="space-y-16">
@@ -408,7 +412,7 @@ export function RidesList(): JSX.Element {
       {!isPending && total > 0 && (
         <>
           <DataTable<RideRowEnriched>
-            columns={RIDE_COLUMNS((rid) => setAssignRideId(rid))}
+            columns={columns}
             rows={paged}
             // DEC-033 : clé inclut `status` pour re-mount au changement
             // (sans ça, « Assigner » reste actif après affectation —
@@ -440,6 +444,20 @@ export function RidesList(): JSX.Element {
                 resetPage();
               },
             }}
+            // Récap par statut (ensemble filtré) via la prop `footer` existante.
+            // colSpan = colonnes + 1 (colonne de sélection).
+            footer={
+              statusRecap.length > 0 ? (
+                <tr>
+                  <td
+                    colSpan={columns.length + 1}
+                    className="text-muted-foreground px-12 py-8 text-xs tabular-nums"
+                  >
+                    {statusRecap.map((e) => `${e.count} ${e.label}`).join(' · ')}
+                  </td>
+                </tr>
+              ) : undefined
+            }
           />
           <Pagination
             page={page}
@@ -562,6 +580,32 @@ function sortRides(
     if (av > bv) return 1 * factor;
     return 0;
   });
+}
+
+/**
+ * Libellé de statut pour le récap de pied — réutilise la source canonique de
+ * l'écran (`STATUS_FILTERS` : ordre + regroupement des annulées sous « Annulées »).
+ * Aucun libellé réinventé ; repli sur le statut brut si absent (jamais attendu).
+ */
+function statusRecapLabel(status: string): string {
+  if (status.startsWith('annulee')) return 'Annulées';
+  return STATUS_FILTERS.find((f) => f.value === status)?.label ?? status;
+}
+
+/**
+ * Répartition par statut sur l'ensemble filtré, dans l'ordre de `STATUS_FILTERS`,
+ * statuts PRÉSENTS uniquement (aucune entrée à 0).
+ */
+function buildStatusRecap(rides: RideRowEnriched[]): { label: string; count: number }[] {
+  const counts = new Map<string, number>();
+  for (const r of rides) {
+    const label = statusRecapLabel(r.status);
+    counts.set(label, (counts.get(label) ?? 0) + 1);
+  }
+  return STATUS_FILTERS.filter((f) => f.value !== 'all')
+    .map((f) => f.label)
+    .filter((label) => counts.has(label))
+    .map((label) => ({ label, count: counts.get(label) ?? 0 }));
 }
 
 /**

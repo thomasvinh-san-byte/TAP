@@ -384,7 +384,17 @@ export function DataTable<T>({
             ))
           )}
         </tbody>
-        {footer ? <tfoot className="bg-muted/40">{footer}</tfoot> : null}
+        {footer ? (
+          <tfoot
+            className={cn(
+              // En mode borné, le pied reste visible (sticky bas + fond opaque),
+              // comme l'en-tête ; sinon rendu historique (bg semi-transparent).
+              maxHeight ? 'bg-muted sticky bottom-0 z-10' : 'bg-muted/40',
+            )}
+          >
+            {footer}
+          </tfoot>
+        ) : null}
       </table>
     </div>
   );
