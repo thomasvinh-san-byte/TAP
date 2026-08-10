@@ -20,6 +20,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import type { Database } from '@tap/database/types';
+import { RIDES_LIST_FETCH_CAP } from './list-config';
 
 export type RideRow = Database['public']['Tables']['rides']['Row'] & {
   driver_id?: string | null;
@@ -98,15 +99,21 @@ export async function listRides(
     status?: RideStatus;
     transport_mode?: RideTransportMode;
     urgency?: RideUrgency;
+    /** Borne de page — défaut 50, plafonné à RIDES_LIST_FETCH_CAP (source unique). */
+    limit?: number;
   } = {},
 ): Promise<RideRow[]> {
   const supabase = await createClient();
+  // Limite pilotée par le paramètre (borné par la source de vérité unique), au
+  // lieu d'une valeur en dur divergente (l'ancien `.limit(100)` ne s'accordait
+  // ni avec le schéma ni avec le client).
+  const limit = Math.min(Math.max(params.limit ?? 50, 1), RIDES_LIST_FETCH_CAP);
   let q = supabase
     .from('rides')
     .select(RIDE_COLUMNS)
     .eq('archive', false)
     .order('scheduled_at', { ascending: false })
-    .limit(100);
+    .limit(limit);
   if (params.status) q = q.eq('status', params.status);
   if (params.transport_mode) q = q.eq('transport_mode', params.transport_mode);
   if (params.urgency) q = q.eq('urgency', params.urgency);

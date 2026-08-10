@@ -11,6 +11,7 @@
  */
 
 import { z } from 'zod';
+import { RIDES_LIST_FETCH_CAP } from '../_lib/list-config';
 
 const listRidesParamsSchema = z.object({
   status: z.string().optional(),
@@ -21,14 +22,21 @@ const listRidesParamsSchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .optional(),
-  limit: z.number().int().min(1).max(200).optional(),
+  // Borne alignée sur la source de vérité unique (client + requêtes). Un
+  // plafond inférieur à la demande du client vidait la liste en silence.
+  limit: z.number().int().min(1).max(RIDES_LIST_FETCH_CAP).optional(),
   offset: z.number().int().min(0).optional(),
 });
 
 /** RidesList Wave 4 (Phase 2) — version simple (sans jointures). */
 export async function listRidesAction(params: z.infer<typeof listRidesParamsSchema> = {}) {
   const parsed = listRidesParamsSchema.safeParse(params);
-  if (!parsed.success) return [];
+  if (!parsed.success) {
+    // Ne plus avaler l'échec : journaliser la cause (auparavant `[]` muet, qui
+    // masquait un écart de paramètres comme `limit` hors borne).
+    console.error('[listRidesAction] Paramètres invalides', parsed.error.flatten());
+    return [];
+  }
   const { listRides } = await import('../_lib/queries');
   return listRides(parsed.data as Parameters<typeof listRides>[0]);
 }
@@ -36,7 +44,10 @@ export async function listRidesAction(params: z.infer<typeof listRidesParamsSche
 /** Variante enrichie : courses + patient/driver/vehicle joints (03-D). */
 export async function listRidesEnrichedAction(params: z.infer<typeof listRidesParamsSchema> = {}) {
   const parsed = listRidesParamsSchema.safeParse(params);
-  if (!parsed.success) return [];
+  if (!parsed.success) {
+    console.error('[listRidesEnrichedAction] Paramètres invalides', parsed.error.flatten());
+    return [];
+  }
   const { listRidesEnriched } = await import('../_lib/queries');
   return listRidesEnriched(parsed.data as Parameters<typeof listRidesEnriched>[0]);
 }

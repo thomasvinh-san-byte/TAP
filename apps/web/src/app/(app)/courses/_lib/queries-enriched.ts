@@ -13,6 +13,7 @@
  */
 
 import { createClient } from '@/lib/supabase/server';
+import { RIDES_LIST_FETCH_CAP } from './list-config';
 import type {
   DriverMin,
   OrderingPartyMin,
@@ -43,14 +44,14 @@ export async function listRidesEnriched(
     urgency?: RideUrgency;
     /** Hotfix 04.7-bis : filtre date scheduled_at (YYYY-MM-DD, jour entier). */
     date?: string;
-    /** Hotfix 04.7-bis : pagination simple — défaut 50, max 200. */
+    /** Hotfix 04.7-bis : pagination simple — défaut 50, borné à RIDES_LIST_FETCH_CAP. */
     limit?: number;
     /** Hotfix 04.7-bis : offset pour bouton « Voir plus ». */
     offset?: number;
   } = {},
 ): Promise<RideRowEnriched[]> {
   const supabase = await createClient();
-  const limit = Math.min(Math.max(params.limit ?? 50, 1), 200);
+  const limit = Math.min(Math.max(params.limit ?? 50, 1), RIDES_LIST_FETCH_CAP);
   const offset = Math.max(params.offset ?? 0, 0);
   let q = supabase
     .from('rides')
