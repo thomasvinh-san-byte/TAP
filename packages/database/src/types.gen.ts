@@ -1862,6 +1862,60 @@ export type Database = {
           },
         ]
       }
+      ride_cgss_invoice_events: {
+        Row: {
+          complementaire_en_attente: boolean
+          created_at: string
+          created_by: string | null
+          event_date: string
+          event_type: string
+          id: string
+          motif: string | null
+          motif_famille: string | null
+          organization_id: string
+          ride_id: string
+        }
+        Insert: {
+          complementaire_en_attente?: boolean
+          created_at?: string
+          created_by?: string | null
+          event_date: string
+          event_type: string
+          id?: string
+          motif?: string | null
+          motif_famille?: string | null
+          organization_id: string
+          ride_id: string
+        }
+        Update: {
+          complementaire_en_attente?: boolean
+          created_at?: string
+          created_by?: string | null
+          event_date?: string
+          event_type?: string
+          id?: string
+          motif?: string | null
+          motif_famille?: string | null
+          organization_id?: string
+          ride_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ride_cgss_invoice_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ride_cgss_invoice_events_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ride_draft: {
         Row: {
           author_id: string
@@ -2157,6 +2211,7 @@ export type Database = {
           accompagnant_payant: boolean
           archive: boolean
           cancel_motif: string | null
+          cgss_invoice_status: string | null
           created_at: string
           created_by: string
           driver_id: string | null
@@ -2208,6 +2263,7 @@ export type Database = {
           accompagnant_payant?: boolean
           archive?: boolean
           cancel_motif?: string | null
+          cgss_invoice_status?: string | null
           created_at?: string
           created_by: string
           driver_id?: string | null
@@ -2259,6 +2315,7 @@ export type Database = {
           accompagnant_payant?: boolean
           archive?: boolean
           cancel_motif?: string | null
+          cgss_invoice_status?: string | null
           created_at?: string
           created_by?: string
           driver_id?: string | null
