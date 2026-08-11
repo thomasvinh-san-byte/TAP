@@ -16,6 +16,7 @@ import { useStalePositions } from '../_lib/use-stale-positions';
 import { sortAlertsByPriority, alertSeverity } from '../_lib/alert-priority';
 import { useAlertSound, useAlertSoundOnNew } from '@/lib/alert-sound/use-alert-sound';
 import type { CockpitAlert, CockpitRide } from '../_lib/types';
+import type { DriverRosterEntry } from '../_lib/driver-load';
 import type { CockpitAlertPreferences } from '@/lib/notifications/preferences';
 import { useDriverPositions, type DriverPosition } from '../_lib/use-driver-positions';
 import type { ComplianceAlertEnriched } from '../../../(admin)/admin/conformite/_lib/get-compliance-alerts';
@@ -83,6 +84,7 @@ export function CockpitContent({
   prescriptionAlerts,
   alertPreferences,
   weatherAlert,
+  driverRoster,
   isDirigeant = false,
 }: {
   initialRides: CockpitRide[];
@@ -94,6 +96,9 @@ export function CockpitContent({
   prescriptionAlerts: PrescriptionAlertEnriched[];
   alertPreferences: CockpitAlertPreferences;
   weatherAlert: WeatherAlert | null;
+  /** Référentiel des chauffeurs actifs (drivers.id → nom) — inclut les 0 course
+   *  dans « Charge par chauffeur ». */
+  driverRoster: DriverRosterEntry[];
   /** Rôle dirigeant : débloque les renvois vers les écrans dirigeant-only. */
   isDirigeant?: boolean;
 }): JSX.Element {
@@ -374,6 +379,8 @@ export function CockpitContent({
             <DriverLoadPanel
               rides={rides}
               driverLabels={driverLabels}
+              roster={driverRoster}
+              onOpenRide={setOpenRideId}
               detailHref={isDirigeant ? '/tableau-de-bord' : undefined}
             />
           </div>
