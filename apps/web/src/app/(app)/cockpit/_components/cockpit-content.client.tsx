@@ -269,7 +269,12 @@ export function CockpitContent({
           id="cockpit-panel-positions"
           tabIndex={-1}
           className={cn(
-            'flex min-h-0 flex-col md:col-span-2 md:min-h-[520px] lg:col-span-4',
+            // Hauteur BORNÉE (fixe) à partir de md pour que le diptyque carte /
+            // « Ma journée » reste stable quel que soit le volume : la carte
+            // remplit sa tuile (`h-full` interne), sans s'étirer en cascade quand
+            // la liste voisine est longue. Mobile (base) : hauteur naturelle,
+            // défilement de page.
+            'flex min-h-0 flex-col md:col-span-2 md:h-[520px] lg:col-span-4',
             PANEL_ANCHOR_CLASS,
           )}
         >
@@ -283,10 +288,15 @@ export function CockpitContent({
         </div>
 
         {/* TUILE — Ma journée (liste, primaire). En-tête + tableau à défilement
-            interne ; « Optimiser » en tête du panneau courses. */}
+            interne ; « Optimiser » en tête du panneau courses. Hauteur BORNÉE
+            (fixe) à partir de md : l'en-tête (titre, compteur, Optimiser / En
+            direct) reste figé et seule la liste défile dans le corps
+            `flex-1 overflow-auto` ci-dessous — la tuile ne grandit plus avec le
+            volume de courses (28+) et n'étire plus la page. Mobile (base) :
+            hauteur naturelle, défilement de page (pas de zone défilante minuscule). */}
         <section
           aria-labelledby="ma-journee-title"
-          className="bg-background border-border flex min-h-0 min-w-0 flex-col rounded-lg border md:col-span-1 md:min-h-[520px] lg:col-span-5"
+          className="bg-background border-border flex min-h-0 min-w-0 flex-col rounded-lg border md:col-span-1 md:h-[520px] lg:col-span-5"
         >
           <div className="flex flex-wrap items-start justify-between gap-8 p-16 pb-12">
             <div className="min-w-0">
