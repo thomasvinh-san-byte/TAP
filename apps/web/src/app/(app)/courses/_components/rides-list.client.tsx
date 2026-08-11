@@ -29,6 +29,7 @@ import { useRideOrchestrator } from './ride-orchestrator-context.client';
 import { CoursesBulkActions } from './courses-bulk-actions.client';
 import { useTableDensity } from '@/lib/use-table-density.client';
 import { useTablePageSize, PAGE_SIZE_OPTIONS } from '@/lib/use-table-page-size.client';
+import { usePersistedCoursesFilters } from '@/lib/use-courses-filters.client';
 
 // Source canonique des statuts actifs : STATUS_LABELS_FR (ride-status-fr.ts) et
 // la machine à états (@tap/shared). Liste maintenue à la main ici pour l'ordre
@@ -94,15 +95,23 @@ function todayIso(): string {
 }
 
 export function RidesList(): JSX.Element {
-  const [q, setQ] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [modeFilter, setModeFilter] = useState<string>('all');
-  // Hotfix 04.7-bis : filtre date — défaut aujourd'hui pour focus régulatrice
+  // Amélioration C — filtres PERSISTÉS entre visites (statut / mode / urgence /
+  // recherche), même patron que la densité. La DATE n'est PAS persistée (reste
+  // `useState`, défaut aujourd'hui). Alias vers les noms existants → aucun autre
+  // changement dans le composant (presets, chips, query, reset inchangés).
+  const {
+    search: q,
+    setSearch: setQ,
+    status: statusFilter,
+    setStatus: setStatusFilter,
+    mode: modeFilter,
+    setMode: setModeFilter,
+    urgency: urgencyFilter,
+    setUrgency: setUrgencyFilter,
+  } = usePersistedCoursesFilters();
+  // Hotfix 04.7-bis : filtre date — défaut aujourd'hui pour focus régulatrice.
+  // VOLONTAIREMENT non persistée (repart sur aujourd'hui à chaque ouverture).
   const [dateFilter, setDateFilter] = useState<string>(todayIso());
-  // Lot 2/4 — filtre urgence, piloté par le preset « Urgentes ». Pas de sélecteur
-  // dédié (parcimonie) : filtrage client (urgente + immediate) sur les données
-  // déjà chargées. `all` = pas de filtre d'urgence.
-  const [urgencyFilter, setUrgencyFilter] = useState<'all' | 'urgent'>('all');
   // Tri client (Lot 1/4) : colonnes heure / statut / mode / urgence. Défaut =
   // créneau décroissant, identique à l'ordre serveur (aucun saut au 1er rendu).
   const [sort, setSort] = useState<{ column: string; dir: 'asc' | 'desc' }>({
