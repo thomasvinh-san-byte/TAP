@@ -468,6 +468,139 @@ begin
     cancel_motif = null,
     notes_regulateur = null;
 
+  -- 16 courses du jour SUPPLÉMENTAIRES (J0) — volume de démonstration pour
+  -- dépasser la taille de page par défaut (25) sur la vue « Aujourd'hui » de la
+  -- page courses : la pagination devient visible (> 1 page) et manipulable
+  -- (page 2, changement de taille). Non géocodées (coordonnées facultatives) :
+  -- ces courses alimentent la LISTE, pas l'optimiseur (qui s'appuie sur le bloc
+  -- J0 géocodé ci-dessus). Variété volontaire pour donner de la matière aux
+  -- filtres / tri : majorité `validee` non affectées, quelques `assignee`
+  -- (chauffeur + véhicule), majorité `programmee` avec quelques urgences. Toutes
+  -- communes 974, heures étalées sur la journée. Idempotent (IDs déterministes +
+  -- DO UPDATE, reset runtime identique au bloc J0 ci-dessus).
+  insert into public.rides (
+    id, organization_id, patient_id, driver_id, vehicle_id,
+    pickup_address, dropoff_address,
+    scheduled_at, status, transport_mode, urgency,
+    tarif_source, created_at, created_by, updated_by
+  ) values
+    ('44444444-0000-0000-0000-000000000090', org_id, patient_ids[1], null, null,
+     '5 Rue de Nice, 97400 Saint-Denis', 'CHU Félix Guyon, 97400 Saint-Denis',
+     date_trunc('day', now()) + interval '6 hours 15 minutes',
+     'validee', 'taxi_conventionne', 'programmee',
+     'manuel', now() - interval '1 day', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-000000000091', org_id, patient_ids[2], null, null,
+     '22 Rue Auguste Babet, 97410 Saint-Pierre', 'CHU Sud Saint-Pierre, 97448 Saint-Pierre',
+     date_trunc('day', now()) + interval '6 hours 45 minutes',
+     'validee', 'tpmr', 'programmee',
+     'manuel', now() - interval '1 day', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-000000000092', org_id, patient_ids[3], null, null,
+     '9 Rue du Four à Chaux, 97460 Saint-Paul', 'Dialyse Saint-Paul, 97460 Saint-Paul',
+     date_trunc('day', now()) + interval '7 hours 30 minutes',
+     'validee', 'taxi_conventionne', 'programmee',
+     'manuel', now() - interval '1 day', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-000000000093', org_id, patient_ids[4], null, null,
+     '14 Rue de la Gare, 97440 Saint-André', 'CHU Félix Guyon, 97400 Saint-Denis',
+     date_trunc('day', now()) + interval '8 hours 10 minutes',
+     'validee', 'tpmr', 'programmee',
+     'manuel', now() - interval '1 day', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-000000000094', org_id, patient_ids[5], null, null,
+     '2 Rue du Général de Gaulle, 97450 Saint-Louis', 'Clinique Durieux, 97410 Saint-Pierre',
+     date_trunc('day', now()) + interval '8 hours 40 minutes',
+     'validee', 'taxi_conventionne', 'urgente',
+     'manuel', now() - interval '1 day', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-000000000095', org_id, patient_ids[6], null, null,
+     '7 Rue Sarda Garriga, 97470 Saint-Benoît', 'GHER Saint-Benoît, 97470 Saint-Benoît',
+     date_trunc('day', now()) + interval '9 hours 20 minutes',
+     'validee', 'taxi_conventionne', 'programmee',
+     'manuel', now() - interval '1 day', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-000000000096', org_id, patient_ids[7], vergoz_id, vehicle_dacia,
+     '18 Rue Bertin, 97400 Saint-Denis', 'Clinique Saint-Vincent, 97400 Saint-Denis',
+     date_trunc('day', now()) + interval '9 hours 45 minutes',
+     'assignee', 'taxi_conventionne', 'programmee',
+     'manuel', now() - interval '1 day', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-000000000097', org_id, patient_ids[8], null, null,
+     '30 Rue Lislet Geoffroy, 97438 Sainte-Marie', 'Centre de dialyse Nord, 97400 Saint-Denis',
+     date_trunc('day', now()) + interval '10 hours 15 minutes',
+     'validee', 'tpmr', 'programmee',
+     'manuel', now() - interval '1 day', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-000000000098', org_id, patient_ids[9], null, null,
+     '4 Quai Ouest, 97420 Le Port', 'CHU Félix Guyon, 97400 Saint-Denis',
+     date_trunc('day', now()) + interval '10 hours 50 minutes',
+     'validee', 'taxi_conventionne', 'immediate',
+     'manuel', now() - interval '1 day', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-000000000099', org_id, patient_ids[10], null, null,
+     '11 Rue Sainte-Thérèse, 97419 La Possession', 'Centre de dialyse Nord, 97400 Saint-Denis',
+     date_trunc('day', now()) + interval '11 hours 25 minutes',
+     'validee', 'taxi_conventionne', 'programmee',
+     'manuel', now() - interval '1 day', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-00000000009a', org_id, patient_ids[1], null, null,
+     '16 Rue du Stade, 97441 Sainte-Suzanne', 'Cabinet de kinésithérapie, 97440 Saint-André',
+     date_trunc('day', now()) + interval '12 hours 5 minutes',
+     'validee', 'tpmr', 'programmee',
+     'manuel', now() - interval '1 day', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-00000000009b', org_id, patient_ids[2], boyer_id, vehicle_master,
+     '8 Route de la Plaine, 97480 Saint-Joseph', 'CHU Sud Saint-Pierre, 97448 Saint-Pierre',
+     date_trunc('day', now()) + interval '13 hours 10 minutes',
+     'assignee', 'tpmr', 'programmee',
+     'manuel', now() - interval '1 day', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-00000000009c', org_id, patient_ids[3], null, null,
+     '25 Rue Hubert Delisle, 97430 Le Tampon', 'Dialyse Sud Le Tampon, 97430 Le Tampon',
+     date_trunc('day', now()) + interval '13 hours 40 minutes',
+     'validee', 'taxi_conventionne', 'programmee',
+     'manuel', now() - interval '1 day', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-00000000009d', org_id, patient_ids[4], null, null,
+     '6 Rue des Avirons, 97425 Les Avirons', 'CHU Sud Saint-Pierre, 97448 Saint-Pierre',
+     date_trunc('day', now()) + interval '14 hours 30 minutes',
+     'validee', 'taxi_conventionne', 'programmee',
+     'manuel', now() - interval '1 day', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-00000000009e', org_id, patient_ids[5], null, null,
+     '19 Rue François de Mahy, 97410 Saint-Pierre', 'Cabinet ophtalmologie, 97410 Saint-Pierre',
+     date_trunc('day', now()) + interval '15 hours 20 minutes',
+     'validee', 'tpmr', 'programmee',
+     'manuel', now() - interval '1 day', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-00000000009f', org_id, patient_ids[6], maillot_id, vehicle_dacia,
+     '3 Rue de l''Église, 97400 Saint-Denis', 'CHU Félix Guyon, 97400 Saint-Denis',
+     date_trunc('day', now()) + interval '16 hours 45 minutes',
+     'assignee', 'taxi_conventionne', 'programmee',
+     'manuel', now() - interval '1 day', regulateur_id, regulateur_id)
+  -- Idempotence : reset runtime exhaustif identique au bloc J0 géocodé ci-dessus.
+  on conflict (id) do update set
+    scheduled_at = excluded.scheduled_at,
+    created_at = excluded.created_at,
+    pickup_address = excluded.pickup_address,
+    dropoff_address = excluded.dropoff_address,
+    transport_mode = excluded.transport_mode,
+    urgency = excluded.urgency,
+    driver_id = excluded.driver_id,
+    vehicle_id = excluded.vehicle_id,
+    status = excluded.status,
+    started_at = null,
+    ended_at = null,
+    tarif_amount_eur = null,
+    tarif_source = excluded.tarif_source,
+    payment_status = 'non_concerne',
+    payment_method = null,
+    payment_received_at = null,
+    archive = false,
+    cancel_motif = null,
+    notes_regulateur = null;
+
   -- 3 courses J+1 — préparation journée suivante (mix assignee / validee)
   insert into public.rides (
     id, organization_id, patient_id, driver_id, vehicle_id,
