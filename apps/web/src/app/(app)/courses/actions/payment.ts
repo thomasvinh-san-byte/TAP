@@ -84,3 +84,39 @@ export async function updateRidePaymentAction(
   revalidatePath('/courses/caisse');
   return { success: true, id: parsed.data.rideId };
 }
+
+const markReminderInputSchema = z.object({ rideId: z.string().uuid() });
+
+/**
+ * Marque une créance directe comme RELANCÉE (CAISSE-01) : pose
+ * `payment_reminded_at = now()` sur la course. Champ DÉDIÉ (pas de détournement).
+ * Même pattern que `updateRidePaymentAction` : zod → rôle → UPDATE (RLS
+ * double-check) → revalidate. N'altère ni le statut de paiement ni le tarif — la
+ * course reste dans la vue « à encaisser » (une relance n'encaisse pas).
+ */
+export async function markRideReminderAction(
+  args: z.infer<typeof markReminderInputSchema>,
+): Promise<ActionState> {
+  const parsed = markReminderInputSchema.safeParse(args);
+  if (!parsed.success) return { error: 'Course invalide.' };
+
+  const ctx = await getAuthContextWithRole();
+  if (!ctx) return { error: 'Session expirée. Reconnectez-vous.' };
+  if (!REGULATEUR_OR_DIRIGEANT.includes(ctx.role as 'regulateur' | 'dirigeant')) {
+    return { error: 'Seul un régulateur ou un dirigeant peut relancer une créance.' };
+  }
+
+  const upd = await ctx.supabase
+    .from('rides')
+    .update({ payment_reminded_at: new Date().toISOString(), updated_by: ctx.userId })
+    .eq('id', parsed.data.rideId)
+    .eq('payment_status', 'a_encaisser')
+    .select('id');
+  if (upd.error) return { error: 'Relance impossible.' };
+  if (!upd.data || upd.data.length === 0) {
+    return { error: 'Relance refusée : droits insuffisants ou créance déjà encaissée.' };
+  }
+
+  revalidatePath('/courses/caisse');
+  return { success: true, id: parsed.data.rideId };
+}

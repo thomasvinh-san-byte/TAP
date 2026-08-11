@@ -2178,6 +2178,7 @@ export type Database = {
           patient_id: string
           payment_method: string | null
           payment_received_at: string | null
+          payment_reminded_at: string | null
           payment_status: string
           pickup_address: string
           pickup_city: string | null
@@ -2228,6 +2229,7 @@ export type Database = {
           patient_id: string
           payment_method?: string | null
           payment_received_at?: string | null
+          payment_reminded_at?: string | null
           payment_status?: string
           pickup_address: string
           pickup_city?: string | null
@@ -2278,6 +2280,7 @@ export type Database = {
           patient_id?: string
           payment_method?: string | null
           payment_received_at?: string | null
+          payment_reminded_at?: string | null
           payment_status?: string
           pickup_address?: string
           pickup_city?: string | null
