@@ -245,7 +245,7 @@ export function CockpitContent({
   }
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-16 lg:flex lg:h-[calc(100dvh-104px)] lg:flex-col lg:gap-16 lg:space-y-0 lg:overflow-hidden">
       <CockpitSummaryStrip
         unassignedH1Count={unassignedH1Count}
         criticalAlertsCount={criticalAlertsCount}
@@ -255,26 +255,33 @@ export function CockpitContent({
         isDirigeant={isDirigeant}
       />
       {/* Layout BENTO — grille CSS 12 colonnes (2 dimensions), écart uniforme
-          16px, hauteurs minimales par tuile pour éviter le « saut » au chargement.
-          La taille encode l'importance : carte (span 6) + liste (span 3) primaires
-          côte à côte ; colonne droite (span 3, deux lignes) = alertes critiques +
-          charge ; contexte (span 9) en onglets sous la carte+liste. Ordre du DOM =
-          ordre visuel (carte, liste, colonne droite, contexte) → tabulation et
-          lecteurs d'écran suivent l'œil. Retombe en 2 colonnes (md) puis 1 (mobile),
-          primaire d'abord. */}
-      <div className="grid grid-cols-1 gap-16 md:grid-cols-2 lg:grid-cols-12">
+          16px. La taille encode l'importance : carte (span 4) + liste (span 5)
+          primaires côte à côte ; colonne droite (span 3, deux lignes) = alertes
+          critiques + charge ; contexte (span 9) en onglets sous la carte+liste.
+          Ordre du DOM = ordre visuel (carte, liste, colonne droite, contexte) →
+          tabulation et lecteurs d'écran suivent l'œil. Retombe en 2 colonnes (md)
+          puis 1 (mobile), primaire d'abord.
+
+          CONTROL-ROOM (lg+) : la grille REMPLIT la hauteur d'écran fixée sur le
+          conteneur (`lg:flex-1 lg:min-h-0`) et répartit ses deux rangées
+          (`grid-rows-[3fr_2fr]`, `minmax(0,…)` = clé du défilement interne) : le
+          diptyque carte / liste prend le haut, le contexte le bas. Chaque tuile
+          défile chez elle ; aucune ne s'étire pour suivre une liste longue. En
+          deçà de lg : grille en flux normal, hauteurs `md:h-[520px]` puis pile
+          mobile (défilement de page). */}
+      <div className="grid grid-cols-1 gap-16 md:grid-cols-2 lg:min-h-0 lg:flex-1 lg:grid-cols-12 lg:grid-rows-[minmax(0,3fr)_minmax(0,2fr)]">
         {/* TUILE — Carte des chauffeurs (grande, primaire). Carte déjà « carte »
             (bordure/padding) : le conteneur ne double pas le chrome. */}
         <div
           id="cockpit-panel-positions"
           tabIndex={-1}
           className={cn(
-            // Hauteur BORNÉE (fixe) à partir de md pour que le diptyque carte /
-            // « Ma journée » reste stable quel que soit le volume : la carte
-            // remplit sa tuile (`h-full` interne), sans s'étirer en cascade quand
-            // la liste voisine est longue. Mobile (base) : hauteur naturelle,
-            // défilement de page.
-            'flex min-h-0 flex-col md:col-span-2 md:h-[520px] lg:col-span-4',
+            // Hauteur BORNÉE : `md:h-[520px]` (tablette) puis, en control-room
+            // (lg+), `lg:h-auto` → la tuile remplit la rangée de la grille (haute)
+            // au lieu d'une hauteur fixe. La carte remplit sa tuile (`h-full`
+            // interne) ; `min-h-0` autorise le rétrécissement pour le défilement
+            // interne. Mobile (base) : hauteur naturelle, défilement de page.
+            'flex min-h-0 flex-col md:col-span-2 md:h-[520px] lg:col-span-4 lg:h-auto',
             PANEL_ANCHOR_CLASS,
           )}
         >
@@ -296,7 +303,7 @@ export function CockpitContent({
             hauteur naturelle, défilement de page (pas de zone défilante minuscule). */}
         <section
           aria-labelledby="ma-journee-title"
-          className="bg-background border-border flex min-h-0 min-w-0 flex-col rounded-lg border md:col-span-1 md:h-[520px] lg:col-span-5"
+          className="bg-background border-border flex min-h-0 min-w-0 flex-col rounded-lg border md:col-span-1 md:h-[520px] lg:col-span-5 lg:h-auto"
         >
           <div className="flex flex-wrap items-start justify-between gap-8 p-16 pb-12">
             <div className="min-w-0">
@@ -338,8 +345,13 @@ export function CockpitContent({
         </section>
 
         {/* COLONNE DROITE (span 3, deux lignes) — alertes critiques (jamais
-            enterrées) puis charge, météo, son. Contexte d'action / suivi, calme. */}
-        <div className="flex flex-col gap-16 self-start md:col-span-1 lg:col-span-3 lg:row-span-2">
+            enterrées) puis charge, météo, son. Contexte d'action / suivi, calme.
+            En control-room (lg+) : occupe sa zone (deux rangées) et défile chez
+            elle (`lg:self-stretch` + `lg:min-h-0` + `lg:overflow-y-auto`) si son
+            contenu déborde — les panneaux internes gardent leur hauteur propre
+            (alertes/charge ont déjà leur `max-h`), aucun ne s'étire pour suivre la
+            liste. En deçà de lg : `self-start`, hauteur naturelle, flux de page. */}
+        <div className="flex flex-col gap-16 self-start md:col-span-1 lg:col-span-3 lg:row-span-2 lg:min-h-0 lg:self-stretch lg:overflow-y-auto">
           {panelAlerts.length > 0 && (
             <div className="bg-background border-border rounded-lg border p-16">
               {unassignedH1Count > 0 && (
@@ -387,7 +399,7 @@ export function CockpitContent({
             monté ; pastille de compte par onglet. */}
         <section
           aria-label="Contexte"
-          className="bg-background border-border flex flex-col gap-12 rounded-lg border p-16 md:col-span-2 lg:col-span-9"
+          className="bg-background border-border flex flex-col gap-12 rounded-lg border p-16 md:col-span-2 lg:col-span-9 lg:min-h-0"
         >
           <SegmentedControl
             options={[
@@ -405,7 +417,14 @@ export function CockpitContent({
             onValueChange={setContextTab}
             ariaLabel="Contexte : brouillons, conformité, prescriptions"
           />
-          <div role="tabpanel" aria-label={`Contexte : ${contextTab}`}>
+          {/* En control-room (lg+), le SegmentedControl reste figé en tête et le
+              corps de l'onglet défile chez lui (`lg:flex-1 lg:min-h-0
+              lg:overflow-auto`) au lieu d'étirer la tuile. En deçà : flux normal. */}
+          <div
+            role="tabpanel"
+            aria-label={`Contexte : ${contextTab}`}
+            className="lg:min-h-0 lg:flex-1 lg:overflow-auto"
+          >
             {contextTab === 'brouillons' && (
               <div id="cockpit-panel-drafts" tabIndex={-1} className={PANEL_ANCHOR_CLASS}>
                 {/* Renvoi « voir tout » : la liste des courses (pas de filtre
