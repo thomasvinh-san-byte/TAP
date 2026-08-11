@@ -615,7 +615,12 @@ function QuickFilterChip({
     <Button
       type="button"
       size="sm"
-      variant={active ? 'secondary' : 'outline'}
+      // État actif = fond plein coloré (variante `default` = bg-primary / texte
+      // contrasté) pour une distinction IMMÉDIATE actif/inactif (norme filter
+      // chips), au lieu du gris `secondary` trop proche du contour. Inactif =
+      // contour discret. Hover (bg-primary/90 vs bg-muted) et focus visible sont
+      // portés par les variantes du Button.
+      variant={active ? 'default' : 'outline'}
       aria-pressed={active}
       onClick={onClick}
       className="gap-4"
