@@ -10,6 +10,7 @@ import {
   type CaissePaymentMethod,
 } from './_lib/queries-caisse';
 import { CaisseSummary } from './_components/caisse-summary.client';
+import { CaisseCloture } from './_components/caisse-cloture.client';
 import { CaisseTable } from './_components/caisse-table.client';
 import { CaisseTableAEncaisser } from './_components/caisse-table-a-encaisser.client';
 import { CaisseToolbar, type CaisseVue } from './_components/caisse-toolbar.client';
@@ -97,6 +98,7 @@ export default async function CaissePage(props: PageProps) {
       <CaisseToolbar vue={vue} date={date} drivers={drivers} filters={filters} />
       <CaisseSummary totals={totals} />
       <CaisseTable rows={rows} sort={sort} dir={dir} date={date} />
+      <CaisseCloture byMethod={totals.by_method} />
     </div>
   );
 }
