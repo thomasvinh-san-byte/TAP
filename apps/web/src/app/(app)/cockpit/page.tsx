@@ -76,6 +76,32 @@ async function getCockpitRideEvents(
 }
 
 /**
+ * Référentiel des chauffeurs ACTIFS (RLS-filtré par organisation) — clé
+ * `drivers.id`, même espace que `rides.driver_id`. Sert au panneau « Charge par
+ * chauffeur » à inclure les chauffeurs sans course du jour (les plus
+ * disponibles). try/catch + fallback `[]` gracieux (le cockpit ne casse jamais).
+ */
+async function getActiveDrivers(
+  supabase: SupabaseServerClient,
+): Promise<{ id: string; nom_affichage: string }[]> {
+  try {
+    const { data, error } = await supabase
+      .from('drivers')
+      .select('id, nom_affichage')
+      .eq('actif', true)
+      .eq('archive', false)
+      .order('nom_affichage');
+    if (error) {
+      console.error('[cockpit] Erreur Supabase (drivers actifs):', error);
+      return [];
+    }
+    return (data as { id: string; nom_affichage: string }[] | null) ?? [];
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Incidents chauffeur ouverts (DEC-160) remontés comme alertes cockpit. Mappés
  * sur la forme `CockpitAlert` (event_type 'driver_incident'). try/catch +
  * fallback `[]` (table récente, ne casse jamais). La poussée temps réel des
@@ -180,6 +206,7 @@ export default async function CockpitPage() {
     prescriptionAlerts,
     alertPreferences,
     weatherAlert,
+    driverRoster,
   ] = await Promise.all([
     getRidesToday(supabase, today),
     getCockpitRideEvents(supabase, today),
@@ -194,6 +221,8 @@ export default async function CockpitPage() {
     getCockpitAlertPreferences(),
     // DEC-170 : bandeau « mode alerte météo actif » si un épisode est en cours.
     getActiveWeatherAlert(),
+    // Référentiel chauffeurs actifs → inclut les 0 course dans « Charge ».
+    getActiveDrivers(supabase),
   ]);
 
   // Incidents d'abord (les plus critiques pour la régulation), puis ride_events.
@@ -211,6 +240,7 @@ export default async function CockpitPage() {
         prescriptionAlerts={prescriptionAlerts}
         alertPreferences={alertPreferences}
         weatherAlert={weatherAlert}
+        driverRoster={driverRoster}
         isDirigeant={isDirigeant}
       />
     </OfflineGate>
