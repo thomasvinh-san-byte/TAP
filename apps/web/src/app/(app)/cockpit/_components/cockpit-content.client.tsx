@@ -345,8 +345,13 @@ export function CockpitContent({
         </section>
 
         {/* COLONNE DROITE (span 3, deux lignes) — alertes critiques (jamais
-            enterrées) puis charge, météo, son. Contexte d'action / suivi, calme. */}
-        <div className="flex flex-col gap-16 self-start md:col-span-1 lg:col-span-3 lg:row-span-2">
+            enterrées) puis charge, météo, son. Contexte d'action / suivi, calme.
+            En control-room (lg+) : occupe sa zone (deux rangées) et défile chez
+            elle (`lg:self-stretch` + `lg:min-h-0` + `lg:overflow-y-auto`) si son
+            contenu déborde — les panneaux internes gardent leur hauteur propre
+            (alertes/charge ont déjà leur `max-h`), aucun ne s'étire pour suivre la
+            liste. En deçà de lg : `self-start`, hauteur naturelle, flux de page. */}
+        <div className="flex flex-col gap-16 self-start md:col-span-1 lg:col-span-3 lg:row-span-2 lg:min-h-0 lg:self-stretch lg:overflow-y-auto">
           {panelAlerts.length > 0 && (
             <div className="bg-background border-border rounded-lg border p-16">
               {unassignedH1Count > 0 && (
@@ -394,7 +399,7 @@ export function CockpitContent({
             monté ; pastille de compte par onglet. */}
         <section
           aria-label="Contexte"
-          className="bg-background border-border flex flex-col gap-12 rounded-lg border p-16 md:col-span-2 lg:col-span-9"
+          className="bg-background border-border flex flex-col gap-12 rounded-lg border p-16 md:col-span-2 lg:col-span-9 lg:min-h-0"
         >
           <SegmentedControl
             options={[
@@ -412,7 +417,14 @@ export function CockpitContent({
             onValueChange={setContextTab}
             ariaLabel="Contexte : brouillons, conformité, prescriptions"
           />
-          <div role="tabpanel" aria-label={`Contexte : ${contextTab}`}>
+          {/* En control-room (lg+), le SegmentedControl reste figé en tête et le
+              corps de l'onglet défile chez lui (`lg:flex-1 lg:min-h-0
+              lg:overflow-auto`) au lieu d'étirer la tuile. En deçà : flux normal. */}
+          <div
+            role="tabpanel"
+            aria-label={`Contexte : ${contextTab}`}
+            className="lg:min-h-0 lg:flex-1 lg:overflow-auto"
+          >
             {contextTab === 'brouillons' && (
               <div id="cockpit-panel-drafts" tabIndex={-1} className={PANEL_ANCHOR_CLASS}>
                 {/* Renvoi « voir tout » : la liste des courses (pas de filtre
