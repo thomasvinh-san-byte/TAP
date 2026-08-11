@@ -1,8 +1,8 @@
 'use client';
 
-import { type ReactNode, useDeferredValue, useEffect, useState } from 'react';
+import { useDeferredValue, useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, Calendar, Check, FilterX, Plus, Rows3, X } from 'lucide-react';
+import { ArrowRight, Calendar, FilterX, Plus, Rows3, X } from 'lucide-react';
 import { listRidesEnrichedAction } from '../actions';
 import type { RideRowEnriched, RideStatus, RideTransportMode } from '../_lib/queries';
 import { RIDES_LIST_FETCH_CAP } from '../_lib/list-config';
@@ -10,6 +10,7 @@ import { ExportCsvButton } from './export-csv-button.client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { FilterChip } from '@/components/ui/filter-chip';
 import { Select } from '@/components/ui/select';
 import { EmptyState } from '@/components/ui/empty-state';
 import {
@@ -338,18 +339,18 @@ export function RidesList(): JSX.Element {
     <div className="space-y-16">
       {/* Lot 2/4 — filtres rapides : puces au-dessus de la liste, en un clic. */}
       <div className="flex flex-wrap items-center gap-8" role="group" aria-label="Filtres rapides">
-        <QuickFilterChip active={isPresetToutes} onClick={applyToutes}>
+        <FilterChip selected={isPresetToutes} onClick={applyToutes}>
           Toutes
-        </QuickFilterChip>
-        <QuickFilterChip active={isPresetNonAssignees} onClick={toggleNonAssignees}>
+        </FilterChip>
+        <FilterChip selected={isPresetNonAssignees} onClick={toggleNonAssignees}>
           Non assignées
-        </QuickFilterChip>
-        <QuickFilterChip active={isPresetUrgentes} onClick={toggleUrgentes}>
+        </FilterChip>
+        <FilterChip selected={isPresetUrgentes} onClick={toggleUrgentes}>
           Urgentes
-        </QuickFilterChip>
-        <QuickFilterChip active={isPresetAujourdhui} onClick={toggleAujourdhui}>
+        </FilterChip>
+        <FilterChip selected={isPresetAujourdhui} onClick={toggleAujourdhui}>
           Aujourd&apos;hui
-        </QuickFilterChip>
+        </FilterChip>
       </div>
       <ListToolbar
         search={
@@ -594,40 +595,6 @@ export function RidesList(): JSX.Element {
         onOpenChange={(o) => !o && setAssignRideId(null)}
       />
     </div>
-  );
-}
-
-/**
- * Puce de filtre rapide (Lot 2/4) — bouton toggle. État sélectionné perceptible
- * au-delà de la couleur : `aria-pressed` (lecteur d'écran), fond plein vs contour
- * (variante), et coche visible quand actif. Activable au clavier (bouton natif).
- */
-function QuickFilterChip({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: ReactNode;
-}): JSX.Element {
-  return (
-    <Button
-      type="button"
-      size="sm"
-      // État actif = fond plein coloré (variante `default` = bg-primary / texte
-      // contrasté) pour une distinction IMMÉDIATE actif/inactif (norme filter
-      // chips), au lieu du gris `secondary` trop proche du contour. Inactif =
-      // contour discret. Hover (bg-primary/90 vs bg-muted) et focus visible sont
-      // portés par les variantes du Button.
-      variant={active ? 'default' : 'outline'}
-      aria-pressed={active}
-      onClick={onClick}
-      className="gap-4"
-    >
-      {active && <Check className="h-12 w-12" aria-hidden />}
-      {children}
-    </Button>
   );
 }
 
