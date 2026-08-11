@@ -46,6 +46,11 @@ export interface DataTableColumn<T> {
   headerClassName?: string;
   /** Classe Tailwind additionnelle sur les `<td>` de la colonne. */
   cellClassName?: string;
+  /**
+   * Colonne MASQUABLE (opt-in). Une colonne sans cet attribut est toujours
+   * visible (essentielle) : elle ne peut jamais être masquée via `hiddenColumns`.
+   */
+  hideable?: boolean;
 }
 
 export interface DataTableSort {
@@ -140,6 +145,12 @@ export interface DataTableProps<T> {
   onToggleRow?: (key: string) => void;
   /** Bascule toutes les lignes AFFICHÉES (page courante). `selectAll` = cocher. */
   onToggleAllRows?: (keysOnPage: string[], selectAll: boolean) => void;
+  /**
+   * Visibilité de colonnes (opt-in). Ensemble des `key` de colonnes MASQUÉES.
+   * Absent → toutes les colonnes s'affichent (rétrocompatibilité stricte). Une
+   * colonne non `hideable` reste affichée même si sa clé est présente (sécurité).
+   */
+  hiddenColumns?: ReadonlySet<string>;
 }
 
 /**
@@ -241,18 +252,24 @@ export function DataTable<T>({
   selectedKeys,
   onToggleRow,
   onToggleAllRows,
+  hiddenColumns,
 }: DataTableProps<T>): JSX.Element {
   if (!loading && rows.length === 0 && emptyState !== undefined) {
     return <>{emptyState}</>;
   }
 
   const pad = DENSITY_PAD[density];
+  // Colonnes réellement rendues : on retire les colonnes MASQUABLES dont la clé
+  // est masquée. Les colonnes essentielles (non `hideable`) restent toujours.
+  const visibleColumns = hiddenColumns
+    ? columns.filter((c) => !(c.hideable && hiddenColumns.has(c.key)))
+    : columns;
   const selKey = selectionKey ?? rowKey;
   const pageKeys = selectable ? rows.map(selKey) : [];
   const allSelected = pageKeys.length > 0 && pageKeys.every((k) => selectedKeys?.has(k));
   const someSelected = pageKeys.some((k) => selectedKeys?.has(k));
   // Colonne de sélection en tête → colSpan des lignes pleines (skeleton/vide).
-  const fullColSpan = columns.length + (selectable ? 1 : 0);
+  const fullColSpan = visibleColumns.length + (selectable ? 1 : 0);
 
   return (
     <div
@@ -283,7 +300,7 @@ export function DataTable<T>({
                 />
               </th>
             )}
-            {columns.map((col) => (
+            {visibleColumns.map((col) => (
               <th
                 key={col.key}
                 scope="col"
@@ -310,7 +327,7 @@ export function DataTable<T>({
                     <Skeleton className="h-16 w-16" />
                   </td>
                 )}
-                {columns.map((col) => (
+                {visibleColumns.map((col) => (
                   <td key={col.key} className={cn('px-12', pad.td)}>
                     <Skeleton className="h-16 w-full" />
                   </td>
@@ -367,7 +384,7 @@ export function DataTable<T>({
                     />
                   </td>
                 )}
-                {columns.map((col) => (
+                {visibleColumns.map((col) => (
                   <td
                     key={col.key}
                     className={cn(
