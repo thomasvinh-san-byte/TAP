@@ -7,8 +7,13 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { ComplianceBadge } from '@/components/ui/compliance-badge';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
-import { getVehicleDetail, type VehicleComplianceItem } from '../_lib/vehicle-detail';
+import {
+  getVehicleDetail,
+  getVehicleRecentRides,
+  type VehicleComplianceItem,
+} from '../_lib/vehicle-detail';
 import type { VehicleRow } from '../page';
+import { StatusBadge } from '../../../../(app)/courses/_components/ride-badges';
 import { VehicleEditButton } from './_components/vehicle-edit-button.client';
 
 export const metadata = { title: 'Fiche véhicule' };
@@ -69,6 +74,7 @@ export default async function VehiculeDetailPage(props: { params: Promise<{ id: 
   const data = await getVehicleDetail(id);
   if (!data) notFound();
   const { vehicle, compliance } = data;
+  const recentRides = await getVehicleRecentRides(id);
   const uploadEnabled = process.env.UPLOAD_DOCS_ENABLED === 'true';
 
   const statut = vehicle.archive
@@ -164,6 +170,42 @@ export default async function VehiculeDetailPage(props: { params: Promise<{ id: 
                 <EquipRow label="Autre" value={vehicle.equipement_autre} />
               )}
             </div>
+          </section>
+        </BentoTile>
+
+        {/* En appui — Utilisation (courses récentes rattachées au véhicule). */}
+        <BentoTile className="lg:col-span-12">
+          <section className="space-y-8" aria-labelledby="vehicule-utilisation">
+            <h2 id="vehicule-utilisation" className="text-base font-semibold">
+              Utilisation récente
+            </h2>
+            {recentRides.length === 0 ? (
+              <p className="text-muted-foreground text-sm">
+                Aucune course rattachée à ce véhicule pour l&apos;instant.
+              </p>
+            ) : (
+              <ul className="divide-border divide-y">
+                {recentRides.map((r) => (
+                  <li key={r.id} className="flex items-center justify-between gap-12 py-8">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">
+                        {`${r.patient_nom} ${r.patient_prenom}`.trim() || 'Patient inconnu'}
+                        {r.dropoff_address ? (
+                          <span className="text-muted-foreground font-normal">
+                            {' '}
+                            → {r.dropoff_address.split(',')[0]}
+                          </span>
+                        ) : null}
+                      </p>
+                      <p className="text-muted-foreground text-xs tabular-nums">
+                        {new Date(r.scheduled_at).toLocaleDateString('fr-FR')}
+                      </p>
+                    </div>
+                    <StatusBadge status={r.status} />
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
         </BentoTile>
       </div>

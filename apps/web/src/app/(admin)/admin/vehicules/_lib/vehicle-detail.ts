@@ -63,3 +63,44 @@ export async function getVehicleDetail(id: string): Promise<VehicleDetailData | 
 
   return { vehicle, compliance };
 }
+
+export interface VehicleRecentRide {
+  id: string;
+  scheduled_at: string;
+  status: string;
+  patient_nom: string;
+  patient_prenom: string;
+  dropoff_address: string | null;
+}
+
+interface RawRecentRide {
+  id: string;
+  scheduled_at: string;
+  status: string;
+  dropoff_address: string | null;
+  patient: { nom: string; prenom: string } | null;
+}
+
+/**
+ * Courses récentes rattachées au véhicule (`vehicle_id`) — activité du véhicule,
+ * les plus récentes d'abord. RÉUTILISE le champ `vehicle_id` déjà en base ; RLS
+ * borne à l'organisation.
+ */
+export async function getVehicleRecentRides(id: string, limit = 8): Promise<VehicleRecentRide[]> {
+  const supabase = await createClient();
+  const res = await supabase
+    .from('rides')
+    .select('id, scheduled_at, status, dropoff_address, patient:patients(nom, prenom)')
+    .eq('vehicle_id', id)
+    .order('scheduled_at', { ascending: false })
+    .limit(limit);
+  const rows = (res.data as unknown as RawRecentRide[] | null) ?? [];
+  return rows.map((r) => ({
+    id: r.id,
+    scheduled_at: r.scheduled_at,
+    status: r.status,
+    patient_nom: r.patient?.nom ?? '',
+    patient_prenom: r.patient?.prenom ?? '',
+    dropoff_address: r.dropoff_address,
+  }));
+}
