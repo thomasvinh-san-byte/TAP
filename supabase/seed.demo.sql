@@ -1889,3 +1889,43 @@ update public.rides
 update public.rides
   set pickup_lat = -20.9390, pickup_lng = 55.2935, dropoff_lat = -20.9385, dropoff_lng = 55.2938
   where id = '44444444-0000-0000-0000-000000000323'; -- org3 : Le Port → Clinique Jeanne d'Arc
+
+-- ============================================================================
+-- SEED-CHECK — auto-vérification de fiabilité (démo société 1)
+-- ----------------------------------------------------------------------------
+-- Le bloc « écrans vivants » (SEED-02) insère notamment 2 courses d'urgence
+-- (immédiate non affectée + urgente affectée), indispensables pour démontrer le
+-- filtre « Urgentes » de la page courses. Ce garde-fou vérifie qu'elles existent
+-- réellement APRÈS seeding et lève une exception sinon : avec `ON_ERROR_STOP=1`
+-- (CD), un seed silencieusement incomplet devient un échec BRUYANT au lieu de
+-- passer inaperçu (incident constaté : 0 course urgente en base malgré le seed).
+--
+-- On ne vérifie l'invariant que si le bloc « écrans vivants » a dû s'exécuter
+-- (>= 10 patients société 1) — même seuil que sa propre garde, pour ne pas
+-- échouer sur un environnement volontairement minimal.
+do $$
+declare
+  org_id       uuid := '00000000-0000-0000-0000-000000000001';
+  nb_patients  int;
+  nb_urgences  int;
+begin
+  select count(*) into nb_patients
+    from public.patients where organization_id = org_id and archive = false;
+  if nb_patients < 10 then
+    raise notice 'SEED-CHECK : < 10 patients société 1 → vérification des urgences ignorée.';
+    return;
+  end if;
+
+  select count(*) into nb_urgences
+    from public.rides
+    where organization_id = org_id and archive = false
+      and urgency in ('urgente', 'immediate');
+
+  if nb_urgences < 2 then
+    raise exception
+      'SEED-CHECK ÉCHEC : % course(s) urgente/immédiate en base (attendu >= 2, société 1). Le seed démo est incomplet — le filtre « Urgentes » ne remonterait rien.',
+      nb_urgences;
+  end if;
+
+  raise notice 'SEED-CHECK OK : % courses urgentes/immédiates (société 1).', nb_urgences;
+end$$;
