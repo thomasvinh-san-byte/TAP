@@ -30,6 +30,8 @@ import { CoursesBulkActions } from './courses-bulk-actions.client';
 import { useTableDensity } from '@/lib/use-table-density.client';
 import { useTablePageSize, PAGE_SIZE_OPTIONS } from '@/lib/use-table-page-size.client';
 import { usePersistedCoursesFilters } from '@/lib/use-courses-filters.client';
+import { useCoursesHiddenColumns } from '@/lib/use-courses-columns.client';
+import { CoursesColumnsMenu } from './courses-columns-menu.client';
 
 // Source canonique des statuts actifs : STATUS_LABELS_FR (ride-status-fr.ts) et
 // la machine à états (@tap/shared). Liste maintenue à la main ici pour l'ordre
@@ -131,6 +133,12 @@ export function RidesList(): JSX.Element {
   const { density, toggle: toggleDensity } = useTableDensity();
   // Taille de page réglable + persistée (défaut 25, options 10/25/50/100).
   const { pageSize, setPageSize } = useTablePageSize();
+  // Amélioration D — visibilité des colonnes persistée (menu « Colonnes »).
+  const {
+    hidden: hiddenColumns,
+    toggle: toggleColumn,
+    reset: resetColumns,
+  } = useCoursesHiddenColumns();
 
   const resetPage = () => setPage(0);
   // Revenir page 1 quand la recherche change (cohérence de plage).
@@ -306,15 +314,25 @@ export function RidesList(): JSX.Element {
       `${r.patient?.nom ?? ''} ${r.patient?.prenom ?? ''}`.toLowerCase().includes(lower)
     );
   });
+  // Tri SÛR : si la colonne triée est masquée, on retombe sur le tri par défaut
+  // (créneau décroissant) — jamais d'état de tri pointant une colonne invisible.
+  const effectiveSort = hiddenColumns.has(sort.column)
+    ? { column: 'heure', dir: 'desc' as 'asc' | 'desc' }
+    : sort;
   // Tri de l'ENSEMBLE filtré, PUIS pagination : l'ordre reste cohérent d'une
   // page à l'autre. Le tri s'applique aux données déjà chargées (client).
-  const sorted = sortRides(filtered, sort.column, sort.dir);
+  const sorted = sortRides(filtered, effectiveSort.column, effectiveSort.dir);
   const total = sorted.length;
   const paged = sorted.slice(page * pageSize, (page + 1) * pageSize);
-  // Récap par statut sur l'ENSEMBLE filtré (pas la page) — se met à jour avec les
-  // filtres / la recherche. Colonnes du tableau extraites pour le colSpan du pied.
+  // Récap par statut sur l'ENSEMBLE filtré (pas la page) — INDÉPENDANT de
+  // l'affichage : reste correct même si la colonne statut est masquée.
   const statusRecap = buildStatusRecap(filtered);
   const columns = RIDE_COLUMNS((rid) => setAssignRideId(rid));
+  // Nombre de colonnes RÉELLEMENT rendues (pour le colSpan du pied) : on retire
+  // les colonnes masquables masquées.
+  const visibleColumnsCount = columns.filter(
+    (c) => !(c.hideable && hiddenColumns.has(c.key)),
+  ).length;
 
   return (
     <div className="space-y-16">
@@ -405,6 +423,12 @@ export function RidesList(): JSX.Element {
         }
         actions={
           <div className="flex items-center gap-8">
+            {/* Amélioration D — menu « Colonnes » (afficher / masquer, persisté). */}
+            <CoursesColumnsMenu
+              hidden={hiddenColumns}
+              onToggle={toggleColumn}
+              onReset={resetColumns}
+            />
             {/* Lot 3/4 — bascule densité (compact ↔ normal), préférence persistée.
                 État actif perceptible au-delà de la couleur : aria-pressed + fond
                 plein vs contour + libellé. */}
@@ -511,23 +535,27 @@ export function RidesList(): JSX.Element {
             selectedKeys={selectedIds}
             onToggleRow={toggleRowSelection}
             onToggleAllRows={toggleAllRowsSelection}
-            // Tri client réutilisant le mécanisme du tableau (en-tête bouton +
-            // flèche + aria-sort). Retour page 1 au changement, comme les filtres.
+            // Visibilité de colonnes (amélioration D) — opt-in ; les essentielles
+            // (non `hideable`) restent affichées quoi qu'il arrive.
+            hiddenColumns={hiddenColumns}
+            // Tri client réutilisant le mécanisme du tableau. On passe le tri
+            // EFFECTIF (défaut si la colonne triée est masquée) → pas de flèche
+            // sur une colonne invisible. Retour page 1 au changement.
             sort={{
-              column: sort.column,
-              dir: sort.dir,
+              column: effectiveSort.column,
+              dir: effectiveSort.dir,
               onSortChange: (column, dir) => {
                 setSort({ column, dir });
                 resetPage();
               },
             }}
             // Récap par statut (ensemble filtré) via la prop `footer` existante.
-            // colSpan = colonnes + 1 (colonne de sélection).
+            // colSpan = colonnes VISIBLES + 1 (colonne de sélection).
             footer={
               statusRecap.length > 0 ? (
                 <tr>
                   <td
-                    colSpan={columns.length + 1}
+                    colSpan={visibleColumnsCount + 1}
                     className="text-muted-foreground px-12 py-8 text-xs tabular-nums"
                   >
                     {statusRecap.map((e) => `${e.count} ${e.label}`).join(' · ')}
@@ -770,18 +798,21 @@ function RIDE_COLUMNS(onAssign: (rideId: string) => void): DataTableColumn<RideR
     },
     {
       key: 'mode',
+      hideable: true,
       header: 'Mode',
       sortable: true,
       cell: (ride) => <ModeBadge mode={ride.transport_mode} />,
     },
     {
       key: 'urgence',
+      hideable: true,
       header: 'Urgence',
       sortable: true,
       cell: (ride) => <UrgencyBadge urgency={ride.urgency} />,
     },
     {
       key: 'chauffeur',
+      hideable: true,
       header: 'Chauffeur',
       cell: (ride) =>
         ride.driver ? (
@@ -814,12 +845,14 @@ function RIDE_COLUMNS(onAssign: (rideId: string) => void): DataTableColumn<RideR
     },
     {
       key: 'statut',
+      hideable: true,
       header: 'Statut',
       sortable: true,
       cell: (ride) => <StatusBadge status={ride.status} />,
     },
     {
       key: 'paiement',
+      hideable: true,
       header: 'Paiement',
       cell: (ride) => (
         <PaymentBadge status={ride.payment_status} amountEur={ride.tarif_amount_eur} />
