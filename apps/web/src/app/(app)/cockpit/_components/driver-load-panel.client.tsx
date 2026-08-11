@@ -53,7 +53,10 @@ export function DriverLoadPanel({
       {loads.length === 0 ? (
         <p className="text-muted-foreground text-sm">Aucune course affectée.</p>
       ) : (
-        <ul className="flex flex-col gap-12">
+        // Corps borné + défilement interne (même motif que le panneau alertes) :
+        // avec beaucoup de chauffeurs, la liste défile au lieu d'étirer le
+        // panneau latéral. `pr-4` réserve l'espace de la barre de défilement.
+        <ul className="flex max-h-[280px] flex-col gap-12 overflow-y-auto pr-4">
           {loads.map((l) => {
             // Proportion RELATIVE au plus chargé (jamais une division par zéro :
             // si loads est non vide, max ≥ 1). Ce n'est pas un taux d'occupation.
