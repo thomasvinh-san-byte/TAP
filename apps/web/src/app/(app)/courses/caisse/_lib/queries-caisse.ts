@@ -35,6 +35,7 @@ export interface CaisseRow {
   payment_method: string | null;
   payment_status: string | null;
   payment_received_at: string | null;
+  payment_reminded_at: string | null;
   patient_nom: string;
   patient_prenom: string;
   driver_nom: string;
@@ -54,6 +55,7 @@ interface RawRow {
   payment_method: string | null;
   payment_status: string | null;
   payment_received_at: string | null;
+  payment_reminded_at: string | null;
   patient: { nom: string; prenom: string } | null;
   driver: { nom_affichage: string } | null;
 }
@@ -69,7 +71,7 @@ export async function listRidesEncaissees(
     .from('rides')
     .select(
       `id, scheduled_at, ended_at,
-       tarif_amount_eur, payment_method, payment_status, payment_received_at,
+       tarif_amount_eur, payment_method, payment_status, payment_received_at, payment_reminded_at,
        patient:patients!inner(nom, prenom),
        driver:drivers(nom_affichage)`,
     )
@@ -98,6 +100,7 @@ export async function listRidesEncaissees(
     payment_method: r.payment_method,
     payment_status: r.payment_status,
     payment_received_at: r.payment_received_at,
+    payment_reminded_at: r.payment_reminded_at,
     patient_nom: r.patient?.nom ?? '',
     patient_prenom: r.patient?.prenom ?? '',
     driver_nom: r.driver?.nom_affichage ?? '',
@@ -148,7 +151,7 @@ export async function listRidesAEncaisser(filters: AEncaisserFilters): Promise<A
     .from('rides')
     .select(
       `id, scheduled_at, ended_at,
-       tarif_amount_eur, payment_method, payment_status, payment_received_at,
+       tarif_amount_eur, payment_method, payment_status, payment_received_at, payment_reminded_at,
        patient:patients!inner(nom, prenom),
        driver:drivers(nom_affichage)`,
     )
@@ -170,6 +173,7 @@ export async function listRidesAEncaisser(filters: AEncaisserFilters): Promise<A
     payment_method: r.payment_method,
     payment_status: r.payment_status,
     payment_received_at: r.payment_received_at,
+    payment_reminded_at: r.payment_reminded_at,
     patient_nom: r.patient?.nom ?? '',
     patient_prenom: r.patient?.prenom ?? '',
     driver_nom: r.driver?.nom_affichage ?? '',

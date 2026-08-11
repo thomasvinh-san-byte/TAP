@@ -29,7 +29,7 @@ export {
   bulkUnassignRidesAction,
   assignVehicleAction,
 } from './assignment';
-export { updateRidePaymentAction } from './payment';
+export { updateRidePaymentAction, markRideReminderAction } from './payment';
 export { exportCaisseCsvAction, exportCaisseReportByDriverCsvAction } from './caisse';
 export type { ExportCaisseResult } from './caisse';
 export { overrideRideTarifAction } from './override';
