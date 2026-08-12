@@ -708,6 +708,9 @@ async function getPrevisionnel(
     ridesMoisTotal,
     ridesMoisValorisees,
   };
+}
+
+/**
  * KPIs distance / délai du mois (Lot 5.20-B) — 1 select sur les courses du mois
  * (bornes `scheduled_at`, cohérent avec volume/operationnel) → agrégation PURE
  * testée (`aggregateDistanceDelaiKpis`). Distance ESTIMÉE (Haversine corrigé) :
@@ -731,6 +734,9 @@ async function getDistanceDelai(
     return aggregateDistanceDelaiKpis([]);
   }
   return aggregateDistanceDelaiKpis(res.data as DistanceDelaiRideRow[]);
+}
+
+/**
  * KPIs économiques du mois (Lot 5.20-E) — coût/km paramétré (table
  * `cost_parameters`, RLS org) × distance estimée (Haversine corrigé) des courses
  * terminées du mois. Sans paramètres saisis → `configured=false` (l'UI affiche
