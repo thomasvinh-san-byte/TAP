@@ -8,6 +8,7 @@ import { KpiCard } from '@/app/(app)/tableau-de-bord/_components/kpi-card';
 import { ComplianceFieldset } from './_components/compliance-fieldset.client';
 import { BlockingModeControl } from './_components/blocking-mode-control.client';
 import { getComplianceBlockingMode } from './_lib/compliance-planning';
+import { isUploadDocsEnabled } from '@/lib/release-flags';
 
 export const metadata = { title: 'Conformité réglementaire' };
 export const dynamic = 'force-dynamic';
@@ -139,7 +140,7 @@ export default async function ConformitePage() {
             entityType="organization"
             entityId={null}
             initialItems={[]}
-            uploadEnabled={process.env.UPLOAD_DOCS_ENABLED === 'true'}
+            uploadEnabled={isUploadDocsEnabled()}
           />
         ) : (
           <ConformiteTable rows={orgRows} getLabel={() => 'Organisation'} />

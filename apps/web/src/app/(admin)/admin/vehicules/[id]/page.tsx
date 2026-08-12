@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { ComplianceBadge } from '@/components/ui/compliance-badge';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
+import { isUploadDocsEnabled } from '@/lib/release-flags';
 import {
   getVehicleDetail,
   getVehicleRecentRides,
@@ -75,7 +76,7 @@ export default async function VehiculeDetailPage(props: { params: Promise<{ id: 
   if (!data) notFound();
   const { vehicle, compliance } = data;
   const recentRides = await getVehicleRecentRides(id);
-  const uploadEnabled = process.env.UPLOAD_DOCS_ENABLED === 'true';
+  const uploadEnabled = isUploadDocsEnabled();
 
   const statut = vehicle.archive
     ? { label: 'Archivé', variant: 'outline' as const }

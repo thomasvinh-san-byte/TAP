@@ -137,6 +137,9 @@ export async function getUnreadMessageCountAction(): Promise<{ count: number }> 
   const { data, error } = await ctx.supabase.rpc('count_unread_messages');
   if (error || typeof data !== 'number') return { count: 0 };
   return { count: data };
+}
+
+/**
  * Téléverse une PHOTO de message sur le bucket privé org-scoped (§5.22 lot 3) —
  * validation SERVEUR (MIME image liste blanche, taille, présence) + vérification
  * que la course est accessible (RLS) pour éviter tout upload orphelin hors
