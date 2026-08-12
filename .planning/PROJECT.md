@@ -83,7 +83,7 @@ Anonymisation systématique (pas de NIR, pas de nom patient).
 - Lot 1 **en cours** : référentiels patients + saisie express.
 - Branche active : `claude/setup-project-docs-ATeRo`.
 - Repo : `thomasvinh-san-byte/tap`.
-- Stack : Next.js 14 App Router, Supabase, OR-Tools, OSRM, MapLibre — figée (cf. décisions verrouillées).
+- Stack : Next.js 15.5 App Router, Supabase, OR-Tools, OSRM, MapLibre — figée (cf. décisions verrouillées).
 
 ### Document métier de référence
 `docs/cahier_des_charges_saas_tap_v2.docx` — 24 modules fonctionnels. **9 modules
@@ -92,7 +92,7 @@ ultérieurement (conversion `.docx` → `.md` requise pour parsing).
 
 ## Constraints
 
-- **Tech stack** : Next.js 14 App Router, TypeScript strict, Tailwind + shadcn/ui, Supabase, MapLibre, FullCalendar/react-big-calendar, Python OR-Tools, OSRM auto-hébergé, Twilio ou OVH SMS Pro, Vercel, Sentry — **figée**, toute nouvelle dépendance majeure exige un ADR (cf. DEC-003).
+- **Tech stack** : Next.js 15.5 App Router, TypeScript strict, Tailwind + shadcn/ui, Supabase, MapLibre, FullCalendar/react-big-calendar, ~~Python OR-Tools~~ → solveur heuristique TS natif (ADR-010), OSRM auto-hébergé, Twilio ou OVH SMS Pro, Vercel, Sentry — **figée**, toute nouvelle dépendance majeure exige un ADR (cf. DEC-003).
 - **Sécurité données de santé** : RGPD niveau santé + HDS pour la production commerciale. Supabase Cloud non HDS — bêta privée acceptable sous DPA, migration OVHcloud Postgres / Scaleway HDS anticipée. Architecture portable obligatoire (cf. CON-001).
 - **Multi-tenant** : `organization_id` sur toute table métier + RLS forcée + tests pgTAP systématiques. `service_role` interdit côté client (audit CI bloquant) (cf. DEC-002).
 - **Chiffrement applicatif** : NIR et notes médicales en AES-256-GCM, clé hors Supabase. TLS 1.3 minimum (cf. DEC-007).

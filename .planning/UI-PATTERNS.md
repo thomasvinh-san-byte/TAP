@@ -298,7 +298,7 @@ Anti-patterns interdits :
 
 ## Performance SSR — Server Components patterns (Phase 04.7-bis-perf)
 
-Patterns Next.js 14 App Router pour pages liste avec données serveur :
+Patterns Next.js 15.5 App Router pour pages liste avec données serveur :
 
 - **`select()` ciblé** sur colonnes effectivement utilisées dans le rendu. `RIDE_COLUMNS` constant string réutilisé entre queries enrichies (`queries-enriched.ts`). Évite `select('*')` qui transporte des colonnes inutiles
 - **Suspense streaming** sur pages avec queries lourdes : shell de page (header + toolbar) s'affiche immédiatement, la table arrive ensuite. UX perçue beaucoup plus rapide. Skeleton component minimaliste en fallback
