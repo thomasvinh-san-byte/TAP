@@ -104,6 +104,39 @@ export async function sendRideMessageAction(
 }
 
 /**
+ * Marque le fil d'une course comme LU par l'utilisateur courant (§5.22 lot 2) :
+ * upsert de `internal_message_read.last_read_at = now()`. Idempotent. La RLS
+ * n'autorise que ses propres lignes (read-state privé, org-scoped).
+ */
+export async function markRideMessagesReadAction(rideId: string): Promise<{ error?: string }> {
+  if (!z.string().uuid().safeParse(rideId).success) return { error: 'Course invalide.' };
+  const ctx = await getAuthContext();
+  if (!ctx) return { error: 'Session expirée. Reconnectez-vous.' };
+
+  const { error } = await ctx.supabase.from('internal_message_read').upsert(
+    {
+      organization_id: ctx.organizationId,
+      ride_id: rideId,
+      profile_id: ctx.userId,
+      last_read_at: new Date().toISOString(),
+    },
+    { onConflict: 'profile_id,ride_id' },
+  );
+  if (error) return { error: 'Marquage de lecture impossible.' };
+  return {};
+}
+
+/**
+ * Nombre total de messages non lus de l'utilisateur courant (§5.22 lot 2) — via
+ * la RPC `count_unread_messages` (SECURITY INVOKER : RLS des deux tables
+ * appliquée → compte exact et cloisonné). Fallback 0 gracieux.
+ */
+export async function getUnreadMessageCountAction(): Promise<{ count: number }> {
+  const ctx = await getAuthContext();
+  if (!ctx) return { count: 0 };
+  const { data, error } = await ctx.supabase.rpc('count_unread_messages');
+  if (error || typeof data !== 'number') return { count: 0 };
+  return { count: data };
  * Téléverse une PHOTO de message sur le bucket privé org-scoped (§5.22 lot 3) —
  * validation SERVEUR (MIME image liste blanche, taille, présence) + vérification
  * que la course est accessible (RLS) pour éviter tout upload orphelin hors
