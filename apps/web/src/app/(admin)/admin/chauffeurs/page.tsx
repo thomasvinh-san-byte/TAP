@@ -2,6 +2,7 @@ import { getAuthContext } from '@/lib/auth/get-auth-context';
 import { PageHeader } from '@/components/page-header';
 import { DriversList } from './_components/drivers-list.client';
 import { getCachedChauffeursPageData } from './_lib/cached-queries';
+import { isUploadDocsEnabled } from '@/lib/release-flags';
 
 export const metadata = { title: 'Chauffeurs' };
 // DEC-152 (perf 08.03) : plus de `force-dynamic`. La page reste rendue
@@ -43,7 +44,7 @@ export default async function ChauffeursPage(props: { searchParams?: Promise<{ v
         currentRole={role as 'dirigeant' | 'regulateur'}
         vue={vueArchives ? 'archives' : 'actifs'}
         nextComplianceByDriverId={nextComplianceByDriverId}
-        uploadEnabled={process.env.UPLOAD_DOCS_ENABLED === 'true'}
+        uploadEnabled={isUploadDocsEnabled()}
       />
     </div>
   );
