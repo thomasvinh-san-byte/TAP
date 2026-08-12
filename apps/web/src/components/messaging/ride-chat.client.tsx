@@ -6,6 +6,7 @@ import { ImagePlus, Send, X } from 'lucide-react';
 import { groupMessagesByDay, SENDER_ROLE_LABEL, type RideMessage } from '@tap/shared';
 import { createClient } from '@/lib/supabase/client';
 import { useRideMessages, type ChatStatus } from '@/lib/messaging/use-ride-messages';
+import { markRideMessagesReadAction } from '@/lib/messaging/actions';
 import { getMessageImageUrlAction } from '@/lib/messaging/actions';
 import { useDriverAudio } from '@/app/(driver)/_components/driver-audio.client';
 import { Button } from '@/components/ui/button';
@@ -68,6 +69,15 @@ export function RideChat({ rideId, className }: Props): JSX.Element {
     const supabase = createClient();
     void supabase.auth.getUser().then(({ data }) => setMe(data.user?.id ?? null));
   }, []);
+
+  // §5.22 lot 2 : marque le fil LU à l'ouverture ET à chaque nouveau message
+  // affiché (dépend du dernier id). Le compteur de non-lus du header se met à
+  // jour au prochain rafraîchissement (poll). Idempotent, best-effort.
+  const lastMessageId = messages.at(-1)?.id ?? null;
+  React.useEffect(() => {
+    if (loading) return;
+    void markRideMessagesReadAction(rideId);
+  }, [rideId, loading, lastMessageId]);
 
   // Earcon sur nouveau message ENTRANT (émis par un autre que soi), jamais au
   // chargement initial de l'historique ni sur ses propres envois.
