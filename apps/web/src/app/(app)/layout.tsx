@@ -3,6 +3,7 @@ import { getAuthContext } from '@/lib/auth/get-auth-context';
 import { AppHeader } from '@/components/app-header';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { MessagingButton } from '@/components/messaging/messaging-button.client';
+import { isMessagingEnabled } from '@/lib/release-flags';
 import { Providers } from './providers.client';
 import { RideExpressOrchestrator } from './courses/_components/ride-express-orchestrator.client';
 
@@ -23,10 +24,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!ctx) redirect('/login');
   if (ctx.role === 'chauffeur') redirect('/conduite');
 
-  // Release toggle messagerie (DEC-141, §5.22) évalué haut dans la pile, côté
-  // serveur (pattern GEOLOC_ENABLED). OFF par défaut en prod → rien dans le
-  // header. Les brouillons sont passés au cockpit (DEC-140, §5.13).
-  const messagingEnabled = process.env.MESSAGING_ENABLED === 'true';
+  // Messagerie interne (§5.22) — LIVRÉE : ON par défaut (kill-switch
+  // MESSAGING_ENABLED=false). Évaluée côté serveur, haut dans la pile, de façon
+  // uniforme via `isMessagingEnabled` (même sémantique que /messagerie).
+  const messagingEnabled = isMessagingEnabled();
 
   return (
     <Providers>

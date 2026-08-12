@@ -2,6 +2,7 @@ import { VehiclesList } from './_components/vehicles-list.client';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
 import { PageHeader } from '@/components/page-header';
 import { getCachedVehiculesPageData } from './_lib/cached-queries';
+import { isUploadDocsEnabled } from '@/lib/release-flags';
 
 export const metadata = { title: 'Véhicules' };
 // DEC-153 (perf 08.04) : data-cache par organisation (cf. _lib/cached-queries.ts).
@@ -29,7 +30,7 @@ export default async function VehiculesPage() {
       <VehiclesList
         initialVehicles={vehicles}
         nextComplianceByVehicleId={nextComplianceByVehicleId}
-        uploadEnabled={process.env.UPLOAD_DOCS_ENABLED === 'true'}
+        uploadEnabled={isUploadDocsEnabled()}
       />
     </div>
   );
