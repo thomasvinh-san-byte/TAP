@@ -182,6 +182,51 @@ export type Database = {
         }
         Relationships: []
       }
+      cost_parameters: {
+        Row: {
+          cout_amortissement_eur_km: number
+          cout_carburant_eur_km: number
+          cout_entretien_eur_km: number
+          id: string
+          organization_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          cout_amortissement_eur_km?: number
+          cout_carburant_eur_km?: number
+          cout_entretien_eur_km?: number
+          id?: string
+          organization_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          cout_amortissement_eur_km?: number
+          cout_carburant_eur_km?: number
+          cout_entretien_eur_km?: number
+          id?: string
+          organization_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cost_parameters_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cost_parameters_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       data_breach_incident: {
         Row: {
           affected_data_categories: string[]

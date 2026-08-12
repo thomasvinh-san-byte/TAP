@@ -87,6 +87,7 @@ const GESTION_GROUP: NavGroup = {
   label: 'Gestion',
   activePrefixes: [
     '/admin/tarifs',
+    '/admin/parametres-couts',
     '/admin/facturation',
     '/admin/donneurs-ordres',
     '/admin/prescripteurs',
@@ -94,6 +95,7 @@ const GESTION_GROUP: NavGroup = {
   ],
   items: [
     { href: '/admin/tarifs', label: 'Tarifs' },
+    { href: '/admin/parametres-couts', label: 'Paramètres de coût' },
     { href: '/admin/facturation', label: 'Facturation' },
     { href: '/admin/donneurs-ordres', label: "Donneurs d'ordres" },
     { href: '/admin/prescripteurs', label: 'Prescripteurs' },
