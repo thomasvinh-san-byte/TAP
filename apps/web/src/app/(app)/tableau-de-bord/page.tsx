@@ -284,6 +284,79 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
         </div>
       </section>
 
+      {/* Rangée 2bis — Indicateurs opérationnels (Lot 5.20-A) : dérivés DIRECT
+          des courses du mois. « Non disponible » si aucune course (pas de 0 %
+          trompeur — même doctrine que le refus d'une métrique sans données). */}
+      <section className="space-y-4" aria-labelledby="bloc-operationnel">
+        <h2
+          id="bloc-operationnel"
+          className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
+        >
+          Indicateurs opérationnels du mois
+        </h2>
+        <div className="grid grid-cols-1 items-stretch gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <KpiCard
+            variant="simple"
+            label="Taux de mutualisation"
+            value={data.operationnel.total > 0 ? `${data.operationnel.tauxMutualisation} %` : '—'}
+            context={
+              data.operationnel.total > 0
+                ? `${data.operationnel.mutualisees} course${
+                    data.operationnel.mutualisees > 1 ? 's' : ''
+                  } mutualisée${data.operationnel.mutualisees > 1 ? 's' : ''} sur ${data.operationnel.total}`
+                : 'Aucune course ce mois'
+            }
+          />
+          <KpiCard
+            variant="ventilation"
+            label="Annulations par motif"
+            value={data.operationnel.total > 0 ? `${data.operationnel.tauxAnnulation} %` : '—'}
+            lines={
+              data.operationnel.annulationParMotif.length > 0
+                ? data.operationnel.annulationParMotif.map((m) => ({
+                    label: m.label,
+                    value: String(m.count),
+                  }))
+                : [
+                    {
+                      label: data.operationnel.total > 0 ? 'Aucune annulation' : 'Non disponible',
+                      value: '—',
+                    },
+                  ]
+            }
+          />
+          <KpiCard
+            variant="simple"
+            label="Taux de patient absent"
+            value={data.operationnel.total > 0 ? `${data.operationnel.tauxPatientAbsent} %` : '—'}
+            context={
+              data.operationnel.total > 0
+                ? `${data.operationnel.patientAbsent} absence${
+                    data.operationnel.patientAbsent > 1 ? 's' : ''
+                  } sur ${data.operationnel.total}`
+                : 'Aucune course ce mois'
+            }
+          />
+          <KpiCard
+            variant="multi"
+            label="Récurrentes vs ponctuelles"
+            rows={[
+              {
+                label: 'Récurrentes',
+                value:
+                  data.operationnel.total > 0
+                    ? `${data.operationnel.recurrentes} · ${data.operationnel.tauxRecurrentes} %`
+                    : '—',
+              },
+              {
+                label: 'Ponctuelles',
+                value: data.operationnel.total > 0 ? String(data.operationnel.ponctuelles) : '—',
+              },
+            ]}
+          />
+        </div>
+      </section>
+
       {/* Rangée 3 — Prescriptions + tops commerciaux (CdG §5.20, DEC-164/165). */}
       <section className="space-y-4" aria-labelledby="bloc-prescriptions">
         <h2

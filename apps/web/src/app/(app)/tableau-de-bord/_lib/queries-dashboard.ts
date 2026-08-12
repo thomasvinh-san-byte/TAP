@@ -8,6 +8,11 @@ import {
 } from '@/app/(admin)/admin/facturation/_lib/queries-facturation';
 import type { CaisseTotals } from '@/app/(app)/courses/caisse/_lib/queries-caisse';
 import { getSlaRules, type SlaRule } from './sla-status';
+import {
+  aggregateOperationalKpis,
+  type OperationalKpis,
+  type OperationalRideRow,
+} from './operational-kpis';
 
 /**
  * Agrégations du tableau de bord dirigeant (Phase 06.8).
@@ -106,6 +111,8 @@ export interface DashboardData {
   conformite: DashboardConformite;
   prescriptions: DashboardPrescriptions;
   commercial: DashboardCommercial;
+  // Lot 5.20-A — KPIs opérationnels dérivés direct des courses du mois.
+  operationnel: OperationalKpis;
   // Wave 1 Phase 06.11 — A4 comparatif N vs N-1
   caMoisPrec: CaisseTotals;
   volMoisPrec: number;
@@ -463,6 +470,30 @@ async function getCommercialTops(
   };
 }
 
+/**
+ * KPIs opérationnels du mois (Lot 5.20-A) — 1 select sur les courses du mois
+ * (bornes `scheduled_at`, cohérent avec volume/incidents) → agrégation PURE
+ * testée (`aggregateOperationalKpis`). Aucune donnée inventée : mutualisation,
+ * annulation + motif, patient absent, récurrentes/ponctuelles se dérivent de
+ * colonnes réelles. Fallback gracieux (total 0 → l'UI affiche « non disponible »).
+ */
+async function getOperationnel(
+  supabase: Supabase,
+  start: string,
+  end: string,
+): Promise<OperationalKpis> {
+  const res = await supabase
+    .from('rides')
+    .select('status, no_show_at, ride_group_id, ride_recurrence_id')
+    .gte('scheduled_at', start)
+    .lt('scheduled_at', end);
+  if (res.error || !res.data) {
+    if (res.error) console.error('[dashboard/operationnel] read error', res.error.message);
+    return aggregateOperationalKpis([]);
+  }
+  return aggregateOperationalKpis(res.data as OperationalRideRow[]);
+}
+
 /** Agrégat complet du tableau de bord — appelé par le Server Component. */
 export async function getDashboardData(): Promise<DashboardData> {
   const supabase = await createClient();
@@ -490,6 +521,8 @@ export async function getDashboardData(): Promise<DashboardData> {
     prescriptions,
     // DEC-165 — tops commerciaux (Top 10 patients CA + Top 5 donneurs B2B).
     commercial,
+    // Lot 5.20-A — KPIs opérationnels du mois.
+    operationnel,
     // A4 comparatif N vs N-1
     caMoisPrec,
     volMoisPrec,
@@ -517,6 +550,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     getConformite(supabase),
     getPrescriptions(supabase),
     getCommercialTops(supabase, moisStart, moisEnd),
+    getOperationnel(supabase, moisStart, moisEnd),
     getCaMois(supabase, precStart, precEnd),
     countRides(supabase, precStart, precEnd),
     getIncidents(supabase, precStart, precEnd),
@@ -549,6 +583,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     conformite,
     prescriptions,
     commercial,
+    operationnel,
     caMoisPrec,
     volMoisPrec,
     incidentsPrec,
