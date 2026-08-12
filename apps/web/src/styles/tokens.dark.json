@@ -6,7 +6,12 @@
       "primary": {
         "$value": "hsl(222 47% 8%)",
         "$type": "color",
-        "$description": "Override dark — fond principal mode nuit."
+        "$description": "Override dark — fond de page mode nuit."
+      },
+      "card": {
+        "$value": "hsl(222 39% 13%)",
+        "$type": "color",
+        "$description": "Override dark — surface carte, plus CLAIRE que le fond nuit (13% vs 8%) : la carte « avance » sur le fond sombre (parité jour/nuit)."
       },
       "muted": {
         "$value": "hsl(217 33% 17%)",
@@ -54,6 +59,11 @@
         "$value": "hsl(210 40% 96%)",
         "$type": "color",
         "$description": "Override dark — texte sur popover (D-10)."
+      },
+      "onCard": {
+        "$value": "hsl(210 40% 96%)",
+        "$type": "color",
+        "$description": "Override dark — texte sur surface carte (identique à --foreground nuit)."
       }
     },
     "action": {

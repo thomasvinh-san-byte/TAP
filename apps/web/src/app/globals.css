@@ -9,6 +9,22 @@
 @tailwind utilities;
 
 @layer base {
+  /* Élévation (relief des cartes). Ombres douces et colorées (teinte bleu-gris
+   * du design system, pas de noir dur — CLAUDE.md § 1 pilier 2), déclinées jour
+   * ET nuit. En nuit, la profondeur passe surtout par la surface plus claire
+   * (--card) ; l'ombre est plus discrète. Deux niveaux hiérarchisés :
+   *   --shadow-sm : cartes `normal` (Tier 2).
+   *   --shadow-md : cartes `hero` (Tier 1) + hover des cartes actionnables. */
+  :root {
+    --shadow-sm: 0 1px 2px 0 hsl(215 25% 27% / 0.06), 0 1px 3px 0 hsl(215 25% 27% / 0.05);
+    --shadow-md: 0 2px 4px -1px hsl(215 25% 27% / 0.08), 0 6px 16px -4px hsl(215 25% 27% / 0.1);
+  }
+
+  [data-theme='dark'] {
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.3);
+    --shadow-md: 0 4px 14px -4px hsl(0 0% 0% / 0.45);
+  }
+
   * {
     border-color: hsl(var(--border));
   }

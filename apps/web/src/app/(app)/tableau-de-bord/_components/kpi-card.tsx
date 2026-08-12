@@ -60,6 +60,15 @@ const LABEL_SIZE_CLASS: Record<KpiSize, string> = {
   compact: 'text-xs',
 };
 
+// Élévation hiérarchisée : la profondeur renforce la pyramide. Le vital (hero)
+// « avance » (ombre plus présente), le détail (compact) « recule » (plat, sans
+// ombre). En nuit la séparation vient surtout de la surface --card plus claire.
+const SHADOW_SIZE_CLASS: Record<KpiSize, string> = {
+  hero: 'shadow-elev-md',
+  normal: 'shadow-elev-sm',
+  compact: 'shadow-none',
+};
+
 const ACTION_CLASS =
   'text-primary focus-visible:ring-ring mt-auto inline-flex min-h-[44px] items-center ' +
   'text-sm font-medium hover:underline focus-visible:outline-none focus-visible:ring-2';
@@ -242,11 +251,16 @@ function KpiBody(props: KpiCardProps): JSX.Element {
 
 export function KpiCard(props: KpiCardProps): JSX.Element {
   const size = props.size ?? 'normal';
+  // Cartes actionnables : légère montée d'ombre au survol (micro-interaction,
+  // 150 ms ; `prefers-reduced-motion` neutralise la transition globalement).
+  const actionable = props.action !== undefined;
   return (
     <div
       className={cn(
-        'border-border bg-background flex h-full flex-col rounded-lg border',
+        'border-border bg-card text-card-foreground flex h-full flex-col rounded-lg border',
         CARD_SIZE_CLASS[size],
+        SHADOW_SIZE_CLASS[size],
+        actionable && 'hover:shadow-elev-md transition-shadow',
         props.className,
       )}
     >

@@ -39,7 +39,7 @@ export function SlaBadgesCard({ rules }: Props): JSX.Element {
   if (rules.length === 0) {
     return (
       <section
-        className="border-border bg-background flex h-full flex-col gap-8 rounded-lg border p-16"
+        className="border-border bg-card shadow-elev-sm flex h-full flex-col gap-8 rounded-lg border p-16"
         aria-labelledby="sla-title"
       >
         <div className="flex items-center gap-8">
@@ -55,7 +55,7 @@ export function SlaBadgesCard({ rules }: Props): JSX.Element {
 
   return (
     <section
-      className="border-border bg-background flex h-full flex-col gap-8 rounded-lg border p-16"
+      className="border-border bg-card shadow-elev-sm flex h-full flex-col gap-8 rounded-lg border p-16"
       aria-labelledby="sla-title"
     >
       <h3 id="sla-title" className="text-sm font-medium">

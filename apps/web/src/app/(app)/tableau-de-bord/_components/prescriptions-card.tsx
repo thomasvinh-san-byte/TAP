@@ -18,7 +18,7 @@ export function PrescriptionsCard({
   const aRisque = bonsEpuises + bonsExpires;
 
   return (
-    <section className="border-border bg-background flex h-full flex-col gap-12 rounded-lg border p-16">
+    <section className="border-border bg-card shadow-elev-sm flex h-full flex-col gap-12 rounded-lg border p-16">
       <div className="flex items-center gap-8">
         <FileText className="text-muted-foreground h-16 w-16 shrink-0" aria-hidden />
         <h3 className="text-sm font-medium">Prescriptions / bons de transport</h3>
