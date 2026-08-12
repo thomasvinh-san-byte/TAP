@@ -101,6 +101,9 @@ export interface TopDonneur {
  */
 export interface DashboardCommercial {
   topDonneurs: TopDonneur[];
+  // Lot 5.20-C — Top prescripteurs par ACTIVITÉ (nb de courses du mois), pas par
+  // CA patient (KPI-01 : aucun classement d'individus vulnérables).
+  topPrescripteursActivite: TopPrescripteur[];
 }
 
 export interface DashboardData {
@@ -427,7 +430,20 @@ async function getCommercialTops(
   moisStart: string,
   moisEnd: string,
 ): Promise<DashboardCommercial> {
-  const empty: DashboardCommercial = { topDonneurs: [] };
+  // Donneurs (CA) et prescripteurs (activité) sont indépendants → en parallèle.
+  const [topDonneurs, topPrescripteursActivite] = await Promise.all([
+    getTopDonneurs(supabase, moisStart, moisEnd),
+    getTopPrescripteursActivite(supabase, moisStart, moisEnd),
+  ]);
+  return { topDonneurs, topPrescripteursActivite };
+}
+
+/** Top 5 donneurs d'ordres par CA encaissé du mois (DEC-165). */
+async function getTopDonneurs(
+  supabase: Supabase,
+  moisStart: string,
+  moisEnd: string,
+): Promise<TopDonneur[]> {
   const res = await supabase
     .from('rides')
     .select('ordering_party_id, tarif_amount_eur')
@@ -437,7 +453,7 @@ async function getCommercialTops(
     .lt('ended_at', moisEnd);
   if (res.error) {
     console.error('[dashboard/commercial] read error', res.error.message);
-    return empty;
+    return [];
   }
   const rows =
     (res.data as { ordering_party_id: string | null; tarif_amount_eur: number | null }[] | null) ??
@@ -453,31 +469,95 @@ async function getCommercialTops(
     byDonneur.set(r.ordering_party_id, dAcc);
   }
 
-  const topDonneursRaw = [...byDonneur.entries()].sort((a, b) => b[1].ca - a[1].ca).slice(0, 5);
-  if (topDonneursRaw.length === 0) return empty;
+  const topRaw = [...byDonneur.entries()].sort((a, b) => b[1].ca - a[1].ca).slice(0, 5);
+  if (topRaw.length === 0) return [];
 
-  // Libellés en 1 requête `.in()` (ordering_parties).
   const donneursRes = await supabase
     .from('ordering_parties')
     .select('id, raison_sociale')
     .in(
       'id',
-      topDonneursRaw.map(([id]) => id),
+      topRaw.map(([id]) => id),
     );
-
   const donneurLabels = new Map<string, string>();
   for (const d of (donneursRes.data as { id: string; raison_sociale: string }[] | null) ?? []) {
     donneurLabels.set(d.id, d.raison_sociale);
   }
 
-  return {
-    topDonneurs: topDonneursRaw.map(([id, v]) => ({
-      ordering_party_id: id,
-      label: donneurLabels.get(id) ?? "Donneur d'ordres",
-      ca_eur: v.ca,
-      count: v.count,
-    })),
-  };
+  return topRaw.map(([id, v]) => ({
+    ordering_party_id: id,
+    label: donneurLabels.get(id) ?? "Donneur d'ordres",
+    ca_eur: v.ca,
+    count: v.count,
+  }));
+}
+
+/**
+ * Top 5 prescripteurs par ACTIVITÉ = nombre de courses du mois rattachées à
+ * leurs bons (Lot 5.20-C). Signal d'activité réel (flux du mois), distinct du
+ * top par nombre de bons de la carte prescriptions (stock). Chaîne
+ * `rides.prescription_id → prescriptions.prescriber_id`. KPI-01 : ce sont des
+ * prescripteurs (professionnels), jamais des patients. Anti-N+1 (3 `.in()`).
+ */
+async function getTopPrescripteursActivite(
+  supabase: Supabase,
+  moisStart: string,
+  moisEnd: string,
+): Promise<TopPrescripteur[]> {
+  const ridesRes = await supabase
+    .from('rides')
+    .select('prescription_id')
+    .gte('scheduled_at', moisStart)
+    .lt('scheduled_at', moisEnd)
+    .not('prescription_id', 'is', null);
+  if (ridesRes.error) {
+    console.error('[dashboard/prescripteurs-activite] read error', ridesRes.error.message);
+    return [];
+  }
+  const prescriptionIds = [
+    ...new Set(
+      ((ridesRes.data as { prescription_id: string }[] | null) ?? []).map((r) => r.prescription_id),
+    ),
+  ];
+  if (prescriptionIds.length === 0) return [];
+
+  // prescription → prescripteur.
+  const presRes = await supabase
+    .from('prescriptions')
+    .select('id, prescriber_id')
+    .in('id', prescriptionIds);
+  const presToPrescriber = new Map<string, string>();
+  for (const p of (presRes.data as { id: string; prescriber_id: string | null }[] | null) ?? []) {
+    if (p.prescriber_id) presToPrescriber.set(p.id, p.prescriber_id);
+  }
+
+  // Compte des courses par prescripteur.
+  const byPrescriber = new Map<string, number>();
+  for (const r of (ridesRes.data as { prescription_id: string }[] | null) ?? []) {
+    const prescriberId = presToPrescriber.get(r.prescription_id);
+    if (prescriberId) byPrescriber.set(prescriberId, (byPrescriber.get(prescriberId) ?? 0) + 1);
+  }
+  const topRaw = [...byPrescriber.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
+  if (topRaw.length === 0) return [];
+
+  const labelsRes = await supabase
+    .from('prescribers')
+    .select('id, nom, prenom')
+    .in(
+      'id',
+      topRaw.map(([id]) => id),
+    );
+  const labels = new Map<string, string>();
+  for (const p of (labelsRes.data as { id: string; nom: string; prenom: string | null }[] | null) ??
+    []) {
+    labels.set(p.id, [p.nom, p.prenom].filter(Boolean).join(' '));
+  }
+
+  return topRaw.map(([id, count]) => ({
+    prescriber_id: id,
+    label: labels.get(id) ?? 'Prescripteur',
+    count,
+  }));
 }
 
 /**
