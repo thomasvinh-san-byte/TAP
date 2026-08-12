@@ -357,7 +357,40 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
         </div>
       </section>
 
-      {/* Rangée 3 — Prescriptions + tops commerciaux (CdG §5.20, DEC-164/165). */}
+      {/* Rangée 2quater — Courses par période (J/S/M), Lot 5.20-C. Vue
+          consolidée du volume par horizon (chiffres déjà calculés, regroupés
+          ici comme classement d'activité par période). */}
+      <section className="space-y-4" aria-labelledby="bloc-periodes">
+        <h2
+          id="bloc-periodes"
+          className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
+        >
+          Courses par période
+        </h2>
+        <div className="grid grid-cols-1 items-stretch gap-8 sm:grid-cols-3">
+          <KpiCard
+            variant="simple"
+            size="compact"
+            label="Aujourd'hui"
+            value={String(data.volume.aujourdhui)}
+          />
+          <KpiCard
+            variant="simple"
+            size="compact"
+            label="7 derniers jours"
+            value={String(data.volume.semaine)}
+          />
+          <KpiCard
+            variant="simple"
+            size="compact"
+            label="Ce mois"
+            value={String(data.volume.mois)}
+          />
+        </div>
+      </section>
+
+      {/* Rangée 3 — Prescriptions + tops commerciaux (CdG §5.20, DEC-164/165 +
+          Lot 5.20-C : top prescripteurs par activité ajouté dans la carte tops). */}
       <section className="space-y-4" aria-labelledby="bloc-prescriptions">
         <h2
           id="bloc-prescriptions"
