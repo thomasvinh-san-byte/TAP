@@ -374,79 +374,10 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
           />
         </summary>
 
-      {/* Rangée 2ter — Distance & délai ESTIMÉS (Lot 5.20-B). Distance non
-          mesurée (pas d'OSRM en base) mais estimée Haversine × facteur routier
-          1,3 (DEC-056) : libellé « estimé » explicite, courses sans coordonnées
-          exclues. « Non disponible » si aucune course estimable (pas de faux 0). */}
-      <section className="space-y-4" aria-labelledby="bloc-distance">
-        <h2
-          id="bloc-distance"
-          className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
-        >
-          Distance &amp; délai du mois (estimés)
-        </h2>
-        <div className="grid grid-cols-1 items-stretch gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          <KpiCard
-            variant="simple"
-            label="Km moyen / course"
-            value={
-              data.distanceDelai.ridesAvecDistance > 0
-                ? `${km1.format(data.distanceDelai.kmMoyenParCourse)} km`
-                : '—'
-            }
-            context={
-              data.distanceDelai.ridesAvecDistance > 0
-                ? `estimé (facteur routier 1,3) · sur ${data.distanceDelai.ridesAvecDistance}/${data.distanceDelai.ridesRealisees} course${
-                    data.distanceDelai.ridesRealisees > 1 ? 's' : ''
-                  } géolocalisée${data.distanceDelai.ridesAvecDistance > 1 ? 's' : ''}`
-                : 'Aucune course géolocalisée ce mois'
-            }
-          />
-          <KpiCard
-            variant="simple"
-            label="Km à vide / en charge"
-            value={
-              data.distanceDelai.kmEnChargeTotal > 0 ? `${data.distanceDelai.ratioAVidePct} %` : '—'
-            }
-            context={
-              data.distanceDelai.kmEnChargeTotal > 0
-                ? `${km1.format(data.distanceDelai.kmAVideTotal)} km à vide · ${km1.format(
-                    data.distanceDelai.kmEnChargeTotal,
-                  )} km en charge (estimés)`
-                : 'Non disponible'
-            }
-          />
-          <KpiCard
-            variant="simple"
-            label="Délai moyen de prise en charge"
-            value={
-              data.distanceDelai.ridesAvecDelai > 0
-                ? delaiLabel(data.distanceDelai.delaiMoyenMin)
-                : '—'
-            }
-            context={
-              data.distanceDelai.ridesAvecDelai > 0
-                ? `sur ${data.distanceDelai.ridesAvecDelai} course${
-                    data.distanceDelai.ridesAvecDelai > 1 ? 's' : ''
-                  } démarrée${data.distanceDelai.ridesAvecDelai > 1 ? 's' : ''} · écart programmé/réel`
-                : 'Aucune course démarrée ce mois'
-            }
-          />
-        </div>
-      </section>
-
-      {/* Rangée 2ter — Économie du mois ESTIMÉE (Lot 5.20-E). Marge = CA − coût
-          (coût/km paramétré × distance estimée Haversine). « Non configuré » tant
-          que les paramètres de coût ne sont pas saisis (pas de zéro trompeur). */}
-      <section className="space-y-4" aria-labelledby="bloc-economie">
-        <h2
-          id="bloc-economie"
-          className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
-        >
-          Économie du mois (estimée)
-        </h2>
-        {!data.economique.configured ? (
-          <div className="grid grid-cols-1 items-stretch gap-8">
+        {/* Opérationnel (Lot 5.20-A) — « Non disponible » si aucune course. */}
+        <div className="space-y-4">
+          <p className={GROUP_LABEL_CLASS}>Opérationnel</p>
+          <div className="grid grid-cols-1 items-stretch gap-8 sm:grid-cols-2 lg:grid-cols-4">
             <KpiCard
               variant="simple"
               size="compact"
