@@ -296,6 +296,68 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
         </div>
       </section>
 
+      {/* Rangée 2bis-a — CA prévisionnel (à venir) + réalisation du mois (Lot
+          5.20-D). « Prévu » = valeur tarifaire des courses PLANIFIÉES (jamais un
+          objectif inventé) ; les occurrences de récurrence non matérialisées ne
+          sont pas projetées (couverture affichée). */}
+      <section className="space-y-4" aria-labelledby="bloc-previsionnel">
+        <h2
+          id="bloc-previsionnel"
+          className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
+        >
+          CA prévisionnel &amp; réalisation du mois
+        </h2>
+        <div className="grid grid-cols-1 items-stretch gap-8 sm:grid-cols-2 lg:grid-cols-5">
+          <KpiCard
+            variant="simple"
+            size="compact"
+            label="À venir aujourd'hui"
+            value={eur.format(data.previsionnel.aVenirJour)}
+          />
+          <KpiCard
+            variant="simple"
+            size="compact"
+            label="À venir 7 jours"
+            value={eur.format(data.previsionnel.aVenirSemaine)}
+          />
+          <KpiCard
+            variant="simple"
+            size="compact"
+            label="À venir ce mois"
+            value={eur.format(data.previsionnel.aVenirMois)}
+          />
+          <KpiCard
+            variant="simple"
+            size="compact"
+            label="À venir cette année"
+            value={eur.format(data.previsionnel.aVenirAnnee)}
+          />
+          <KpiCard
+            variant="simple"
+            size="compact"
+            label="Réalisation du mois"
+            value={
+              data.previsionnel.planifieMois > 0 ? `${data.previsionnel.tauxRealisation} %` : '—'
+            }
+            context={
+              data.previsionnel.planifieMois > 0
+                ? `${eur.format(data.previsionnel.realiseMois)} réalisé / ${eur.format(
+                    data.previsionnel.planifieMois,
+                  )} planifié${
+                    data.previsionnel.ridesMoisValorisees < data.previsionnel.ridesMoisTotal
+                      ? ` · ${data.previsionnel.ridesMoisValorisees}/${data.previsionnel.ridesMoisTotal} valorisées`
+                      : ''
+                  }`
+                : 'Aucune course planifiée ce mois'
+            }
+          />
+        </div>
+        <p className="text-muted-foreground text-xs">
+          Prévu = valeur tarifaire des courses planifiées (tarifs déjà calculés). Les occurrences de
+          récurrence non encore créées ne sont pas projetées.
+        </p>
+      </section>
+
       {/* Rangée 2bis — Indicateurs opérationnels (Lot 5.20-A) : dérivés DIRECT
           des courses du mois. « Non disponible » si aucune course (pas de 0 %
           trompeur — même doctrine que le refus d'une métrique sans données). */}

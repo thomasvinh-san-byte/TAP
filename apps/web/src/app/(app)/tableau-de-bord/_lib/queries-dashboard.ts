@@ -106,6 +106,34 @@ export interface DashboardCommercial {
   topPrescripteursActivite: TopPrescripteur[];
 }
 
+/**
+ * CA prévisionnel + écart prévu/réalisé (Lot 5.20-D).
+ *
+ * HYPOTHÈSE DE CALCUL (à valider — pas d'objectif commercial arbitraire) :
+ * le « prévu » = somme des `tarif_amount_eur` déjà portés par les COURSES
+ * PLANIFIÉES (valorisation à la création via le moteur tarifaire). On ne
+ * projette PAS les occurrences de récurrence non encore matérialisées en
+ * `rides` (elles n'ont pas de tarif fiable sans re-calcul) : on l'assume et on
+ * expose la couverture (`ridesMoisValorisees / ridesMoisTotal`) plutôt qu'un
+ * chiffre inventé. Les courses annulées sont exclues.
+ *
+ * L'écart prévu/réalisé du mois est comparé À VALEUR TARIFAIRE (pommes contre
+ * pommes) : `realiseMois` = tarifs des courses TERMINÉES, `planifieMois` =
+ * tarifs de toutes les courses non annulées du mois. On n'oppose pas
+ * l'encaissé (caisse) au planifié (le CGSS ne passe pas en caisse → biais).
+ */
+export interface DashboardPrevisionnel {
+  aVenirJour: number; // € tarifs des courses à venir d'ici la fin de journée
+  aVenirSemaine: number; // € à venir sur 7 jours glissants
+  aVenirMois: number; // € à venir jusqu'à la fin du mois
+  aVenirAnnee: number; // € à venir jusqu'à la fin de l'année
+  planifieMois: number; // valeur tarifaire planifiée du mois (non annulées)
+  realiseMois: number; // valeur tarifaire réalisée du mois (terminées)
+  tauxRealisation: number; // realiseMois / planifieMois, en %
+  ridesMoisTotal: number; // courses non annulées du mois (couverture)
+  ridesMoisValorisees: number; // dont munies d'un tarif
+}
+
 export interface DashboardData {
   coursesAFacturer: number;
   moisCourant: string; // YYYY-MM — mois compté par coursesAFacturer (drill-down)
@@ -122,6 +150,8 @@ export interface DashboardData {
   commercial: DashboardCommercial;
   // Lot 5.20-A — KPIs opérationnels dérivés direct des courses du mois.
   operationnel: OperationalKpis;
+  // Lot 5.20-D — CA prévisionnel (à venir) + écart prévu/réalisé du mois.
+  previsionnel: DashboardPrevisionnel;
   // Lot 5.20-B — KPIs distance / délai ESTIMÉS (Haversine corrigé + horodatages).
   distanceDelai: DistanceDelaiKpis;
   // Lot 5.20-E — KPIs économiques estimés (coût/km paramétré × distance estimée).
@@ -585,6 +615,99 @@ async function getOperationnel(
 }
 
 /**
+ * CA prévisionnel (à venir) + écart prévu/réalisé du mois (Lot 5.20-D) — valeur
+ * TARIFAIRE des courses planifiées (`tarif_amount_eur`), jamais un objectif
+ * inventé. 2 requêtes : les courses à venir (bucketées par horizon) et les
+ * courses du mois (valeur planifiée vs réalisée). Fallback gracieux.
+ */
+async function getPrevisionnel(
+  supabase: Supabase,
+  nowIso: string,
+  finJourIso: string,
+  finSemaineIso: string,
+  moisStart: string,
+  moisEnd: string,
+  finAnneeIso: string,
+): Promise<DashboardPrevisionnel> {
+  const empty: DashboardPrevisionnel = {
+    aVenirJour: 0,
+    aVenirSemaine: 0,
+    aVenirMois: 0,
+    aVenirAnnee: 0,
+    planifieMois: 0,
+    realiseMois: 0,
+    tauxRealisation: 0,
+    ridesMoisTotal: 0,
+    ridesMoisValorisees: 0,
+  };
+
+  const [aVenirRes, moisRes] = await Promise.all([
+    // Courses à venir, de maintenant à la fin de l'année (annulées filtrées en JS,
+    // même style que la requête du mois — évite un filtre PostgREST négatif fragile).
+    supabase
+      .from('rides')
+      .select('scheduled_at, status, tarif_amount_eur')
+      .gte('scheduled_at', nowIso)
+      .lt('scheduled_at', finAnneeIso),
+    // Toutes les courses du mois (pour prévu vs réalisé, valeur tarifaire).
+    supabase
+      .from('rides')
+      .select('status, tarif_amount_eur')
+      .gte('scheduled_at', moisStart)
+      .lt('scheduled_at', moisEnd),
+  ]);
+
+  if (aVenirRes.error || moisRes.error) {
+    console.error(
+      '[dashboard/previsionnel] read error',
+      aVenirRes.error?.message ?? moisRes.error?.message,
+    );
+    return empty;
+  }
+
+  const cancelled = new Set<string>(STATUTS_ANNULEE);
+
+  let aVenirJour = 0;
+  let aVenirSemaine = 0;
+  let aVenirMois = 0;
+  let aVenirAnnee = 0;
+  for (const r of (aVenirRes.data as {
+    scheduled_at: string;
+    status: string;
+    tarif_amount_eur: number | null;
+  }[]) ?? []) {
+    if (cancelled.has(r.status)) continue;
+    const montant = Number(r.tarif_amount_eur ?? 0);
+    aVenirAnnee += montant;
+    if (r.scheduled_at < finJourIso) aVenirJour += montant;
+    if (r.scheduled_at < finSemaineIso) aVenirSemaine += montant;
+    if (r.scheduled_at < moisEnd) aVenirMois += montant;
+  }
+
+  let planifieMois = 0;
+  let realiseMois = 0;
+  let ridesMoisTotal = 0;
+  let ridesMoisValorisees = 0;
+  for (const r of (moisRes.data as { status: string; tarif_amount_eur: number | null }[]) ?? []) {
+    if (cancelled.has(r.status)) continue;
+    const montant = Number(r.tarif_amount_eur ?? 0);
+    ridesMoisTotal += 1;
+    if (r.tarif_amount_eur !== null) ridesMoisValorisees += 1;
+    planifieMois += montant;
+    if (r.status === 'terminee') realiseMois += montant;
+  }
+
+  return {
+    aVenirJour,
+    aVenirSemaine,
+    aVenirMois,
+    aVenirAnnee,
+    planifieMois,
+    realiseMois,
+    tauxRealisation: planifieMois > 0 ? Math.round((realiseMois / planifieMois) * 100) : 0,
+    ridesMoisTotal,
+    ridesMoisValorisees,
+  };
  * KPIs distance / délai du mois (Lot 5.20-B) — 1 select sur les courses du mois
  * (bornes `scheduled_at`, cohérent avec volume/operationnel) → agrégation PURE
  * testée (`aggregateDistanceDelaiKpis`). Distance ESTIMÉE (Haversine corrigé) :
@@ -661,6 +784,10 @@ export async function getDashboardData(): Promise<DashboardData> {
   const jour = utcDayBounds();
   const sansTarif48hThreshold = new Date(Date.now() - 48 * 3_600_000).toISOString();
   const sms24hThreshold = isoDaysAgo(1);
+  // Lot 5.20-D — horizons du prévisionnel (à venir).
+  const nowIso = new Date().toISOString();
+  const finSemaineIso = new Date(Date.now() + 7 * 86_400_000).toISOString();
+  const finAnneeIso = new Date(Date.UTC(new Date().getUTCFullYear() + 1, 0, 1)).toISOString();
 
   const [
     coursesFacturables,
@@ -680,6 +807,8 @@ export async function getDashboardData(): Promise<DashboardData> {
     commercial,
     // Lot 5.20-A — KPIs opérationnels du mois.
     operationnel,
+    // Lot 5.20-D — CA prévisionnel + écart prévu/réalisé.
+    previsionnel,
     // Lot 5.20-B — KPIs distance / délai estimés du mois.
     distanceDelai,
     // Lot 5.20-E — KPIs économiques estimés du mois.
@@ -712,6 +841,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     getPrescriptions(supabase),
     getCommercialTops(supabase, moisStart, moisEnd),
     getOperationnel(supabase, moisStart, moisEnd),
+    getPrevisionnel(supabase, nowIso, jour.end, finSemaineIso, moisStart, moisEnd, finAnneeIso),
     getDistanceDelai(supabase, moisStart, moisEnd),
     getEconomique(supabase, moisStart, moisEnd),
     getCaMois(supabase, precStart, precEnd),
@@ -747,6 +877,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     prescriptions,
     commercial,
     operationnel,
+    previsionnel,
     distanceDelai,
     economique,
     caMoisPrec,
