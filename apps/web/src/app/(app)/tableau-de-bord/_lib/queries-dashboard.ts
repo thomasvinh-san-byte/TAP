@@ -13,6 +13,12 @@ import {
   type OperationalKpis,
   type OperationalRideRow,
 } from './operational-kpis';
+import {
+  aggregateDistanceDelaiKpis,
+  type DistanceDelaiKpis,
+  type DistanceDelaiRideRow,
+} from './distance-delai-kpis';
+import { aggregateEconomicKpis, type EconomicKpis, type EconomicRideRow } from './economic-kpis';
 
 /**
  * Agrégations du tableau de bord dirigeant (Phase 06.8).
@@ -116,6 +122,10 @@ export interface DashboardData {
   commercial: DashboardCommercial;
   // Lot 5.20-A — KPIs opérationnels dérivés direct des courses du mois.
   operationnel: OperationalKpis;
+  // Lot 5.20-B — KPIs distance / délai ESTIMÉS (Haversine corrigé + horodatages).
+  distanceDelai: DistanceDelaiKpis;
+  // Lot 5.20-E — KPIs économiques estimés (coût/km paramétré × distance estimée).
+  economique: EconomicKpis;
   // Wave 1 Phase 06.11 — A4 comparatif N vs N-1
   caMoisPrec: CaisseTotals;
   volMoisPrec: number;
@@ -574,6 +584,73 @@ async function getOperationnel(
   return aggregateOperationalKpis(res.data as OperationalRideRow[]);
 }
 
+/**
+ * KPIs distance / délai du mois (Lot 5.20-B) — 1 select sur les courses du mois
+ * (bornes `scheduled_at`, cohérent avec volume/operationnel) → agrégation PURE
+ * testée (`aggregateDistanceDelaiKpis`). Distance ESTIMÉE (Haversine corrigé) :
+ * les courses sans coordonnées sont exclues du calcul (jamais de valeur
+ * inventée). Fallback gracieux.
+ */
+async function getDistanceDelai(
+  supabase: Supabase,
+  start: string,
+  end: string,
+): Promise<DistanceDelaiKpis> {
+  const res = await supabase
+    .from('rides')
+    .select(
+      'driver_id, status, no_show_at, scheduled_at, started_at, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng',
+    )
+    .gte('scheduled_at', start)
+    .lt('scheduled_at', end);
+  if (res.error || !res.data) {
+    if (res.error) console.error('[dashboard/distance-delai] read error', res.error.message);
+    return aggregateDistanceDelaiKpis([]);
+  }
+  return aggregateDistanceDelaiKpis(res.data as DistanceDelaiRideRow[]);
+ * KPIs économiques du mois (Lot 5.20-E) — coût/km paramétré (table
+ * `cost_parameters`, RLS org) × distance estimée (Haversine corrigé) des courses
+ * terminées du mois. Sans paramètres saisis → `configured=false` (l'UI affiche
+ * « non configuré », jamais un zéro trompeur). 2 requêtes, agrégation PURE testée.
+ */
+async function getEconomique(
+  supabase: Supabase,
+  start: string,
+  end: string,
+): Promise<EconomicKpis> {
+  const [paramsRes, ridesRes] = await Promise.all([
+    supabase
+      .from('cost_parameters')
+      .select('cout_carburant_eur_km, cout_entretien_eur_km, cout_amortissement_eur_km')
+      .maybeSingle(),
+    supabase
+      .from('rides')
+      .select('tarif_amount_eur, ride_group_id, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng')
+      .eq('status', 'terminee')
+      .gte('scheduled_at', start)
+      .lt('scheduled_at', end),
+  ]);
+
+  let coutParKm: number | null = null;
+  if (!paramsRes.error && paramsRes.data) {
+    const p = paramsRes.data as {
+      cout_carburant_eur_km: number;
+      cout_entretien_eur_km: number;
+      cout_amortissement_eur_km: number;
+    };
+    coutParKm =
+      Number(p.cout_carburant_eur_km) +
+      Number(p.cout_entretien_eur_km) +
+      Number(p.cout_amortissement_eur_km);
+  }
+
+  if (ridesRes.error || !ridesRes.data) {
+    if (ridesRes.error) console.error('[dashboard/economique] read error', ridesRes.error.message);
+    return aggregateEconomicKpis([], coutParKm);
+  }
+  return aggregateEconomicKpis(ridesRes.data as EconomicRideRow[], coutParKm);
+}
+
 /** Agrégat complet du tableau de bord — appelé par le Server Component. */
 export async function getDashboardData(): Promise<DashboardData> {
   const supabase = await createClient();
@@ -603,6 +680,10 @@ export async function getDashboardData(): Promise<DashboardData> {
     commercial,
     // Lot 5.20-A — KPIs opérationnels du mois.
     operationnel,
+    // Lot 5.20-B — KPIs distance / délai estimés du mois.
+    distanceDelai,
+    // Lot 5.20-E — KPIs économiques estimés du mois.
+    economique,
     // A4 comparatif N vs N-1
     caMoisPrec,
     volMoisPrec,
@@ -631,6 +712,8 @@ export async function getDashboardData(): Promise<DashboardData> {
     getPrescriptions(supabase),
     getCommercialTops(supabase, moisStart, moisEnd),
     getOperationnel(supabase, moisStart, moisEnd),
+    getDistanceDelai(supabase, moisStart, moisEnd),
+    getEconomique(supabase, moisStart, moisEnd),
     getCaMois(supabase, precStart, precEnd),
     countRides(supabase, precStart, precEnd),
     getIncidents(supabase, precStart, precEnd),
@@ -664,6 +747,8 @@ export async function getDashboardData(): Promise<DashboardData> {
     prescriptions,
     commercial,
     operationnel,
+    distanceDelai,
+    economique,
     caMoisPrec,
     volMoisPrec,
     incidentsPrec,

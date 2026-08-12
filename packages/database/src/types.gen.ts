@@ -182,6 +182,51 @@ export type Database = {
         }
         Relationships: []
       }
+      cost_parameters: {
+        Row: {
+          cout_amortissement_eur_km: number
+          cout_carburant_eur_km: number
+          cout_entretien_eur_km: number
+          id: string
+          organization_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          cout_amortissement_eur_km?: number
+          cout_carburant_eur_km?: number
+          cout_entretien_eur_km?: number
+          id?: string
+          organization_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          cout_amortissement_eur_km?: number
+          cout_carburant_eur_km?: number
+          cout_entretien_eur_km?: number
+          id?: string
+          organization_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cost_parameters_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cost_parameters_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       data_breach_incident: {
         Row: {
           affected_data_categories: string[]
@@ -862,6 +907,49 @@ export type Database = {
             columns: ["sender_profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      internal_message_read: {
+        Row: {
+          last_read_at: string
+          organization_id: string
+          profile_id: string
+          ride_id: string
+        }
+        Insert: {
+          last_read_at?: string
+          organization_id: string
+          profile_id: string
+          ride_id: string
+        }
+        Update: {
+          last_read_at?: string
+          organization_id?: string
+          profile_id?: string
+          ride_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internal_message_read_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "internal_message_read_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "internal_message_read_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
             referencedColumns: ["id"]
           },
         ]
@@ -2860,6 +2948,7 @@ export type Database = {
     }
     Functions: {
       check_breach_deadlines: { Args: never; Returns: undefined }
+      count_unread_messages: { Args: never; Returns: number }
       current_organization_id: { Args: never; Returns: string }
       current_user_role: {
         Args: never
