@@ -769,6 +769,48 @@ export type Database = {
         }
         Relationships: []
       }
+      internal_general_message: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          organization_id: string
+          sender_profile_id: string
+          sender_role: Database["public"]["Enums"]["user_role"]
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          organization_id: string
+          sender_profile_id: string
+          sender_role: Database["public"]["Enums"]["user_role"]
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          organization_id?: string
+          sender_profile_id?: string
+          sender_role?: Database["public"]["Enums"]["user_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internal_general_message_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "internal_general_message_sender_profile_id_fkey"
+            columns: ["sender_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       internal_message: {
         Row: {
           body: string | null

@@ -23,11 +23,9 @@ import {
  * - (a) Conversations de course : le chat vit dans chaque course (germe lot 1,
  *   `internal_message`/`ride-chat`). On y donne un accès navigationnel — on ne
  *   fabrique pas de liste de conversations (pas de logique data nouvelle).
- * - (b) Fil général (hors course) : NON construit → EmptyState honnête.
+ * - (b) Fil général (hors course, §5.22 lot A) : fil commun de l'organisation,
+ *   temps réel, org-scoped, archivé 1 an → lien vers `/messagerie`.
  *
- * Pas de badge non-lus : aucune notion de « non-lu » en base aujourd'hui. Le
- * badge viendra avec ce lot, en SUR-IMPRESSION (`absolute -top-1 -right-1`, ne
- * décale pas la largeur — corrige l'erreur `ml-4` de l'ancien DraftQueue).
  * Push PWA : non câblé (registre §1.3).
  */
 export function MessagingButton(): JSX.Element {
@@ -66,13 +64,15 @@ export function MessagingButton(): JSX.Element {
           <p className="text-muted-foreground mb-8 text-xs font-semibold uppercase tracking-wide">
             Fil général
           </p>
-          <div className="border-border bg-muted/30 flex flex-col items-center gap-4 rounded-md border border-dashed p-16 text-center">
-            <Users className="text-muted-foreground h-20 w-20" aria-hidden />
-            <p className="text-foreground text-sm font-medium">Bientôt disponible</p>
-            <p className="text-muted-foreground text-xs leading-[1.4]">
-              La messagerie générale (hors course) arrive prochainement.
-            </p>
-          </div>
+          <DropdownMenuItem asChild>
+            <Link href="/messagerie">
+              <Users className="mr-8 h-16 w-16" aria-hidden />
+              Ouvrir le fil général
+            </Link>
+          </DropdownMenuItem>
+          <p className="text-muted-foreground mt-4 px-8 text-xs leading-[1.4]">
+            Discussion commune de l&apos;organisation, hors course.
+          </p>
         </div>
       </DropdownMenuContent>
     </DropdownMenu>

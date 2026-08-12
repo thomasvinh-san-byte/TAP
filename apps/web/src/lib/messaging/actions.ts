@@ -15,7 +15,7 @@
  */
 
 import { z } from 'zod';
-import type { RideMessage } from '@tap/shared';
+import type { GeneralMessage, RideMessage } from '@tap/shared';
 import { getAuthContext } from '@/lib/auth/get-auth-context';
 import {
   MESSAGE_ATTACHMENTS_BUCKET,
@@ -25,6 +25,7 @@ import {
   buildMessageImagePath,
 } from '@/lib/storage/message-attachments';
 import { getRideMessages } from './get-ride-messages';
+import { getGeneralMessages } from './get-general-messages';
 
 export type SendMessageState = { success?: boolean; error?: string };
 
@@ -171,4 +172,60 @@ export async function getMessageImageUrlAction(
     .createSignedUrl(path, MESSAGE_IMAGE_SIGNED_URL_TTL);
   if (signed.error || !signed.data) return { error: 'Image indisponible.' };
   return { url: signed.data.signedUrl };
+}
+
+// =============================================================================
+// Fil général (hors course, §5.22 lot A)
+// =============================================================================
+
+const generalBodySchema = z
+  .string()
+  .trim()
+  .min(1, 'Message vide.')
+  .max(2000, 'Message trop long (2000 max).');
+
+/**
+ * Liste le fil général de l'organisation (wrapper Server Action de la query
+ * `'server-only'`). La RLS `internal_general_message_select` cloisonne par org.
+ */
+export async function getGeneralMessagesAction(): Promise<{
+  messages: GeneralMessage[];
+  error?: string;
+}> {
+  const ctx = await getAuthContext();
+  if (!ctx) return { messages: [], error: 'Session expirée. Reconnectez-vous.' };
+
+  const messages = await getGeneralMessages();
+  return { messages };
+}
+
+/**
+ * Envoie un message sur le fil général de l'organisation. Tout membre de l'org
+ * (régulateur, dirigeant, chauffeur) peut écrire ; la RLS impose org, auteur =
+ * soi (anti-usurpation) et rôle cohérent.
+ */
+export async function sendGeneralMessageAction(body: string): Promise<SendMessageState> {
+  const parsed = generalBodySchema.safeParse(body);
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? 'Message invalide.' };
+  }
+
+  const ctx = await getAuthContext();
+  if (!ctx) return { error: 'Session expirée. Reconnectez-vous.' };
+
+  const { data, error } = await ctx.supabase
+    .from('internal_general_message')
+    .insert({
+      organization_id: ctx.organizationId,
+      sender_profile_id: ctx.userId,
+      sender_role: ctx.role,
+      body: parsed.data,
+    })
+    .select('id');
+
+  if (error) return { error: 'Envoi impossible. Réessayez.' };
+  if (!data || (data as { id: string }[]).length === 0) {
+    return { error: 'Envoi refusé.' };
+  }
+  return { success: true };
 }
