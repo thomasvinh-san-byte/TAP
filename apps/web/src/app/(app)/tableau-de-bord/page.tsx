@@ -21,8 +21,18 @@ export const dynamic = 'force-dynamic';
  * Tableau de bord dirigeant (Phase 06.8) — page d'accueil de pilotage.
  *
  * Server Component rendu au chargement (D-03 — pas de temps réel), réservé au
- * dirigeant (D-02). Layout en pyramide inversée : bloc « À traiter » en haut,
- * bloc « Activité » dessous, carte de conformité en pied.
+ * dirigeant (D-02). Hiérarchie en PYRAMIDE INVERSÉE (scan F), 3 tiers au lieu de
+ * 9 sections plates :
+ *   - Tier 1 « L'essentiel » : scorecard de 3 KPI `hero` (le plus critique en
+ *     haut-gauche) + les actionnables à traiter ; la couleur = statut seulement.
+ *   - Tier 2 « Activité & pilotage » : les drivers qui expliquent le Tier 1
+ *     (volume, no-show, panier, activité du jour, effectifs) + prévisionnel /
+ *     réalisation, en taille `normal`.
+ *   - Tier 3 « Détail & diagnostic » : opérationnel, distance/délai, économie,
+ *     prescriptions/tops, conformité, en `compact`, regroupés par sous-thème.
+ * Les calculs (`queries-dashboard`, `*-kpis`) sont INCHANGÉS — agencement seul.
+ * Les garde-fous d'honnêteté (« estimé », « non configuré », pas de top patients
+ * par CA, occupation véhicule absente) restent intacts.
  */
 
 const eur = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
@@ -37,6 +47,12 @@ function delaiLabel(min: number): string {
 }
 // Lot 5.20-E — coût/km à 2-3 décimales (le €/km est fin).
 const km2 = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 3 });
+
+// Titre de tier (zone majeure) et libellé de sous-groupe (discret) — hiérarchie
+// visuelle : un `h2` par tier, des libellés non-titres pour les sous-groupes
+// (l'ossature de titres reste h1 → h2 tiers → h3 cartes).
+const TIER_TITLE_CLASS = 'text-foreground text-sm font-semibold uppercase tracking-wide';
+const GROUP_LABEL_CLASS = 'text-muted-foreground text-xs font-semibold uppercase tracking-wide';
 
 const METHOD_LABELS: Record<string, string> = {
   cash: 'Espèces',
@@ -162,57 +178,28 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
   const incidentsDelta = deltaPoints(data.incidents.taux, data.incidentsPrec.taux);
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-16">
       <PageHeader
         title="Tableau de bord"
         description={<>Vue d&apos;ensemble de votre activité · {periode}</>}
         actions={<ExportStatsButton />}
       />
 
-      {/* Rangée 1 — À traiter (3 colonnes : facturation · alertes · délais légaux). */}
-      <section className="space-y-4" aria-labelledby="bloc-action">
-        <h2
-          id="bloc-action"
-          className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
-        >
-          À traiter
+      {/* ═══════════════ TIER 1 — L'ESSENTIEL ═══════════════
+          Scorecard de tête (pyramide inversée / scan F) : le vital d'abord, le
+          plus critique en HAUT-GAUCHE. 3 KPI hero (CA encaissé → encours →
+          courses à facturer) répondent à « où en est-on ? » d'un coup d'œil ;
+          la couleur ne marque que le statut (seuil). Puis les actionnables. */}
+      <section className="space-y-8" aria-labelledby="tier-essentiel">
+        <h2 id="tier-essentiel" className={TIER_TITLE_CLASS}>
+          L&apos;essentiel
         </h2>
-        <div className="grid items-stretch gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          <KpiCard
-            variant="simple"
-            label="Courses à facturer"
-            value={String(data.coursesAFacturer)}
-            context={
-              data.coursesAFacturer === 0
-                ? 'Aucune course à facturer ce mois'
-                : `${moisEnClair(data.moisCourant)} · tiers payant CGSS`
-            }
-            action={{ href: `/admin/facturation?mois=${data.moisCourant}`, label: 'Facturer' }}
-          />
-          <KpiCard variant="alerte" label="Alertes" items={alerteItems} />
-          {/* SLA factuels datés (Wave 1 Phase 06.11 — A3), intégré en 3e colonne. */}
-          <SlaBadgesCard rules={data.slaRules} />
-        </div>
-      </section>
-
-      {/* Rangée 2 — Activité du mois en bento ASYMÉTRIQUE (norme dashboard
-          exécutif) : la taille porte la priorité avant qu'on lise un libellé.
-          Grille 12 colonnes (langage cockpit / fiche patient), écart uniforme,
-          hauteurs définies, ordre DOM = ordre visuel = ordre de priorité.
-          Calculs et props des KPIs strictement inchangés — présentation seule. */}
-      <section className="space-y-4" aria-labelledby="bloc-sante">
-        <h2
-          id="bloc-sante"
-          className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
-        >
-          Activité du mois
-        </h2>
-        <div className="grid grid-cols-1 items-stretch gap-8 sm:grid-cols-2 lg:grid-cols-12">
-          {/* HÉROS — santé financière (entrées vs argent bloqué), avec tendance/seuil. */}
+        <div className="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-3">
+          {/* Le plus vital, en premier dans le scan : entrées d'argent. */}
           <KpiCard
             variant="simple"
             size="hero"
-            className="lg:col-span-6 lg:min-h-[120px]"
+            className="lg:min-h-[132px]"
             label="CA encaissé du mois"
             value={eur.format(data.caMois.total_eur)}
             context={ventilationContext}
@@ -222,12 +209,11 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
             previousLabel={moisPrecLibelle}
             previousValue={eur.format(data.caMoisPrec.total_eur)}
           />
-          {/* KPI-02 — trésorerie à risque : stock cumulé (12 mois) des courses
-              dues non encaissées. La couleur d'état (seuil) porte l'exception. */}
+          {/* Trésorerie à risque — la couleur d'état (seuil) porte l'exception. */}
           <KpiCard
             variant="simple"
             size="hero"
-            className="lg:col-span-6 lg:min-h-[120px]"
+            className="lg:min-h-[132px]"
             label="Encours impayé"
             value={eur.format(data.encoursImpaye.total_eur)}
             state={encours.state}
@@ -237,11 +223,40 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
             } à encaisser`}
             action={{ href: '/courses/caisse?vue=a_encaisser', label: 'Encaisser' }}
           />
-
-          {/* PRIMAIRES — volume / no-show / panier (moyens). */}
+          {/* Pipeline à facturer — argent à venir + action directe. */}
           <KpiCard
             variant="simple"
-            className="lg:col-span-4"
+            size="hero"
+            className="lg:min-h-[132px]"
+            label="Courses à facturer"
+            value={String(data.coursesAFacturer)}
+            context={
+              data.coursesAFacturer === 0
+                ? 'Aucune course à facturer ce mois'
+                : `${moisEnClair(data.moisCourant)} · tiers payant CGSS`
+            }
+            action={{ href: `/admin/facturation?mois=${data.moisCourant}`, label: 'Facturer' }}
+          />
+        </div>
+        {/* Actionnables à traiter (listes, pas des KPI) — sous le scorecard. */}
+        <div className="grid grid-cols-1 items-stretch gap-8 lg:grid-cols-2">
+          <KpiCard variant="alerte" label="Alertes" items={alerteItems} />
+          <SlaBadgesCard rules={data.slaRules} />
+        </div>
+      </section>
+
+      {/* ═══════════════ TIER 2 — ACTIVITÉ & PILOTAGE ═══════════════
+          Les drivers qui expliquent le Tier 1 : volume, no-show (statut), panier,
+          activité du jour, effectifs — en taille normal. Puis le prévisionnel /
+          réalisation. « Aujourd'hui » + « Volume du mois » couvrent le J/S/M
+          (l'ancienne section « Courses par période » redondante est supprimée). */}
+      <section className="space-y-8" aria-labelledby="tier-activite">
+        <h2 id="tier-activite" className={TIER_TITLE_CLASS}>
+          Activité &amp; pilotage
+        </h2>
+        <div className="grid grid-cols-1 items-stretch gap-8 sm:grid-cols-2 lg:grid-cols-5">
+          <KpiCard
+            variant="simple"
             label="Volume du mois"
             value={String(data.volume.mois)}
             delta={volDelta}
@@ -252,7 +267,6 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
           />
           <KpiCard
             variant="simple"
-            className="lg:col-span-4"
             label="No-show"
             value={`${data.incidents.taux} %`}
             state={taux.state}
@@ -268,349 +282,294 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
           />
           <KpiCard
             variant="simple"
-            className="lg:col-span-4"
             label="Panier moyen / course"
             value={eur.format(panierMoyen)}
             context={`sur ${data.caMois.count} course${data.caMois.count > 1 ? 's' : ''} encaissée${
               data.caMois.count > 1 ? 's' : ''
             }`}
           />
-
-          {/* SECONDAIRES — chauffeurs / aujourd'hui (petits, contexte). */}
           <KpiCard
             variant="simple"
-            size="compact"
-            className="lg:col-span-6"
-            label="Chauffeurs"
-            value={`${data.chauffeurs.actifsAvecCourse} / ${data.chauffeurs.totalActifs}`}
-            context={`actifs aujourd'hui · ~${data.chauffeurs.moyenneParChauffeur}/chauffeur`}
-          />
-          <KpiCard
-            variant="simple"
-            size="compact"
-            className="lg:col-span-6"
             label="Aujourd'hui"
             value={String(data.volume.aujourdhui)}
             context={`7 derniers jours : ${data.volume.semaine}`}
           />
+          <KpiCard
+            variant="simple"
+            label="Chauffeurs"
+            value={`${data.chauffeurs.actifsAvecCourse} / ${data.chauffeurs.totalActifs}`}
+            context={`actifs aujourd'hui · ~${data.chauffeurs.moyenneParChauffeur}/chauffeur`}
+          />
         </div>
-      </section>
 
-      {/* Rangée 2bis-a — CA prévisionnel (à venir) + réalisation du mois (Lot
-          5.20-D). « Prévu » = valeur tarifaire des courses PLANIFIÉES (jamais un
-          objectif inventé) ; les occurrences de récurrence non matérialisées ne
-          sont pas projetées (couverture affichée). */}
-      <section className="space-y-4" aria-labelledby="bloc-previsionnel">
-        <h2
-          id="bloc-previsionnel"
-          className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
-        >
-          CA prévisionnel &amp; réalisation du mois
-        </h2>
-        <div className="grid grid-cols-1 items-stretch gap-8 sm:grid-cols-2 lg:grid-cols-5">
-          <KpiCard
-            variant="simple"
-            size="compact"
-            label="À venir aujourd'hui"
-            value={eur.format(data.previsionnel.aVenirJour)}
-          />
-          <KpiCard
-            variant="simple"
-            size="compact"
-            label="À venir 7 jours"
-            value={eur.format(data.previsionnel.aVenirSemaine)}
-          />
-          <KpiCard
-            variant="simple"
-            size="compact"
-            label="À venir ce mois"
-            value={eur.format(data.previsionnel.aVenirMois)}
-          />
-          <KpiCard
-            variant="simple"
-            size="compact"
-            label="À venir cette année"
-            value={eur.format(data.previsionnel.aVenirAnnee)}
-          />
-          <KpiCard
-            variant="simple"
-            size="compact"
-            label="Réalisation du mois"
-            value={
-              data.previsionnel.planifieMois > 0 ? `${data.previsionnel.tauxRealisation} %` : '—'
-            }
-            context={
-              data.previsionnel.planifieMois > 0
-                ? `${eur.format(data.previsionnel.realiseMois)} réalisé / ${eur.format(
-                    data.previsionnel.planifieMois,
-                  )} planifié${
-                    data.previsionnel.ridesMoisValorisees < data.previsionnel.ridesMoisTotal
-                      ? ` · ${data.previsionnel.ridesMoisValorisees}/${data.previsionnel.ridesMoisTotal} valorisées`
-                      : ''
-                  }`
-                : 'Aucune course planifiée ce mois'
-            }
-          />
-        </div>
-        <p className="text-muted-foreground text-xs">
-          Prévu = valeur tarifaire des courses planifiées (tarifs déjà calculés). Les occurrences de
-          récurrence non encore créées ne sont pas projetées.
-        </p>
-      </section>
-
-      {/* Rangée 2bis — Indicateurs opérationnels (Lot 5.20-A) : dérivés DIRECT
-          des courses du mois. « Non disponible » si aucune course (pas de 0 %
-          trompeur — même doctrine que le refus d'une métrique sans données). */}
-      <section className="space-y-4" aria-labelledby="bloc-operationnel">
-        <h2
-          id="bloc-operationnel"
-          className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
-        >
-          Indicateurs opérationnels du mois
-        </h2>
-        <div className="grid grid-cols-1 items-stretch gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          <KpiCard
-            variant="simple"
-            label="Taux de mutualisation"
-            value={data.operationnel.total > 0 ? `${data.operationnel.tauxMutualisation} %` : '—'}
-            context={
-              data.operationnel.total > 0
-                ? `${data.operationnel.mutualisees} course${
-                    data.operationnel.mutualisees > 1 ? 's' : ''
-                  } mutualisée${data.operationnel.mutualisees > 1 ? 's' : ''} sur ${data.operationnel.total}`
-                : 'Aucune course ce mois'
-            }
-          />
-          <KpiCard
-            variant="ventilation"
-            label="Annulations par motif"
-            value={data.operationnel.total > 0 ? `${data.operationnel.tauxAnnulation} %` : '—'}
-            lines={
-              data.operationnel.annulationParMotif.length > 0
-                ? data.operationnel.annulationParMotif.map((m) => ({
-                    label: m.label,
-                    value: String(m.count),
-                  }))
-                : [
-                    {
-                      label: data.operationnel.total > 0 ? 'Aucune annulation' : 'Non disponible',
-                      value: '—',
-                    },
-                  ]
-            }
-          />
-          <KpiCard
-            variant="simple"
-            label="Taux de patient absent"
-            value={data.operationnel.total > 0 ? `${data.operationnel.tauxPatientAbsent} %` : '—'}
-            context={
-              data.operationnel.total > 0
-                ? `${data.operationnel.patientAbsent} absence${
-                    data.operationnel.patientAbsent > 1 ? 's' : ''
-                  } sur ${data.operationnel.total}`
-                : 'Aucune course ce mois'
-            }
-          />
-          <KpiCard
-            variant="multi"
-            label="Récurrentes vs ponctuelles"
-            rows={[
-              {
-                label: 'Récurrentes',
-                value:
-                  data.operationnel.total > 0
-                    ? `${data.operationnel.recurrentes} · ${data.operationnel.tauxRecurrentes} %`
-                    : '—',
-              },
-              {
-                label: 'Ponctuelles',
-                value: data.operationnel.total > 0 ? String(data.operationnel.ponctuelles) : '—',
-              },
-            ]}
-          />
-        </div>
-      </section>
-
-      {/* Rangée 2quater — Courses par période (J/S/M), Lot 5.20-C. Vue
-          consolidée du volume par horizon (chiffres déjà calculés, regroupés
-          ici comme classement d'activité par période). */}
-      <section className="space-y-4" aria-labelledby="bloc-periodes">
-        <h2
-          id="bloc-periodes"
-          className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
-        >
-          Courses par période
-        </h2>
-        <div className="grid grid-cols-1 items-stretch gap-8 sm:grid-cols-3">
-          <KpiCard
-            variant="simple"
-            size="compact"
-            label="Aujourd'hui"
-            value={String(data.volume.aujourdhui)}
-          />
-          <KpiCard
-            variant="simple"
-            size="compact"
-            label="7 derniers jours"
-            value={String(data.volume.semaine)}
-          />
-          <KpiCard
-            variant="simple"
-            size="compact"
-            label="Ce mois"
-            value={String(data.volume.mois)}
-          />
-        </div>
-      </section>
-
-      {/* Rangée 3 — Prescriptions + tops commerciaux (CdG §5.20, DEC-164/165 +
-          Lot 5.20-C : top prescripteurs par activité ajouté dans la carte tops). */}
-      {/* Rangée 2ter — Distance & délai ESTIMÉS (Lot 5.20-B). Distance non
-          mesurée (pas d'OSRM en base) mais estimée Haversine × facteur routier
-          1,3 (DEC-056) : libellé « estimé » explicite, courses sans coordonnées
-          exclues. « Non disponible » si aucune course estimable (pas de faux 0). */}
-      <section className="space-y-4" aria-labelledby="bloc-distance">
-        <h2
-          id="bloc-distance"
-          className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
-        >
-          Distance &amp; délai du mois (estimés)
-        </h2>
-        <div className="grid grid-cols-1 items-stretch gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          <KpiCard
-            variant="simple"
-            label="Km moyen / course"
-            value={
-              data.distanceDelai.ridesAvecDistance > 0
-                ? `${km1.format(data.distanceDelai.kmMoyenParCourse)} km`
-                : '—'
-            }
-            context={
-              data.distanceDelai.ridesAvecDistance > 0
-                ? `estimé (facteur routier 1,3) · sur ${data.distanceDelai.ridesAvecDistance}/${data.distanceDelai.ridesRealisees} course${
-                    data.distanceDelai.ridesRealisees > 1 ? 's' : ''
-                  } géolocalisée${data.distanceDelai.ridesAvecDistance > 1 ? 's' : ''}`
-                : 'Aucune course géolocalisée ce mois'
-            }
-          />
-          <KpiCard
-            variant="simple"
-            label="Km à vide / en charge"
-            value={
-              data.distanceDelai.kmEnChargeTotal > 0 ? `${data.distanceDelai.ratioAVidePct} %` : '—'
-            }
-            context={
-              data.distanceDelai.kmEnChargeTotal > 0
-                ? `${km1.format(data.distanceDelai.kmAVideTotal)} km à vide · ${km1.format(
-                    data.distanceDelai.kmEnChargeTotal,
-                  )} km en charge (estimés)`
-                : 'Non disponible'
-            }
-          />
-          <KpiCard
-            variant="simple"
-            label="Délai moyen de prise en charge"
-            value={
-              data.distanceDelai.ridesAvecDelai > 0
-                ? delaiLabel(data.distanceDelai.delaiMoyenMin)
-                : '—'
-            }
-            context={
-              data.distanceDelai.ridesAvecDelai > 0
-                ? `sur ${data.distanceDelai.ridesAvecDelai} course${
-                    data.distanceDelai.ridesAvecDelai > 1 ? 's' : ''
-                  } démarrée${data.distanceDelai.ridesAvecDelai > 1 ? 's' : ''} · écart programmé/réel`
-                : 'Aucune course démarrée ce mois'
-            }
-          />
-        </div>
-      {/* Rangée 2ter — Économie du mois ESTIMÉE (Lot 5.20-E). Marge = CA − coût
-          (coût/km paramétré × distance estimée Haversine). « Non configuré » tant
-          que les paramètres de coût ne sont pas saisis (pas de zéro trompeur). */}
-      <section className="space-y-4" aria-labelledby="bloc-economie">
-        <h2
-          id="bloc-economie"
-          className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
-        >
-          Économie du mois (estimée)
-        </h2>
-        {!data.economique.configured ? (
-          <div className="grid grid-cols-1 items-stretch gap-8">
+        <div className="space-y-4">
+          <p className={GROUP_LABEL_CLASS}>Prévisionnel &amp; réalisation</p>
+          <div className="grid grid-cols-1 items-stretch gap-8 sm:grid-cols-2 lg:grid-cols-5">
             <KpiCard
               variant="simple"
-              label="Marge brute"
-              value="Non configuré"
-              context="Renseignez les coûts (carburant, entretien, amortissement) pour estimer la marge."
-              action={{ href: '/admin/parametres-couts', label: 'Configurer les coûts' }}
+              size="compact"
+              label="À venir aujourd'hui"
+              value={eur.format(data.previsionnel.aVenirJour)}
+            />
+            <KpiCard
+              variant="simple"
+              size="compact"
+              label="À venir 7 jours"
+              value={eur.format(data.previsionnel.aVenirSemaine)}
+            />
+            <KpiCard
+              variant="simple"
+              size="compact"
+              label="À venir ce mois"
+              value={eur.format(data.previsionnel.aVenirMois)}
+            />
+            <KpiCard
+              variant="simple"
+              size="compact"
+              label="À venir cette année"
+              value={eur.format(data.previsionnel.aVenirAnnee)}
+            />
+            <KpiCard
+              variant="simple"
+              size="compact"
+              label="Réalisation du mois"
+              value={
+                data.previsionnel.planifieMois > 0 ? `${data.previsionnel.tauxRealisation} %` : '—'
+              }
+              context={
+                data.previsionnel.planifieMois > 0
+                  ? `${eur.format(data.previsionnel.realiseMois)} réalisé / ${eur.format(
+                      data.previsionnel.planifieMois,
+                    )} planifié${
+                      data.previsionnel.ridesMoisValorisees < data.previsionnel.ridesMoisTotal
+                        ? ` · ${data.previsionnel.ridesMoisValorisees}/${data.previsionnel.ridesMoisTotal} valorisées`
+                        : ''
+                    }`
+                  : 'Aucune course planifiée ce mois'
+              }
             />
           </div>
-        ) : (
+          <p className="text-muted-foreground text-xs">
+            Prévu = valeur tarifaire des courses planifiées (tarifs déjà calculés). Les occurrences
+            de récurrence non encore créées ne sont pas projetées.
+          </p>
+        </div>
+      </section>
+
+      {/* ═══════════════ TIER 3 — DÉTAIL & DIAGNOSTIC ═══════════════
+          Pour qui veut creuser : opérationnel, distance/délai, économie, tops,
+          conformité — en `compact`, regroupés par sous-thème (libellés discrets,
+          non-titres). Les garde-fous d'honnêteté restent affichés. */}
+      <section className="space-y-8" aria-labelledby="tier-detail">
+        <h2 id="tier-detail" className={TIER_TITLE_CLASS}>
+          Détail &amp; diagnostic
+        </h2>
+
+        {/* Opérationnel (Lot 5.20-A) — « Non disponible » si aucune course. */}
+        <div className="space-y-4">
+          <p className={GROUP_LABEL_CLASS}>Opérationnel</p>
           <div className="grid grid-cols-1 items-stretch gap-8 sm:grid-cols-2 lg:grid-cols-4">
             <KpiCard
               variant="simple"
-              label="Coût / km"
-              value={`${km2.format(data.economique.coutParKm)} €/km`}
-              context="Carburant + entretien + amortissement (paramétré)"
+              size="compact"
+              label="Taux de mutualisation"
+              value={data.operationnel.total > 0 ? `${data.operationnel.tauxMutualisation} %` : '—'}
+              context={
+                data.operationnel.total > 0
+                  ? `${data.operationnel.mutualisees} course${
+                      data.operationnel.mutualisees > 1 ? 's' : ''
+                    } mutualisée${data.operationnel.mutualisees > 1 ? 's' : ''} sur ${data.operationnel.total}`
+                  : 'Aucune course ce mois'
+              }
+            />
+            <KpiCard
+              variant="ventilation"
+              size="compact"
+              label="Annulations par motif"
+              value={data.operationnel.total > 0 ? `${data.operationnel.tauxAnnulation} %` : '—'}
+              lines={
+                data.operationnel.annulationParMotif.length > 0
+                  ? data.operationnel.annulationParMotif.map((m) => ({
+                      label: m.label,
+                      value: String(m.count),
+                    }))
+                  : [
+                      {
+                        label: data.operationnel.total > 0 ? 'Aucune annulation' : 'Non disponible',
+                        value: '—',
+                      },
+                    ]
+              }
             />
             <KpiCard
               variant="simple"
-              label="Marge brute"
-              value={eur.format(data.economique.margeBrute)}
-              context={`CA ${eur.format(data.economique.caRealiseTotal)} − coût ${eur.format(
-                data.economique.coutEstimeTotal,
-              )} · ${data.economique.ridesEstimables} course${
-                data.economique.ridesEstimables > 1 ? 's' : ''
-              } estimée${data.economique.ridesEstimables > 1 ? 's' : ''}`}
+              size="compact"
+              label="Taux de patient absent"
+              value={data.operationnel.total > 0 ? `${data.operationnel.tauxPatientAbsent} %` : '—'}
+              context={
+                data.operationnel.total > 0
+                  ? `${data.operationnel.patientAbsent} absence${
+                      data.operationnel.patientAbsent > 1 ? 's' : ''
+                    } sur ${data.operationnel.total}`
+                  : 'Aucune course ce mois'
+              }
             />
             <KpiCard
-              variant="simple"
-              label="Rentabilité mutualisées"
-              value={eur.format(data.economique.margeMutualisees)}
-              context="Marge estimée sur courses mutualisées"
-            />
-            <KpiCard
-              variant="simple"
-              label="Rentabilité non mutualisées"
-              value={eur.format(data.economique.margeNonMutualisees)}
-              context="Marge estimée hors mutualisation"
+              variant="multi"
+              size="compact"
+              label="Récurrentes vs ponctuelles"
+              rows={[
+                {
+                  label: 'Récurrentes',
+                  value:
+                    data.operationnel.total > 0
+                      ? `${data.operationnel.recurrentes} · ${data.operationnel.tauxRecurrentes} %`
+                      : '—',
+                },
+                {
+                  label: 'Ponctuelles',
+                  value: data.operationnel.total > 0 ? String(data.operationnel.ponctuelles) : '—',
+                },
+              ]}
             />
           </div>
-        )}
-        {data.economique.configured ? (
-          <p className="text-muted-foreground text-xs">
-            Marge estimée (coût/km paramétré × distance estimée). Courses sans coordonnées exclues.{' '}
-            <Link href="/admin/parametres-couts" className="underline">
-              Modifier les coûts
-            </Link>
-          </p>
-        ) : null}
-      </section>
-
-      {/* Rangée 3 — Prescriptions + tops commerciaux (CdG §5.20, DEC-164/165). */}
-      <section className="space-y-4" aria-labelledby="bloc-prescriptions">
-        <h2
-          id="bloc-prescriptions"
-          className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
-        >
-          Prescriptions &amp; tops commerciaux
-        </h2>
-        <div className="grid items-stretch gap-8 lg:grid-cols-2">
-          <PrescriptionsCard prescriptions={data.prescriptions} />
-          <CommercialTopsCard commercial={data.commercial} />
         </div>
-      </section>
 
-      {/* Rangée 4 — Conformité & échéances (2 colonnes condensées). */}
-      <section className="space-y-4" aria-labelledby="bloc-conformite">
-        <h2
-          id="bloc-conformite"
-          className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
-        >
-          Conformité &amp; échéances
-        </h2>
-        <div className="grid items-stretch gap-8 lg:grid-cols-2">
-          <ComplianceCard conformite={data.conformite} />
-          <ComplianceAlertsPanel alerts={complianceAlerts} variant="card" limit={5} />
+        {/* Distance & délai estimés (Lot 5.20-B) — libellé « estimé » explicite. */}
+        <div className="space-y-4">
+          <p className={GROUP_LABEL_CLASS}>Distance &amp; délai (estimés)</p>
+          <div className="grid grid-cols-1 items-stretch gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <KpiCard
+              variant="simple"
+              size="compact"
+              label="Km moyen / course"
+              value={
+                data.distanceDelai.ridesAvecDistance > 0
+                  ? `${km1.format(data.distanceDelai.kmMoyenParCourse)} km`
+                  : '—'
+              }
+              context={
+                data.distanceDelai.ridesAvecDistance > 0
+                  ? `estimé (facteur routier 1,3) · sur ${data.distanceDelai.ridesAvecDistance}/${data.distanceDelai.ridesRealisees} course${
+                      data.distanceDelai.ridesRealisees > 1 ? 's' : ''
+                    } géolocalisée${data.distanceDelai.ridesAvecDistance > 1 ? 's' : ''}`
+                  : 'Aucune course géolocalisée ce mois'
+              }
+            />
+            <KpiCard
+              variant="simple"
+              size="compact"
+              label="Km à vide / en charge"
+              value={
+                data.distanceDelai.kmEnChargeTotal > 0
+                  ? `${data.distanceDelai.ratioAVidePct} %`
+                  : '—'
+              }
+              context={
+                data.distanceDelai.kmEnChargeTotal > 0
+                  ? `${km1.format(data.distanceDelai.kmAVideTotal)} km à vide · ${km1.format(
+                      data.distanceDelai.kmEnChargeTotal,
+                    )} km en charge (estimés)`
+                  : 'Non disponible'
+              }
+            />
+            <KpiCard
+              variant="simple"
+              size="compact"
+              label="Délai moyen de prise en charge"
+              value={
+                data.distanceDelai.ridesAvecDelai > 0
+                  ? delaiLabel(data.distanceDelai.delaiMoyenMin)
+                  : '—'
+              }
+              context={
+                data.distanceDelai.ridesAvecDelai > 0
+                  ? `sur ${data.distanceDelai.ridesAvecDelai} course${
+                      data.distanceDelai.ridesAvecDelai > 1 ? 's' : ''
+                    } démarrée${data.distanceDelai.ridesAvecDelai > 1 ? 's' : ''} · écart programmé/réel`
+                  : 'Aucune course démarrée ce mois'
+              }
+            />
+          </div>
+        </div>
+
+        {/* Économie estimée (Lot 5.20-E) — « Non configuré » sans paramètres. */}
+        <div className="space-y-4">
+          <p className={GROUP_LABEL_CLASS}>Économie (estimée)</p>
+          {!data.economique.configured ? (
+            <div className="grid grid-cols-1 items-stretch gap-8">
+              <KpiCard
+                variant="simple"
+                size="compact"
+                label="Marge brute"
+                value="Non configuré"
+                context="Renseignez les coûts (carburant, entretien, amortissement) pour estimer la marge."
+                action={{ href: '/admin/parametres-couts', label: 'Configurer les coûts' }}
+              />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 items-stretch gap-8 sm:grid-cols-2 lg:grid-cols-4">
+              <KpiCard
+                variant="simple"
+                size="compact"
+                label="Coût / km"
+                value={`${km2.format(data.economique.coutParKm)} €/km`}
+                context="Carburant + entretien + amortissement (paramétré)"
+              />
+              <KpiCard
+                variant="simple"
+                size="compact"
+                label="Marge brute"
+                value={eur.format(data.economique.margeBrute)}
+                context={`CA ${eur.format(data.economique.caRealiseTotal)} − coût ${eur.format(
+                  data.economique.coutEstimeTotal,
+                )} · ${data.economique.ridesEstimables} course${
+                  data.economique.ridesEstimables > 1 ? 's' : ''
+                } estimée${data.economique.ridesEstimables > 1 ? 's' : ''}`}
+              />
+              <KpiCard
+                variant="simple"
+                size="compact"
+                label="Rentabilité mutualisées"
+                value={eur.format(data.economique.margeMutualisees)}
+                context="Marge estimée sur courses mutualisées"
+              />
+              <KpiCard
+                variant="simple"
+                size="compact"
+                label="Rentabilité non mutualisées"
+                value={eur.format(data.economique.margeNonMutualisees)}
+                context="Marge estimée hors mutualisation"
+              />
+            </div>
+          )}
+          {data.economique.configured ? (
+            <p className="text-muted-foreground text-xs">
+              Marge estimée (coût/km paramétré × distance estimée). Courses sans coordonnées
+              exclues.{' '}
+              <Link href="/admin/parametres-couts" className="underline">
+                Modifier les coûts
+              </Link>
+            </p>
+          ) : null}
+        </div>
+
+        {/* Prescriptions & tops commerciaux (DEC-164/165) — pas de top patients. */}
+        <div className="space-y-4">
+          <p className={GROUP_LABEL_CLASS}>Prescriptions &amp; tops commerciaux</p>
+          <div className="grid items-stretch gap-8 lg:grid-cols-2">
+            <PrescriptionsCard prescriptions={data.prescriptions} />
+            <CommercialTopsCard commercial={data.commercial} />
+          </div>
+        </div>
+
+        {/* Conformité & échéances. */}
+        <div className="space-y-4">
+          <p className={GROUP_LABEL_CLASS}>Conformité &amp; échéances</p>
+          <div className="grid items-stretch gap-8 lg:grid-cols-2">
+            <ComplianceCard conformite={data.conformite} />
+            <ComplianceAlertsPanel alerts={complianceAlerts} variant="card" limit={5} />
+          </div>
         </div>
       </section>
     </div>
