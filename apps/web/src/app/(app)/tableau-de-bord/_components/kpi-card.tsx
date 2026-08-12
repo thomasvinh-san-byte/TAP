@@ -43,9 +43,9 @@ export type KpiSize = 'hero' | 'normal' | 'compact';
 // taille relative du chiffre (VALUE_SIZE_CLASS) et le padding stepped, pas par de
 // l'air. Héros > primaires > secondaires reste net.
 const CARD_SIZE_CLASS: Record<KpiSize, string> = {
-  hero: 'gap-8 p-16',
-  normal: 'gap-4 p-12',
-  compact: 'gap-4 p-8',
+  hero: 'gap-8 p-24',
+  normal: 'gap-4 p-16',
+  compact: 'gap-4 p-12',
 };
 
 const VALUE_SIZE_CLASS: Record<KpiSize, string> = {
@@ -54,11 +54,9 @@ const VALUE_SIZE_CLASS: Record<KpiSize, string> = {
   compact: 'text-xl',
 };
 
-const LABEL_SIZE_CLASS: Record<KpiSize, string> = {
-  hero: 'text-sm',
-  normal: 'text-sm',
-  compact: 'text-xs',
-};
+// Libellé discret en « eyebrow » uniforme (uppercase, tracking, muted) : c'est
+// le CHIFFRE qui porte la taille et l'emphase, pas le libellé.
+const LABEL_CLASS = 'text-muted-foreground text-xs font-medium uppercase tracking-wide';
 
 // Élévation hiérarchisée : la profondeur renforce la pyramide. Le vital (hero)
 // « avance » (ombre plus présente), le détail (compact) « recule » (plat, sans
@@ -68,6 +66,22 @@ const SHADOW_SIZE_CLASS: Record<KpiSize, string> = {
   normal: 'shadow-elev-sm',
   compact: 'shadow-none',
 };
+
+/**
+ * Accent de statut = liseré gauche (4 px), SIGNATURE visuelle disciplinée.
+ * Couleur = sens uniquement, toujours doublée du `stateLabel` texte (a11y) :
+ *   - alerte (dépassement)      → destructive
+ *   - attention (proche seuil)  → warning
+ * À défaut d'exception, les cartes `hero` portent un accent d'IDENTITÉ (primary)
+ * pour ancrer le scorecard ; les autres restent neutres (pas de liseré).
+ * `neutre`/`succes` ne colorent jamais (doctrine : couleur = exception).
+ */
+function accentClass(size: KpiSize, state: KpiState | undefined): string {
+  if (state === 'alerte') return 'border-l-4 border-l-destructive';
+  if (state === 'attention') return 'border-l-4 border-l-warning';
+  if (size === 'hero') return 'border-l-4 border-l-primary';
+  return '';
+}
 
 const ACTION_CLASS =
   'text-primary focus-visible:ring-ring mt-auto inline-flex min-h-[44px] items-center ' +
@@ -254,19 +268,20 @@ export function KpiCard(props: KpiCardProps): JSX.Element {
   // Cartes actionnables : légère montée d'ombre au survol (micro-interaction,
   // 150 ms ; `prefers-reduced-motion` neutralise la transition globalement).
   const actionable = props.action !== undefined;
+  // L'état (liseré d'accent) n'existe que sur la variante `simple`.
+  const state = props.variant === 'simple' ? props.state : undefined;
   return (
     <div
       className={cn(
         'border-border bg-card text-card-foreground flex h-full flex-col rounded-lg border',
         CARD_SIZE_CLASS[size],
         SHADOW_SIZE_CLASS[size],
+        accentClass(size, state),
         actionable && 'hover:shadow-elev-md transition-shadow',
         props.className,
       )}
     >
-      <h3 className={cn('text-muted-foreground font-medium', LABEL_SIZE_CLASS[size])}>
-        {props.label}
-      </h3>
+      <h3 className={LABEL_CLASS}>{props.label}</h3>
       <KpiBody {...props} />
       {props.action ? (
         <Link href={props.action.href} className={ACTION_CLASS}>
