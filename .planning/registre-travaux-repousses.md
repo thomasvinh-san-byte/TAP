@@ -16,7 +16,8 @@ EXTERNE (donnée/spec à obtenir d'un tiers).
 - **Décision** : repoussé jusqu'à la mise en production commerciale (verrou 1er client payant). Réf DEC-065 (migration HDS = phase dédiée).
 - **Raison** : obligation légale dès l'exploitation commerciale de données de santé réelles, mais coût récurrent significatif + migration lourde. Tant qu'on est en design partner / preview, non requis.
 - **Déblocage** : 💳 ACHAT (hébergeur certifié HDS) + 🗳 décision business (engagement 1er client). Candidats à instruire : OVHcloud HDS, Scaleway, autres. 🔍 choix à arbitrer sur coût/réversibilité.
-- **Dépend de / bloque** : bloque géoloc réelle, upload de scans (bons, documents conformité), tout stockage de données santé en prod.
+- **Dépend de / bloque** : bloque géoloc réelle, upload de scans (bons, documents conformité), tout stockage de données santé **en PROD commerciale**.
+- **Portée (DEC-077)** : le HDS est le prérequis de la **PROD commerciale** (1er client payant), **pas de la bêta**. En bêta sous DPA, **Supabase EU reste acceptable** (DEC-077, précise DEC-065). Architecture portable (CON-001) : migrer le stockage vers une infra HDS en prod ne changera pas le code applicatif. Les items ci-dessous marqués « dépend de 1.1 HDS » sont donc des blocages de **prod**, non de bêta.
 - **Note 2026-06-10 (DEC-143)** : la COQUILLE d'upload de documents conformité est posée (flag `UPLOAD_DOCS_ENABLED` OFF) — UI passive en prod, action d'upload = stub explicite. Reste à construire en Phase 09 : **bucket HDS + RLS Storage + branchement `.upload()` réel** dans `uploadComplianceDocumentAction`.
 
 ### 1.2 Email transactionnel (provider)
@@ -107,7 +108,7 @@ EXTERNE (donnée/spec à obtenir d'un tiers).
 ### 3.6 Géolocalisation temps réel (réelle)
 - **Décision** : reportée (Phase 10). Câblée OFF par défaut (flag GEOLOC_ENABLED) pré-HDS.
 - **Raison** : capture GPS continue + historique = données sensibles → dépend de HDS. Barrière technique PWA (capture continue) déjà étudiée.
-- **Déblocage** : dépend de 1.1 HDS. 🔍 architecture capture événementielle déjà préparée. 🗳 activation quand HDS en place.
+- **Déblocage** : dépend de 1.1 HDS **pour la PROD commerciale** — le stockage sous DPA est acceptable en bêta (DEC-077) ; le blocage relève de la prod, pas de la bêta. 🔍 architecture capture événementielle déjà préparée. 🗳 activation quand HDS en place (prod).
 - **Bloque/lié** : module 5.17 CdC.
 
 ### 3.7 Portail B2B (donneurs d'ordres) commercial multi-tenant
@@ -173,10 +174,10 @@ EXTERNE (donnée/spec à obtenir d'un tiers).
   rebrancher sur le routing quand il sera disponible. Le pricing partagé
   (abattements) reste à construire séparément.
 
-### 4.3 Upload de scans (document_url conformité, bons de transport)
-- **Décision** : coquille UI posée (2026-06-10, DEC-143, flag `UPLOAD_DOCS_ENABLED` OFF) ; branchement Storage différé (bucket HDS).
-- **Raison** : stocker des scans (potentiellement données santé) = dépend du stockage HDS. Le champ `document_url` existe déjà (nullable), prêt à recevoir. La coquille (champ « Document justificatif » par slot de conformité + action stub) est en place, mais aucun Storage n'est câblé tant que OFF.
-- **Déblocage** : dépend de 1.1 HDS (bucket conforme) — créer le bucket + RLS Storage, puis brancher le vrai `.upload()` dans `uploadComplianceDocumentAction` et persister l'URL via l'action conformité (+ option dissociation D-04 reportée). Phase 09.
+### 4.3 Upload de scans (document_url conformité, bons de transport) — PARTIELLEMENT LEVÉ
+- **Statut (DEC-077, CON-001)** : **bêta ✅** — l'upload des documents de CONFORMITÉ est **opérationnel** sur Supabase Storage sous DPA (bucket **privé** `compliance-documents`, RLS org-scoped, validation MIME/taille serveur, URL signées à la lecture ; `uploadComplianceDocumentAction` fait un vrai `.upload()`, `document_url` stocke le chemin de l'objet). Activation via `UPLOAD_DOCS_ENABLED=true`. **prod HDS ⏳** — la migration du bucket vers une infra HDS certifiée en prod commerciale reste à faire (sans changement de code, accès Storage encapsulé dans `lib/storage/compliance-documents.ts`).
+- **Reste reporté** : upload des **bons de transport** (même mécanique, lot séparé) ; option dissociation D-04 ; migration bucket → HDS en prod (Phase 09, cf. §1.1).
+- **Historique** : coquille UI posée 2026-06-10 (DEC-143, stub `.upload()`) ; branchement réel Supabase Storage livré ensuite (déblocage bêta, DEC-077).
 
 ### 4.4 Caisse — toolbar NON migrée sur le patron de liste (06.59)
 - **Décision** : non migré (2026-06-10, lot listes 2/2). La caisse (`(app)/courses/caisse/_components/caisse-toolbar.client.tsx` + `caisse-table` + `caisse-summary`) garde sa toolbar dédiée.
