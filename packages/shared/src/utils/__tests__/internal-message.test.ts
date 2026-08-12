@@ -13,6 +13,7 @@ function msg(id: string, created_at: string): RideMessage {
     sender_profile_id: 'p1',
     sender_role: 'regulateur',
     body: `m-${id}`,
+    image_path: null,
     created_at,
   };
 }
