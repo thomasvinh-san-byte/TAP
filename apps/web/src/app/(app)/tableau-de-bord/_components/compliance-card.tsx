@@ -20,7 +20,7 @@ function formatDateFr(iso: string | null): string {
 export function ComplianceCard({ conformite }: { conformite: DashboardConformite }): JSX.Element {
   const { registreCount, dpaCount, dpiaStatut, derniereMaj } = conformite;
   return (
-    <section className="border-border bg-background flex h-full flex-col gap-8 rounded-lg border p-16">
+    <section className="border-border bg-card shadow-elev-sm flex h-full flex-col gap-8 rounded-lg border p-16">
       <div className="flex items-center gap-8">
         <Shield className="text-muted-foreground h-16 w-16 shrink-0" aria-hidden />
         <h3 className="text-sm font-medium">Conformité RGPD</h3>

@@ -20,7 +20,7 @@ export function CommercialTopsCard({
   const { topDonneurs, topPrescripteursActivite } = commercial;
 
   return (
-    <section className="border-border bg-background flex h-full flex-col gap-16 rounded-lg border p-16">
+    <section className="border-border bg-card shadow-elev-sm flex h-full flex-col gap-16 rounded-lg border p-16">
       <div>
         <div className="mb-8 flex items-center gap-8">
           <Building2 className="text-muted-foreground h-16 w-16 shrink-0" aria-hidden />

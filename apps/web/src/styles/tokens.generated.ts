@@ -9,7 +9,8 @@
 export const tokensLight = {
   color: {
     surface: {
-      primary: '#ffffff',
+      primary: '#f8fafc',
+      card: '#ffffff',
       muted: '#f1f5f9',
       driver: '#fffcf5',
       popover: '#ffffff',
@@ -21,6 +22,7 @@ export const tokensLight = {
       onAccent: '#ffffff',
       onDanger: '#ffffff',
       onPopover: '#0f1729',
+      onCard: '#0f1729',
     },
     action: {
       primary: '#07409d',
@@ -44,6 +46,7 @@ export const tokensDark = {
   color: {
     surface: {
       primary: '#0b111e',
+      card: '#141c2e',
       muted: '#1d283a',
       driver: '#201a13',
       popover: '#0b111e',
@@ -55,6 +58,7 @@ export const tokensDark = {
       onAccent: '#ffffff',
       onDanger: '#ffffff',
       onPopover: '#f1f5f9',
+      onCard: '#f1f5f9',
     },
     action: {
       primary: '#3c83f6',

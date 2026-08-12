@@ -19,6 +19,7 @@ import StyleDictionary from 'style-dictionary';
 
 const VAR_NAME_MAP = {
   'color.surface.primary': 'background',
+  'color.surface.card': 'card',
   'color.surface.muted': 'muted',
   'color.surface.driver': 'driver-surface',
   'color.surface.popover': 'popover',
@@ -28,6 +29,7 @@ const VAR_NAME_MAP = {
   'color.text.onAccent': 'accent-foreground',
   'color.text.onDanger': 'destructive-foreground',
   'color.text.onPopover': 'popover-foreground',
+  'color.text.onCard': 'card-foreground',
   'color.action.primary': 'primary',
   'color.action.accent': 'accent',
   'color.action.focusRing': 'ring',

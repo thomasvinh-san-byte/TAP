@@ -17,6 +17,10 @@ const config: Config = {
       colors: {
         background: 'hsl(var(--background) / <alpha-value>)',
         foreground: 'hsl(var(--foreground) / <alpha-value>)',
+        card: {
+          DEFAULT: 'hsl(var(--card) / <alpha-value>)',
+          foreground: 'hsl(var(--card-foreground) / <alpha-value>)',
+        },
         primary: {
           DEFAULT: 'hsl(var(--primary) / <alpha-value>)',
           foreground: 'hsl(var(--primary-foreground) / <alpha-value>)',
@@ -60,6 +64,12 @@ const config: Config = {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+      },
+      // Élévation hiérarchisée (relief des cartes). Références aux vars CSS
+      // (day/night) définies dans globals.css. `elev-sm` < `elev-md`.
+      boxShadow: {
+        'elev-sm': 'var(--shadow-sm)',
+        'elev-md': 'var(--shadow-md)',
       },
     },
   },
