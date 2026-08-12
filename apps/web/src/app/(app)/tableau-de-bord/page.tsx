@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
@@ -25,6 +26,17 @@ export const dynamic = 'force-dynamic';
  */
 
 const eur = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
+// Lot 5.20-B — distances estimées à 1 décimale (chiffres tabulaires côté carte).
+const km1 = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+/** Libellé de délai signé : retard (+), avance (−) ou à l'heure. */
+function delaiLabel(min: number): string {
+  if (min === 0) return "à l'heure";
+  if (min > 0) return `+${min} min`;
+  return `${min} min`;
+}
+// Lot 5.20-E — coût/km à 2-3 décimales (le €/km est fin).
+const km2 = new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 3 });
 
 const METHOD_LABELS: Record<string, string> = {
   cash: 'Espèces',
@@ -417,6 +429,161 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
             ]}
           />
         </div>
+      </section>
+
+      {/* Rangée 2quater — Courses par période (J/S/M), Lot 5.20-C. Vue
+          consolidée du volume par horizon (chiffres déjà calculés, regroupés
+          ici comme classement d'activité par période). */}
+      <section className="space-y-4" aria-labelledby="bloc-periodes">
+        <h2
+          id="bloc-periodes"
+          className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
+        >
+          Courses par période
+        </h2>
+        <div className="grid grid-cols-1 items-stretch gap-8 sm:grid-cols-3">
+          <KpiCard
+            variant="simple"
+            size="compact"
+            label="Aujourd'hui"
+            value={String(data.volume.aujourdhui)}
+          />
+          <KpiCard
+            variant="simple"
+            size="compact"
+            label="7 derniers jours"
+            value={String(data.volume.semaine)}
+          />
+          <KpiCard
+            variant="simple"
+            size="compact"
+            label="Ce mois"
+            value={String(data.volume.mois)}
+          />
+        </div>
+      </section>
+
+      {/* Rangée 3 — Prescriptions + tops commerciaux (CdG §5.20, DEC-164/165 +
+          Lot 5.20-C : top prescripteurs par activité ajouté dans la carte tops). */}
+      {/* Rangée 2ter — Distance & délai ESTIMÉS (Lot 5.20-B). Distance non
+          mesurée (pas d'OSRM en base) mais estimée Haversine × facteur routier
+          1,3 (DEC-056) : libellé « estimé » explicite, courses sans coordonnées
+          exclues. « Non disponible » si aucune course estimable (pas de faux 0). */}
+      <section className="space-y-4" aria-labelledby="bloc-distance">
+        <h2
+          id="bloc-distance"
+          className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
+        >
+          Distance &amp; délai du mois (estimés)
+        </h2>
+        <div className="grid grid-cols-1 items-stretch gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <KpiCard
+            variant="simple"
+            label="Km moyen / course"
+            value={
+              data.distanceDelai.ridesAvecDistance > 0
+                ? `${km1.format(data.distanceDelai.kmMoyenParCourse)} km`
+                : '—'
+            }
+            context={
+              data.distanceDelai.ridesAvecDistance > 0
+                ? `estimé (facteur routier 1,3) · sur ${data.distanceDelai.ridesAvecDistance}/${data.distanceDelai.ridesRealisees} course${
+                    data.distanceDelai.ridesRealisees > 1 ? 's' : ''
+                  } géolocalisée${data.distanceDelai.ridesAvecDistance > 1 ? 's' : ''}`
+                : 'Aucune course géolocalisée ce mois'
+            }
+          />
+          <KpiCard
+            variant="simple"
+            label="Km à vide / en charge"
+            value={
+              data.distanceDelai.kmEnChargeTotal > 0 ? `${data.distanceDelai.ratioAVidePct} %` : '—'
+            }
+            context={
+              data.distanceDelai.kmEnChargeTotal > 0
+                ? `${km1.format(data.distanceDelai.kmAVideTotal)} km à vide · ${km1.format(
+                    data.distanceDelai.kmEnChargeTotal,
+                  )} km en charge (estimés)`
+                : 'Non disponible'
+            }
+          />
+          <KpiCard
+            variant="simple"
+            label="Délai moyen de prise en charge"
+            value={
+              data.distanceDelai.ridesAvecDelai > 0
+                ? delaiLabel(data.distanceDelai.delaiMoyenMin)
+                : '—'
+            }
+            context={
+              data.distanceDelai.ridesAvecDelai > 0
+                ? `sur ${data.distanceDelai.ridesAvecDelai} course${
+                    data.distanceDelai.ridesAvecDelai > 1 ? 's' : ''
+                  } démarrée${data.distanceDelai.ridesAvecDelai > 1 ? 's' : ''} · écart programmé/réel`
+                : 'Aucune course démarrée ce mois'
+            }
+          />
+        </div>
+      {/* Rangée 2ter — Économie du mois ESTIMÉE (Lot 5.20-E). Marge = CA − coût
+          (coût/km paramétré × distance estimée Haversine). « Non configuré » tant
+          que les paramètres de coût ne sont pas saisis (pas de zéro trompeur). */}
+      <section className="space-y-4" aria-labelledby="bloc-economie">
+        <h2
+          id="bloc-economie"
+          className="text-muted-foreground text-xs font-semibold uppercase tracking-wide"
+        >
+          Économie du mois (estimée)
+        </h2>
+        {!data.economique.configured ? (
+          <div className="grid grid-cols-1 items-stretch gap-8">
+            <KpiCard
+              variant="simple"
+              label="Marge brute"
+              value="Non configuré"
+              context="Renseignez les coûts (carburant, entretien, amortissement) pour estimer la marge."
+              action={{ href: '/admin/parametres-couts', label: 'Configurer les coûts' }}
+            />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 items-stretch gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            <KpiCard
+              variant="simple"
+              label="Coût / km"
+              value={`${km2.format(data.economique.coutParKm)} €/km`}
+              context="Carburant + entretien + amortissement (paramétré)"
+            />
+            <KpiCard
+              variant="simple"
+              label="Marge brute"
+              value={eur.format(data.economique.margeBrute)}
+              context={`CA ${eur.format(data.economique.caRealiseTotal)} − coût ${eur.format(
+                data.economique.coutEstimeTotal,
+              )} · ${data.economique.ridesEstimables} course${
+                data.economique.ridesEstimables > 1 ? 's' : ''
+              } estimée${data.economique.ridesEstimables > 1 ? 's' : ''}`}
+            />
+            <KpiCard
+              variant="simple"
+              label="Rentabilité mutualisées"
+              value={eur.format(data.economique.margeMutualisees)}
+              context="Marge estimée sur courses mutualisées"
+            />
+            <KpiCard
+              variant="simple"
+              label="Rentabilité non mutualisées"
+              value={eur.format(data.economique.margeNonMutualisees)}
+              context="Marge estimée hors mutualisation"
+            />
+          </div>
+        )}
+        {data.economique.configured ? (
+          <p className="text-muted-foreground text-xs">
+            Marge estimée (coût/km paramétré × distance estimée). Courses sans coordonnées exclues.{' '}
+            <Link href="/admin/parametres-couts" className="underline">
+              Modifier les coûts
+            </Link>
+          </p>
+        ) : null}
       </section>
 
       {/* Rangée 3 — Prescriptions + tops commerciaux (CdG §5.20, DEC-164/165). */}
