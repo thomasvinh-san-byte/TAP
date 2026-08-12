@@ -821,6 +821,49 @@ export type Database = {
           },
         ]
       }
+      internal_message_read: {
+        Row: {
+          last_read_at: string
+          organization_id: string
+          profile_id: string
+          ride_id: string
+        }
+        Insert: {
+          last_read_at?: string
+          organization_id: string
+          profile_id: string
+          ride_id: string
+        }
+        Update: {
+          last_read_at?: string
+          organization_id?: string
+          profile_id?: string
+          ride_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internal_message_read_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "internal_message_read_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "internal_message_read_ride_id_fkey"
+            columns: ["ride_id"]
+            isOneToOne: false
+            referencedRelation: "rides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       legal_request_attempts: {
         Row: {
           attempted_at: string
@@ -2815,6 +2858,7 @@ export type Database = {
     }
     Functions: {
       check_breach_deadlines: { Args: never; Returns: undefined }
+      count_unread_messages: { Args: never; Returns: number }
       current_organization_id: { Args: never; Returns: string }
       current_user_role: {
         Args: never
