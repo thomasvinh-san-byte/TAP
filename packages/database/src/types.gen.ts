@@ -2843,13 +2843,13 @@ export type Database = {
       }
       record_cgss_invoice_event: {
         Args: {
-          p_ride_id: string
-          p_event_type: string
-          p_event_date: string
-          p_new_status: string
-          p_motif?: string | null
-          p_motif_famille?: string | null
           p_complementaire_en_attente?: boolean
+          p_event_date: string
+          p_event_type: string
+          p_motif?: string
+          p_motif_famille?: string
+          p_new_status: string
+          p_ride_id: string
         }
         Returns: undefined
       }
