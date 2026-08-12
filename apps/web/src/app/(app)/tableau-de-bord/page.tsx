@@ -463,8 +463,6 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
         </div>
       </section>
 
-      {/* Rangée 3 — Prescriptions + tops commerciaux (CdG §5.20, DEC-164/165 +
-          Lot 5.20-C : top prescripteurs par activité ajouté dans la carte tops). */}
       {/* Rangée 2ter — Distance & délai ESTIMÉS (Lot 5.20-B). Distance non
           mesurée (pas d'OSRM en base) mais estimée Haversine × facteur routier
           1,3 (DEC-056) : libellé « estimé » explicite, courses sans coordonnées
@@ -524,6 +522,8 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
             }
           />
         </div>
+      </section>
+
       {/* Rangée 2ter — Économie du mois ESTIMÉE (Lot 5.20-E). Marge = CA − coût
           (coût/km paramétré × distance estimée Haversine). « Non configuré » tant
           que les paramètres de coût ne sont pas saisis (pas de zéro trompeur). */}
