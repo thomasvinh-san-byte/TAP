@@ -1,7 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
 import { MessageSquare, Users } from 'lucide-react';
+import { getUnreadMessageCountAction } from '@/lib/messaging/actions';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -25,12 +27,22 @@ import {
  *   fabrique pas de liste de conversations (pas de logique data nouvelle).
  * - (b) Fil général (hors course) : NON construit → EmptyState honnête.
  *
- * Pas de badge non-lus : aucune notion de « non-lu » en base aujourd'hui. Le
- * badge viendra avec ce lot, en SUR-IMPRESSION (`absolute -top-1 -right-1`, ne
- * décale pas la largeur — corrige l'erreur `ml-4` de l'ancien DraftQueue).
- * Push PWA : non câblé (registre §1.3).
+ * Badge de non-lus (§5.22 lot 2) en SUR-IMPRESSION (`absolute -top-1 -right-1`,
+ * ne décale pas la largeur). Compteur rafraîchi par sondage (`refetchInterval`)
+ * + au retour de focus ; alimenté par la RPC `count_unread_messages` (RLS
+ * org+rôle → exact et cloisonné). Push PWA : non câblé (registre §1.3).
  */
 export function MessagingButton(): JSX.Element {
+  const { data } = useQuery({
+    queryKey: ['unread-messages'],
+    queryFn: () => getUnreadMessageCountAction(),
+    refetchInterval: 15_000,
+    refetchOnWindowFocus: true,
+    staleTime: 5_000,
+  });
+  const unread = data?.count ?? 0;
+  const badgeLabel = unread > 99 ? '99+' : String(unread);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -38,10 +50,18 @@ export function MessagingButton(): JSX.Element {
           type="button"
           variant="ghost"
           size="icon"
-          aria-label="Messagerie"
+          aria-label={unread > 0 ? `Messagerie — ${unread} message(s) non lu(s)` : 'Messagerie'}
           className="relative"
         >
           <MessageSquare className="h-16 w-16" aria-hidden />
+          {unread > 0 && (
+            <span
+              aria-hidden
+              className="bg-destructive text-destructive-foreground absolute -right-1 -top-1 inline-flex min-w-[16px] items-center justify-center rounded-full px-2 text-[10px] font-semibold tabular-nums leading-[16px]"
+            >
+              {badgeLabel}
+            </span>
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[320px]">
