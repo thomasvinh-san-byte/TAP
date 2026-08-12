@@ -25,7 +25,10 @@ export interface RideMessage {
   ride_id: string;
   sender_profile_id: string;
   sender_role: SenderRole;
-  body: string;
+  /** Corps texte. `null` pour un message photo-seule (§5.22 lot 3). */
+  body: string | null;
+  /** Chemin de l'objet Storage d'une photo jointe (bucket privé). `null` = texte. */
+  image_path: string | null;
   /** Horodatage ISO 8601 (timestamptz). */
   created_at: string;
 }

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { RideMessage, SenderRole } from '@tap/shared';
 import { createClient } from '@/lib/supabase/client';
-import { getRideMessagesAction, sendRideMessageAction } from './actions';
+import { getRideMessagesAction, sendRideMessageAction, uploadMessageImageAction } from './actions';
 
 export type ChatStatus = 'connecting' | 'connected' | 'reconnecting' | 'disconnected';
 
@@ -12,7 +12,8 @@ interface UseRideMessagesResult {
   status: ChatStatus;
   loading: boolean;
   sending: boolean;
-  send: (body: string) => Promise<{ error?: string }>;
+  /** Envoie un message texte et/ou une photo. `file` = photo optionnelle. */
+  send: (body: string, file?: File) => Promise<{ error?: string }>;
 }
 
 /**
@@ -66,13 +67,14 @@ export function useRideMessages(rideId: string): UseRideMessagesResult {
         },
         (payload: { new: Partial<RideMessage> & { id?: string } }) => {
           const row = payload.new;
-          if (!row.id || !row.created_at || !row.body) return;
+          if (!row.id || !row.created_at || (!row.body && !row.image_path)) return;
           const incoming: RideMessage = {
             id: row.id,
             ride_id: row.ride_id ?? rideId,
             sender_profile_id: row.sender_profile_id ?? '',
             sender_role: (row.sender_role as SenderRole) ?? 'regulateur',
-            body: row.body,
+            body: row.body ?? null,
+            image_path: row.image_path ?? null,
             created_at: row.created_at,
           };
           setMessages((current) =>
@@ -101,11 +103,24 @@ export function useRideMessages(rideId: string): UseRideMessagesResult {
   }, [rideId, refetch]);
 
   const send = useCallback(
-    async (body: string): Promise<{ error?: string }> => {
+    async (body: string, file?: File): Promise<{ error?: string }> => {
       const trimmed = body.trim();
-      if (trimmed.length === 0) return { error: 'Message vide.' };
+      if (trimmed.length === 0 && !file) return { error: 'Message vide.' };
       setSending(true);
-      const res = await sendRideMessageAction(rideId, trimmed);
+      // Photo d'abord (upload → chemin), puis message texte + chemin.
+      let imagePath: string | undefined;
+      if (file) {
+        const fd = new FormData();
+        fd.set('ride_id', rideId);
+        fd.set('file', file);
+        const up = await uploadMessageImageAction(fd);
+        if (up.error || !up.path) {
+          setSending(false);
+          return { error: up.error ?? 'Téléversement impossible.' };
+        }
+        imagePath = up.path;
+      }
+      const res = await sendRideMessageAction(rideId, trimmed, imagePath);
       setSending(false);
       if (res.error) return { error: res.error };
       // Filet : rend le message visible même sans propagation Realtime.

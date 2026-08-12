@@ -771,27 +771,30 @@ export type Database = {
       }
       internal_message: {
         Row: {
-          body: string
+          body: string | null
           created_at: string
           id: string
+          image_path: string | null
           organization_id: string
           ride_id: string
           sender_profile_id: string
           sender_role: Database["public"]["Enums"]["user_role"]
         }
         Insert: {
-          body: string
+          body?: string | null
           created_at?: string
           id?: string
+          image_path?: string | null
           organization_id: string
           ride_id: string
           sender_profile_id: string
           sender_role: Database["public"]["Enums"]["user_role"]
         }
         Update: {
-          body?: string
+          body?: string | null
           created_at?: string
           id?: string
+          image_path?: string | null
           organization_id?: string
           ride_id?: string
           sender_profile_id?: string
