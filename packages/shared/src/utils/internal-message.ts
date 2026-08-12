@@ -25,6 +25,22 @@ export interface RideMessage {
   ride_id: string;
   sender_profile_id: string;
   sender_role: SenderRole;
+  /** Corps texte. `null` pour un message photo-seule (§5.22 lot 3). */
+  body: string | null;
+  /** Chemin de l'objet Storage d'une photo jointe (bucket privé). `null` = texte. */
+  image_path: string | null;
+  /** Horodatage ISO 8601 (timestamptz). */
+  created_at: string;
+}
+
+/**
+ * Message du fil général (hors course, §5.22 lot A). Table dédiée
+ * `internal_general_message` — pas de `ride_id`, texte uniquement au lot A.
+ */
+export interface GeneralMessage {
+  id: string;
+  sender_profile_id: string;
+  sender_role: SenderRole;
   body: string;
   /** Horodatage ISO 8601 (timestamptz). */
   created_at: string;
@@ -61,14 +77,19 @@ export function reunionDayKey(isoTimestamp: string): string {
  * conservant l'ordre chronologique ascendant (tri défensif sur `created_at`).
  * Les groupes sont retournés dans l'ordre des jours (du plus ancien au plus
  * récent). Entrée vide → tableau vide.
+ *
+ * Générique sur toute forme portant `created_at` : partagé par le chat à la
+ * course (`RideMessage`) et le fil général (`GeneralMessage`).
  */
-export function groupMessagesByDay(messages: RideMessage[]): RideMessageDayGroup[] {
+export function groupMessagesByDay<T extends { created_at: string }>(
+  messages: T[],
+): { day: string; messages: T[] }[] {
   if (messages.length === 0) return [];
 
   const sorted = [...messages].sort((a, b) => a.created_at.localeCompare(b.created_at));
 
-  const groups: RideMessageDayGroup[] = [];
-  let current: RideMessageDayGroup | null = null;
+  const groups: { day: string; messages: T[] }[] = [];
+  let current: { day: string; messages: T[] } | null = null;
 
   for (const message of sorted) {
     const day = reunionDayKey(message.created_at);

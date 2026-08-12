@@ -8,6 +8,12 @@ import {
 } from '@/app/(admin)/admin/facturation/_lib/queries-facturation';
 import type { CaisseTotals } from '@/app/(app)/courses/caisse/_lib/queries-caisse';
 import { getSlaRules, type SlaRule } from './sla-status';
+import {
+  aggregateOperationalKpis,
+  type OperationalKpis,
+  type OperationalRideRow,
+} from './operational-kpis';
+import { aggregateEconomicKpis, type EconomicKpis, type EconomicRideRow } from './economic-kpis';
 
 /**
  * Agrégations du tableau de bord dirigeant (Phase 06.8).
@@ -106,6 +112,10 @@ export interface DashboardData {
   conformite: DashboardConformite;
   prescriptions: DashboardPrescriptions;
   commercial: DashboardCommercial;
+  // Lot 5.20-A — KPIs opérationnels dérivés direct des courses du mois.
+  operationnel: OperationalKpis;
+  // Lot 5.20-E — KPIs économiques estimés (coût/km paramétré × distance estimée).
+  economique: EconomicKpis;
   // Wave 1 Phase 06.11 — A4 comparatif N vs N-1
   caMoisPrec: CaisseTotals;
   volMoisPrec: number;
@@ -463,6 +473,74 @@ async function getCommercialTops(
   };
 }
 
+/**
+ * KPIs opérationnels du mois (Lot 5.20-A) — 1 select sur les courses du mois
+ * (bornes `scheduled_at`, cohérent avec volume/incidents) → agrégation PURE
+ * testée (`aggregateOperationalKpis`). Aucune donnée inventée : mutualisation,
+ * annulation + motif, patient absent, récurrentes/ponctuelles se dérivent de
+ * colonnes réelles. Fallback gracieux (total 0 → l'UI affiche « non disponible »).
+ */
+async function getOperationnel(
+  supabase: Supabase,
+  start: string,
+  end: string,
+): Promise<OperationalKpis> {
+  const res = await supabase
+    .from('rides')
+    .select('status, no_show_at, ride_group_id, ride_recurrence_id')
+    .gte('scheduled_at', start)
+    .lt('scheduled_at', end);
+  if (res.error || !res.data) {
+    if (res.error) console.error('[dashboard/operationnel] read error', res.error.message);
+    return aggregateOperationalKpis([]);
+  }
+  return aggregateOperationalKpis(res.data as OperationalRideRow[]);
+}
+
+/**
+ * KPIs économiques du mois (Lot 5.20-E) — coût/km paramétré (table
+ * `cost_parameters`, RLS org) × distance estimée (Haversine corrigé) des courses
+ * terminées du mois. Sans paramètres saisis → `configured=false` (l'UI affiche
+ * « non configuré », jamais un zéro trompeur). 2 requêtes, agrégation PURE testée.
+ */
+async function getEconomique(
+  supabase: Supabase,
+  start: string,
+  end: string,
+): Promise<EconomicKpis> {
+  const [paramsRes, ridesRes] = await Promise.all([
+    supabase
+      .from('cost_parameters')
+      .select('cout_carburant_eur_km, cout_entretien_eur_km, cout_amortissement_eur_km')
+      .maybeSingle(),
+    supabase
+      .from('rides')
+      .select('tarif_amount_eur, ride_group_id, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng')
+      .eq('status', 'terminee')
+      .gte('scheduled_at', start)
+      .lt('scheduled_at', end),
+  ]);
+
+  let coutParKm: number | null = null;
+  if (!paramsRes.error && paramsRes.data) {
+    const p = paramsRes.data as {
+      cout_carburant_eur_km: number;
+      cout_entretien_eur_km: number;
+      cout_amortissement_eur_km: number;
+    };
+    coutParKm =
+      Number(p.cout_carburant_eur_km) +
+      Number(p.cout_entretien_eur_km) +
+      Number(p.cout_amortissement_eur_km);
+  }
+
+  if (ridesRes.error || !ridesRes.data) {
+    if (ridesRes.error) console.error('[dashboard/economique] read error', ridesRes.error.message);
+    return aggregateEconomicKpis([], coutParKm);
+  }
+  return aggregateEconomicKpis(ridesRes.data as EconomicRideRow[], coutParKm);
+}
+
 /** Agrégat complet du tableau de bord — appelé par le Server Component. */
 export async function getDashboardData(): Promise<DashboardData> {
   const supabase = await createClient();
@@ -490,6 +568,10 @@ export async function getDashboardData(): Promise<DashboardData> {
     prescriptions,
     // DEC-165 — tops commerciaux (Top 10 patients CA + Top 5 donneurs B2B).
     commercial,
+    // Lot 5.20-A — KPIs opérationnels du mois.
+    operationnel,
+    // Lot 5.20-E — KPIs économiques estimés du mois.
+    economique,
     // A4 comparatif N vs N-1
     caMoisPrec,
     volMoisPrec,
@@ -517,6 +599,8 @@ export async function getDashboardData(): Promise<DashboardData> {
     getConformite(supabase),
     getPrescriptions(supabase),
     getCommercialTops(supabase, moisStart, moisEnd),
+    getOperationnel(supabase, moisStart, moisEnd),
+    getEconomique(supabase, moisStart, moisEnd),
     getCaMois(supabase, precStart, precEnd),
     countRides(supabase, precStart, precEnd),
     getIncidents(supabase, precStart, precEnd),
@@ -549,6 +633,8 @@ export async function getDashboardData(): Promise<DashboardData> {
     conformite,
     prescriptions,
     commercial,
+    operationnel,
+    economique,
     caMoisPrec,
     volMoisPrec,
     incidentsPrec,

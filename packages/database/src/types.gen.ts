@@ -182,6 +182,51 @@ export type Database = {
         }
         Relationships: []
       }
+      cost_parameters: {
+        Row: {
+          cout_amortissement_eur_km: number
+          cout_carburant_eur_km: number
+          cout_entretien_eur_km: number
+          id: string
+          organization_id: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          cout_amortissement_eur_km?: number
+          cout_carburant_eur_km?: number
+          cout_entretien_eur_km?: number
+          id?: string
+          organization_id: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          cout_amortissement_eur_km?: number
+          cout_carburant_eur_km?: number
+          cout_entretien_eur_km?: number
+          id?: string
+          organization_id?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cost_parameters_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cost_parameters_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       data_breach_incident: {
         Row: {
           affected_data_categories: string[]
@@ -769,13 +814,12 @@ export type Database = {
         }
         Relationships: []
       }
-      internal_message: {
+      internal_general_message: {
         Row: {
           body: string
           created_at: string
           id: string
           organization_id: string
-          ride_id: string
           sender_profile_id: string
           sender_role: Database["public"]["Enums"]["user_role"]
         }
@@ -784,7 +828,6 @@ export type Database = {
           created_at?: string
           id?: string
           organization_id: string
-          ride_id: string
           sender_profile_id: string
           sender_role: Database["public"]["Enums"]["user_role"]
         }
@@ -792,6 +835,53 @@ export type Database = {
           body?: string
           created_at?: string
           id?: string
+          organization_id?: string
+          sender_profile_id?: string
+          sender_role?: Database["public"]["Enums"]["user_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "internal_general_message_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "internal_general_message_sender_profile_id_fkey"
+            columns: ["sender_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      internal_message: {
+        Row: {
+          body: string | null
+          created_at: string
+          id: string
+          image_path: string | null
+          organization_id: string
+          ride_id: string
+          sender_profile_id: string
+          sender_role: Database["public"]["Enums"]["user_role"]
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          image_path?: string | null
+          organization_id: string
+          ride_id: string
+          sender_profile_id: string
+          sender_role: Database["public"]["Enums"]["user_role"]
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          id?: string
+          image_path?: string | null
           organization_id?: string
           ride_id?: string
           sender_profile_id?: string
@@ -2883,6 +2973,18 @@ export type Database = {
       purge_login_attempts: { Args: never; Returns: undefined }
       recompute_prescription_status: {
         Args: { p_id: string }
+        Returns: undefined
+      }
+      record_cgss_invoice_event: {
+        Args: {
+          p_complementaire_en_attente?: boolean
+          p_event_date: string
+          p_event_type: string
+          p_motif?: string
+          p_motif_famille?: string
+          p_new_status: string
+          p_ride_id: string
+        }
         Returns: undefined
       }
       rgpd_anonymize_patient: {

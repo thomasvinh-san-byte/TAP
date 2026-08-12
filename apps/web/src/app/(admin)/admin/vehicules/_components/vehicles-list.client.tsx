@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ComplianceBadge } from '@/components/ui/compliance-badge';
 import { EmptyState as SharedEmptyState } from '@/components/ui/empty-state';
-import { DataTable, Pagination, type DataTableColumn } from '@/components/data-table';
+import { DataTable, Pagination } from '@/components/data-table';
 import {
   Sheet,
   SheetContent,
@@ -166,7 +166,9 @@ export function VehiclesList({
         // DEC-033 : clé inclut `actif` pour re-mount au changement.
         rowKey={(v) => `${v.id}-${v.actif}`}
         ariaLabel="Liste des véhicules de la flotte"
-        onRowClick={(v) => setMode({ kind: 'edit', vehicle: v })}
+        // Clic sur une ligne → fiche détail du véhicule (VEHICULE-02). L'édition
+        // se fait désormais depuis la fiche (bouton « Modifier »).
+        onRowClick={(v) => router.push(`/admin/vehicules/${v.id}`)}
         emptyState={<EmptyState onCreate={() => setMode({ kind: 'create' })} />}
       />
 

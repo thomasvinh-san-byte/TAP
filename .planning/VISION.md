@@ -167,7 +167,7 @@ Lors de l'UAT informel pré-démo phase, faire un balayage UI complet (5-10 min)
 
 ## Architecture technique
 
-**Stack** : Next.js 14 App Router + Supabase + shadcn/ui + Tailwind
+**Stack** : Next.js 15.5 App Router + Supabase + shadcn/ui + Tailwind
 **Hosting** : Vercel + Supabase EU
 **Monorepo** : pnpm workspaces
 **CI/CD** : GitHub Actions

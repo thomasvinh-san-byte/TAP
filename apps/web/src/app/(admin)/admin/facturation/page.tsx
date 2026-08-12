@@ -6,8 +6,10 @@ import {
   getChauffeursForSelector,
 } from './_lib/queries-facturation';
 import { getOrganizationSiret } from './_lib/queries-fec';
+import { getCgssSuivi } from './_lib/queries-cgss-suivi';
 import { PeriodeSelector } from './_components/periode-selector.client';
 import { FactureApercu } from './_components/facture-apercu';
+import { CgssSuiviSection } from './_components/cgss-suivi-section.client';
 import { FecExportSection } from './_components/fec-export-section.client';
 
 export const metadata = { title: 'Facturation CGSS' };
@@ -31,11 +33,12 @@ export default async function FacturationPage(props: {
     : defaultMois();
   const chauffeurId = searchParams.chauffeur || undefined;
 
-  const [courses, countSansTarif, chauffeurs, siret] = await Promise.all([
+  const [courses, countSansTarif, chauffeurs, siret, cgssSuivi] = await Promise.all([
     getCoursesFacturables(mois, chauffeurId),
     getCountCoursesSansTarif(mois, chauffeurId),
     getChauffeursForSelector(),
     getOrganizationSiret(),
+    getCgssSuivi(mois, chauffeurId),
   ]);
 
   return (
@@ -53,6 +56,8 @@ export default async function FacturationPage(props: {
         mois={mois}
         chauffeurId={chauffeurId}
       />
+
+      <CgssSuiviSection rows={cgssSuivi.rows} eventsByRide={cgssSuivi.eventsByRide} />
 
       <FecExportSection mois={mois} siret={siret} />
     </div>

@@ -17,7 +17,7 @@ export async function getRideMessages(rideId: string): Promise<RideMessage[]> {
 
   const { data, error } = await supabase
     .from('internal_message')
-    .select('id, ride_id, sender_profile_id, sender_role, body, created_at')
+    .select('id, ride_id, sender_profile_id, sender_role, body, image_path, created_at')
     .eq('ride_id', rideId)
     .order('created_at', { ascending: true });
 
@@ -32,6 +32,7 @@ export async function getRideMessages(rideId: string): Promise<RideMessage[]> {
     sender_profile_id: m.sender_profile_id,
     sender_role: m.sender_role,
     body: m.body,
+    image_path: m.image_path,
     created_at: m.created_at,
   }));
 }
@@ -41,6 +42,7 @@ interface RawMessage {
   ride_id: string;
   sender_profile_id: string;
   sender_role: SenderRole;
-  body: string;
+  body: string | null;
+  image_path: string | null;
   created_at: string;
 }
