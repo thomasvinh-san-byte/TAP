@@ -14,7 +14,20 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { complianceItemUpsertSchema, type ComplianceEntityType } from '@tap/shared';
+import {
+  complianceItemUpsertSchema,
+  COMPLIANCE_ENTITY_TYPES,
+  COMPLIANCE_KINDS,
+  type ComplianceEntityType,
+} from '@tap/shared';
+import {
+  COMPLIANCE_BUCKET,
+  COMPLIANCE_ALLOWED_MIME,
+  COMPLIANCE_MAX_BYTES,
+  COMPLIANCE_SIGNED_URL_TTL,
+  buildCompliancePath,
+  pathBelongsToOrg,
+} from '@/lib/storage/compliance-documents';
 import { requireAdminOrRegulateur } from '@/lib/auth/require-admin-or-regulateur';
 import { requireDirigeant } from '@/lib/auth/require-dirigeant';
 import { sendEmail } from '@/lib/email/send';
@@ -236,19 +249,118 @@ export async function listComplianceItemsForEntityAction(
 }
 
 /**
- * Échafaudage upload de document justificatif (Phase 06.63, DEC-143).
+ * Upload RÉEL d'un justificatif de conformité (DEC-143, déblocage bêta).
  *
- * STUB EXPLICITE : le bucket de stockage HDS n'existe pas encore (registre §1.1,
- * Phase 09). On ne câble AUCUN Storage, on ne renvoie PAS de faux `document_url`.
- * L'UI d'upload (flag `UPLOAD_DOCS_ENABLED` ON, dev) appelle cette action qui
- * échoue clairement. Le vrai `.upload()` Supabase Storage sera branché quand le
- * bucket HDS + RLS Storage existeront.
+ * Bucket PRIVÉ Supabase Storage sous DPA (DEC-077 : HDS = prérequis prod, pas
+ * bêta). Validation SERVEUR (type MIME liste blanche, taille, présence),
+ * écriture réservée au dirigeant de l'organisation (RLS Storage + guard), chemin
+ * org-scoped. On stocke le CHEMIN de l'objet (bucket privé) dans
+ * `compliance_items.document_url` — jamais d'URL publique ; la lecture passe par
+ * une URL signée (`getComplianceDocumentUrlAction`). Aucun montant, aucun faux
+ * succès (les erreurs Storage / persistance sont remontées explicitement).
  */
 export async function uploadComplianceDocumentAction(
-  _formData: FormData,
-): Promise<{ error: string }> {
-  return {
-    error:
-      'Téléversement indisponible : hébergement sécurisé (HDS) non configuré. Prévu en Phase 09.',
-  };
+  formData: FormData,
+): Promise<{ success?: true; path?: string; id?: string; error?: string }> {
+  const ctx = await requireDirigeant();
+  if (!ctx) return { error: 'Action réservée au dirigeant.' };
+
+  const file = formData.get('file');
+  if (!(file instanceof File) || file.size === 0) return { error: 'Aucun fichier reçu.' };
+  if (!(COMPLIANCE_ALLOWED_MIME as readonly string[]).includes(file.type)) {
+    return { error: 'Format non accepté. Formats autorisés : PDF, JPEG, PNG.' };
+  }
+  if (file.size > COMPLIANCE_MAX_BYTES) {
+    return { error: 'Fichier trop volumineux (10 Mo maximum).' };
+  }
+
+  const metaSchema = z.object({
+    entity_type: z.enum(COMPLIANCE_ENTITY_TYPES),
+    entity_id: z.string().uuid().nullable(),
+    kind: z.enum(COMPLIANCE_KINDS),
+    item_id: z.string().uuid().optional(),
+  });
+  const rawEntityId = formData.get('entity_id');
+  const rawItemId = formData.get('item_id');
+  const meta = metaSchema.safeParse({
+    entity_type: formData.get('entity_type'),
+    entity_id: typeof rawEntityId === 'string' && rawEntityId.length > 0 ? rawEntityId : null,
+    kind: formData.get('kind'),
+    item_id: typeof rawItemId === 'string' && rawItemId.length > 0 ? rawItemId : undefined,
+  });
+  if (!meta.success) return { error: 'Contexte du document invalide.' };
+
+  const path = buildCompliancePath({
+    organizationId: ctx.organizationId,
+    entityType: meta.data.entity_type,
+    entityId: meta.data.entity_id,
+    filename: file.name,
+    uuid: crypto.randomUUID(),
+  });
+
+  const up = await ctx.supabase.storage
+    .from(COMPLIANCE_BUCKET)
+    .upload(path, file, { contentType: file.type, upsert: false });
+  if (up.error) return { error: 'Téléversement impossible.' };
+
+  // Persiste le POINTEUR (chemin) sur l'échéance : MAJ si elle existe déjà,
+  // sinon création (row-count check DEC-041 sur la MAJ). RLS = cloisonnement org.
+  if (meta.data.item_id) {
+    const { data, error } = await ctx.supabase
+      .from('compliance_items')
+      .update({ document_url: path })
+      .eq('id', meta.data.item_id)
+      .eq('archive', false)
+      .select('id');
+    if (error || !data || data.length === 0) {
+      return { error: 'Échéance introuvable : droits insuffisants ou archivée.' };
+    }
+    revalidatePath('/admin/conformite');
+    revalidatePath('/admin/chauffeurs');
+    revalidatePath('/admin/vehicules');
+    return { success: true, path, id: meta.data.item_id };
+  }
+
+  const { data, error } = await ctx.supabase
+    .from('compliance_items')
+    .insert({
+      organization_id: ctx.organizationId,
+      entity_type: meta.data.entity_type,
+      entity_id: meta.data.entity_id,
+      kind: meta.data.kind,
+      document_url: path,
+      created_by: ctx.userId,
+    })
+    .select('id')
+    .single();
+  if (error || !data) return { error: 'Enregistrement du document impossible.' };
+  revalidatePath('/admin/conformite');
+  revalidatePath('/admin/chauffeurs');
+  revalidatePath('/admin/vehicules');
+  return { success: true, path, id: (data as { id: string }).id };
+}
+
+/**
+ * Génère une URL SIGNÉE courte pour lire un justificatif (bucket privé). La RLS
+ * Storage (org + rôle) borne l'accès ; on revérifie côté applicatif que le
+ * chemin appartient à l'organisation (défense en profondeur). Aucune URL
+ * publique permanente n'est exposée.
+ */
+export async function getComplianceDocumentUrlAction(
+  path: string,
+): Promise<{ url?: string; error?: string }> {
+  const ctx = await requireAdminOrRegulateur();
+  if (!ctx) return { error: 'Accès non autorisé.' };
+  if (
+    typeof path !== 'string' ||
+    path.length === 0 ||
+    !pathBelongsToOrg(path, ctx.organizationId)
+  ) {
+    return { error: 'Document introuvable.' };
+  }
+  const { data, error } = await ctx.supabase.storage
+    .from(COMPLIANCE_BUCKET)
+    .createSignedUrl(path, COMPLIANCE_SIGNED_URL_TTL);
+  if (error || !data) return { error: 'Document indisponible.' };
+  return { url: data.signedUrl };
 }
