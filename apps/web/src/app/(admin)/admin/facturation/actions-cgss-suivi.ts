@@ -63,8 +63,8 @@ export async function recordCgssEventAction(
     p_event_type: eventType,
     p_event_date: parsed.data.eventDate,
     p_new_status: newStatus,
-    p_motif: parsed.data.motif ?? null,
-    p_motif_famille: parsed.data.motifFamille ?? null,
+    p_motif: parsed.data.motif ?? undefined,
+    p_motif_famille: parsed.data.motifFamille ?? undefined,
     p_complementaire_en_attente: parsed.data.complementaireEnAttente ?? false,
   });
   if (error) return { error: 'Enregistrement du retour impossible.' };
