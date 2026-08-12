@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { requireDirigeantPage } from '@/lib/auth/require-dirigeant-page';
@@ -254,7 +255,7 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
         <h2 id="tier-activite" className={TIER_TITLE_CLASS}>
           Activité &amp; pilotage
         </h2>
-        <div className="grid grid-cols-1 items-stretch gap-8 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-1 items-stretch gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <KpiCard
             variant="simple"
             label="Volume du mois"
@@ -304,7 +305,7 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
 
         <div className="space-y-4">
           <p className={GROUP_LABEL_CLASS}>Prévisionnel &amp; réalisation</p>
-          <div className="grid grid-cols-1 items-stretch gap-8 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid grid-cols-1 items-stretch gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             <KpiCard
               variant="simple"
               size="compact"
@@ -359,11 +360,19 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
       {/* ═══════════════ TIER 3 — DÉTAIL & DIAGNOSTIC ═══════════════
           Pour qui veut creuser : opérationnel, distance/délai, économie, tops,
           conformité — en `compact`, regroupés par sous-thème (libellés discrets,
-          non-titres). Les garde-fous d'honnêteté restent affichés. */}
-      <section className="space-y-8" aria-labelledby="tier-detail">
-        <h2 id="tier-detail" className={TIER_TITLE_CLASS}>
-          Détail &amp; diagnostic
-        </h2>
+          non-titres). REPLIABLE (native `<details>`, ouvert par défaut) pour
+          alléger la surface visible sans masquer de donnée. Les garde-fous
+          d'honnêteté restent affichés. */}
+      <details open className="group space-y-8 [&_summary::-webkit-details-marker]:hidden">
+        <summary className="focus-visible:ring-ring flex cursor-pointer list-none items-center gap-8 rounded-md focus-visible:outline-none focus-visible:ring-2">
+          <h2 id="tier-detail" className={TIER_TITLE_CLASS}>
+            Détail &amp; diagnostic
+          </h2>
+          <ChevronDown
+            className="text-muted-foreground h-16 w-16 transition-transform group-open:rotate-180"
+            aria-hidden
+          />
+        </summary>
 
         {/* Opérationnel (Lot 5.20-A) — « Non disponible » si aucune course. */}
         <div className="space-y-4">
@@ -571,7 +580,7 @@ export default async function TableauDeBordPage(): Promise<JSX.Element> {
             <ComplianceAlertsPanel alerts={complianceAlerts} variant="card" limit={5} />
           </div>
         </div>
-      </section>
+      </details>
     </div>
   );
 }
