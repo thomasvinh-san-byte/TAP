@@ -13,6 +13,11 @@ import {
   type OperationalKpis,
   type OperationalRideRow,
 } from './operational-kpis';
+import {
+  aggregateDistanceDelaiKpis,
+  type DistanceDelaiKpis,
+  type DistanceDelaiRideRow,
+} from './distance-delai-kpis';
 
 /**
  * Agrégations du tableau de bord dirigeant (Phase 06.8).
@@ -113,6 +118,8 @@ export interface DashboardData {
   commercial: DashboardCommercial;
   // Lot 5.20-A — KPIs opérationnels dérivés direct des courses du mois.
   operationnel: OperationalKpis;
+  // Lot 5.20-B — KPIs distance / délai ESTIMÉS (Haversine corrigé + horodatages).
+  distanceDelai: DistanceDelaiKpis;
   // Wave 1 Phase 06.11 — A4 comparatif N vs N-1
   caMoisPrec: CaisseTotals;
   volMoisPrec: number;
@@ -494,6 +501,32 @@ async function getOperationnel(
   return aggregateOperationalKpis(res.data as OperationalRideRow[]);
 }
 
+/**
+ * KPIs distance / délai du mois (Lot 5.20-B) — 1 select sur les courses du mois
+ * (bornes `scheduled_at`, cohérent avec volume/operationnel) → agrégation PURE
+ * testée (`aggregateDistanceDelaiKpis`). Distance ESTIMÉE (Haversine corrigé) :
+ * les courses sans coordonnées sont exclues du calcul (jamais de valeur
+ * inventée). Fallback gracieux.
+ */
+async function getDistanceDelai(
+  supabase: Supabase,
+  start: string,
+  end: string,
+): Promise<DistanceDelaiKpis> {
+  const res = await supabase
+    .from('rides')
+    .select(
+      'driver_id, status, no_show_at, scheduled_at, started_at, pickup_lat, pickup_lng, dropoff_lat, dropoff_lng',
+    )
+    .gte('scheduled_at', start)
+    .lt('scheduled_at', end);
+  if (res.error || !res.data) {
+    if (res.error) console.error('[dashboard/distance-delai] read error', res.error.message);
+    return aggregateDistanceDelaiKpis([]);
+  }
+  return aggregateDistanceDelaiKpis(res.data as DistanceDelaiRideRow[]);
+}
+
 /** Agrégat complet du tableau de bord — appelé par le Server Component. */
 export async function getDashboardData(): Promise<DashboardData> {
   const supabase = await createClient();
@@ -523,6 +556,8 @@ export async function getDashboardData(): Promise<DashboardData> {
     commercial,
     // Lot 5.20-A — KPIs opérationnels du mois.
     operationnel,
+    // Lot 5.20-B — KPIs distance / délai estimés du mois.
+    distanceDelai,
     // A4 comparatif N vs N-1
     caMoisPrec,
     volMoisPrec,
@@ -551,6 +586,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     getPrescriptions(supabase),
     getCommercialTops(supabase, moisStart, moisEnd),
     getOperationnel(supabase, moisStart, moisEnd),
+    getDistanceDelai(supabase, moisStart, moisEnd),
     getCaMois(supabase, precStart, precEnd),
     countRides(supabase, precStart, precEnd),
     getIncidents(supabase, precStart, precEnd),
@@ -584,6 +620,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     prescriptions,
     commercial,
     operationnel,
+    distanceDelai,
     caMoisPrec,
     volMoisPrec,
     incidentsPrec,
