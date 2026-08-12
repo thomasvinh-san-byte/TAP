@@ -17,6 +17,7 @@ import {
   listComplianceItemsForEntityAction,
   upsertComplianceItemAction,
   uploadComplianceDocumentAction,
+  getComplianceDocumentUrlAction,
   type ComplianceItemRow,
 } from '../actions';
 
@@ -202,21 +203,24 @@ export function ComplianceFieldset({
               <div className="space-y-4">
                 <Label htmlFor={docId}>Document justificatif</Label>
                 {slot.document_url ? (
-                  <a
-                    id={docId}
-                    href={slot.document_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:text-primary/80 focus-visible:ring-ring inline-flex items-center gap-4 rounded text-sm underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2"
-                  >
-                    <FileText className="h-12 w-12" aria-hidden />
-                    Voir le document
-                  </a>
+                  <ComplianceDocViewLink id={docId} path={slot.document_url} />
                 ) : uploadEnabled ? (
-                  <ComplianceDocUploadStub inputId={docId} />
+                  <ComplianceDocUpload
+                    inputId={docId}
+                    entityType={entityType}
+                    entityId={entityId}
+                    kind={kind}
+                    itemId={slot.id}
+                    onUploaded={(path, id) =>
+                      setSlots((prev) => ({
+                        ...prev,
+                        [kind]: { ...prev[kind], document_url: path, id },
+                      }))
+                    }
+                  />
                 ) : (
                   <p id={docId} className="text-muted-foreground text-sm" aria-disabled="true">
-                    Téléversement bientôt disponible (hébergement sécurisé requis).
+                    Téléversement désactivé.
                   </p>
                 )}
               </div>
@@ -243,23 +247,49 @@ export function ComplianceFieldset({
 }
 
 /**
- * Zone de dépôt d'un document justificatif (flag ON, dev — DEC-143).
- *
- * Échafaudage : vrai `<input type="file">`, mais l'action appelée est un STUB
- * qui échoue explicitement (« Storage non configuré ») — aucun octet n'est
- * envoyé vers un Storage non HDS. Pas de faux succès, pas d'URL inventée.
+ * Zone de dépôt RÉELLE d'un justificatif (flag `UPLOAD_DOCS_ENABLED` ON).
+ * Envoie le fichier + le contexte (entité, type d'échéance, id éventuel) à
+ * `uploadComplianceDocumentAction` (validation + upload Storage privé + persist
+ * du chemin). Au succès, remonte le chemin persisté au parent.
  */
-function ComplianceDocUploadStub({ inputId }: { inputId: string }): JSX.Element {
+function ComplianceDocUpload({
+  inputId,
+  entityType,
+  entityId,
+  kind,
+  itemId,
+  onUploaded,
+}: {
+  inputId: string;
+  entityType: ComplianceEntityType;
+  entityId: string | null;
+  kind: ComplianceKind;
+  itemId?: string;
+  onUploaded: (path: string, id: string) => void;
+}): JSX.Element {
   const [pending, startTransition] = useTransition();
   const inputRef = useRef<HTMLInputElement>(null);
 
   function handleUpload() {
     const file = inputRef.current?.files?.[0];
+    if (!file) {
+      toast.error('Sélectionnez un fichier (PDF, JPEG ou PNG).');
+      return;
+    }
     startTransition(async () => {
       const fd = new FormData();
-      if (file) fd.set('file', file);
+      fd.set('file', file);
+      fd.set('entity_type', entityType);
+      if (entityId) fd.set('entity_id', entityId);
+      fd.set('kind', kind);
+      if (itemId) fd.set('item_id', itemId);
       const res = await uploadComplianceDocumentAction(fd);
-      if (res.error) toast.error(res.error);
+      if (res.error || !res.path || !res.id) {
+        toast.error(res.error ?? 'Téléversement impossible.');
+        return;
+      }
+      toast.success('Document téléversé.');
+      onUploaded(res.path, res.id);
     });
   }
 
@@ -269,7 +299,7 @@ function ComplianceDocUploadStub({ inputId }: { inputId: string }): JSX.Element 
         ref={inputRef}
         id={inputId}
         type="file"
-        accept="image/*,application/pdf"
+        accept="application/pdf,image/jpeg,image/png"
         aria-label="Document justificatif à téléverser"
         className="text-muted-foreground file:bg-muted file:text-foreground text-sm file:mr-8 file:rounded-md file:border-0 file:px-12 file:py-4 file:text-sm"
       />
@@ -285,5 +315,38 @@ function ComplianceDocUploadStub({ inputId }: { inputId: string }): JSX.Element 
         {pending ? 'Téléversement…' : 'Téléverser'}
       </Button>
     </div>
+  );
+}
+
+/**
+ * Lien « Voir le document » — bucket PRIVÉ : on demande une URL SIGNÉE courte à
+ * la volée (pas d'URL publique stockée), puis on l'ouvre. Gère le document
+ * absent / expiré.
+ */
+function ComplianceDocViewLink({ id, path }: { id: string; path: string }): JSX.Element {
+  const [pending, startTransition] = useTransition();
+
+  function open() {
+    startTransition(async () => {
+      const res = await getComplianceDocumentUrlAction(path);
+      if (res.error || !res.url) {
+        toast.error(res.error ?? 'Document indisponible.');
+        return;
+      }
+      window.open(res.url, '_blank', 'noopener,noreferrer');
+    });
+  }
+
+  return (
+    <button
+      id={id}
+      type="button"
+      onClick={open}
+      disabled={pending}
+      className="text-primary hover:text-primary/80 focus-visible:ring-ring inline-flex items-center gap-4 rounded text-sm underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2"
+    >
+      <FileText className="h-12 w-12" aria-hidden />
+      {pending ? 'Ouverture…' : 'Voir le document'}
+    </button>
   );
 }
