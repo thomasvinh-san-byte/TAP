@@ -14,6 +14,13 @@
 
 import { defineConfig, devices } from '@playwright/test';
 
+// Smoke sur preview (CLAUDE.md §13.5) : quand `PLAYWRIGHT_BASE_URL` cible une
+// preview Vercel déjà déployée, on teste CETTE URL et on ne démarre AUCUN
+// serveur local (le `webServer` `pnpm dev` + `supabase functions serve` ne peut
+// pas tourner dans le runner smoke). Sans cette variable (dev local, E2E), le
+// comportement historique est conservé : baseURL locale + webServer.
+const previewBaseUrl = process.env.PLAYWRIGHT_BASE_URL;
+
 export default defineConfig({
   // Phase 1.5 : ouvrir le testDir à la fois pour les tests historiques
   // (e2e/ — Phase 1) et les tests RGPD (tests/admin/, tests/public/,
@@ -30,7 +37,7 @@ export default defineConfig({
     timeout: 5_000,
   },
   use: {
-    baseURL: 'http://127.0.0.1:3000',
+    baseURL: previewBaseUrl ?? 'http://127.0.0.1:3000',
     trace: 'on-first-retry',
     locale: 'fr-FR',
     timezoneId: 'Indian/Reunion',
@@ -41,19 +48,22 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  webServer: {
-    // eslint-disable-next-line max-len
-    command:
-      'npx concurrently --kill-others-on-fail "pnpm -C apps/web dev" "supabase functions serve nir --env-file .env.local --no-verify-jwt"',
-    url: 'http://127.0.0.1:3000',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-    env: {
-      APP_NIR_ENCRYPTION_KEY: process.env.APP_NIR_ENCRYPTION_KEY ?? '',
-      APP_NIR_SEARCH_KEY: process.env.APP_NIR_SEARCH_KEY ?? '',
-      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ?? '',
-      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
-    },
-  },
+  // Contre une preview déjà déployée : aucun serveur local à lancer.
+  webServer: previewBaseUrl
+    ? undefined
+    : {
+        // eslint-disable-next-line max-len
+        command:
+          'npx concurrently --kill-others-on-fail "pnpm -C apps/web dev" "supabase functions serve nir --env-file .env.local --no-verify-jwt"',
+        url: 'http://127.0.0.1:3000',
+        reuseExistingServer: !process.env.CI,
+        timeout: 120_000,
+        env: {
+          APP_NIR_ENCRYPTION_KEY: process.env.APP_NIR_ENCRYPTION_KEY ?? '',
+          APP_NIR_SEARCH_KEY: process.env.APP_NIR_SEARCH_KEY ?? '',
+          SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY ?? '',
+          NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ?? '',
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '',
+        },
+      },
 });

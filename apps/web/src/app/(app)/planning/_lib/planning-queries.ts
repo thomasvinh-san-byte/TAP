@@ -13,6 +13,8 @@ export interface PlanningRideMeta {
   transport_mode: string;
   ordering_party_id: string | null;
   ordering_party_label: string | null;
+  // Groupe de mutualisation (demande groupée B2B) — indicateur de tournée lot C.
+  ride_group_id: string | null;
 }
 
 export interface PlanningDriverOption {
@@ -33,6 +35,7 @@ interface RawPlanningRide extends CockpitRide {
   transport_mode: string;
   ordering_party_id: string | null;
   ordering_party: { raison_sociale: string | null } | null;
+  ride_group_id: string | null;
 }
 
 /**
@@ -48,6 +51,7 @@ async function getPlanningRides(
     .select(
       'id, scheduled_at, status, pickup_address, dropoff_address, driver_id, vehicle_id, ' +
         'pickup_lat, pickup_lng, dropoff_lat, dropoff_lng, transport_mode, ordering_party_id, ' +
+        'ride_group_id, ' +
         'patient:patients(prenom, nom), driver:drivers(nom_affichage), ' +
         'vehicle:vehicles(immatriculation), ordering_party:ordering_parties(raison_sociale)',
     )
@@ -69,6 +73,7 @@ async function getPlanningRides(
       transport_mode: r.transport_mode,
       ordering_party_id: r.ordering_party_id,
       ordering_party_label: r.ordering_party?.raison_sociale ?? null,
+      ride_group_id: r.ride_group_id,
     };
   }
   return { rides: rows as CockpitRide[], meta };
