@@ -1,6 +1,8 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { reunionDayKey } from '@tap/shared';
 import { cn } from '@/lib/utils';
 import type { CockpitRide } from '../../cockpit/_lib/types';
@@ -8,10 +10,14 @@ import { useCockpitRides } from '../../cockpit/_lib/use-cockpit-rides';
 import { RealtimeStatusBadge } from '../../cockpit/_components/realtime-status-badge.client';
 import { RideDrawer } from '../../courses/_components/ride-drawer.client';
 import { MODE_LABEL } from '../../courses/_components/ride-badges';
+import { unassignRideAction } from '../../courses/actions/assignment';
+import { reassignRidesBatchAction } from '../../replanification/actions';
 import type { PlanningDriverOption, PlanningRideMeta } from '../_lib/planning-queries';
 import { statusBlockClass, statusLabel } from '../_lib/planning-status';
+import { detectReassignConflict } from '../_lib/planning-conflicts';
 import { PlanningDayPicker } from './planning-day-picker.client';
 import { PlanningGrid } from './planning-grid.client';
+import { PlanningReassignDialog, type ReassignTarget } from './planning-reassign-dialog.client';
 import {
   PlanningFilters,
   EMPTY_FILTERS,
@@ -31,6 +37,12 @@ function patientName(ride: CockpitRide): string {
   return p ? [p.nom, p.prenom].filter(Boolean).join(' ').toLowerCase() : '';
 }
 
+function patientLabel(ride: CockpitRide): string {
+  const p = ride.patient;
+  const label = p ? [p.nom, p.prenom].filter(Boolean).join(' ') : '';
+  return label || 'Patient';
+}
+
 function uniqueOptions(pairs: [string, string][]): { value: string; label: string }[] {
   const map = new Map<string, string>();
   for (const [value, label] of pairs) if (value) map.set(value, label);
@@ -40,21 +52,93 @@ function uniqueOptions(pairs: [string, string][]): { value: string; label: strin
 }
 
 /**
- * Orchestrateur client du planning (Module 5.12 lot A) — LECTURE SEULE.
- * Réutilise le socle Realtime du cockpit (`useCockpitRides`) : la grille reflète
- * les changements en direct. Filtres (chauffeur, véhicule, type, donneur,
- * patient) appliqués en lecture. Un clic ouvre le `RideDrawer` en consultation
- * (aucune écriture ; l'affectation est le lot B).
+ * Orchestrateur client du planning (Module 5.12 lots A + B). Réutilise le socle
+ * Realtime du cockpit (`useCockpitRides`) : la grille reflète les changements en
+ * direct. Filtres (chauffeur, véhicule, type, donneur, patient) en lecture. Un
+ * clic ouvre le `RideDrawer`. Lot B : réaffectation par glisser-déposer OU par
+ * la boîte accessible clavier (bouton du drawer) — UNITAIRE, jamais en lot ;
+ * réutilise `reassignRidesBatchAction` (SMS + push best-effort, compare-and-set)
+ * et `unassignRideAction` (dépose vers « Non affectées »). Une dépose en
+ * chevauchement horaire probable passe par une confirmation (alerte, non
+ * bloquante).
  */
 export function PlanningContent({ date, initialRides, meta, drivers }: Props): JSX.Element {
+  const router = useRouter();
   const { rides, status } = useCockpitRides(initialRides);
   const [openRideId, setOpenRideId] = React.useState<string | null>(null);
   const [filters, setFilters] = React.useState<PlanningFilterState>(EMPTY_FILTERS);
+  const [reassignTarget, setReassignTarget] = React.useState<ReassignTarget | null>(null);
+  const [pending, startTransition] = React.useTransition();
 
   // Le socle Realtime écoute TOUTES les courses ; on borne au jour choisi.
   const dayRides = React.useMemo(
     () => rides.filter((r) => reunionDayKey(r.scheduled_at) === date),
     [rides, date],
+  );
+
+  // Détection de conflit horaire probable pour une cible (lot B).
+  const conflictFor = React.useCallback(
+    (rideId: string, targetDriverId: string | null) =>
+      detectReassignConflict(dayRides, rideId, targetDriverId),
+    [dayRides],
+  );
+
+  // Exécute la réaffectation UNITAIRE. Cible nulle = désaffectation. Best-effort
+  // SMS/push portés par les Server Actions ; Realtime reconcilie la grille.
+  const executeReassign = React.useCallback(
+    (rideId: string, targetDriverId: string | null): void => {
+      startTransition(async () => {
+        const res = targetDriverId
+          ? await reassignRidesBatchAction([{ rideId, driverId: targetDriverId }])
+          : await unassignRideAction(rideId);
+        if (res.error) {
+          toast.error(res.error);
+          return;
+        }
+        toast.success(targetDriverId ? 'Course réaffectée.' : 'Course désaffectée.');
+        setReassignTarget(null);
+        router.refresh();
+      });
+    },
+    [router],
+  );
+
+  // Point d'entrée commun (dépose OU boîte). Une dépose en conflit ouvre la
+  // confirmation ; sinon on exécute directement (chemin rapide).
+  const requestReassign = React.useCallback(
+    (rideId: string, targetDriverId: string | null): void => {
+      const ride = dayRides.find((r) => r.id === rideId);
+      if (!ride) return;
+      if (targetDriverId === (ride.driver_id ?? null)) return; // no-op
+      if (conflictFor(rideId, targetDriverId)) {
+        setReassignTarget({
+          rideId,
+          patientLabel: patientLabel(ride),
+          scheduledAt: ride.scheduled_at,
+          currentDriverId: ride.driver_id ?? null,
+          presetTarget: targetDriverId,
+        });
+        return;
+      }
+      executeReassign(rideId, targetDriverId);
+    },
+    [dayRides, conflictFor, executeReassign],
+  );
+
+  // Chemin clavier : le bouton du drawer ouvre la boîte, cible à choisir.
+  const openReassignDialog = React.useCallback(
+    (rideId: string): void => {
+      const ride = dayRides.find((r) => r.id === rideId);
+      if (!ride) return;
+      setOpenRideId(null);
+      setReassignTarget({
+        rideId,
+        patientLabel: patientLabel(ride),
+        scheduledAt: ride.scheduled_at,
+        currentDriverId: ride.driver_id ?? null,
+      });
+    },
+    [dayRides],
   );
 
   // Options de filtre dérivées des courses du jour.
@@ -141,15 +225,30 @@ export function PlanningContent({ date, initialRides, meta, drivers }: Props): J
         </ul>
       ) : null}
 
-      <PlanningGrid rides={filtered} drivers={drivers} onSelect={(id) => setOpenRideId(id)} />
+      <PlanningGrid
+        rides={filtered}
+        drivers={drivers}
+        onSelect={(id) => setOpenRideId(id)}
+        onDropRide={requestReassign}
+        onReassignRide={openReassignDialog}
+      />
 
-      {/* Lecture seule : le drawer s'ouvre en consultation. `onRequestAssign`
-          est neutralisé à ce lot (l'affectation est le lot B). */}
+      {/* Le bouton d'affectation du drawer ouvre la boîte de réaffectation
+          (chemin accessible clavier, alternative au glisser-déposer). */}
       <RideDrawer
         rideId={openRideId}
         open={openRideId !== null}
         onOpenChange={(o) => !o && setOpenRideId(null)}
-        onRequestAssign={() => {}}
+        onRequestAssign={openReassignDialog}
+      />
+
+      <PlanningReassignDialog
+        target={reassignTarget}
+        drivers={drivers}
+        pending={pending}
+        conflictFor={conflictFor}
+        onConfirm={executeReassign}
+        onClose={() => setReassignTarget(null)}
       />
     </div>
   );
