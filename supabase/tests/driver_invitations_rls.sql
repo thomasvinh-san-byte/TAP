@@ -60,6 +60,7 @@ select ok(
 -- -----------------------------------------------------------------------------
 set local role authenticated;
 set local "request.jwt.claim.sub" = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+set local "request.jwt.claims" = '{"email":"alpha-dir@test.tap"}';
 
 select lives_ok(
   $$ insert into public.driver_invitations
@@ -76,6 +77,7 @@ select lives_ok(
 -- 3. bravo-dir ne peut PAS INSERT invitation pour Org Alpha (cross-org refusé)
 -- -----------------------------------------------------------------------------
 set local "request.jwt.claim.sub" = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+set local "request.jwt.claims" = '{"email":"bravo-dir@test.tap"}';
 select throws_ok(
   $$ insert into public.driver_invitations
        (organization_id, invited_by, email)
@@ -94,6 +96,7 @@ select throws_ok(
 --    (invited_by = soi + même org). Assertion alignée sur la policy réelle.
 -- -----------------------------------------------------------------------------
 set local "request.jwt.claim.sub" = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+set local "request.jwt.claims" = '{"email":"alpha-reg@test.tap"}';
 select lives_ok(
   $$ insert into public.driver_invitations
        (organization_id, invited_by, email)
@@ -109,6 +112,7 @@ select lives_ok(
 -- (alpha-invitee voit la ligne créée pour 'alpha-invitee@test.tap')
 -- -----------------------------------------------------------------------------
 set local "request.jwt.claim.sub" = 'e0e00008-e0e0-e0e0-e0e0-e0e0e0e0e0e0';
+set local "request.jwt.claims" = '{"email":"alpha-invitee@test.tap"}';
 select is(
   (select count(*)::int from public.driver_invitations
     where email = 'alpha-invitee@test.tap'),
@@ -120,6 +124,7 @@ select is(
 -- 6. bravo-dir ne voit pas l'invitation Alpha (cross-tenant strict)
 -- -----------------------------------------------------------------------------
 set local "request.jwt.claim.sub" = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+set local "request.jwt.claims" = '{"email":"bravo-dir@test.tap"}';
 select is(
   (select count(*)::int from public.driver_invitations),
   0,
@@ -130,6 +135,7 @@ select is(
 -- 7. destinataire UPDATE status='accepted' pendant validité (OK)
 -- -----------------------------------------------------------------------------
 set local "request.jwt.claim.sub" = 'e0e00008-e0e0-e0e0-e0e0-e0e0e0e0e0e0';
+set local "request.jwt.claims" = '{"email":"alpha-invitee@test.tap"}';
 select lives_ok(
   $$ update public.driver_invitations
        set status = 'accepted', accepted_at = now()
@@ -156,6 +162,7 @@ values
 
 set local role authenticated;
 set local "request.jwt.claim.sub" = 'e0e00008-e0e0-e0e0-e0e0-e0e0e0e0e0e0';
+set local "request.jwt.claims" = '{"email":"alpha-invitee@test.tap"}';
 -- L'UPDATE renvoie 0 ligne affectée : USING filtre (now() < expires_at faux). Le
 -- WITH-UPDATE est au niveau supérieur de l'instruction (un UPDATE ne peut pas
 -- figurer dans une sous-requête FROM).
@@ -177,6 +184,7 @@ select is(
 --  donc on peut créer une nouvelle 'pending' ; ensuite la 3e échoue.)
 -- -----------------------------------------------------------------------------
 set local "request.jwt.claim.sub" = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+set local "request.jwt.claims" = '{"email":"alpha-dir@test.tap"}';
 -- 1re re-invite pending pour ce même email (OK, l'ancienne est 'accepted')
 select lives_ok(
   $$ insert into public.driver_invitations
@@ -210,6 +218,7 @@ select throws_ok(
 -- authenticated a le grant DELETE (défaut Supabase) mais aucune policy DELETE ne
 -- rend de ligne supprimable → 0 ligne supprimée, sans erreur.
 set local "request.jwt.claim.sub" = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+set local "request.jwt.claims" = '{"email":"alpha-dir@test.tap"}';
 with del as (
   delete from public.driver_invitations
     where id = '11111111-aaaa-0000-0000-000000000001'
