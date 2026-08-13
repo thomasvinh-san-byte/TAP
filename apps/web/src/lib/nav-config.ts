@@ -40,6 +40,7 @@ export interface RoleNav {
 // Nav régulateur : 5 liens directs (sous le seuil 5-7) — pas de regroupement.
 const REGULATEUR_PRIMARY: NavTab[] = [
   { href: '/cockpit', label: 'Cockpit' },
+  { href: '/planning', label: 'Planning' },
   { href: '/patients', label: 'Patients' },
   { href: '/courses', label: 'Courses' },
   { href: '/courses/demandes-groupees', label: 'Demandes groupées' },
@@ -62,6 +63,7 @@ export const REGULATEUR_NAV: RoleNav = {
 const DIRIGEANT_PRIMARY: NavTab[] = [
   { href: '/tableau-de-bord', label: 'Tableau de bord' },
   { href: '/cockpit', label: 'Cockpit' },
+  { href: '/planning', label: 'Planning' },
   { href: '/patients', label: 'Patients' },
   { href: '/courses', label: 'Courses' },
   { href: '/courses/caisse', label: 'Caisse' },
