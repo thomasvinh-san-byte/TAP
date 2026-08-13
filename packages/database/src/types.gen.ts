@@ -3063,6 +3063,14 @@ export type Database = {
         Args: { p_patient_id: string; p_request_id: string; p_salt: string }
         Returns: undefined
       }
+      validate_planning_day: {
+        Args: { p_planning_date: string }
+        Returns: {
+          validation_id: string
+          already_validated: boolean
+          snapshot_count: number
+        }[]
+      }
       search_patients: {
         Args: { q: string }
         Returns: {
