@@ -29,3 +29,15 @@ export function isMessagingEnabled(): boolean {
 export function isUploadDocsEnabled(): boolean {
   return process.env.UPLOAD_DOCS_ENABLED !== 'false';
 }
+
+/**
+ * Géolocalisation chauffeur (DEC-096) — ÉCHAFAUDAGE → OFF par défaut, activée
+ * explicitement (`=== 'true'`). Attend l'HDS (donnée de santé indirecte, DEC-075).
+ * Même régime que la capture serveur (`record-position.ts`) : tant que le flag est
+ * OFF, aucune position réelle n'existe, donc les surfaces de suivi de fraîcheur
+ * (alerte + indicateur « position périmée ») mesureraient du vide → elles ne
+ * doivent pas s'afficher. Réactivation Phase 10 post-HDS : flag ON, sans réécriture.
+ */
+export function isGeolocEnabled(): boolean {
+  return process.env.GEOLOC_ENABLED === 'true';
+}

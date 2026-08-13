@@ -89,6 +89,7 @@ export function CockpitSummaryStrip({
   unassignedH1Count,
   criticalAlertsCount,
   stalePositionsCount,
+  geolocEnabled,
   complianceCount,
   onNavigate,
   isDirigeant = false,
@@ -96,6 +97,12 @@ export function CockpitSummaryStrip({
   unassignedH1Count: number;
   criticalAlertsCount: number;
   stalePositionsCount: number;
+  /**
+   * Géolocalisation chauffeur active (flag `GEOLOC_ENABLED`, post-HDS — DEC-075).
+   * L'indicateur « Positions périmées » n'est affiché que si elle est active :
+   * sans géoloc réelle, il resterait figé à 0 (voyant mort). Réactivation Phase 10.
+   */
+  geolocEnabled: boolean;
   complianceCount: number;
   /**
    * Ouverture d'un indicateur : si fourni, le cockpit gère la destination (ouvrir
@@ -117,7 +124,7 @@ export function CockpitSummaryStrip({
   });
   const draftsCount = Array.isArray(drafts) ? drafts.length : 0;
 
-  const items: StripItem[] = [
+  const allItems: StripItem[] = [
     {
       key: 'unassigned-h1',
       icon: CalendarClock,
@@ -184,6 +191,11 @@ export function CockpitSummaryStrip({
       navLabel: 'Voir la conformité',
     },
   ];
+
+  // DEC-075 : « Positions périmées » n'a de sens qu'avec la géoloc réelle
+  // (post-HDS). Tant que `GEOLOC_ENABLED` est OFF, on retire l'indicateur plutôt
+  // que d'afficher un voyant figé à 0 (faux signal). Réactivation Phase 10.
+  const items = allItems.filter((item) => item.key !== 'stale-positions' || geolocEnabled);
 
   return (
     <section aria-label="Indicateurs de synthèse" className="min-w-0">
