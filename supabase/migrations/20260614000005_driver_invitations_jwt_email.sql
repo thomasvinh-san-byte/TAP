@@ -22,7 +22,11 @@ alter policy driver_invitations_select_invited_or_recipient
     or email = (auth.jwt() ->> 'email')
   );
 
-alter policy driver_invitations_update_recipient_or_dirigeant
+-- La policy UPDATE a été renommée/élargie au régulateur par 20260516000001
+-- (driver_invitations_update_recipient_or_admin_or_regulateur). On ne change que
+-- la clause email du destinataire ; la clause émetteur (dirigeant OU régulateur)
+-- est conservée à l'identique.
+alter policy driver_invitations_update_recipient_or_admin_or_regulateur
   on public.driver_invitations
   using (
     (
@@ -32,6 +36,9 @@ alter policy driver_invitations_update_recipient_or_dirigeant
     )
     or (
       auth.uid() = invited_by
-      and public.has_role('dirigeant'::public.user_role)
+      and (
+        public.has_role('dirigeant'::public.user_role)
+        or public.has_role('regulateur'::public.user_role)
+      )
     )
   );
