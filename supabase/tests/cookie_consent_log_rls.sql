@@ -40,7 +40,7 @@ select ok(
 select ok(
   (select count(*)::int from pg_policies
    where schemaname = 'public' and tablename = 'cookie_consent_log'
-     and roles @> array['service_role']) >= 2,
+     and roles @> array['service_role']::name[]) >= 2,
   'policies service_role INSERT + SELECT existent'
 );
 

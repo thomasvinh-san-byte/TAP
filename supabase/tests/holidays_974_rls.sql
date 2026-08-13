@@ -34,11 +34,17 @@ select throws_ok(
   '42501', null, 'authenticated refusé INSERT (référentiel seedé only)'
 );
 
--- 4. anon refusé (revoke implicite via authenticated only grant)
-select ok(
-  not has_table_privilege('anon', 'public.holidays_974', 'SELECT'),
-  'anon refusé sur holidays_974'
+-- 4. anon ne voit aucun jour férié : le grant SELECT reste octroyé à anon (défaut
+-- Supabase, référentiel sans revoke), mais la policy SELECT vise le rôle
+-- `authenticated` uniquement → aucune policy pour anon → 0 ligne (RLS).
+reset "request.jwt.claim.sub";
+set local role anon;
+select is(
+  (select count(*)::int from public.holidays_974),
+  0,
+  'anon ne voit aucun jour férié (RLS : policy SELECT réservée à authenticated)'
 );
+reset role;
 
 select * from finish();
 rollback;

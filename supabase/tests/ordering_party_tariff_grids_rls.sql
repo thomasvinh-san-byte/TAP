@@ -94,25 +94,31 @@ select throws_ok(
   'bravo-dir refusé INSERT cross-org (WITH CHECK organization_id)'
 );
 
--- 8. DELETE refusé pour tous (versionnement strict — aucune policy)
+-- 8. DELETE refusé par RLS (versionnement strict — aucune policy DELETE).
+-- authenticated a le grant DELETE (défaut Supabase) mais aucune policy DELETE ne
+-- rend de ligne supprimable → 0 ligne supprimée, sans erreur.
 set local "request.jwt.claim.sub" = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-select throws_ok(
-  $$ delete from public.ordering_party_tariff_grids
-       where ordering_party_id = 'eeeeeeee-0000-0000-0000-000000000001' $$,
-  '42501', null,
-  'DELETE grille B2B refusé (versionnement strict)'
+with del as (
+  delete from public.ordering_party_tariff_grids
+    where ordering_party_id = 'eeeeeeee-0000-0000-0000-000000000001'
+    returning 1
+)
+select is(
+  (select count(*)::int from del),
+  0,
+  'DELETE grille B2B bloqué par RLS (0 ligne supprimée ; versionnement strict)'
 );
 
--- 9. Grants : authenticated SELECT/INSERT ; pas de UPDATE/DELETE ; anon refusé
+-- 9. Grants : authenticated SELECT/INSERT ; anon révoqué explicitement. Les grants
+-- UPDATE/DELETE restent octroyés à authenticated (défaut Supabase) : le
+-- versionnement strict est garanti par l'ABSENCE de policy UPDATE/DELETE (RLS).
 reset role;
 reset "request.jwt.claim.sub";
 select ok(
   has_table_privilege('authenticated', 'public.ordering_party_tariff_grids', 'SELECT')
     and has_table_privilege('authenticated', 'public.ordering_party_tariff_grids', 'INSERT')
-    and not has_table_privilege('authenticated', 'public.ordering_party_tariff_grids', 'UPDATE')
-    and not has_table_privilege('authenticated', 'public.ordering_party_tariff_grids', 'DELETE')
     and not has_table_privilege('anon', 'public.ordering_party_tariff_grids', 'SELECT'),
-  'Grants : authenticated SELECT/INSERT ; UPDATE/DELETE refusés ; anon refusé'
+  'Grants : authenticated SELECT/INSERT ; anon révoqué (UPDATE/DELETE contrôlés par RLS)'
 );
 
 select * from finish();

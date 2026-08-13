@@ -13,7 +13,9 @@
 
 begin;
 
-select plan(5);
+-- 4 assertions : has_function + lives_ok + 2×ok. L'étape « insère un breach » est
+-- une fixture (INSERT), pas une assertion pgTAP → le plan était sur-compté (5→4).
+select plan(4);
 
 -- -----------------------------------------------------------------------------
 -- Fixtures multi-tenant + dirigeant Alpha

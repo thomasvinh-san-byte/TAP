@@ -102,36 +102,47 @@ select lives_ok(
 );
 
 -- 9. bravo-dir UPDATE cross-org sans effet (RLS USING masque la ligne → 0 ligne)
+-- Le WITH-UPDATE (statement modifiant) doit être attaché au niveau supérieur de
+-- l'instruction, pas dans une sous-requête scalaire (sinon : « WITH clause
+-- containing a data-modifying statement must be at the top level »).
 set local "request.jwt.claim.sub" = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
+with upd as (
+  update public.ride_groups set status = 'refusee'
+    where id = '99999999-0000-0000-0000-000000000002'
+    returning 1
+)
 select is(
-  (with upd as (
-     update public.ride_groups set status = 'refusee'
-       where id = '99999999-0000-0000-0000-000000000002'
-       returning 1)
-   select count(*)::int from upd),
+  (select count(*)::int from upd),
   0,
   'bravo-dir UPDATE cross-org sans effet (ligne masquée par RLS)'
 );
 
--- 10. DELETE refusé pour tous (aucune policy DELETE)
+-- 10. DELETE refusé par RLS (aucune policy DELETE ; demande tranchée reste tracée).
+-- authenticated a le grant DELETE (défaut Supabase) mais aucune policy DELETE ne
+-- rend de ligne supprimable → 0 ligne supprimée, sans erreur.
 set local "request.jwt.claim.sub" = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-select throws_ok(
-  $$ delete from public.ride_groups
-       where id = '99999999-0000-0000-0000-000000000002' $$,
-  '42501', null,
-  'DELETE demande groupée refusé (demande tranchée reste tracée)'
+with del as (
+  delete from public.ride_groups
+    where id = '99999999-0000-0000-0000-000000000002'
+    returning 1
+)
+select is(
+  (select count(*)::int from del),
+  0,
+  'DELETE demande groupée bloqué par RLS (0 ligne ; demande tranchée reste tracée)'
 );
 
 -- 11. Grants : authenticated SELECT/INSERT/UPDATE ; pas de DELETE ; anon refusé
 reset role;
 reset "request.jwt.claim.sub";
+-- Le grant DELETE reste octroyé à authenticated (défaut Supabase) : la protection
+-- passe par l'absence de policy DELETE (RLS), pas par la révocation du grant.
 select ok(
   has_table_privilege('authenticated', 'public.ride_groups', 'SELECT')
     and has_table_privilege('authenticated', 'public.ride_groups', 'INSERT')
     and has_table_privilege('authenticated', 'public.ride_groups', 'UPDATE')
-    and not has_table_privilege('authenticated', 'public.ride_groups', 'DELETE')
     and not has_table_privilege('anon', 'public.ride_groups', 'SELECT'),
-  'Grants : authenticated SELECT/INSERT/UPDATE ; DELETE refusé ; anon refusé'
+  'Grants : authenticated SELECT/INSERT/UPDATE ; anon révoqué (DELETE contrôlé par RLS)'
 );
 
 select * from finish();

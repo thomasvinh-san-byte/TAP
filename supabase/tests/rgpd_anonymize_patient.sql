@@ -10,7 +10,7 @@
 
 begin;
 
-select plan(8);
+select plan(9);
 
 -- -----------------------------------------------------------------------------
 -- Fixtures multi-tenant Alpha + dirigeant + 1 patient avec NIR + 1 demande

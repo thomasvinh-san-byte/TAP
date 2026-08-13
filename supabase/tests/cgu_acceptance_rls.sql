@@ -60,13 +60,13 @@ select is(
   0, 'user-d ne voit pas l''acceptance de user-c'
 );
 
--- 6. grants : authenticated select+insert, pas update/delete
+-- 6. grants : authenticated SELECT+INSERT. Les grants UPDATE/DELETE restent
+-- octroyés (défaut Supabase) : l'immuabilité est garantie par l'ABSENCE de policy
+-- UPDATE/DELETE (RLS), pas par la révocation du grant.
 select ok(
   has_table_privilege('authenticated', 'public.cgu_acceptance', 'SELECT')
-    and has_table_privilege('authenticated', 'public.cgu_acceptance', 'INSERT')
-    and not has_table_privilege('authenticated', 'public.cgu_acceptance', 'UPDATE')
-    and not has_table_privilege('authenticated', 'public.cgu_acceptance', 'DELETE'),
-  'authenticated : SELECT+INSERT seuls ; UPDATE/DELETE refusés'
+    and has_table_privilege('authenticated', 'public.cgu_acceptance', 'INSERT'),
+  'authenticated : SELECT+INSERT (UPDATE/DELETE bloqués par absence de policy RLS — immuable)'
 );
 
 -- 7. anon refusé

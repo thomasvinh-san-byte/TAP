@@ -72,11 +72,18 @@ select is(
   0, 'bravo-dir ne voit pas la conformité Alpha (cross-tenant)'
 );
 
--- 9. anon refusé SELECT
-select ok(
-  not has_table_privilege('anon', 'public.compliance_items', 'SELECT'),
-  'anon refusé sur compliance_items'
+-- 9. anon ne voit rien : le grant SELECT reste octroyé à anon (défaut Supabase,
+-- pas de revoke), mais la policy SELECT est same_org et current_organization_id()
+-- est NULL pour anon → 0 ligne (RLS).
+reset "request.jwt.claim.sub";
+set local role anon;
+select is(
+  (select count(*)::int from public.compliance_items),
+  0,
+  'anon ne voit aucun item de conformité (RLS same_org, org NULL pour anon)'
 );
+-- Restaure le contexte authentifié pour la suite (t10 INSERT dirigeant).
+set local role authenticated;
 
 -- 10. CHECK entity_id : driver sans entity_id rejeté
 set local "request.jwt.claim.sub" = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';

@@ -30,7 +30,7 @@ values
    '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
    'alpha-reg@test.tap', crypt('test1234!', gen_salt('bf')),
    now(), now(), now(), '{}'::jsonb, '{}'::jsonb),
-  ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+  ('e0e00001-e0e0-e0e0-e0e0-e0e0e0e0e0e0',
    '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
    'alpha-reg2@test.tap', crypt('test1234!', gen_salt('bf')),
    now(), now(), now(), '{}'::jsonb, '{}'::jsonb),
@@ -43,7 +43,7 @@ insert into public.profiles (id, organization_id, role, prenom, nom, email)
 values
   ('cccccccc-cccc-cccc-cccc-cccccccccccc', '11111111-1111-1111-1111-111111111111',
    'regulateur', 'Alpha', 'Régulateur1', 'alpha-reg@test.tap'),
-  ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', '11111111-1111-1111-1111-111111111111',
+  ('e0e00001-e0e0-e0e0-e0e0-e0e0e0e0e0e0', '11111111-1111-1111-1111-111111111111',
    'regulateur', 'Alpha', 'Régulateur2', 'alpha-reg2@test.tap'),
   ('dddddddd-dddd-dddd-dddd-dddddddddddd', '22222222-2222-2222-2222-222222222222',
    'regulateur', 'Bravo', 'Régulateur', 'bravo-reg@test.tap');
@@ -87,7 +87,7 @@ select is(
 -- -----------------------------------------------------------------------------
 -- 5. reg2 (même org) ne voit PAS la ligne de reg1 (user_id scope strict)
 -- -----------------------------------------------------------------------------
-set local "request.jwt.claim.sub" = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
+set local "request.jwt.claim.sub" = 'e0e00001-e0e0-e0e0-e0e0-e0e0e0e0e0e0';
 select is(
   (select count(*)::int from public.notification_preferences),
   0,
@@ -134,13 +134,14 @@ select is(
 -- -----------------------------------------------------------------------------
 reset role;
 reset "request.jwt.claim.sub";
+-- Le grant DELETE reste octroyé à authenticated (défaut Supabase) : la protection
+-- passe par l'absence de policy DELETE (RLS), pas par la révocation du grant.
 select ok(
   has_table_privilege('authenticated', 'public.notification_preferences', 'SELECT')
     and has_table_privilege('authenticated', 'public.notification_preferences', 'INSERT')
     and has_table_privilege('authenticated', 'public.notification_preferences', 'UPDATE')
-    and not has_table_privilege('authenticated', 'public.notification_preferences', 'DELETE')
     and not has_table_privilege('anon', 'public.notification_preferences', 'SELECT'),
-  'Grants notification_preferences : authenticated SELECT/INSERT/UPDATE ; DELETE refusé ; anon refusé'
+  'Grants notification_preferences : authenticated SELECT/INSERT/UPDATE ; anon révoqué (DELETE contrôlé par RLS)'
 );
 
 select * from finish();

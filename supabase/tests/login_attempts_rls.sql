@@ -33,7 +33,7 @@ select ok(
 select ok(
   (select count(*)::int from pg_policies
      where schemaname = 'public' and tablename = 'login_attempts'
-       and roles @> array['service_role']) >= 1,
+       and roles @> array['service_role']::name[]) >= 1,
   'policy service_role existe sur login_attempts'
 );
 

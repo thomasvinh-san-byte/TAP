@@ -116,22 +116,29 @@ select throws_ok(
        'BT-Y', '2026-06-04', 2, 'dddddddd-dddd-dddd-dddd-dddddddddddd') $$,
   '42501', null, 'bravo-dir refusé INSERT cross-org (WITH CHECK)');
 
--- 8. DELETE refusé
+-- 8. DELETE bloqué par RLS (aucune policy DELETE). authenticated a le grant DELETE
+-- (défaut Supabase) mais aucune policy DELETE ne rend de ligne supprimable →
+-- 0 ligne supprimée, sans erreur.
 set local "request.jwt.claim.sub" = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-select throws_ok(
-  $$ delete from public.prescriptions where id = '99999999-0000-0000-0000-000000000001' $$,
-  '42501', null, 'DELETE prescription refusé');
+with del as (
+  delete from public.prescriptions where id = '99999999-0000-0000-0000-000000000001'
+    returning 1
+)
+select is(
+  (select count(*)::int from del),
+  0,
+  'DELETE prescription bloqué par RLS (0 ligne ; pas de policy DELETE)');
 
--- 9. Grants
+-- 9. Grants : authenticated SELECT/INSERT/UPDATE ; anon révoqué. Le grant DELETE
+-- reste octroyé (défaut Supabase) : la protection est l'absence de policy DELETE.
 reset role;
 reset "request.jwt.claim.sub";
 select ok(
   has_table_privilege('authenticated', 'public.prescriptions', 'SELECT')
     and has_table_privilege('authenticated', 'public.prescriptions', 'INSERT')
     and has_table_privilege('authenticated', 'public.prescriptions', 'UPDATE')
-    and not has_table_privilege('authenticated', 'public.prescriptions', 'DELETE')
     and not has_table_privilege('anon', 'public.prescriptions', 'SELECT'),
-  'Grants : authenticated SELECT/INSERT/UPDATE ; DELETE refusé ; anon refusé');
+  'Grants : authenticated SELECT/INSERT/UPDATE ; anon révoqué (DELETE contrôlé par RLS)');
 
 -- =========================================================================
 -- Compteur de trajets (exécuté en owner : la RLS ne s'applique pas, mais le

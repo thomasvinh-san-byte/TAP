@@ -145,12 +145,18 @@ select throws_ok(
 -- -----------------------------------------------------------------------------
 set local "request.jwt.claim.sub" = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
 
-select throws_ok(
-  $$ delete from public.patients
-       where organization_id = '11111111-1111-1111-1111-111111111111' $$,
-  '42501',
-  null,
-  'alpha-reg ne peut pas DELETE un patient (archivage logique uniquement)'
+-- DELETE bloqué par RLS (archivage logique — aucune policy DELETE). authenticated
+-- a le grant DELETE (défaut Supabase) mais aucune policy DELETE ne rend de ligne
+-- supprimable → 0 ligne supprimée, sans erreur. WITH-DELETE au niveau supérieur.
+with del as (
+  delete from public.patients
+    where organization_id = '11111111-1111-1111-1111-111111111111'
+    returning 1
+)
+select is(
+  (select count(*)::int from del),
+  0,
+  'alpha-reg ne peut pas DELETE un patient — bloqué par RLS (0 ligne ; archivage logique)'
 );
 
 select lives_ok(

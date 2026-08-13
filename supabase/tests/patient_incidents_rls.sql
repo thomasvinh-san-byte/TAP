@@ -33,7 +33,7 @@ values
    '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
    'bravo-reg@test.tap', crypt('test1234!', gen_salt('bf')),
    now(), now(), now(), '{}'::jsonb, '{}'::jsonb),
-  ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+  ('e0e00005-e0e0-e0e0-e0e0-e0e0e0e0e0e0',
    '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
    'alpha-chf@test.tap', crypt('test1234!', gen_salt('bf')),
    now(), now(), now(), '{}'::jsonb, '{}'::jsonb);
@@ -44,7 +44,7 @@ values
    'regulateur', 'Alpha', 'Régulateur', 'alpha-reg@test.tap'),
   ('dddddddd-dddd-dddd-dddd-dddddddddddd', '22222222-2222-2222-2222-222222222222',
    'regulateur', 'Bravo', 'Régulateur', 'bravo-reg@test.tap'),
-  ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', '11111111-1111-1111-1111-111111111111',
+  ('e0e00005-e0e0-e0e0-e0e0-e0e0e0e0e0e0', '11111111-1111-1111-1111-111111111111',
    'chauffeur', 'Alpha', 'Chauffeur', 'alpha-chf@test.tap');
 
 insert into public.patients
@@ -99,7 +99,7 @@ select is(
 -- -----------------------------------------------------------------------------
 -- 5. Chauffeur ne peut pas INSERT (rôle non autorisé)
 -- -----------------------------------------------------------------------------
-set local "request.jwt.claim.sub" = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
+set local "request.jwt.claim.sub" = 'e0e00005-e0e0-e0e0-e0e0-e0e0e0e0e0e0';
 
 select throws_ok(
   $$ insert into public.patient_incidents
@@ -108,7 +108,7 @@ select throws_ok(
        ('11111111-1111-1111-1111-111111111111',
         '99999999-9999-9999-9999-999999999991',
         'plainte',
-        'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee') $$,
+        'e0e00005-e0e0-e0e0-e0e0-e0e0e0e0e0e0') $$,
   '42501',
   null,
   'Chauffeur ne peut pas INSERT patient_incidents (rôle régulateur/dirigeant requis)'

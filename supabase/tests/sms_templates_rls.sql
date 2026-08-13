@@ -31,11 +31,16 @@ select cmp_ok(
   'alpha-reg voit les templates seedés (référentiel partagé authenticated)'
 );
 
--- 3. alpha-reg UPDATE refusé (seul dirigeant)
-select throws_ok(
-  $$ update public.sms_templates set body = 'X' where key = 'j1_reminder' $$,
-  null, null,
-  'alpha-reg refusé UPDATE (seul dirigeant)'
+-- 3. alpha-reg UPDATE refusé par RLS (policy UPDATE réservée au dirigeant). Le
+-- grant UPDATE existe (défaut Supabase) mais le USING filtre la ligne → 0 ligne
+-- modifiée, sans erreur. WITH-UPDATE au niveau supérieur de l'instruction.
+with upd as (
+  update public.sms_templates set body = 'X' where key = 'j1_reminder' returning 1
+)
+select is(
+  (select count(*)::int from upd),
+  0,
+  'alpha-reg UPDATE sms_template bloqué par RLS (0 ligne ; seul dirigeant)'
 );
 
 -- 4. alpha-dir UPDATE OK
@@ -52,11 +57,17 @@ select throws_ok(
   'authenticated refusé INSERT (pas de policy ; seed migration only)'
 );
 
--- 6. anon refusé
-select ok(
-  not has_table_privilege('anon', 'public.sms_templates', 'SELECT'),
-  'anon refusé sur sms_templates'
+-- 6. anon ne voit aucun template : le grant SELECT reste octroyé à anon (défaut
+-- Supabase, référentiel sans revoke), mais la policy SELECT vise `authenticated`
+-- uniquement → aucune policy pour anon → 0 ligne (RLS).
+reset "request.jwt.claim.sub";
+set local role anon;
+select is(
+  (select count(*)::int from public.sms_templates),
+  0,
+  'anon ne voit aucun template (RLS : policy SELECT réservée à authenticated)'
 );
+reset role;
 
 select * from finish();
 rollback;

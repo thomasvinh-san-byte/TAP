@@ -31,7 +31,7 @@ values
    '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
    'alpha-reg@test.tap', crypt('test1234!', gen_salt('bf')),
    now(), now(), now(), '{}'::jsonb, '{}'::jsonb),
-  ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+  ('e0e00006-e0e0-e0e0-e0e0-e0e0e0e0e0e0',
    '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
    'alpha-reg2@test.tap', crypt('test1234!', gen_salt('bf')),
    now(), now(), now(), '{}'::jsonb, '{}'::jsonb),
@@ -44,7 +44,7 @@ insert into public.profiles (id, organization_id, role, prenom, nom, email)
 values
   ('cccccccc-cccc-cccc-cccc-cccccccccccc', '11111111-1111-1111-1111-111111111111',
    'regulateur', 'Alpha', 'Régulateur1', 'alpha-reg@test.tap'),
-  ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', '11111111-1111-1111-1111-111111111111',
+  ('e0e00006-e0e0-e0e0-e0e0-e0e0e0e0e0e0', '11111111-1111-1111-1111-111111111111',
    'regulateur', 'Alpha', 'Régulateur2', 'alpha-reg2@test.tap'),
   ('dddddddd-dddd-dddd-dddd-dddddddddddd', '22222222-2222-2222-2222-222222222222',
    'regulateur', 'Bravo', 'Régulateur', 'bravo-reg@test.tap');
@@ -90,7 +90,7 @@ select is(
 -- 5. alpha-reg2 (MÊME ORG) ne voit PAS le brouillon de reg1
 --    (Pitfall 4 RESEARCH — author_id scoping strict)
 -- -----------------------------------------------------------------------------
-set local "request.jwt.claim.sub" = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
+set local "request.jwt.claim.sub" = 'e0e00006-e0e0-e0e0-e0e0-e0e0e0e0e0e0';
 select is(
   (select count(*)::int from public.ride_draft),
   0,

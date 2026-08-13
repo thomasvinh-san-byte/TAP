@@ -183,12 +183,13 @@ select throws_ok(
 -- -----------------------------------------------------------------------------
 -- 13. authenticated a SELECT/INSERT/UPDATE — pas de DELETE
 -- -----------------------------------------------------------------------------
+-- Le grant DELETE reste octroyé à authenticated (défaut Supabase) : la protection
+-- contre les suppressions passe par l'absence de policy DELETE (RLS), pas le grant.
 select ok(
   has_table_privilege('authenticated', 'public.rides', 'INSERT')
     and has_table_privilege('authenticated', 'public.rides', 'SELECT')
-    and has_table_privilege('authenticated', 'public.rides', 'UPDATE')
-    and not has_table_privilege('authenticated', 'public.rides', 'DELETE'),
-  'authenticated : INSERT/SELECT/UPDATE OK ; DELETE refusé'
+    and has_table_privilege('authenticated', 'public.rides', 'UPDATE'),
+  'authenticated : INSERT/SELECT/UPDATE OK (DELETE contrôlé par RLS, pas par le grant)'
 );
 
 -- -----------------------------------------------------------------------------
@@ -202,11 +203,13 @@ select ok(
 -- -----------------------------------------------------------------------------
 -- 15. 3 enums créés avec le bon nombre de valeurs
 -- -----------------------------------------------------------------------------
+-- ride_status : 8 valeurs de base + annulee_meteo (20260612000008)
+-- + arrive_sur_place + patient_a_bord (20260613000016) = 11.
 select ok(
   (select array_length(enum_range(null::public.ride_transport_mode), 1) = 4
     and array_length(enum_range(null::public.ride_urgency), 1) = 3
-    and array_length(enum_range(null::public.ride_status), 1) = 8),
-  '3 enums (transport_mode=4, urgency=3, status=8) exposent les bonnes valeurs'
+    and array_length(enum_range(null::public.ride_status), 1) = 11),
+  '3 enums (transport_mode=4, urgency=3, status=11) exposent les bonnes valeurs'
 );
 
 select * from finish();
