@@ -1,7 +1,9 @@
 import { PageHeader } from '@/components/page-header';
 import { requireAdminOrRegulateurPage } from '@/lib/auth/require-admin-or-regulateur-page';
 import { getPlanningData } from './_lib/planning-queries';
+import { getPlanningValidation } from './_lib/validation-queries';
 import { PlanningContent } from './_components/planning-content.client';
+import { PlanningValidateBar } from './_components/planning-validate-bar.client';
 
 export const metadata = { title: 'Planning' };
 export const dynamic = 'force-dynamic';
@@ -14,13 +16,14 @@ function resolveDate(raw: string | string[] | undefined): string {
 }
 
 /**
- * Planning des tournées (Module 5.12 lot A) — grille type Gantt en LECTURE
- * SEULE : chauffeurs × tranches horaires, courses du jour positionnées, code
- * couleur + texte par statut, filtres, zone « non affectées ». Réservé aux
- * rôles régulateur / dirigeant. Aucune écriture à ce lot (drag-drop = lot B).
+ * Planning des tournées (Module 5.12 lots A→D) — grille type Gantt : chauffeurs
+ * × tranches horaires, courses du jour, code couleur + texte par statut,
+ * filtres, zone « non affectées ». Réaffectation par glisser-déposer + clavier
+ * (lot B), indicateurs de tournée (lot C), validation du planning J+1 avec gel
+ * du prévu (lot D). Réservé aux rôles régulateur / dirigeant.
  *
- * Server Component : point de fetch unique (`getPlanningData`) ; la grille
- * cliente réutilise le socle Realtime du cockpit (`useCockpitRides`).
+ * Server Component : fetch unique (`getPlanningData` + statut de validation) ;
+ * la grille cliente réutilise le socle Realtime du cockpit (`useCockpitRides`).
  */
 export default async function PlanningPage({
   searchParams,
@@ -30,14 +33,18 @@ export default async function PlanningPage({
   await requireAdminOrRegulateurPage();
   const params = await searchParams;
   const date = resolveDate(params.date);
-  const data = await getPlanningData(date);
+  const [data, validation] = await Promise.all([
+    getPlanningData(date),
+    getPlanningValidation(date),
+  ]);
 
   return (
     <div className="space-y-16">
       <PageHeader
         title="Planning"
-        description="Tournées du jour par chauffeur et tranche horaire. Vue de consultation."
+        description="Tournées du jour par chauffeur et tranche horaire."
       />
+      <PlanningValidateBar date={date} validation={validation} />
       <PlanningContent
         date={data.date}
         initialRides={data.rides}
