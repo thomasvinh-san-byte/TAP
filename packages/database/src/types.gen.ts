@@ -583,6 +583,78 @@ export type Database = {
           },
         ]
       }
+      planning_validations: {
+        Row: {
+          created_at: string
+          id: string
+          notified_drivers: number
+          notified_patients: number
+          organization_id: string
+          planning_date: string
+          validated_at: string
+          validated_by: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notified_drivers?: number
+          notified_patients?: number
+          organization_id: string
+          planning_date: string
+          validated_at?: string
+          validated_by: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notified_drivers?: number
+          notified_patients?: number
+          organization_id?: string
+          planning_date?: string
+          validated_at?: string
+          validated_by?: string
+        }
+        Relationships: []
+      }
+      planning_validation_rides: {
+        Row: {
+          created_at: string
+          driver_id: string | null
+          id: string
+          organization_id: string
+          patient_id: string | null
+          ride_id: string
+          scheduled_at: string
+          status: string
+          validation_id: string
+          vehicle_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          driver_id?: string | null
+          id?: string
+          organization_id: string
+          patient_id?: string | null
+          ride_id: string
+          scheduled_at: string
+          status: string
+          validation_id: string
+          vehicle_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string | null
+          id?: string
+          organization_id?: string
+          patient_id?: string | null
+          ride_id?: string
+          scheduled_at?: string
+          status?: string
+          validation_id?: string
+          vehicle_id?: string | null
+        }
+        Relationships: []
+      }
       driver_invitations: {
         Row: {
           accepted_at: string | null

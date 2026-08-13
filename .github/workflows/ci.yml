@@ -83,7 +83,10 @@ jobs:
       - run: supabase db start
       - run: supabase test db
       - if: always()
-        run: supabase db stop --no-backup
+        # `--no-backup` n'existe pas dans la CLI épinglée (2.98.2) : la commande
+        # échouait (« unknown flag ») et masquait le vrai résultat de `test db`.
+        # `db stop` seul suffit en CI (conteneur jetable).
+        run: supabase db stop
 
   e2e:
     name: Tests E2E Playwright
