@@ -21,8 +21,8 @@ insert into public.patients (id, organization_id, nom, prenom, date_naissance, a
 
 -- Seed 1 sms_message Alpha (via service_role bypass dans le test)
 set local role postgres;
-insert into public.sms_messages (id, organization_id, patient_id, body, delivery_status, created_at) values
-  ('77777777-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', '99999999-9999-9999-9999-999999999991', 'Test', 'queued', now());
+insert into public.sms_messages (id, organization_id, patient_id, template_key, to_phone, body_rendered, delivery_status, created_at) values
+  ('77777777-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', '99999999-9999-9999-9999-999999999991', 'rappel_j1', '+262692000001', 'Test', 'queued', now());
 
 -- 1. RLS activée
 select ok(
@@ -48,17 +48,23 @@ select is(
 -- 4. authenticated ne peut PAS INSERT (pas de policy INSERT applicative)
 set local "request.jwt.claim.sub" = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
 select throws_ok(
-  $$ insert into public.sms_messages (organization_id, patient_id, body, delivery_status) values
-       ('11111111-1111-1111-1111-111111111111', '99999999-9999-9999-9999-999999999991', 'X', 'queued') $$,
+  $$ insert into public.sms_messages (organization_id, patient_id, template_key, to_phone, body_rendered, delivery_status) values
+       ('11111111-1111-1111-1111-111111111111', '99999999-9999-9999-9999-999999999991', 'rappel_j1', '+262692000002', 'X', 'queued') $$,
   '42501', null,
   'authenticated refusé INSERT (pas de policy ; service_role only via Edge Function)'
 );
 
--- 5. anon refusé
-select ok(
-  not has_table_privilege('anon', 'public.sms_messages', 'SELECT'),
-  'anon refusé sur sms_messages'
+-- 5. anon ne voit rien : le grant SELECT reste octroyé à anon (défaut Supabase,
+-- pas de revoke), mais la policy SELECT est same_org et current_organization_id()
+-- est NULL pour anon → 0 ligne (RLS).
+reset "request.jwt.claim.sub";
+set local role anon;
+select is(
+  (select count(*)::int from public.sms_messages),
+  0,
+  'anon ne voit aucun sms_message (RLS same_org, org NULL pour anon)'
 );
+reset role;
 
 select * from finish();
 rollback;

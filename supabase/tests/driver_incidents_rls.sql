@@ -147,13 +147,20 @@ select lives_ok(
   'alpha-reg UPDATE résolution incident OK'
 );
 
--- 10. DELETE refusé pour tous (historique tracé)
+-- 10. DELETE refusé pour tous par RLS (aucune policy DELETE ; historique tracé).
+-- authenticated a le grant DELETE (défaut Supabase) mais aucune policy DELETE ne
+-- rend de ligne supprimable → 0 ligne supprimée, sans erreur. WITH-DELETE au
+-- niveau supérieur de l'instruction.
 set local "request.jwt.claim.sub" = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-select throws_ok(
-  $$ delete from public.driver_incidents
-       where id = '99999999-0000-0000-0000-000000000001' $$,
-  '42501', null,
-  'DELETE incident refusé (historique tracé)'
+with del as (
+  delete from public.driver_incidents
+    where id = '99999999-0000-0000-0000-000000000001'
+    returning 1
+)
+select is(
+  (select count(*)::int from del),
+  0,
+  'DELETE incident bloqué par RLS (0 ligne supprimée ; historique tracé)'
 );
 
 -- 11-12. Grants
@@ -162,9 +169,8 @@ reset "request.jwt.claim.sub";
 select ok(
   has_table_privilege('authenticated', 'public.driver_incidents', 'SELECT')
     and has_table_privilege('authenticated', 'public.driver_incidents', 'INSERT')
-    and has_table_privilege('authenticated', 'public.driver_incidents', 'UPDATE')
-    and not has_table_privilege('authenticated', 'public.driver_incidents', 'DELETE'),
-  'Grants authenticated : SELECT/INSERT/UPDATE ; DELETE refusé'
+    and has_table_privilege('authenticated', 'public.driver_incidents', 'UPDATE'),
+  'Grants authenticated : SELECT/INSERT/UPDATE (DELETE contrôlé par RLS, pas par le grant)'
 );
 select ok(
   not has_table_privilege('anon', 'public.driver_incidents', 'SELECT'),

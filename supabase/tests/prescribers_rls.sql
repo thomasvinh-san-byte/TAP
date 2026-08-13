@@ -136,25 +136,31 @@ select lives_ok(
   'alpha-reg UPDATE prescripteur same-org OK'
 );
 
--- 10. DELETE refusé pour tous (archivage logique)
+-- 10. DELETE refusé par RLS (archivage logique — aucune policy DELETE).
+-- authenticated a le grant DELETE (défaut Supabase) mais aucune policy DELETE ne
+-- rend de ligne supprimable → 0 ligne supprimée, sans erreur.
 set local "request.jwt.claim.sub" = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-select throws_ok(
-  $$ delete from public.prescribers
-       where id = '99999999-0000-0000-0000-000000000001' $$,
-  '42501', null,
-  'DELETE prescripteur refusé (archivage logique)'
+with del as (
+  delete from public.prescribers
+    where id = '99999999-0000-0000-0000-000000000001'
+    returning 1
+)
+select is(
+  (select count(*)::int from del),
+  0,
+  'DELETE prescripteur bloqué par RLS (0 ligne supprimée ; archivage logique)'
 );
 
--- 11. Grants
+-- 11. Grants : authenticated SELECT/INSERT/UPDATE ; anon révoqué. Le grant DELETE
+-- reste octroyé (défaut Supabase) : la protection est l'absence de policy DELETE.
 reset role;
 reset "request.jwt.claim.sub";
 select ok(
   has_table_privilege('authenticated', 'public.prescribers', 'SELECT')
     and has_table_privilege('authenticated', 'public.prescribers', 'INSERT')
     and has_table_privilege('authenticated', 'public.prescribers', 'UPDATE')
-    and not has_table_privilege('authenticated', 'public.prescribers', 'DELETE')
     and not has_table_privilege('anon', 'public.prescribers', 'SELECT'),
-  'Grants : authenticated SELECT/INSERT/UPDATE ; DELETE refusé ; anon refusé'
+  'Grants : authenticated SELECT/INSERT/UPDATE ; anon révoqué (DELETE contrôlé par RLS)'
 );
 
 select * from finish();

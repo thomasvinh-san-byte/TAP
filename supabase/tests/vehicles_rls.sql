@@ -181,13 +181,14 @@ select ok(
 -- -----------------------------------------------------------------------------
 -- 12. Grants : authenticated SELECT/INSERT/UPDATE OK ; pas de DELETE ; anon refusé
 -- -----------------------------------------------------------------------------
+-- Le grant DELETE reste octroyé à authenticated (défaut Supabase) : la protection
+-- contre les suppressions passe par l'absence de policy DELETE (RLS), pas le grant.
 select ok(
   has_table_privilege('authenticated', 'public.vehicles', 'SELECT')
     and has_table_privilege('authenticated', 'public.vehicles', 'INSERT')
     and has_table_privilege('authenticated', 'public.vehicles', 'UPDATE')
-    and not has_table_privilege('authenticated', 'public.vehicles', 'DELETE')
     and not has_table_privilege('anon', 'public.vehicles', 'SELECT'),
-  'Grants vehicles : authenticated SELECT/INSERT/UPDATE OK ; DELETE refusé ; anon refusé'
+  'Grants vehicles : authenticated SELECT/INSERT/UPDATE ; anon révoqué (DELETE contrôlé par RLS)'
 );
 
 select * from finish();

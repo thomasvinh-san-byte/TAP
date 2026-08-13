@@ -29,14 +29,14 @@ insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
   ('cccccccc-cccc-cccc-cccc-cccccccccccc', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'alpha-reg@t', crypt('p', gen_salt('bf')), now(), now(), now(), '{}'::jsonb, '{}'::jsonb),
   ('dddddddd-dddd-dddd-dddd-dddddddddddd', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'bravo-reg@t', crypt('p', gen_salt('bf')), now(), now(), now(), '{}'::jsonb, '{}'::jsonb),
   ('ffffffff-ffff-ffff-ffff-ffffffffffff', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'alpha-cha@t', crypt('p', gen_salt('bf')), now(), now(), now(), '{}'::jsonb, '{}'::jsonb),
-  ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'bravo-cha@t', crypt('p', gen_salt('bf')), now(), now(), now(), '{}'::jsonb, '{}'::jsonb);
+  ('e0e00007-e0e0-e0e0-e0e0-e0e0e0e0e0e0', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'bravo-cha@t', crypt('p', gen_salt('bf')), now(), now(), now(), '{}'::jsonb, '{}'::jsonb);
 
 insert into public.profiles (id, organization_id, role, prenom, nom, email) values
   ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '11111111-1111-1111-1111-111111111111', 'dirigeant', 'Alpha', 'Dir', 'alpha-dir@t'),
   ('cccccccc-cccc-cccc-cccc-cccccccccccc', '11111111-1111-1111-1111-111111111111', 'regulateur', 'Alpha', 'Reg', 'alpha-reg@t'),
   ('dddddddd-dddd-dddd-dddd-dddddddddddd', '22222222-2222-2222-2222-222222222222', 'regulateur', 'Bravo', 'Reg', 'bravo-reg@t'),
   ('ffffffff-ffff-ffff-ffff-ffffffffffff', '11111111-1111-1111-1111-111111111111', 'chauffeur', 'Alpha', 'Cha', 'alpha-cha@t'),
-  ('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', '22222222-2222-2222-2222-222222222222', 'chauffeur', 'Bravo', 'Cha', 'bravo-cha@t');
+  ('e0e00007-e0e0-e0e0-e0e0-e0e0e0e0e0e0', '22222222-2222-2222-2222-222222222222', 'chauffeur', 'Bravo', 'Cha', 'bravo-cha@t');
 
 -- 1 patient Alpha + 2 drivers + 2 rides (1 par org)
 insert into public.patients (id, organization_id, nom, prenom, date_naissance, adresse_ligne1, code_postal, ville, canal_contact_prefere) values
@@ -45,7 +45,7 @@ insert into public.patients (id, organization_id, nom, prenom, date_naissance, a
 
 insert into public.drivers (id, organization_id, profile_id, nom_affichage, type_permis, actif) values
   ('44444444-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', 'ffffffff-ffff-ffff-ffff-ffffffffffff', 'A Cha', '{taxi}', true),
-  ('44444444-0000-0000-0000-000000000002', '22222222-2222-2222-2222-222222222222', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'B Cha', '{taxi}', true);
+  ('44444444-0000-0000-0000-000000000002', '22222222-2222-2222-2222-222222222222', 'e0e00007-e0e0-e0e0-e0e0-e0e0e0e0e0e0', 'B Cha', '{taxi}', true);
 
 insert into public.rides (id, organization_id, patient_id, driver_id, scheduled_at, pickup_address, dropoff_address, created_by, updated_by) values
   ('55555555-0000-0000-0000-000000000001', '11111111-1111-1111-1111-111111111111', '99999999-9999-9999-9999-999999999991', '44444444-0000-0000-0000-000000000001', now()+interval '1 day', 'X', 'Y', 'cccccccc-cccc-cccc-cccc-cccccccccccc', 'cccccccc-cccc-cccc-cccc-cccccccccccc'),
@@ -107,26 +107,44 @@ select cmp_ok(
   'alpha-chauffeur voit les ride_events de son org (policy SELECT same_org)'
 );
 
--- 8. UPDATE refusé (pas de policy UPDATE — table immuable)
+-- 8. UPDATE refusé par RLS (table immuable — aucune policy UPDATE). Le grant
+-- UPDATE existe (défaut Supabase) mais aucune policy UPDATE ne rend de ligne
+-- modifiable → 0 ligne modifiée, sans erreur.
 set local "request.jwt.claim.sub" = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
-select throws_ok(
-  $$ update public.ride_events set event_type = 'X' where organization_id = '11111111-1111-1111-1111-111111111111' $$,
-  '42501', null,
-  'UPDATE refusé sur ride_events (table immuable, pas de policy)'
+with upd as (
+  update public.ride_events set event_type = 'X'
+    where organization_id = '11111111-1111-1111-1111-111111111111'
+    returning 1
+)
+select is(
+  (select count(*)::int from upd),
+  0,
+  'UPDATE bloqué par RLS (0 ligne ; ride_events immuable, pas de policy UPDATE)'
 );
 
--- 9. DELETE refusé (pas de policy DELETE — audit trail)
-select throws_ok(
-  $$ delete from public.ride_events where organization_id = '11111111-1111-1111-1111-111111111111' $$,
-  '42501', null,
-  'DELETE refusé sur ride_events (audit trail, pas de policy)'
+-- 9. DELETE refusé par RLS (audit trail — aucune policy DELETE). 0 ligne supprimée.
+with del as (
+  delete from public.ride_events
+    where organization_id = '11111111-1111-1111-1111-111111111111'
+    returning 1
+)
+select is(
+  (select count(*)::int from del),
+  0,
+  'DELETE bloqué par RLS (0 ligne ; ride_events audit trail, pas de policy DELETE)'
 );
 
--- 10. anon refusé
-select ok(
-  not has_table_privilege('anon', 'public.ride_events', 'SELECT'),
-  'anon refusé sur ride_events'
+-- 10. anon ne voit rien : le grant SELECT reste octroyé à anon (défaut Supabase,
+-- pas de revoke), mais la policy SELECT est same_org et current_organization_id()
+-- est NULL pour anon → 0 ligne (RLS).
+reset "request.jwt.claim.sub";
+set local role anon;
+select is(
+  (select count(*)::int from public.ride_events),
+  0,
+  'anon ne voit aucun ride_event (RLS same_org, org NULL pour anon)'
 );
+reset role;
 
 select * from finish();
 rollback;

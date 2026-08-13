@@ -56,10 +56,18 @@ select cmp_ok(
   '>=', 1, 'alpha-chauffeur voit les récurrences de son org (SELECT same_org)'
 );
 
--- 7. alpha-chauffeur UPDATE refusé
-select throws_ok(
-  $$ update public.ride_recurrences set rrule_str = 'X' where id = '66666666-0000-0000-0000-000000000001' $$,
-  null, null, 'alpha-chauffeur ne peut UPDATE (rôle non listé)'
+-- 7. alpha-chauffeur UPDATE refusé par RLS (policy UPDATE réservée régul/dirigeant).
+-- Le grant UPDATE existe (défaut Supabase) mais le USING filtre la ligne pour le
+-- chauffeur → 0 ligne modifiée, sans erreur. WITH-UPDATE au niveau supérieur.
+with upd as (
+  update public.ride_recurrences set rrule_str = 'X'
+    where id = '66666666-0000-0000-0000-000000000001'
+    returning 1
+)
+select is(
+  (select count(*)::int from upd),
+  0,
+  'alpha-chauffeur UPDATE bloqué par RLS (0 ligne ; rôle non listé)'
 );
 
 -- 8. alpha-reg UPDATE OK
@@ -69,17 +77,30 @@ select lives_ok(
   'alpha-reg UPDATE OK'
 );
 
--- 9. alpha-reg DELETE refusé (seul dirigeant)
-select throws_ok(
-  $$ delete from public.ride_recurrences where id = '66666666-0000-0000-0000-000000000001' $$,
-  null, null, 'alpha-reg refusé DELETE (seul dirigeant)'
+-- 9. alpha-reg DELETE refusé par RLS (policy DELETE réservée au dirigeant). Le
+-- grant DELETE existe (défaut Supabase) mais le USING filtre la ligne pour le
+-- régulateur → 0 ligne supprimée, sans erreur. WITH-DELETE au niveau supérieur.
+with del as (
+  delete from public.ride_recurrences where id = '66666666-0000-0000-0000-000000000001'
+    returning 1
+)
+select is(
+  (select count(*)::int from del),
+  0,
+  'alpha-reg DELETE bloqué par RLS (0 ligne ; seul dirigeant)'
 );
 
--- 10. anon refusé
-select ok(
-  not has_table_privilege('anon', 'public.ride_recurrences', 'SELECT'),
-  'anon refusé sur ride_recurrences'
+-- 10. anon ne voit aucune récurrence : le grant SELECT reste octroyé à anon (défaut
+-- Supabase, pas de revoke), mais la policy SELECT est same_org et
+-- current_organization_id() est NULL pour anon → 0 ligne (RLS).
+reset "request.jwt.claim.sub";
+set local role anon;
+select is(
+  (select count(*)::int from public.ride_recurrences),
+  0,
+  'anon ne voit aucune récurrence (RLS same_org, org NULL pour anon)'
 );
+reset role;
 
 select * from finish();
 rollback;

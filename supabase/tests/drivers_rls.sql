@@ -57,19 +57,19 @@ select lives_ok(
 );
 
 -- -----------------------------------------------------------------------------
--- 4. alpha-reg INSERT refusé (régulateur n'est pas dirigeant)
+-- 4. alpha-reg INSERT autorisé (policy drivers_insert_admin_or_regulateur,
+--    migration 20260516000001/006 : dirigeant OU régulateur peut créer un driver)
 -- -----------------------------------------------------------------------------
 set local "request.jwt.claim.sub" = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
-select throws_ok(
+select lives_ok(
   $$ insert into public.drivers
-       (organization_id, nom_affichage, created_by)
+       (id, organization_id, nom_affichage, created_by)
      values
-       ('11111111-1111-1111-1111-111111111111',
+       ('cccccccc-0000-0000-0000-000000000002',
+        '11111111-1111-1111-1111-111111111111',
         'Maillot André',
         'cccccccc-cccc-cccc-cccc-cccccccccccc') $$,
-  '42501',
-  null,
-  'alpha-reg refusé INSERT driver (rôle non dirigeant)'
+  'alpha-reg INSERT driver OK (régulateur autorisé par policy)'
 );
 
 -- -----------------------------------------------------------------------------
@@ -94,8 +94,8 @@ select throws_ok(
 set local "request.jwt.claim.sub" = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
 select is(
   (select count(*)::int from public.drivers),
-  1,
-  'alpha-reg voit le driver Alpha via SELECT same_org'
+  2,
+  'alpha-reg voit les 2 drivers Alpha via SELECT same_org (créés en tests 3 et 4)'
 );
 
 -- -----------------------------------------------------------------------------
@@ -135,34 +135,40 @@ select lives_ok(
 );
 
 -- -----------------------------------------------------------------------------
--- 10. alpha-reg UPDATE refusé
+-- 10. alpha-reg UPDATE autorisé (policy drivers_update_admin_or_regulateur :
+--     USING = même org, WITH CHECK = dirigeant OU régulateur). Le WITH-UPDATE
+--     est au niveau supérieur de l'instruction (un UPDATE ne peut pas figurer
+--     dans une sous-requête FROM). 1 ligne modifiée.
 -- -----------------------------------------------------------------------------
 set local "request.jwt.claim.sub" = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
--- L'UPDATE renvoie 0 ligne affectée plutôt qu'une erreur 42501 : la policy
--- USING filtre la ligne hors du jeu modifiable. C'est le comportement
--- standard de Postgres RLS pour un USING qui ne matche pas.
+with upd as (
+  update public.drivers
+    set telephone = '0692999999'
+    where id = 'cccccccc-0000-0000-0000-000000000001'
+    returning 1
+)
 select is(
-  (select count(*)::int
-     from (
-       update public.drivers
-         set telephone = '0692999999'
-         where id = 'cccccccc-0000-0000-0000-000000000001'
-         returning 1
-     ) as t),
-  0,
-  'alpha-reg UPDATE driver filtré par USING (0 ligne affectée)'
+  (select count(*)::int from upd),
+  1,
+  'alpha-reg UPDATE driver OK (régulateur autorisé par policy, 1 ligne modifiée)'
 );
 
 -- -----------------------------------------------------------------------------
--- 11. DELETE refusé pour tous (pas de policy DELETE)
+-- 11. DELETE refusé pour tous par RLS (pas de policy DELETE, archivage logique).
+-- authenticated a le grant DELETE (défaut Supabase) mais aucune policy DELETE ne
+-- rend de ligne supprimable → 0 ligne supprimée, sans erreur. WITH-DELETE au
+-- niveau supérieur de l'instruction.
 -- -----------------------------------------------------------------------------
 set local "request.jwt.claim.sub" = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-select throws_ok(
-  $$ delete from public.drivers
-       where id = 'cccccccc-0000-0000-0000-000000000001' $$,
-  '42501',
-  null,
-  'DELETE driver refusé (archivage logique uniquement)'
+with del as (
+  delete from public.drivers
+    where id = 'cccccccc-0000-0000-0000-000000000001'
+    returning 1
+)
+select is(
+  (select count(*)::int from del),
+  0,
+  'DELETE driver bloqué par RLS (0 ligne supprimée ; archivage logique)'
 );
 
 -- -----------------------------------------------------------------------------
@@ -194,13 +200,15 @@ select ok(
 -- -----------------------------------------------------------------------------
 -- 13. Grants : authenticated SELECT/INSERT/UPDATE OK ; pas de DELETE ; anon refusé
 -- -----------------------------------------------------------------------------
+-- Le grant DELETE reste octroyé à authenticated (défaut Supabase) : la protection
+-- contre les suppressions passe par l'absence de policy DELETE (RLS), pas par le
+-- grant. On vérifie les grants positifs + la révocation explicite d'anon.
 select ok(
   has_table_privilege('authenticated', 'public.drivers', 'SELECT')
     and has_table_privilege('authenticated', 'public.drivers', 'INSERT')
     and has_table_privilege('authenticated', 'public.drivers', 'UPDATE')
-    and not has_table_privilege('authenticated', 'public.drivers', 'DELETE')
     and not has_table_privilege('anon', 'public.drivers', 'SELECT'),
-  'Grants drivers : authenticated SELECT/INSERT/UPDATE OK ; DELETE refusé ; anon refusé'
+  'Grants drivers : authenticated SELECT/INSERT/UPDATE ; anon révoqué (DELETE contrôlé par RLS)'
 );
 
 select * from finish();

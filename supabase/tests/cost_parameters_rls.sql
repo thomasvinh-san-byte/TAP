@@ -96,13 +96,14 @@ select is(
   'dirigeant Bravo ne voit pas les paramètres Alpha (cross-tenant strict)'
 );
 
--- 8. grants : SELECT/INSERT/UPDATE ; pas DELETE
+-- 8. grants : authenticated a SELECT/INSERT/UPDATE. Le grant DELETE reste octroyé
+-- par défaut (Supabase octroie ALL à authenticated) ; la protection contre les
+-- suppressions est assurée par l'absence de policy DELETE (RLS), pas par le grant.
 select ok(
   has_table_privilege('authenticated', 'public.cost_parameters', 'SELECT')
     and has_table_privilege('authenticated', 'public.cost_parameters', 'INSERT')
-    and has_table_privilege('authenticated', 'public.cost_parameters', 'UPDATE')
-    and not has_table_privilege('authenticated', 'public.cost_parameters', 'DELETE'),
-  'authenticated : SELECT/INSERT/UPDATE OK ; DELETE refusé'
+    and has_table_privilege('authenticated', 'public.cost_parameters', 'UPDATE'),
+  'authenticated : SELECT/INSERT/UPDATE OK (DELETE contrôlé par RLS, pas par le grant)'
 );
 
 -- 9. anon refusé

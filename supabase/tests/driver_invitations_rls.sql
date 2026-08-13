@@ -23,7 +23,7 @@
 
 begin;
 
-select plan(12);
+select plan(13);
 
 -- -----------------------------------------------------------------------------
 -- Fixtures multi-tenant : Org Alpha + Org Bravo + 4 users
@@ -34,6 +34,17 @@ select plan(12);
 do $$ begin perform test_fixtures.setup(with_second_org => true); end $$;
 -- Note : alpha-invitee n'a PAS de profiles entry — c'est volontaire, l'invitee
 -- est un compte auth.users sans profiles tant qu'il n'a pas accepté.
+-- Le destinataire est identifié par email matché sur auth.users (policies SELECT/
+-- UPDATE : email = (select u.email from auth.users u where u.id = auth.uid())).
+-- On crée donc son compte auth.users (sans profil). UUID propre au fichier
+-- (e0e00008…), disjoint de la graine (seed.sql réserve eeee… à reg-demo@tap.test).
+insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
+  email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
+values
+  ('e0e00008-e0e0-e0e0-e0e0-e0e0e0e0e0e0',
+   '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+   'alpha-invitee@test.tap', crypt('test1234!', gen_salt('bf')),
+   now(), now(), now(), '{}'::jsonb, '{}'::jsonb);
 
 -- -----------------------------------------------------------------------------
 -- 1. RLS activée + forcée
@@ -78,26 +89,26 @@ select throws_ok(
 );
 
 -- -----------------------------------------------------------------------------
--- 4. alpha-reg INSERT refusé (régulateur n'est pas dirigeant)
+-- 4. alpha-reg INSERT autorisé : la policy driver_invitations_insert_admin_or_
+--    regulateur (migration 20260516000001) élargit l'INSERT au régulateur
+--    (invited_by = soi + même org). Assertion alignée sur la policy réelle.
 -- -----------------------------------------------------------------------------
 set local "request.jwt.claim.sub" = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
-select throws_ok(
+select lives_ok(
   $$ insert into public.driver_invitations
        (organization_id, invited_by, email)
      values
        ('11111111-1111-1111-1111-111111111111',
         'cccccccc-cccc-cccc-cccc-cccccccccccc',
         'other-invitee@test.tap') $$,
-  '42501',
-  null,
-  'alpha-reg refusé INSERT invitation (rôle non dirigeant)'
+  'alpha-reg INSERT invitation OK (régulateur autorisé par policy élargie)'
 );
 
 -- -----------------------------------------------------------------------------
 -- 5. chauffeur destinataire SELECT son invitation par match email
 -- (alpha-invitee voit la ligne créée pour 'alpha-invitee@test.tap')
 -- -----------------------------------------------------------------------------
-set local "request.jwt.claim.sub" = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
+set local "request.jwt.claim.sub" = 'e0e00008-e0e0-e0e0-e0e0-e0e0e0e0e0e0';
 select is(
   (select count(*)::int from public.driver_invitations
     where email = 'alpha-invitee@test.tap'),
@@ -118,7 +129,7 @@ select is(
 -- -----------------------------------------------------------------------------
 -- 7. destinataire UPDATE status='accepted' pendant validité (OK)
 -- -----------------------------------------------------------------------------
-set local "request.jwt.claim.sub" = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
+set local "request.jwt.claim.sub" = 'e0e00008-e0e0-e0e0-e0e0-e0e0e0e0e0e0';
 select lives_ok(
   $$ update public.driver_invitations
        set status = 'accepted', accepted_at = now()
@@ -144,16 +155,18 @@ values
    now() - interval '1 hour');
 
 set local role authenticated;
-set local "request.jwt.claim.sub" = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
--- L'UPDATE renvoie 0 ligne affectée : USING filtre (now() < expires_at faux).
+set local "request.jwt.claim.sub" = 'e0e00008-e0e0-e0e0-e0e0-e0e0e0e0e0e0';
+-- L'UPDATE renvoie 0 ligne affectée : USING filtre (now() < expires_at faux). Le
+-- WITH-UPDATE est au niveau supérieur de l'instruction (un UPDATE ne peut pas
+-- figurer dans une sous-requête FROM).
+with upd as (
+  update public.driver_invitations
+    set status = 'accepted', accepted_at = now()
+    where id = '11111111-aaaa-0000-0000-000000000002'
+    returning 1
+)
 select is(
-  (select count(*)::int
-     from (
-       update public.driver_invitations
-         set status = 'accepted', accepted_at = now()
-         where id = '11111111-aaaa-0000-0000-000000000002'
-         returning 1
-     ) as t),
+  (select count(*)::int from upd),
   0,
   'destinataire UPDATE refusé après expires_at (0 ligne, USING filtre)'
 );
@@ -193,13 +206,19 @@ select throws_ok(
 -- -----------------------------------------------------------------------------
 -- 10. DELETE refusé pour tous (pas de policy DELETE)
 -- -----------------------------------------------------------------------------
+-- DELETE bloqué par RLS (aucune policy DELETE ; archivage logique status=revoked).
+-- authenticated a le grant DELETE (défaut Supabase) mais aucune policy DELETE ne
+-- rend de ligne supprimable → 0 ligne supprimée, sans erreur.
 set local "request.jwt.claim.sub" = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-select throws_ok(
-  $$ delete from public.driver_invitations
-       where id = '11111111-aaaa-0000-0000-000000000001' $$,
-  '42501',
-  null,
-  'DELETE driver_invitation refusé (archivage logique status=revoked)'
+with del as (
+  delete from public.driver_invitations
+    where id = '11111111-aaaa-0000-0000-000000000001'
+    returning 1
+)
+select is(
+  (select count(*)::int from del),
+  0,
+  'DELETE driver_invitation bloqué par RLS (0 ligne ; archivage logique status=revoked)'
 );
 
 -- -----------------------------------------------------------------------------
@@ -226,13 +245,14 @@ select ok(
 -- -----------------------------------------------------------------------------
 -- 12. Grants : authenticated SELECT/INSERT/UPDATE OK ; DELETE refusé ; anon refusé
 -- -----------------------------------------------------------------------------
+-- Le grant DELETE reste octroyé à authenticated (défaut Supabase) : l'archivage
+-- logique est garanti par l'absence de policy DELETE (RLS), pas par le grant.
 select ok(
   has_table_privilege('authenticated', 'public.driver_invitations', 'SELECT')
     and has_table_privilege('authenticated', 'public.driver_invitations', 'INSERT')
     and has_table_privilege('authenticated', 'public.driver_invitations', 'UPDATE')
-    and not has_table_privilege('authenticated', 'public.driver_invitations', 'DELETE')
     and not has_table_privilege('anon', 'public.driver_invitations', 'SELECT'),
-  'Grants driver_invitations : authenticated SELECT/INSERT/UPDATE OK ; DELETE refusé ; anon refusé'
+  'Grants driver_invitations : authenticated SELECT/INSERT/UPDATE ; anon révoqué (DELETE contrôlé par RLS)'
 );
 
 select * from finish();

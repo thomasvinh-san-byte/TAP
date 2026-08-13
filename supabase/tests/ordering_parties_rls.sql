@@ -136,29 +136,39 @@ select lives_ok(
 -- -----------------------------------------------------------------------------
 -- 10. alpha-reg UPDATE refusé (filtré par USING → 0 ligne affectée)
 -- -----------------------------------------------------------------------------
+-- L'UPDATE renvoie 0 ligne : la policy USING (dirigeant uniquement) filtre la
+-- ligne hors du jeu modifiable pour le régulateur. Le WITH-UPDATE est au niveau
+-- supérieur de l'instruction (un UPDATE ne peut pas figurer dans une sous-requête
+-- FROM). RLS = 0 ligne modifiée, pas d'erreur.
 set local "request.jwt.claim.sub" = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
+with upd as (
+  update public.ordering_parties
+    set contact_principal_telephone = '0262999999'
+    where id = 'cccccccc-0000-0000-0000-000000000001'
+    returning 1
+)
 select is(
-  (select count(*)::int
-     from (
-       update public.ordering_parties
-         set contact_principal_telephone = '0262999999'
-         where id = 'cccccccc-0000-0000-0000-000000000001'
-         returning 1
-     ) as t),
+  (select count(*)::int from upd),
   0,
-  'alpha-reg UPDATE ordering_party filtré par USING (0 ligne affectée)'
+  'alpha-reg UPDATE ordering_party filtré par USING (0 ligne modifiée par RLS)'
 );
 
 -- -----------------------------------------------------------------------------
 -- 11. DELETE refusé pour tous (pas de policy DELETE)
 -- -----------------------------------------------------------------------------
+-- authenticated a le grant DELETE (défaut Supabase) mais aucune policy DELETE ne
+-- rend de ligne supprimable → 0 ligne supprimée, sans erreur. WITH-DELETE au
+-- niveau supérieur de l'instruction.
 set local "request.jwt.claim.sub" = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
-select throws_ok(
-  $$ delete from public.ordering_parties
-       where id = 'cccccccc-0000-0000-0000-000000000001' $$,
-  '42501',
-  null,
-  'DELETE ordering_party refusé (archivage logique uniquement)'
+with del as (
+  delete from public.ordering_parties
+    where id = 'cccccccc-0000-0000-0000-000000000001'
+    returning 1
+)
+select is(
+  (select count(*)::int from del),
+  0,
+  'DELETE ordering_party bloqué par RLS (0 ligne supprimée ; archivage logique)'
 );
 
 -- -----------------------------------------------------------------------------
@@ -190,13 +200,14 @@ select ok(
 -- -----------------------------------------------------------------------------
 -- 13. Grants : authenticated SELECT/INSERT/UPDATE OK ; pas de DELETE ; anon refusé
 -- -----------------------------------------------------------------------------
+-- Le grant DELETE reste octroyé à authenticated (défaut Supabase) : la protection
+-- contre les suppressions passe par l'absence de policy DELETE (RLS), pas le grant.
 select ok(
   has_table_privilege('authenticated', 'public.ordering_parties', 'SELECT')
     and has_table_privilege('authenticated', 'public.ordering_parties', 'INSERT')
     and has_table_privilege('authenticated', 'public.ordering_parties', 'UPDATE')
-    and not has_table_privilege('authenticated', 'public.ordering_parties', 'DELETE')
     and not has_table_privilege('anon', 'public.ordering_parties', 'SELECT'),
-  'Grants ordering_parties : authenticated SELECT/INSERT/UPDATE OK ; DELETE refusé ; anon refusé'
+  'Grants ordering_parties : authenticated SELECT/INSERT/UPDATE ; anon révoqué (DELETE contrôlé par RLS)'
 );
 
 select * from finish();
