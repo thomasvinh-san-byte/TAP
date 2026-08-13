@@ -15,6 +15,7 @@ import { reassignRidesBatchAction } from '../../replanification/actions';
 import type { PlanningDriverOption, PlanningRideMeta } from '../_lib/planning-queries';
 import { statusBlockClass, statusLabel } from '../_lib/planning-status';
 import { detectReassignConflict } from '../_lib/planning-conflicts';
+import { computeTourneeIndicators } from '../_lib/tournee-indicators';
 import { PlanningDayPicker } from './planning-day-picker.client';
 import { PlanningGrid } from './planning-grid.client';
 import { PlanningReassignDialog, type ReassignTarget } from './planning-reassign-dialog.client';
@@ -74,6 +75,21 @@ export function PlanningContent({ date, initialRides, meta, drivers }: Props): J
   const dayRides = React.useMemo(
     () => rides.filter((r) => reunionDayKey(r.scheduled_at) === date),
     [rides, date],
+  );
+
+  // Indicateurs de tournée par chauffeur (lot C) — calculés sur TOUTES les
+  // courses du jour (indépendant des filtres de lecture).
+  const indicators = React.useMemo(
+    () =>
+      computeTourneeIndicators(
+        dayRides.map((r) => ({
+          driver_id: r.driver_id,
+          status: r.status,
+          scheduled_at: r.scheduled_at,
+          ride_group_id: meta[r.id]?.ride_group_id ?? null,
+        })),
+      ),
+    [dayRides, meta],
   );
 
   // Détection de conflit horaire probable pour une cible (lot B).
@@ -231,6 +247,7 @@ export function PlanningContent({ date, initialRides, meta, drivers }: Props): J
         onSelect={(id) => setOpenRideId(id)}
         onDropRide={requestReassign}
         onReassignRide={openReassignDialog}
+        indicators={indicators}
       />
 
       {/* Le bouton d'affectation du drawer ouvre la boîte de réaffectation

@@ -9,6 +9,8 @@ import { formatReunionTime } from '../../cockpit/_lib/unassigned-h1';
 import { computeHourRange, hourSlots, hourLabel, reunionHour } from '../_lib/planning-layout';
 import { statusBlockClass, statusLabel } from '../_lib/planning-status';
 import type { PlanningDriverOption } from '../_lib/planning-queries';
+import type { TourneeIndicator } from '../_lib/tournee-indicators';
+import { TourneeIndicators } from './tournee-indicators.client';
 
 interface Props {
   rides: CockpitRide[];
@@ -18,6 +20,8 @@ interface Props {
   onDropRide: (rideId: string, targetDriverId: string | null) => void;
   /** Ouvre la réaffectation clavier (alternative au glisser-déposer). Lot B. */
   onReassignRide: (rideId: string) => void;
+  /** Indicateurs de tournée par chauffeur (`driver_id` → indicateur). Lot C. */
+  indicators: Map<string, TourneeIndicator>;
 }
 
 const UNASSIGNED = '__unassigned__';
@@ -33,12 +37,14 @@ function patientShort(ride: CockpitRide): string {
 }
 
 /**
- * Grille planning (Module 5.12 lot A) — LECTURE SEULE. Tableau sémantique
- * (accessible : en-têtes de colonnes = heures, en-têtes de lignes = chauffeurs)
- * : lignes = chauffeurs (+ « Non affectées » en tête, prioritaire pour la
- * régulation), colonnes = tranches horaires. Chaque course tombe dans la
- * tranche de son heure prévue (fuseau Réunion). Statut = couleur + texte.
- * Défilement horizontal sur petit écran (outil desktop régulateur).
+ * Grille planning (Module 5.12 lots A + B + C). Tableau sémantique (accessible :
+ * en-têtes de colonnes = heures, en-têtes de lignes = chauffeurs) : lignes =
+ * chauffeurs (+ « Non affectées » en tête, prioritaire pour la régulation),
+ * colonnes = tranches horaires. Chaque course tombe dans la tranche de son heure
+ * prévue (fuseau Réunion). Statut = couleur + texte. Lot B : glisser-déposer
+ * d'une course entre lignes (réaffectation) + action « Réaffecter » clavier. Lot
+ * C : indicateurs de tournée sous chaque chauffeur. Défilement horizontal sur
+ * petit écran (outil desktop régulateur).
  */
 export function PlanningGrid({
   rides,
@@ -46,6 +52,7 @@ export function PlanningGrid({
   onSelect,
   onDropRide,
   onReassignRide,
+  indicators,
 }: Props): JSX.Element {
   const range = React.useMemo(() => computeHourRange(rides.map((r) => r.scheduled_at)), [rides]);
   const slots = React.useMemo(() => hourSlots(range), [range]);
@@ -153,13 +160,15 @@ export function PlanningGrid({
                 <th
                   scope="row"
                   className={cn(
-                    'bg-background sticky left-0 z-10 max-w-[160px] truncate px-12 py-8 text-left align-top text-sm font-medium',
+                    'bg-background sticky left-0 z-10 max-w-[180px] px-12 py-8 text-left align-top text-sm font-medium',
                     isUnassigned && 'text-warning',
                     isOver && 'bg-primary/10',
                   )}
-                  title={row.label}
                 >
-                  {row.label}
+                  <span className="block truncate" title={row.label}>
+                    {row.label}
+                  </span>
+                  {!isUnassigned ? <TourneeIndicators indicator={indicators.get(row.id)} /> : null}
                 </th>
                 {slots.map((h) => {
                   const cell = byCell.get(`${row.id}|${h}`) ?? [];
