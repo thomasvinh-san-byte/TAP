@@ -159,15 +159,20 @@ select is(
 );
 
 -- -----------------------------------------------------------------------------
--- 4. Chauffeur1 ne peut PAS transférer SA ride vers driver_id_2 (WITH CHECK)
--- -----------------------------------------------------------------------------
+-- 4. Chauffeur1 ne peut PAS transférer SA course vers driver_id_2 (WITH CHECK).
+-- La WITH CHECK de rides_update_chauffeur_own_rides exige driver_id = le
+-- chauffeur (échoue au transfert), ET celle de rides_update_regulateur_dirigeant
+-- est désormais gatée sur le rôle (migration 20260614000003) — un chauffeur ne
+-- la satisfait pas. Aucune WITH CHECK permissive n'accepte donc la nouvelle ligne
+-- → 42501. (Avant 20260614000003, la WITH CHECK org-only du régulateur, combinée
+-- en OR, laissait passer ce transfert : faille d'intégrité intra-org colmatée.)
 select throws_ok(
   $$ update public.rides
         set driver_id = 'd2d2d2d2-d2d2-d2d2-d2d2-d2d2d2d2d2d2'
       where id = 'aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa' $$,
   '42501',
   null,
-  'chauffeur1 refusé pour transfert ride vers driver_id_2 (WITH CHECK)'
+  'chauffeur1 refusé pour transfert ride vers driver_id_2 (WITH CHECK org+rôle)'
 );
 
 -- -----------------------------------------------------------------------------
