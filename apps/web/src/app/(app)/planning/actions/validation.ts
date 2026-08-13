@@ -3,24 +3,24 @@
 /**
  * Server Action — validation du planning J+1 (Module 5.12 lot D).
  *
- * Pattern (CLAUDE.md §10) : zod → getAuthContext (rôle) → vérif idempotence →
- * INSERT validation + instantané (freeze du « prévu ») → notifications
- * best-effort → revalidatePath. RLS Postgres double-checke.
+ * Pattern (CLAUDE.md §10) : zod → getAuthContext (rôle) → RPC atomique →
+ * notifications best-effort → revalidatePath. RLS Postgres double-checke.
  *
- * Idempotence : l'index unique (organization_id, planning_date) garantit une
- * seule validation par jour. Re-valider ne re-fige rien et ne renotifie pas
- * (détection préalable + garde sur violation d'unicité 23505).
+ * Atomicité : `validate_planning_day` (RPC SECURITY INVOKER) insère la
+ * validation ET fige l'instantané des courses prévues dans une seule
+ * transaction — plus de « validé sans instantané ». Idempotence portée par la
+ * RPC (une validation par organisation et par jour). Les notifications (push /
+ * SMS) restent HORS transaction, best-effort : un échec d'envoi ne remet jamais
+ * en cause la validation déjà committée.
  */
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { RIDE_CANCELLED_STATUSES } from '@tap/shared';
 import { getAuthContext } from '@/lib/auth/get-auth-context';
 import { sendPushToDriver } from '@/lib/push/send';
 import { notifyValidatedPlanningPatients } from '../_lib/notify-planning-validated';
 
 const ROLES_REGULATION = ['regulateur', 'dirigeant'] as const;
-const CANCELLED = new Set<string>(RIDE_CANCELLED_STATUSES);
 
 export type ValidatePlanningState = {
   error?: string;
@@ -35,22 +35,10 @@ const schema = z.object({
   planningDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date invalide'),
 });
 
-interface DayRide {
-  id: string;
-  scheduled_at: string;
-  status: string;
-  driver_id: string | null;
-  vehicle_id: string | null;
-  patient_id: string | null;
-}
-
-/** Bornes du jour `date` en fuseau Réunion (UTC+4), en ISO avec offset. */
-function reunionDayBounds(date: string): { start: string; endExclusive: string } {
-  const start = `${date}T00:00:00+04:00`;
-  const next = new Date(`${date}T00:00:00Z`);
-  next.setUTCDate(next.getUTCDate() + 1);
-  const endExclusive = `${next.toISOString().slice(0, 10)}T00:00:00+04:00`;
-  return { start, endExclusive };
+interface ValidateRpcRow {
+  validation_id: string;
+  already_validated: boolean;
+  snapshot_count: number;
 }
 
 export async function validatePlanningAction(
@@ -66,71 +54,33 @@ export async function validatePlanningAction(
     return { error: 'Seul un régulateur ou un dirigeant peut valider le planning.' };
   }
 
-  // Idempotence — déjà validé ?
-  const existing = await ctx.supabase
-    .from('planning_validations')
-    .select('id')
-    .eq('organization_id', ctx.organizationId)
-    .eq('planning_date', planningDate)
-    .maybeSingle();
-  if (existing.data) {
-    return { success: true, alreadyValidated: true };
-  }
+  // Validation + figeage ATOMIQUES (RPC). L'idempotence et l'instantané sont
+  // garantis en une transaction.
+  const rpc = await ctx.supabase.rpc('validate_planning_day', {
+    p_planning_date: planningDate,
+  });
+  if (rpc.error) return { error: 'Validation impossible.' };
+  const result = ((rpc.data as ValidateRpcRow[] | null) ?? [])[0];
+  if (!result) return { error: 'Validation impossible.' };
+  if (result.already_validated) return { success: true, alreadyValidated: true };
 
-  // Courses « prévues » fermes du jour (hors brouillon et hors annulées).
-  const { start, endExclusive } = reunionDayBounds(planningDate);
-  const ridesRes = await ctx.supabase
-    .from('rides')
-    .select('id, scheduled_at, status, driver_id, vehicle_id, patient_id')
-    .gte('scheduled_at', start)
-    .lt('scheduled_at', endExclusive)
-    .neq('status', 'brouillon');
-  if (ridesRes.error) return { error: 'Lecture du planning impossible.' };
-  const rides = ((ridesRes.data as DayRide[] | null) ?? []).filter((r) => !CANCELLED.has(r.status));
+  const validationId = result.validation_id;
 
-  // INSERT validation (l'unicité tranche une éventuelle course concurrente).
-  const insVal = await ctx.supabase
-    .from('planning_validations')
-    .insert({
-      organization_id: ctx.organizationId,
-      planning_date: planningDate,
-      validated_by: ctx.userId,
-    })
-    .select('id')
-    .single();
-  if (insVal.error) {
-    // 23505 = un autre régulateur vient de valider → idempotent, pas d'erreur.
-    if (insVal.error.code === '23505') return { success: true, alreadyValidated: true };
-    return { error: 'Validation impossible.' };
-  }
-  const validationId = (insVal.data as { id: string }).id;
+  // Notifications best-effort — APRÈS commit, à partir de l'instantané FIGÉ
+  // (source cohérente : ce qui a été validé, pas l'état courant susceptible
+  // d'avoir bougé). Aucun échec ne remet en cause la validation.
+  const snap = await ctx.supabase
+    .from('planning_validation_rides')
+    .select('ride_id, driver_id')
+    .eq('validation_id', validationId);
+  const frozen = (snap.data as { ride_id: string; driver_id: string | null }[] | null) ?? [];
 
-  // Instantané du « prévu » (best-effort de robustesse : un échec du figeage
-  // n'annule pas la validation déjà écrite, mais on le signale).
-  if (rides.length > 0) {
-    const snapshotRows = rides.map((r) => ({
-      validation_id: validationId,
-      organization_id: ctx.organizationId,
-      ride_id: r.id,
-      driver_id: r.driver_id,
-      vehicle_id: r.vehicle_id,
-      patient_id: r.patient_id,
-      scheduled_at: r.scheduled_at,
-      status: r.status,
-    }));
-    const insSnap = await ctx.supabase.from('planning_validation_rides').insert(snapshotRows);
-    if (insSnap.error)
-      console.error('[planning] figeage instantané échoué:', insSnap.error.message);
-  }
-
-  // Notifications best-effort — APRÈS commit. Aucun échec ne rollback.
-  const driverIds = Array.from(
-    new Set(rides.map((r) => r.driver_id).filter((x): x is string => Boolean(x))),
-  );
   const countsByDriver = new Map<string, number>();
-  for (const r of rides) {
+  for (const r of frozen) {
     if (r.driver_id) countsByDriver.set(r.driver_id, (countsByDriver.get(r.driver_id) ?? 0) + 1);
   }
+  const driverIds = [...countsByDriver.keys()];
+
   await Promise.all(
     driverIds.map((driverId) =>
       sendPushToDriver(driverId, ctx.organizationId, {
@@ -143,7 +93,7 @@ export async function validatePlanningAction(
     ),
   );
   const patientsNotified = await notifyValidatedPlanningPatients(
-    rides.map((r) => r.id),
+    frozen.map((r) => r.ride_id),
     ctx.organizationId,
   );
 
@@ -154,5 +104,5 @@ export async function validatePlanningAction(
     .eq('id', validationId);
 
   revalidatePath('/planning');
-  return { success: true, snapshot: rides.length };
+  return { success: true, snapshot: result.snapshot_count };
 }
