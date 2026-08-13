@@ -88,11 +88,24 @@ jobs:
         # `db stop` seul suffit en CI (conteneur jetable).
         run: supabase db stop
 
+  # -------------------------------------------------------------------------
+  # DÉSACTIVÉ (rouge non actionnable retiré du fil — voir consigne « rouge =
+  # action requise »). Le `webServer` de playwright.config.ts lance
+  # `pnpm dev` + `supabase functions serve nir --env-file .env.local`, qui
+  # exige un Supabase LOCAL et un `.env.local` que ce job ne fournit pas (il ne
+  # lance pas `supabase db start`). Le serveur ne démarre donc jamais : échec
+  # d'INFRA, pas de régression de code. Ce n'est pas fiabilisable à court terme
+  # dans ce job (il faudrait y stand-up un stack Supabase complet).
+  #
+  # Le golden path est déjà couvert par le smoke sur preview quand celui-ci est
+  # fiabilisé (preview-smoke.yml). Pour RÉACTIVER : définir la variable de dépôt
+  # `RUN_E2E_PLAYWRIGHT=true` ET provisionner, dans ce job, un Supabase local
+  # (`supabase db start`) + `.env.local` avant `pnpm test:e2e`.
   e2e:
     name: Tests E2E Playwright
     needs: [lint, typecheck, test]
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    if: ${{ github.event_name == 'pull_request' && vars.RUN_E2E_PLAYWRIGHT == 'true' }}
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -101,7 +114,9 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
+      # Scopé à apps/web (comme le smoke) : `@playwright/test` n'est pas à la
+      # racine du workspace.
+      - run: pnpm -C apps/web exec playwright install --with-deps chromium
       - run: pnpm test:e2e
         env:
           NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
