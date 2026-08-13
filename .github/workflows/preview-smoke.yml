@@ -23,7 +23,12 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
+      # `@playwright/test` est une dépendance de `apps/web` (pas de la racine du
+      # workspace) : l'installation des navigateurs doit être scopée au paquet,
+      # comme l'étape de test ci-dessous (`pnpm -C apps/web exec …`). Sans le
+      # `-C apps/web`, `pnpm exec playwright` échoue en « Command not found » à
+      # la racine et le smoke ne démarre jamais.
+      - run: pnpm -C apps/web exec playwright install --with-deps chromium
       - name: Smoke test sur la preview
         env:
           PLAYWRIGHT_BASE_URL: ${{ github.event.deployment_status.target_url }}
