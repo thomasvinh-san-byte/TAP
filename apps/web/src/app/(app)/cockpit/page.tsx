@@ -140,7 +140,6 @@ async function getDriverIncidentAlerts(supabase: SupabaseServerClient): Promise<
 async function getDriverPositionsWithLabels(supabase: SupabaseServerClient): Promise<{
   positions: DriverPosition[];
   driverLabels: Record<string, string>;
-  driverIdByProfileId: Record<string, string>;
 }> {
   try {
     const { data: posData } = await supabase
@@ -151,10 +150,6 @@ async function getDriverPositionsWithLabels(supabase: SupabaseServerClient): Pro
     const positions = (posData as DriverPosition[] | null) ?? [];
 
     let driverLabels: Record<string, string> = {};
-    // Pont profile_id → drivers.id : les positions portent le profile_id (identité
-    // de connexion), les courses la clé primaire `drivers.id`. Ce pont permet de
-    // relier une position à ses courses (charge du jour, course en cours).
-    const driverIdByProfileId: Record<string, string> = {};
     if (positions.length > 0) {
       // Résolution du nom via la colonne de liaison `drivers.profile_id`, PAS via
       // la clé primaire `drivers.id` (qui ne matcherait jamais).
@@ -167,14 +162,11 @@ async function getDriverPositionsWithLabels(supabase: SupabaseServerClient): Pro
         (drvData as { id: string; profile_id: string | null; nom_affichage: string }[] | null) ??
         [];
       driverLabels = buildDriverLabels(drv);
-      for (const d of drv) {
-        if (d.profile_id) driverIdByProfileId[d.profile_id] = d.id;
-      }
     }
-    return { positions, driverLabels, driverIdByProfileId };
+    return { positions, driverLabels };
   } catch (err) {
     console.error('[cockpit] driver_positions non disponible:', err);
-    return { positions: [], driverLabels: {}, driverIdByProfileId: {} };
+    return { positions: [], driverLabels: {} };
   }
 }
 
@@ -235,7 +227,6 @@ export default async function CockpitPage() {
         initialAlerts={alerts}
         initialPositions={positionsResult.positions}
         driverLabels={positionsResult.driverLabels}
-        driverIdByProfileId={positionsResult.driverIdByProfileId}
         complianceAlerts={complianceAlerts}
         prescriptionAlerts={prescriptionAlerts}
         alertPreferences={alertPreferences}

@@ -29,7 +29,7 @@ import { UnassignedH1Indicator } from './unassigned-h1-indicator.client';
 import { AlertSoundToggle } from './alert-sound-toggle.client';
 import { DraftsIndicator } from './drafts-indicator.client';
 import { CoursesTable } from './courses-table.client';
-import { DriverPositionsPanel } from './driver-positions-panel.client';
+import { RidesMapPanel } from './rides-map-panel.client';
 import { NoShowAlertModal } from './no-show-alert-modal.client';
 import { RealtimeStatusBadge } from './realtime-status-badge.client';
 import { CockpitSummaryStrip, scrollToPanel } from './cockpit-summary-strip.client';
@@ -79,7 +79,6 @@ export function CockpitContent({
   initialAlerts,
   initialPositions,
   driverLabels,
-  driverIdByProfileId,
   complianceAlerts,
   prescriptionAlerts,
   alertPreferences,
@@ -91,7 +90,6 @@ export function CockpitContent({
   initialAlerts: CockpitAlert[];
   initialPositions: DriverPosition[];
   driverLabels: Record<string, string>;
-  driverIdByProfileId: Record<string, string>;
   complianceAlerts: ComplianceAlertEnriched[];
   prescriptionAlerts: PrescriptionAlertEnriched[];
   alertPreferences: CockpitAlertPreferences;
@@ -275,7 +273,8 @@ export function CockpitContent({
           deçà de lg : grille en flux normal, hauteurs `md:h-[520px]` puis pile
           mobile (défilement de page). */}
       <div className="grid grid-cols-1 gap-16 md:grid-cols-2 lg:min-h-0 lg:flex-1 lg:grid-cols-12 lg:grid-rows-[minmax(0,3fr)_minmax(0,2fr)]">
-        {/* TUILE — Carte des chauffeurs (grande, primaire). Carte déjà « carte »
+        {/* TUILE — Carte des courses du jour (grande, primaire). Points et trajets
+            des courses (DEC-075 : aucune position chauffeur). Carte déjà « carte »
             (bordure/padding) : le conteneur ne double pas le chrome. */}
         <div
           id="cockpit-panel-positions"
@@ -290,13 +289,7 @@ export function CockpitContent({
             PANEL_ANCHOR_CLASS,
           )}
         >
-          <DriverPositionsPanel
-            positionsByDriver={positionsByDriver}
-            driverLabels={driverLabels}
-            rides={rides}
-            driverIdByProfileId={driverIdByProfileId}
-            onOpenRide={setOpenRideId}
-          />
+          <RidesMapPanel rides={rides} onOpenRide={setOpenRideId} />
         </div>
 
         {/* TUILE — Ma journée (liste, primaire). En-tête + tableau à défilement

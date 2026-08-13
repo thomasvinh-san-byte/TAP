@@ -1028,47 +1028,16 @@ where p.id = c.id;
 -- seed. Le scope « 6 chauffeurs démo conformité » initial ne s'applique
 -- plus tel quel : la conformité Phase 15 se prouve via captures workflow.
 
--- Phase 10.0 prototype géoloc (DEC-096) : positions chauffeurs fictives.
--- Statiques (aucune animation, aucun simulateur de déplacement) sur des
--- coordonnées 974 réelles. Horodatages variés pour illustrer le rendu
--- « vu il y a X min » côté cockpit. Source 'demo' uniquement — non
--- purgée par la rétention 90j tant qu'on est en démo.
--- SEED-02 (correctif) : ce bloc positionnait des chauffeurs mais visait un
--- `organization_id` inexistant (un UUID de PATIENT) et un `driver_id` = id de la
--- table drivers, alors que `driver_positions.driver_id` référence profiles(id)
--- (l'identité Auth du chauffeur). Sous ON_ERROR_STOP=1, il AVORTAIT le seed —
--- tout ce qui suit (donneurs d'ordres, prescripteurs, prescriptions, courses de
--- facturation) n'était donc jamais appliqué en preview. Corrigé : société de
--- démo réelle + identités Auth des chauffeurs + IDs déterministes (idempotent).
-do $$
-declare
-  org_id  uuid := '00000000-0000-0000-0000-000000000001';
-  -- driver_positions.driver_id -> profiles(id) = identité Auth du chauffeur
-  prof1 uuid := '00000000-0000-0000-0000-000000000030'; -- Vergoz Jean
-  prof2 uuid := '00000000-0000-0000-0000-000000000031'; -- Maillot André
-  prof3 uuid := '00000000-0000-0000-0000-000000000032'; -- Boyer Sophie
-begin
-  insert into public.driver_positions
-    (id, organization_id, driver_id, ride_id, lat, lng, accuracy, captured_at, source)
-  values
-    -- Position fraîche (< 5 min) — apparait en couleur primary
-    ('99999999-0000-0000-0000-0000000000a1', org_id, prof1, null,
-     -20.8825, 55.4513, 18.0, now() - interval '2 minutes', 'demo'),
-    -- Position légèrement ancienne (15 min) — couleur muted, label « 15 min »
-    ('99999999-0000-0000-0000-0000000000a2', org_id, prof2, null,
-     -21.3393, 55.4781, 22.0, now() - interval '15 minutes', 'demo'),
-    -- Position ancienne (1 h 20) — label « 1 h20 »
-    ('99999999-0000-0000-0000-0000000000a3', org_id, prof3, null,
-     -21.0344, 55.7124, 35.0, now() - interval '80 minutes', 'demo')
-  on conflict (id) do update set
-    organization_id = excluded.organization_id,
-    driver_id = excluded.driver_id,
-    lat = excluded.lat,
-    lng = excluded.lng,
-    accuracy = excluded.accuracy,
-    captured_at = excluded.captured_at,
-    source = excluded.source;
-end$$;
+-- DEC-075 : aucune position GPS de chauffeur n'est captée, stockée ni suivie
+-- avant HDS (donnée de santé indirecte ; RGPD géoloc salarié). Les positions
+-- chauffeurs fictives « DÉMO » de l'ancien prototype géoloc (DEC-096) présentaient
+-- du faux GPS comme un suivi réel — trompe-l'œil retiré. La carte du cockpit
+-- affiche désormais uniquement les points et trajets des courses du jour (adresses
+-- opérationnelles). On PURGE ici les positions démo résiduelles pour que les
+-- previews déjà seedées ne conservent aucune position fictive (idempotent).
+delete from public.driver_positions
+  where organization_id = '00000000-0000-0000-0000-000000000001'
+    and source = 'demo';
 
 -- Donneurs d'ordres B2B fictifs 974 (CdC §5.5, DEC-148) — pour que le
 -- référentiel /admin/donneurs-ordres et le rattachement de course soient
