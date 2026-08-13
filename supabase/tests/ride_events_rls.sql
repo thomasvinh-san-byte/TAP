@@ -86,7 +86,7 @@ select throws_ok(
 set local "request.jwt.claim.sub" = 'ffffffff-ffff-ffff-ffff-ffffffffffff';
 select lives_ok(
   $$ insert into public.ride_events (organization_id, ride_id, event_type, payload, created_by) values
-       ('11111111-1111-1111-1111-111111111111', '55555555-0000-0000-0000-000000000001', 'driver_assigned', '{}'::jsonb, 'ffffffff-ffff-ffff-ffff-ffffffffffff') $$,
+       ('11111111-1111-1111-1111-111111111111', '55555555-0000-0000-0000-000000000001', 'ride_delayed', '{}'::jsonb, 'ffffffff-ffff-ffff-ffff-ffffffffffff') $$,
   'alpha-chauffeur INSERT ride_event sur SA ride OK'
 );
 
@@ -95,7 +95,7 @@ select lives_ok(
 -- — on teste via la ride Bravo cross-tenant qui doit échouer.)
 select throws_ok(
   $$ insert into public.ride_events (organization_id, ride_id, event_type, payload, created_by) values
-       ('22222222-2222-2222-2222-222222222222', '55555555-0000-0000-0000-000000000002', 'driver_assigned', '{}'::jsonb, 'ffffffff-ffff-ffff-ffff-ffffffffffff') $$,
+       ('22222222-2222-2222-2222-222222222222', '55555555-0000-0000-0000-000000000002', 'ride_delayed', '{}'::jsonb, 'ffffffff-ffff-ffff-ffff-ffffffffffff') $$,
   '42501', null,
   'alpha-chauffeur refusé INSERT sur ride Bravo (WITH CHECK org + driver_id)'
 );
