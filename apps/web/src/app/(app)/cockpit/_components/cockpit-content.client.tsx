@@ -36,6 +36,11 @@ import { CockpitSummaryStrip, scrollToPanel } from './cockpit-summary-strip.clie
 import { RideDrawer } from '../../courses/_components/ride-drawer.client';
 import { AssignModal } from '../../courses/_components/assign-modal.client';
 
+// Référence stable (hors composant) pour la sortie neutralisée des alertes
+// « position périmée » quand la géoloc est OFF — évite un nouveau tableau à
+// chaque rendu (dépendances de mémo stables).
+const EMPTY_STALE_ALERTS: CockpitAlert[] = [];
+
 const NOSHOW_DETECTION_WINDOW_MS = 60_000;
 const NOSHOW_DISMISSED_KEY = 'cockpit:noshow-dismissed';
 const MAX_PANEL_ALERTS = 20;
@@ -79,6 +84,7 @@ export function CockpitContent({
   initialAlerts,
   initialPositions,
   driverLabels,
+  geolocEnabled,
   complianceAlerts,
   prescriptionAlerts,
   alertPreferences,
@@ -90,6 +96,13 @@ export function CockpitContent({
   initialAlerts: CockpitAlert[];
   initialPositions: DriverPosition[];
   driverLabels: Record<string, string>;
+  /**
+   * Géolocalisation chauffeur active (flag `GEOLOC_ENABLED`, post-HDS — DEC-075).
+   * Tant qu'elle est OFF, aucune position réelle n'existe : les surfaces « position
+   * périmée » (alerte + indicateur) sont débranchées (pas de voyant mort ni de
+   * fausse alerte). Réactivation Phase 10 : flag ON, sans réécriture.
+   */
+  geolocEnabled: boolean;
   complianceAlerts: ComplianceAlertEnriched[];
   prescriptionAlerts: PrescriptionAlertEnriched[];
   alertPreferences: CockpitAlertPreferences;
@@ -149,10 +162,15 @@ export function CockpitContent({
 
   // COCKPIT-01 (§5.13) : courses validées non affectées à H-1 (calculées, ticker).
   const { count: unassignedH1Count, alerts: h1Alerts } = useUnassignedH1(rides);
-  // COCKPIT-02 (§5.13) : positions périmées des chauffeurs en service. Positions
-  // liftées ici (une seule subscription, partagée avec la carte).
+  // COCKPIT-02 (§5.13) : positions périmées des chauffeurs en service. Le hook
+  // reste appelé (code préservé, réactivable Phase 10) mais sa sortie n'est
+  // injectée dans les alertes QUE si la géoloc réelle est active (DEC-075). Tant
+  // que `GEOLOC_ENABLED` est OFF, la table `driver_positions` est vide : le
+  // mécanisme mesurerait du vide → on le débranche (ni voyant mort ni fausse
+  // alerte). Le jour de l'HDS, le flag passe ON — aucune réécriture.
   const { positionsByDriver } = useDriverPositions(initialPositions);
-  const { alerts: staleAlerts } = useStalePositions(rides, positionsByDriver, driverLabels);
+  const { alerts: staleAlertsRaw } = useStalePositions(rides, positionsByDriver, driverLabels);
+  const staleAlerts = geolocEnabled ? staleAlertsRaw : EMPTY_STALE_ALERTS;
   // Son d'alerte réutilisable, armé par interaction (politique autoplay). Sonorise
   // les alertes critiques calculées (H-1 + géoloc périmée), une fois par transition.
   const sound = useAlertSound();
@@ -253,6 +271,7 @@ export function CockpitContent({
         unassignedH1Count={unassignedH1Count}
         criticalAlertsCount={criticalAlertsCount}
         stalePositionsCount={stalePositionsCount}
+        geolocEnabled={geolocEnabled}
         complianceCount={complianceAlerts.length}
         onNavigate={handleCounterNavigate}
         isDirigeant={isDirigeant}

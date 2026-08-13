@@ -111,6 +111,12 @@ EXTERNE (donnée/spec à obtenir d'un tiers).
 - **Déblocage** : dépend de 1.1 HDS **pour la PROD commerciale** — le stockage sous DPA est acceptable en bêta (DEC-077) ; le blocage relève de la prod, pas de la bêta. 🔍 architecture capture événementielle déjà préparée. 🗳 activation quand HDS en place (prod).
 - **Bloque/lié** : module 5.17 CdC.
 
+### 3.6.1 Surfaces cockpit « position périmée » (alerte + indicateur) débranchées
+- **Décision** : alerte + indicateur « position périmée » (COCKPIT-02 / COCKPIT-05) débranchés tant qu'il n'existe pas de géoloc réelle. Code conservé (`use-stale-positions`, `use-driver-positions`, table `driver_positions` + RLS + rétention 90j) ; réaffichage conditionné au flag `GEOLOC_ENABLED` (OFF pré-HDS). À réactiver Phase 10 (géoloc opérationnelle post-HDS, DEC-075).
+- **Raison** : après retrait des positions fictives (#498, seed `source='demo'` purgé), la table est vide → l'alerte ne se déclenchait jamais et l'indicateur restait figé à 0 (voyant mort = faux signal). On n'affiche que ce qui mesure du réel ; ce qui attend l'HDS est différé derrière le flag, pas laissé à afficher du vide. La carte du cockpit, elle, montre les courses du jour (réel opérationnel).
+- **Déblocage** : activer `GEOLOC_ENABLED=true` post-HDS → les deux surfaces réapparaissent sans réécriture (même gating que la capture serveur `record-position.ts`).
+- **Bloque/lié** : 3.6 (géoloc temps réel réelle), module 5.17 CdC.
+
 ### 3.7 Portail B2B (donneurs d'ordres) commercial multi-tenant
 - **Décision** : différé V1.5 (DEC-067) — alors que le CdC §2.1 le met en V1. Conflit assumé par le projet.
 - **Raison** : le CdC le liste V1, mais le projet a priorisé le cœur régulation d'abord ; B2B = après validation par 2-3 design partners.

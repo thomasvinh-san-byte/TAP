@@ -9,6 +9,7 @@ import { getPrescriptionAlerts } from './_lib/get-prescription-alerts';
 import { getCockpitAlertPreferences } from '@/lib/notifications/preferences';
 import { getActiveWeatherAlert } from '../meteo/_lib/queries';
 import { getAuthContext } from '@/lib/auth/get-auth-context';
+import { isGeolocEnabled } from '@/lib/release-flags';
 import { OfflineGate } from './_components/offline-gate.client';
 
 export const metadata = { title: 'Cockpit' };
@@ -227,6 +228,7 @@ export default async function CockpitPage() {
         initialAlerts={alerts}
         initialPositions={positionsResult.positions}
         driverLabels={positionsResult.driverLabels}
+        geolocEnabled={isGeolocEnabled()}
         complianceAlerts={complianceAlerts}
         prescriptionAlerts={prescriptionAlerts}
         alertPreferences={alertPreferences}
