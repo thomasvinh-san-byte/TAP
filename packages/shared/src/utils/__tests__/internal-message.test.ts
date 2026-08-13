@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   groupMessagesByDay,
+  reunionDayBoundsUtc,
   reunionDayKey,
   SENDER_ROLE_LABEL,
   type RideMessage,
@@ -28,6 +29,53 @@ describe('reunionDayKey', () => {
 
   it('renvoie une chaîne vide sur date invalide (défensif)', () => {
     expect(reunionDayKey('pas-une-date')).toBe('');
+  });
+});
+
+describe('reunionDayBoundsUtc', () => {
+  // Postgres compare des `timestamptz` (instants), pas des chaînes : ici on
+  // reproduit cette sémantique via `Date` — l'offset +04:00 des bornes et le `Z`
+  // des horodatages désignent bien le même axe temporel.
+  const inBounds = (t: string, gte: string, lt: string): boolean =>
+    new Date(gte).getTime() <= new Date(t).getTime() &&
+    new Date(t).getTime() < new Date(lt).getTime();
+
+  it('borne la vraie journée réunionnaise en intervalle semi-ouvert [gte, lt)', () => {
+    const { gte, lt } = reunionDayBoundsUtc('2026-06-08');
+    expect(gte).toBe('2026-06-08T00:00:00+04:00');
+    expect(lt).toBe('2026-06-09T00:00:00+04:00');
+  });
+
+  it('inclut les courses aux heures limites Réunion (00 h 30 et 23 h 30)', () => {
+    const { gte, lt } = reunionDayBoundsUtc('2026-06-08');
+    // 00 h 30 Réunion le 08 = 2026-06-07T20:30:00Z.
+    const early = '2026-06-07T20:30:00Z';
+    // 23 h 30 Réunion le 08 = 2026-06-08T19:30:00Z.
+    const late = '2026-06-08T19:30:00Z';
+    for (const t of [early, late]) {
+      expect(reunionDayKey(t)).toBe('2026-06-08');
+      expect(inBounds(t, gte, lt)).toBe(true);
+    }
+  });
+
+  it('exclut la bascule de minuit du lendemain (borne haute exclusive)', () => {
+    const { gte, lt } = reunionDayBoundsUtc('2026-06-08');
+    // 00 h 00 Réunion le 09 = 2026-06-08T20:00:00Z → appartient au 09, exclu.
+    const nextMidnight = '2026-06-08T20:00:00Z';
+    expect(reunionDayKey(nextMidnight)).toBe('2026-06-09');
+    expect(inBounds(nextMidnight, gte, lt)).toBe(false);
+  });
+
+  it('cohérence avec reunionDayKey sur un balayage horaire de 24 h', () => {
+    const { gte, lt } = reunionDayBoundsUtc('2026-06-08');
+    // Toute heure pleine UTC dans/hors de la journée réunionnaise du 08 doit
+    // tomber dans/hors des bornes, à l'identique du filtre client `reunionDayKey`.
+    for (let h = 0; h < 48; h++) {
+      const base = new Date('2026-06-07T00:00:00Z');
+      base.setUTCHours(base.getUTCHours() + h);
+      const iso = base.toISOString();
+      expect(inBounds(iso, gte, lt)).toBe(reunionDayKey(iso) === '2026-06-08');
+    }
   });
 });
 

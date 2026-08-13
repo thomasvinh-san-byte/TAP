@@ -72,6 +72,25 @@ export function reunionDayKey(isoTimestamp: string): string {
   return dayFormatter.format(d);
 }
 
+/** La Réunion : décalage UTC FIXE (+04:00), aucune heure d'été — bornes stables. */
+export const REUNION_UTC_OFFSET = '+04:00';
+
+/**
+ * Bornes d'un jour calendaire réunionnais `date` (`YYYY-MM-DD`), en intervalle
+ * SEMI-OUVERT `[gte, lt)`, exprimées avec l'offset Réunion. Cohérent avec
+ * `reunionDayKey` : pour tout horodatage `t`, `gte <= t < lt` ⇔
+ * `reunionDayKey(t) === date`. À utiliser pour borner une requête serveur sur la
+ * vraie journée réunionnaise plutôt que sur un UTC naïf (`${date}T00:00:00`),
+ * qui décale la fenêtre de 4 h et fait manquer les courses proches de minuit.
+ */
+export function reunionDayBoundsUtc(date: string): { gte: string; lt: string } {
+  const gte = `${date}T00:00:00${REUNION_UTC_OFFSET}`;
+  const next = new Date(`${date}T00:00:00Z`);
+  next.setUTCDate(next.getUTCDate() + 1);
+  const lt = `${next.toISOString().slice(0, 10)}T00:00:00${REUNION_UTC_OFFSET}`;
+  return { gte, lt };
+}
+
 /**
  * Regroupe une liste de messages par jour calendaire (La Réunion), en
  * conservant l'ordre chronologique ascendant (tri défensif sur `created_at`).

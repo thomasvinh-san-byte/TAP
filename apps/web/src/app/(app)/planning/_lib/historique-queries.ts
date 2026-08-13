@@ -1,4 +1,5 @@
 import 'server-only';
+import { reunionDayBoundsUtc } from '@tap/shared';
 import { createClient } from '@/lib/supabase/server';
 import {
   computeHistoriqueDiff,
@@ -39,13 +40,6 @@ interface RawRealiseRide {
   driver: { nom_affichage: string | null } | null;
 }
 
-function reunionDayBounds(date: string): { start: string; endExclusive: string } {
-  const start = `${date}T00:00:00+04:00`;
-  const next = new Date(`${date}T00:00:00Z`);
-  next.setUTCDate(next.getUTCDate() + 1);
-  return { start, endExclusive: `${next.toISOString().slice(0, 10)}T00:00:00+04:00` };
-}
-
 function patientLabel(p: { prenom: string | null; nom: string | null } | null): string {
   if (!p) return 'Patient';
   const nom = p.nom?.trim();
@@ -78,7 +72,7 @@ async function getRealise(
   supabase: SupabaseServerClient,
   date: string,
 ): Promise<{ rows: RealiseRow[]; labels: Record<string, RideLabel> }> {
-  const { start, endExclusive } = reunionDayBounds(date);
+  const { gte: start, lt: endExclusive } = reunionDayBoundsUtc(date);
   const { data, error } = await supabase
     .from('rides')
     .select(

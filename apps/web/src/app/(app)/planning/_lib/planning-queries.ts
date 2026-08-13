@@ -1,4 +1,5 @@
 import 'server-only';
+import { reunionDayBoundsUtc } from '@tap/shared';
 import { createClient } from '@/lib/supabase/server';
 import type { CockpitRide } from '../../cockpit/_lib/types';
 
@@ -46,6 +47,10 @@ async function getPlanningRides(
   supabase: SupabaseServerClient,
   date: string,
 ): Promise<{ rides: CockpitRide[]; meta: Record<string, PlanningRideMeta> }> {
+  // Borne sur la vraie journée réunionnaise (UTC+4), cohérente avec le filtre
+  // client `reunionDayKey`. Un bornage UTC naïf (`${date}T00:00:00`) décalait la
+  // fenêtre de 4 h et faisait manquer les courses proches de minuit (grille vide).
+  const { gte, lt } = reunionDayBoundsUtc(date);
   const { data, error } = await supabase
     .from('rides')
     .select(
@@ -55,8 +60,8 @@ async function getPlanningRides(
         'patient:patients(prenom, nom), driver:drivers(nom_affichage), ' +
         'vehicle:vehicles(immatriculation), ordering_party:ordering_parties(raison_sociale)',
     )
-    .gte('scheduled_at', `${date}T00:00:00`)
-    .lte('scheduled_at', `${date}T23:59:59`)
+    .gte('scheduled_at', gte)
+    .lt('scheduled_at', lt)
     .neq('status', 'brouillon')
     .order('scheduled_at');
   if (error) {
