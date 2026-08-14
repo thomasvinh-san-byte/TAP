@@ -135,14 +135,12 @@ export async function initializeDatabase(): Promise<SetupResult> {
     };
   }
 
-  // Détecte ce qui doit être appliqué
+  // Détecte l'état. Le SEED est RÉAPPLIQUÉ dans TOUS les états, y compris
+  // `ready` : sur le distant, les comptes existent déjà (→ `ready`) mais le seed
+  // des courses/patients a pu ne jamais être rejoué (planning/carte vides). Le
+  // seed est idempotent (`on conflict` partout) → sûr à rejouer. Seul le SCHÉMA
+  // (`MIGRATIONS_SQL`, non idempotent) reste réservé à `fresh`.
   const { state } = await checkDatabaseState();
-  if (state === 'ready') {
-    return {
-      ok: true,
-      message: 'Base déjà initialisée. Tu peux te connecter.',
-    };
-  }
 
   const client = newClient(connectionString, 55_000);
   try {
@@ -152,22 +150,36 @@ export async function initializeDatabase(): Promise<SetupResult> {
     // (autre onglet, ou cd.yml en parallèle).
     await client.query('select pg_advisory_lock(74321);');
 
+    let patients = 0;
+    let rides = 0;
     try {
       if (state === 'fresh') {
         await client.query(MIGRATIONS_SQL);
       }
-      // Le seed est toujours appliqué (idempotent via on conflict do update).
+      // Seed idempotent (on conflict do update/nothing) — rejoué à chaque appel.
       await client.query(SEED_SQL);
+
+      // Message HONNÊTE : compter réellement ce qui est en base après le seed
+      // (plus de « 10 patients fictifs » en dur).
+      const counts = await client.query<{ patients: string; rides: string }>(
+        'select (select count(*) from public.patients)::text as patients, ' +
+          '(select count(*) from public.rides)::text as rides;',
+      );
+      patients = Number(counts.rows[0]?.patients ?? '0');
+      rides = Number(counts.rows[0]?.rides ?? '0');
     } finally {
       await client.query('select pg_advisory_unlock(74321);').catch(() => {});
     }
 
+    const schemaNote =
+      state === 'fresh'
+        ? 'Schéma créé, données de démo appliquées'
+        : 'Données de démo (ré)appliquées';
     return {
       ok: true,
-      message:
-        state === 'fresh'
-          ? 'Base initialisée : 10 migrations + 4 comptes démo + 10 patients fictifs.'
-          : 'Comptes démo (re)créés. Tu peux te connecter.',
+      message: `${schemaNote} : ${patients} patient${patients > 1 ? 's' : ''} et ${rides} course${
+        rides > 1 ? 's' : ''
+      } en base.`,
     };
   } catch (err) {
     const errorMsg = err instanceof Error ? err.message : String(err);

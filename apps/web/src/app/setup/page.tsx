@@ -31,11 +31,20 @@ export const metadata = {
 export default async function SetupPage() {
   const { state, reason } = await checkDatabaseState();
 
-  if (state === 'ready') {
+  // OVH-05 — l'init self-service est un outil dev/démo (OFF par défaut). En prod
+  // HDS, le bouton n'est pas rendu (le verrou réel est côté action serveur).
+  const demoSetupEnabled = process.env.DEMO_SETUP_ENABLED === 'true';
+
+  // Base « prête » (comptes présents) : en PROD (self-service OFF), on redirige
+  // vers /login comme avant. En DÉMO, on RESTE ici pour proposer de RECHARGER le
+  // seed idempotent — car des comptes présents ne garantissent PAS que les
+  // courses/patients aient été appliqués (le seed a pu ne jamais être rejoué).
+  if (state === 'ready' && !demoSetupEnabled) {
     redirect('/login');
   }
 
   const isPartial = state === 'partial';
+  const isReady = state === 'ready';
 
   const supabaseConfigured =
     !!process.env.NEXT_PUBLIC_SUPABASE_URL && !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -44,21 +53,23 @@ export default async function SetupPage() {
     redirect('/welcome');
   }
 
-  // OVH-05 — l'init self-service est un outil dev/démo (OFF par défaut). En prod
-  // HDS, le bouton n'est pas rendu (le verrou réel est côté action serveur).
-  const demoSetupEnabled = process.env.DEMO_SETUP_ENABLED === 'true';
-
   return (
     <AuthShell title="Initialiser la base">
       <div className="space-y-24">
         <section className="border-border bg-muted/40 space-y-8 rounded-md border p-16">
           <p className="text-foreground text-sm font-medium">
-            {isPartial ? 'Init incomplète détectée' : "Plus qu'une étape"}
+            {isReady
+              ? 'Base initialisée — recharger les données de démo ?'
+              : isPartial
+                ? 'Init incomplète détectée'
+                : "Plus qu'une étape"}
           </p>
           <p className="text-muted-foreground text-sm">
-            {isPartial
-              ? "Les tables existent mais les comptes démo manquent (probable échec partiel d'une init précédente). Cliquer pour (re)créer les comptes : le seed est idempotent."
-              : 'La connexion Supabase est en place. Il reste à initialiser la base avec le schéma et les données démo.'}
+            {isReady
+              ? 'Les comptes démo existent déjà, mais les patients et les courses ont pu ne jamais être appliqués (planning / carte vides). Recharger réapplique le seed idempotent (patients, courses du jour géocodées, tournées) sans doublon.'
+              : isPartial
+                ? "Les tables existent mais les comptes démo manquent (probable échec partiel d'une init précédente). Cliquer pour (re)créer les comptes : le seed est idempotent."
+                : 'La connexion Supabase est en place. Il reste à initialiser la base avec le schéma et les données démo.'}
           </p>
         </section>
 
@@ -66,10 +77,12 @@ export default async function SetupPage() {
           <div className="border-border bg-card space-y-16 rounded-md border p-16">
             <div className="space-y-8">
               <h2 className="text-foreground text-base font-medium">
-                Initialiser la base de données
+                {isReady ? 'Recharger les données de démo' : 'Initialiser la base de données'}
               </h2>
               <p className="text-muted-foreground text-sm">
-                Crée les tables nécessaires (patients, courses, RGPD…) et insère les comptes démo :
+                {isReady
+                  ? 'Réapplique le seed idempotent (patients, courses du jour géocodées, tournées) sur la base existante. Comptes démo :'
+                  : 'Crée les tables nécessaires (patients, courses, RGPD…) et insère les comptes démo :'}
               </p>
               <ul className="text-muted-foreground marker:text-muted-foreground/50 list-inside list-disc space-y-4 font-mono text-sm">
                 <li>dirigeant@demo.tap</li>
@@ -77,13 +90,16 @@ export default async function SetupPage() {
                 <li>chauffeur@demo.tap</li>
               </ul>
               <p className="text-muted-foreground text-sm">
-                Plus 10 patients fictifs réunionnais pour tester la recherche et la saisie de
-                course. Mot de passe partagé :{' '}
+                Plus des patients fictifs réunionnais et des courses du jour pour tester la
+                recherche, la saisie de course et le planning. Mot de passe partagé :{' '}
                 <code className="text-foreground font-mono">demo1234!</code>
               </p>
             </div>
 
-            <InitButton />
+            <InitButton
+              reload={isReady}
+              label={isReady ? 'Recharger les données de démo' : undefined}
+            />
 
             <p className="text-muted-foreground text-xs">
               L&apos;opération est idempotente : peut être relancée sans risque de doublons.
