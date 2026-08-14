@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { reunionDayBoundsUtc, reunionDayKey } from '@tap/shared';
 import { createClient } from '@/lib/supabase/server';
 import { CockpitContent } from './_components/cockpit-content.client';
 import type { CockpitAlert, CockpitRide } from './_lib/types';
@@ -25,6 +26,7 @@ async function getRidesToday(
   supabase: SupabaseServerClient,
   today: string,
 ): Promise<CockpitRide[]> {
+  const { gte, lt } = reunionDayBoundsUtc(today);
   const { data, error } = await supabase
     .from('rides')
     .select(
@@ -33,8 +35,8 @@ async function getRidesToday(
         'patient:patients(prenom, nom), driver:drivers(nom_affichage), ' +
         'vehicle:vehicles(immatriculation)',
     )
-    .gte('scheduled_at', `${today}T00:00:00`)
-    .lte('scheduled_at', `${today}T23:59:59`)
+    .gte('scheduled_at', gte)
+    .lt('scheduled_at', lt)
     // DEC-158 : exclure les courses `brouillon` (demandes groupées en attente,
     // pas encore fermes) du cockpit.
     .neq('status', 'brouillon')
@@ -60,11 +62,13 @@ async function getCockpitRideEvents(
   today: string,
 ): Promise<CockpitAlert[]> {
   try {
+    const { gte, lt } = reunionDayBoundsUtc(today);
     const { data, error } = await supabase
       .from('ride_events')
       .select('id, ride_id, event_type, payload, created_at')
       .in('event_type', ['patient_no_show', 'sms_failed', 'ride_delayed'])
-      .gte('created_at', `${today}T00:00:00`)
+      .gte('created_at', gte)
+      .lt('created_at', lt)
       .order('created_at', { ascending: false })
       .limit(20);
     if (error) {
@@ -183,7 +187,11 @@ export default async function CockpitPage() {
   const authCtx = await getAuthContext();
   const isDirigeant = authCtx?.role === 'dirigeant';
 
-  const today = new Date().toISOString().slice(0, 10);
+  // Jour civil réunionnais (UTC+4), pas le jour UTC : après 20 h locale (minuit
+  // UTC), `new Date().toISOString().slice(0,10)` basculait déjà à demain et
+  // vidait la journée. Même helper que le planning (fix #497) — cockpit et
+  // planning voient ainsi le même jour.
+  const today = reunionDayKey(new Date().toISOString());
 
   // DEC-150 perf : les 5 sources sont INDÉPENDANTES → lancées en parallèle
   // (waterfall séquentiel supprimé). Chaque fonction encapsule son propre

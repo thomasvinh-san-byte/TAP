@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import { reunionDayBoundsUtc, reunionDayKey } from '@tap/shared';
 import { createClient } from '@/lib/supabase/server';
 import { OptimizationShell } from './_components/optimization-shell.client';
 
@@ -15,13 +16,16 @@ export default async function OptimisationPage(props: {
   } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  const date = searchParams.date ?? new Date().toISOString().slice(0, 10);
+  // Défaut = jour civil réunionnais (UTC+4), pas le jour UTC. Bornes du jour
+  // sélectionné via le helper partagé (#497), comme le cockpit et le planning.
+  const date = searchParams.date ?? reunionDayKey(new Date().toISOString());
+  const { gte, lt } = reunionDayBoundsUtc(date);
 
   const { data: ridesData, error: ridesError } = await supabase
     .from('rides')
     .select('id, scheduled_at, pickup_address, dropoff_address')
-    .gte('scheduled_at', `${date}T00:00:00`)
-    .lte('scheduled_at', `${date}T23:59:59`)
+    .gte('scheduled_at', gte)
+    .lt('scheduled_at', lt)
     .order('scheduled_at');
 
   if (ridesError) {
