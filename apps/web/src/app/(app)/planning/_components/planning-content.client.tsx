@@ -106,10 +106,44 @@ export function PlanningContent({ date, initialRides, meta, drivers }: Props): J
     [drivers],
   );
 
+  // Annule la DERNIÈRE réaffectation : remet la course sur son chauffeur
+  // précédent (ou « Non affectées » si elle n'était pas affectée). Rejoue les
+  // mêmes Server Actions en sens inverse — aucune action réécrite. Comportement
+  // SMS assumé et DOCUMENTÉ : l'undo re-notifie le patient (best-effort) pour
+  // qu'il n'ait jamais une info fausse (il vient de recevoir « transféré à X »,
+  // l'undo rétablit la vérité). Idempotence côté action : SMS seulement si le
+  // chauffeur change RÉELLEMENT.
+  const undoReassign = React.useCallback(
+    (rideId: string, previousDriverId: string | null): void => {
+      startTransition(async () => {
+        const res = previousDriverId
+          ? await reassignRidesBatchAction([{ rideId, driverId: previousDriverId }])
+          : await unassignRideAction(rideId);
+        if (res.error) {
+          toast.error(`Annulation impossible : ${res.error}`);
+          return;
+        }
+        toast.success(
+          previousDriverId
+            ? `Réaffectation annulée — course rendue à ${driverNameById.get(previousDriverId) ?? 'chauffeur'}`
+            : 'Réaffectation annulée — course remise dans « Non affectées »',
+          {
+            description:
+              'Le patient est de nouveau prévenu par SMS (si consentement) pour rétablir l’info à jour.',
+          },
+        );
+        router.refresh();
+      });
+    },
+    [router, driverNameById],
+  );
+
   // Exécute la réaffectation UNITAIRE. Cible nulle = désaffectation. Best-effort
-  // SMS/push portés par les Server Actions ; Realtime reconcilie la grille.
+  // SMS/push portés par les Server Actions ; Realtime reconcilie la grille. Le
+  // toast propose « Annuler » (remet le chauffeur précédent) — retire la peur de
+  // casser, encourage la correction rapide.
   const executeReassign = React.useCallback(
-    (rideId: string, targetDriverId: string | null): void => {
+    (rideId: string, targetDriverId: string | null, previousDriverId: string | null): void => {
       startTransition(async () => {
         const res = targetDriverId
           ? await reassignRidesBatchAction([{ rideId, driverId: targetDriverId }])
@@ -118,6 +152,8 @@ export function PlanningContent({ date, initialRides, meta, drivers }: Props): J
           toast.error(res.error);
           return;
         }
+        // « Annuler » : rendre la course à son chauffeur précédent.
+        const undo = { label: 'Annuler', onClick: () => undoReassign(rideId, previousDriverId) };
         if (targetDriverId) {
           // SMS/push best-effort : les Server Actions ne remontent pas le statut
           // d'envoi → on n'AFFIRME pas « SMS envoyé » (l'envoi est conditionné au
@@ -126,18 +162,20 @@ export function PlanningContent({ date, initialRides, meta, drivers }: Props): J
             `Course réaffectée à ${driverNameById.get(targetDriverId) ?? 'chauffeur'}`,
             {
               description: 'Patient prévenu par SMS si un numéro consenti est enregistré.',
+              action: undo,
             },
           );
         } else {
           toast.success('Course désaffectée', {
             description: 'Course remise dans « Non affectées ».',
+            action: undo,
           });
         }
         setReassignTarget(null);
         router.refresh();
       });
     },
-    [router, driverNameById],
+    [router, driverNameById, undoReassign],
   );
 
   // Point d'entrée commun (dépose OU boîte). Une dépose en conflit ouvre la
@@ -146,18 +184,19 @@ export function PlanningContent({ date, initialRides, meta, drivers }: Props): J
     (rideId: string, targetDriverId: string | null): void => {
       const ride = dayRides.find((r) => r.id === rideId);
       if (!ride) return;
-      if (targetDriverId === (ride.driver_id ?? null)) return; // no-op
+      const previousDriverId = ride.driver_id ?? null;
+      if (targetDriverId === previousDriverId) return; // no-op
       if (conflictFor(rideId, targetDriverId)) {
         setReassignTarget({
           rideId,
           patientLabel: patientLabel(ride),
           scheduledAt: ride.scheduled_at,
-          currentDriverId: ride.driver_id ?? null,
+          currentDriverId: previousDriverId,
           presetTarget: targetDriverId,
         });
         return;
       }
-      executeReassign(rideId, targetDriverId);
+      executeReassign(rideId, targetDriverId, previousDriverId);
     },
     [dayRides, conflictFor, executeReassign],
   );
@@ -292,7 +331,11 @@ export function PlanningContent({ date, initialRides, meta, drivers }: Props): J
         drivers={drivers}
         pending={pending}
         conflictFor={conflictFor}
-        onConfirm={executeReassign}
+        onConfirm={(rideId, targetDriverId) =>
+          // Le chauffeur précédent (pour l'undo) = celui de la course avant
+          // confirmation, porté par la cible de la boîte.
+          executeReassign(rideId, targetDriverId, reassignTarget?.currentDriverId ?? null)
+        }
         onClose={() => setReassignTarget(null)}
       />
     </div>
