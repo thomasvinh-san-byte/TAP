@@ -39,10 +39,14 @@ EXTERNE (donnée/spec à obtenir d'un tiers).
   quand le lot messagerie complet sera construit (MESSAGING_ENABLED) — l'infra
   push est désormais réutilisable (`sendPushToUser`).
 
-### 1.4 Messagerie interne §5.22 — reste à construire (coquille posée 06.62)
-- **Décision** : échafaudage posé (2026-06-10, DEC-141). Le point d'accès header (`MessagingButton`) + la coquille « Fil général » (EmptyState) sont en place derrière le flag `MESSAGING_ENABLED` (OFF par défaut prod). Le chat à la course (germe lot 1, `internal_message`/`ride-chat`) est fonctionnel et exposé via cet accès.
-- **Reste à construire** (chemin actif non câblé tant que le flag est OFF) : 🔍 **fil général temps réel** (hors course — nécessitera sa table + migration + RLS le jour J), 🔍 **photo** (dépend du stockage HDS, cf. §4.3 upload de scans), 🔍 **push PWA** (cf. §1.3), 🔍 **notion de « non-lu »** (compteur badge — pas de colonne read-state en base aujourd'hui).
-- **Déblocage** : 🗳 prioriser le lot messagerie complet (post-échafaudage) ; dépend de 1.3 (push) et indirectement de 1.1 HDS (photo). Activer en mettant `MESSAGING_ENABLED=true` une fois le périmètre construit.
+### 1.4 Messagerie interne §5.22 — RÉSOLU (fil général + non-lu + photo livrés)
+- **Décision (historique)** : échafaudage posé (2026-06-10, DEC-141). Le point d'accès header (`MessagingButton`) + la coquille « Fil général » (EmptyState) posés derrière le flag `MESSAGING_ENABLED`. Le chat à la course (germe lot 1, `internal_message`/`ride-chat`) était déjà fonctionnel.
+- **Livré** (le « reste à construire » d'époque est construit ; preuve code) :
+  - **Fil général temps réel** ✅ — page `/messagerie` (`apps/web/src/app/(app)/messagerie/page.tsx`), table dédiée `internal_general_message` (migration `20260613000029`, hors course, RLS).
+  - **Notion de « non-lu »** ✅ — read-state `internal_message_read` (migration `20260613000027`) → compteur/badge.
+  - **Photo** ✅ — `internal_message_image` (migration `20260613000028`), Supabase Storage bucket privé + URL signée (acceptable en bêta sous DPA, DEC-077 ; migration bucket HDS = prod, cf. §4.3).
+  - **Flag** : `MESSAGING_ENABLED` = **ON par défaut** (kill-switch `=false`, `lib/release-flags.ts` `isMessagingEnabled`) — périmètre construit.
+- **Reste (non bloquant)** : 🔍 brancher le **push PWA** sur les événements de messagerie — l'infra push est livrée et réutilisable (§1.3 RÉSOLU, `sendPushToUser`) ; le realtime fonctionne sans, donc la messagerie est utilisable en l'état.
 
 ---
 
@@ -56,10 +60,11 @@ EXTERNE (donnée/spec à obtenir d'un tiers).
 - **Déblocage** : 📄 INFO EXTERNE — obtenir du design partner un EXEMPLE réel d'export/import Lomaco OU la doc d'import du logiciel. Sans ça, bloqué. (Les exports CSV autonomes — courses, stats — restent faisables en attendant, voir backlog.)
 - **Note** : c'est le PIVOT de l'hypothèse CdC §2.3 (TAP s'interface avec Lomaco par export). Important à terme.
 
-### 2.2 Export FEC (norme comptable)
-- **Décision** : différé (à confirmer besoin).
-- **Raison** : norme fiscale précise (18 champs, nommage imposé). Spécifiable sans tiers (norme publique) mais chantier de conformité. Le CdC dit « FEC OU CSV » → le CSV générique peut suffire en V1.
-- **Déblocage** : 🗳 DÉLIBÉRER — le comptable du design partner exige-t-il le FEC normé, ou le CSV suffit ? Si FEC requis : 🔍 instruire la norme.
+### 2.2 Export FEC (norme comptable) — LIVRÉ (préférence FEC/CSV à confirmer)
+- **Décision (historique)** : différé (à confirmer besoin).
+- **Raison (historique)** : norme fiscale précise (18 champs, nommage imposé). Spécifiable sans tiers (norme publique) mais chantier de conformité. Le CdC dit « FEC OU CSV » → le CSV générique peut suffire en V1.
+- **Livré** (n'est plus « différé » — preuve code) : générateur FEC normé **18 champs** + séparateur imposé (`packages/shared/src/utils/fec.ts` `generateFec`, testé `fec.test.ts`), requête `admin/facturation/_lib/queries-fec.ts`, action `exportFecAction` (`admin/facturation/actions.ts`), UI `fec-export-section.client.tsx`. Le **CSV générique** est également livré (exports autonomes §5.23, DEC-115, cf. §2.1). Les deux formats existent.
+- **Reste (préférence, plus un blocage de construction)** : 🗳 confirmer avec le comptable du design partner lequel utiliser (FEC normé ou CSV) — les deux sont disponibles, il ne reste qu'à trancher l'usage.
 
 ### 2.3 Connecteurs natifs / API REST publique / Webhooks — CdC §5.23
 - **Décision** : V2 (CdC).
@@ -112,7 +117,7 @@ EXTERNE (donnée/spec à obtenir d'un tiers).
 - **Bloque/lié** : module 5.17 CdC.
 
 ### 3.6.1 Surfaces cockpit « position périmée » (alerte + indicateur) débranchées
-- **Décision** : alerte + indicateur « position périmée » (COCKPIT-02 / COCKPIT-05) débranchés tant qu'il n'existe pas de géoloc réelle. Code conservé (`use-stale-positions`, `use-driver-positions`, table `driver_positions` + RLS + rétention 90j) ; réaffichage conditionné au flag `GEOLOC_ENABLED` (OFF pré-HDS). À réactiver Phase 10 (géoloc opérationnelle post-HDS, DEC-075).
+- **Décision** : alerte + indicateur « position périmée » (COCKPIT-02 / COCKPIT-05) débranchés tant qu'il n'existe pas de géoloc réelle (gating livré #499). Code conservé (`use-stale-positions`, `use-driver-positions`, table `driver_positions` + RLS + rétention 90j) ; réaffichage conditionné au flag `GEOLOC_ENABLED` (OFF pré-HDS ; helper `isGeolocEnabled`, `lib/release-flags.ts`). À réactiver Phase 10 (géoloc opérationnelle post-HDS, DEC-075).
 - **Raison** : après retrait des positions fictives (#498, seed `source='demo'` purgé), la table est vide → l'alerte ne se déclenchait jamais et l'indicateur restait figé à 0 (voyant mort = faux signal). On n'affiche que ce qui mesure du réel ; ce qui attend l'HDS est différé derrière le flag, pas laissé à afficher du vide. La carte du cockpit, elle, montre les courses du jour (réel opérationnel).
 - **Déblocage** : activer `GEOLOC_ENABLED=true` post-HDS → les deux surfaces réapparaissent sans réécriture (même gating que la capture serveur `record-position.ts`).
 - **Bloque/lié** : 3.6 (géoloc temps réel réelle), module 5.17 CdC.
@@ -479,27 +484,35 @@ data-cache). C'est le **préalable** de la gestion des prescriptions. Restent :
   proches seuil, dans la card prescriptions du dashboard. Mêmes chiffres/source
   que les alertes prescriptions du cockpit (07.06).
 
-### 9.4 KPIs 5.20 restants — lots suivants
+### 9.4 KPIs 5.20 restants — LARGEMENT RÉSOLUS (reste : opérationnels)
 - **Tops commerciaux — RÉSOLU (07.08, DEC-165)** : Top 10 patients CA + Top 5
   donneurs B2B (CA encaissé du mois, même définition que `getCaMois` → partition
   exacte du CA mensuel), card dédiée du dashboard, RGPD `patients_safe`, anti-N+1.
 - **Panier moyen / course — RÉSOLU (07.09, DEC-166)** : CA encaissé ÷ courses
   encaissées (`caMois.total_eur / caMois.count`), dérivé sans requête, périmètre
   cohérent. KpiCard rangée Activité du mois.
-- **Restent (par lots dédiés)** :
-  - **Écart prévisionnel/réalisé** — PRÉALABLE : construire le CA PRÉVISIONNEL
-    (tarification des courses futures planifiées), chantier dédié.
-  - **Répartition récurrentes/ponctuelles** — PRÉALABLE : activer
-    `rides.ride_recurrence_id` (actuellement commenté dans la migration rides) ;
-    petit lot préalable, puis agrégation count par présence du lien récurrence.
-  - **Économiques** : marge, **coût au km PARAMÉTRABLE**, encours impayés —
-    nécessitent un PARAMÉTRAGE des coûts (chantier à part : modèle de coûts +
-    saisie dirigeant avant de pouvoir calculer marge/coût km).
-  - **Opérationnels** : taux d'occupation véhicule, productivité chauffeur,
-    litiges CGSS (`ride_dispute`).
-- **Déblocage** : dev dédié par KPI ; les économiques attendent le paramétrage
-  des coûts ; écart prévu/réalisé attend le CA prévisionnel ; récurrentes/
-  ponctuelles attend l'activation de `rides.ride_recurrence_id`.
+- **Écart prévisionnel/réalisé — RÉSOLU** (preuve code) : CA **prévisionnel**
+  (« À venir aujourd'hui / 7 jours / mois / année ») + **« Réalisation du mois »**
+  (taux + CA réalisé/planifié) — `tableau-de-bord/_components/tier-activite.tsx`,
+  agrégats `previsionnel.*` de `_lib/queries-dashboard.ts`. Le préalable « CA
+  prévisionnel » est donc construit.
+- **Répartition récurrentes/ponctuelles — RÉSOLU** (preuve code) :
+  `rides.ride_recurrence_id` **activé** (migration `20260520000001_rides_ride_recurrence_id.sql`,
+  n'est plus commenté) ; KPI « Récurrentes vs ponctuelles » (`groupe-operationnel.tsx`,
+  `_lib/operational-kpis.ts`, testé `operational-kpis.test.ts`).
+- **Économiques — RÉSOLU** (preuve code) : marge brute, **coût au km PARAMÉTRABLE**,
+  rentabilité mutualisées/non, **encours impayé** (KPI-02, `getEncoursImpaye`) —
+  `groupe-economie.tsx`, `_lib/economic-kpis.ts`. Le paramétrage des coûts existe :
+  table `cost_parameters` (migration `20260613000030`) + écran de saisie dirigeant
+  `/admin/parametres-couts` (`cost-parameters-form.client.tsx`). État **« non
+  configuré » honnête** si aucun coût saisi (jamais un zéro trompeur ;
+  `economic-kpis.ts` porte le drapeau `configured`).
+- **Reste — Opérationnels (vrai reste, non fait, vérifié dans le code)** : taux
+  d'occupation véhicule, productivité chauffeur, litiges CGSS (`ride_dispute` —
+  aucune table/migration ni KPI aujourd'hui).
+- **Déblocage** : dev dédié pour les KPIs opérationnels restants (occupation /
+  productivité / litiges). Les trois blocs ci-dessus (écart, récurrentes,
+  économiques) n'attendent plus rien — livrés.
 
 ---
 
@@ -725,6 +738,38 @@ inchangé — non corrigés dans ce lot) :
 **Note** : le statut de GROUPE (`ride_group_status` : en_attente/acceptee/refusee/
 annulee) reste géré dans `groups.ts` + `meteo` uniquement (faible dispersion) —
 non couvert par cette machine (centrée sur `ride_status`).
+
+---
+
+## 15. Module planning / Gantt §5.12 — LIVRÉ (nuance : carte temps réel post-HDS)
+
+Ajouté au registre a posteriori : le module planning/Gantt a été entièrement
+construit mais n'était tracé nulle part. Consigné ici comme **livré** (preuve
+code : `apps/web/src/app/(app)/planning/`).
+
+- **Lot A — grille** ✅ : tableau sémantique lignes = chauffeurs (+ « Non
+  affectées »), colonnes = tranches horaires (fuseau Réunion) ; placement par
+  `reunionHour` (`_lib/planning-layout.ts`).
+- **Lot B — réaffectation** ✅ : glisser-déposer entre lignes + repli clavier
+  (boîte de réaffectation) ; conflit horaire → confirmation. `reassignRidesBatchAction`
+  / `unassignRideAction`.
+- **Lot C — indicateurs de tournée** ✅ : `_lib/tournee-indicators.ts`
+  (`TourneeIndicators`), testé.
+- **Lot D — validation J+1 ATOMIQUE** ✅ : RPC `validate_planning_day`
+  (SECURITY INVOKER, migration `20260614000004`) — INSERT validation + figeage de
+  l'instantané dans une seule transaction ; idempotent. Tables `planning_validations`
+  / `planning_validation_rides` (migration `20260614000001`).
+- **Lot E — historique prévu/réalisé** ✅ : diff sur l'instantané figé
+  (`_lib/historique-diff.ts`, testé), page `planning/historique`.
+- **Fix fuseau** ✅ (#497) : bornage de la requête sur la vraie journée
+  réunionnaise (`reunionDayBoundsUtc`, `@tap/shared`) — grille jadis vide corrigée.
+- **Raffinement Gantt** ✅ (#501) : repère « maintenant » live, grille de fond,
+  blocs enrichis, états vides travaillés.
+- **Carte des courses du jour** ✅ (cockpit, #498) : points de prise en charge /
+  dépose + trajets (adresses opérationnelles), clic → RideDrawer.
+- **Nuance (reste = post-HDS)** : la carte **temps réel des positions chauffeur**
+  (module 5.17) n'est PAS faite avant HDS (DEC-075 ; cf. §3.6 / §3.6.1). La carte
+  livrée n'affiche que des courses (réel opérationnel), aucune position GPS.
 
 ---
 
