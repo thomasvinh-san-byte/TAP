@@ -55,23 +55,38 @@ HEAD
 mv "$TMP" "$OUT"
 echo "✓ $OUT régénéré ($(wc -l < "$OUT") lignes)"
 
-# Génère apps/web/src/lib/setup-sql.ts avec 2 constantes
+# Génère apps/web/src/lib/setup-sql.ts avec 2 constantes.
+# Encodage via JSON.stringify (littéraux de chaîne JSON) : la valeur évaluée
+# ÉGALE octet pour octet le SQL source. L'ancien `String.raw` + sed échappait
+# `$` et backtick, mais String.raw RESTITUE ces échappements LITTÉRALEMENT :
+# `do $$` devenait `do \$\$` (SQL invalide) et les 168 backticks du seed
+# devenaient `\``. Le SQL consommé par la Server Action /setup était donc
+# corrompu (le seed échouait). JSON.stringify élimine toute cette fragilité.
 TS_OUT="apps/web/src/lib/setup-sql.ts"
+JSON_ENCODE='process.stdout.write(JSON.stringify(require("fs").readFileSync(0,"utf8")))'
 {
   echo "/**"
   echo " * SQL de setup auto-généré par scripts/build-setup-sql.sh — NE PAS éditer manuellement."
   echo " * Source: supabase/migrations/*.sql + supabase/seed.sql + supabase/seed.demo.sql"
   echo " * Régénération : ./scripts/build-setup-sql.sh"
+  echo " *"
+  echo " * Constantes = littéraux de chaîne JSON (encodage fidèle : la valeur évaluée"
+  echo " * égale octet pour octet le SQL source)."
   echo " */"
   echo ""
-  echo "export const MIGRATIONS_SQL = String.raw\`"
-  cat "$MIG_TMP" | sed 's/\\/\\\\/g; s/`/\\`/g; s/\$/\\$/g'
-  echo "\`;"
+  printf 'export const MIGRATIONS_SQL = '
+  node -e "$JSON_ENCODE" < "$MIG_TMP"
+  echo ";"
   echo ""
-  echo "export const SEED_SQL = String.raw\`"
-  cat "$SEED_TMP" | sed 's/\\/\\\\/g; s/`/\\`/g; s/\$/\\$/g'
-  echo "\`;"
+  printf 'export const SEED_SQL = '
+  node -e "$JSON_ENCODE" < "$SEED_TMP"
+  echo ";"
 } > "$TS_OUT"
+
+# Aligne le fichier généré sur le style Prettier du dépôt (sinon `format:check`
+# CI le rejette). Prettier ne touche PAS au CONTENU des littéraux de chaîne —
+# la valeur évaluée reste identique.
+pnpm exec prettier --write "$TS_OUT" >/dev/null 2>&1 || true
 echo "✓ $TS_OUT régénéré"
 
 rm -f "$MIG_TMP" "$SEED_TMP"
