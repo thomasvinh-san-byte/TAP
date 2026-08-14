@@ -314,6 +314,7 @@ export function PlanningContent({ date, initialRides, meta, drivers }: Props): J
           onReassignRide={openReassignDialog}
           conflictFor={conflictFor}
           indicators={indicators}
+          meta={meta}
         />
       )}
 
