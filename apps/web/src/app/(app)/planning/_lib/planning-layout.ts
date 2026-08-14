@@ -47,3 +47,36 @@ export function hourSlots(range: HourRange): number[] {
 export function hourLabel(h: number): string {
   return `${h} h`;
 }
+
+/**
+ * Heure ET minute (fuseau Réunion) d'un horodatage ISO. `null` si invalide.
+ * Sert au repère temporel « maintenant » de la grille (position fine dans la
+ * colonne de l'heure courante). Réutilise `formatReunionTime` (source unique du
+ * fuseau) plutôt que de recalculer un décalage.
+ */
+export function reunionHourMinute(iso: string): { hour: number; minute: number } | null {
+  const hhmm = formatReunionTime(iso); // "HH:MM" ou ""
+  if (hhmm === '') return null;
+  const parts = hhmm.split(':');
+  const hour = parseInt(parts[0] ?? '', 10);
+  const minute = parseInt(parts[1] ?? '', 10);
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return null;
+  return { hour, minute };
+}
+
+/**
+ * Position fractionnaire du repère « maintenant » dans la suite des colonnes,
+ * exprimée en unités de colonne depuis la première tranche (`0` = bord gauche de
+ * la première colonne, `1` = frontière 1re/2e colonne, etc.). `null` si l'heure
+ * courante est hors de la plage affichée (le repère n'est alors pas rendu). Pur
+ * et testable ; la position pixel exacte est mesurée à l'affichage (largeurs de
+ * colonne variables), ce helper porte la logique de plage/fraction.
+ */
+export function nowColumnFraction(slots: number[], hour: number, minute: number): number | null {
+  const first = slots[0];
+  const last = slots[slots.length - 1];
+  if (first === undefined || last === undefined) return null;
+  // Hors plage (avant la première tranche ou après la dernière) → pas de repère.
+  if (hour < first || hour > last) return null;
+  return hour - first + minute / 60;
+}
