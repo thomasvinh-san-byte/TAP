@@ -241,6 +241,7 @@ EXTERNE (donnée/spec à obtenir d'un tiers).
   Lot suivant si jugé utile — non bloquant (la compensation couvre le cas courant).
   NB : l'anti-TOCTOU DEC-168 (optimistic locking sur les TRANSITIONS de statut)
   est un sujet distinct, déjà traité.
+- **Codes INSEE des Hauts à confirmer en UAT (D-10)** — `cockpit/optimisation/_lib/hauts-citycodes.ts` : les communes des Hauts (relief où Haversine sous-estime le trajet) sont identifiées, mais quatre codes INSEE restent marqués `TODO UAT D-10` (Entre-Deux `97421`, La Plaine-des-Palmistes `97431`/`97417`, Sainte-Rose `97439`). **NE PAS deviner/patcher** — c'est une **validation terrain** avec la régulatrice en UAT (risque d'erreur géographique si on invente). Cilaos `97413` et Salazie `97433` sont confirmés. **Action** : point UAT à cocher (aucun code à changer avant confirmation terrain).
 
 ---
 

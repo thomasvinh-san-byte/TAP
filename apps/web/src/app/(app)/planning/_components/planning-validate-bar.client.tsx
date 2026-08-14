@@ -71,12 +71,16 @@ export function PlanningValidateBar({ date, validation }: Props): JSX.Element {
         <div className="text-success-foreground flex items-center gap-8 text-sm">
           <CheckCircle2 className="text-success h-16 w-16 shrink-0" aria-hidden />
           <span>
-            Planning validé le {formatDateTimeFr(validation.validatedAt)} ·{' '}
+            {/* « Envoyé à N chauffeurs » (push adressé, best-effort — on ne
+                garantit pas la réception) vs « M patients notifiés par SMS »
+                (envois réels comptés). Cohérent avec la doctrine : pas de fausse
+                certitude de réception côté chauffeur. */}
+            Planning validé le {formatDateTimeFr(validation.validatedAt)} · envoyé à{' '}
             <span className="tabular-nums">{validation.notifiedDrivers}</span> chauffeur
-            {validation.notifiedDrivers > 1 ? 's' : ''} et{' '}
+            {validation.notifiedDrivers > 1 ? 's' : ''} ·{' '}
             <span className="tabular-nums">{validation.notifiedPatients}</span> patient
             {validation.notifiedPatients > 1 ? 's' : ''} notifié
-            {validation.notifiedPatients > 1 ? 's' : ''}.
+            {validation.notifiedPatients > 1 ? 's' : ''} par SMS.
           </span>
         </div>
         <Button asChild variant="outline" size="sm">
