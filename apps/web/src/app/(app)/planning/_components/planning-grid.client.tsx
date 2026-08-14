@@ -15,7 +15,7 @@ import {
 } from '../_lib/planning-layout';
 import type { ReassignConflict } from '../_lib/planning-conflicts';
 import { evaluateDrop, type DropVerdict } from '../_lib/planning-drop';
-import type { PlanningDriverOption } from '../_lib/planning-queries';
+import type { PlanningDriverOption, PlanningRideMeta } from '../_lib/planning-queries';
 import type { TourneeIndicator } from '../_lib/tournee-indicators';
 import { TourneeIndicators } from './tournee-indicators.client';
 import { PlanningRideBlock, DRAG_MIME } from './planning-ride-block.client';
@@ -37,6 +37,8 @@ interface Props {
   conflictFor: (rideId: string, targetDriverId: string | null) => ReassignConflict | null;
   /** Indicateurs de tournée par chauffeur (`driver_id` → indicateur). Lot C. */
   indicators: Map<string, TourneeIndicator>;
+  /** Métadonnées par course (type, donneur d'ordres) — carte de survol. */
+  meta: Record<string, PlanningRideMeta>;
 }
 
 /** Habillage de la ligne cible survolée selon le verdict de dépose (couleur +
@@ -89,10 +91,13 @@ export function PlanningGrid({
   onReassignRide,
   conflictFor,
   indicators,
+  meta,
 }: Props): JSX.Element {
   const range = React.useMemo(() => computeHourRange(rides.map((r) => r.scheduled_at)), [rides]);
   const slots = React.useMemo(() => hourSlots(range), [range]);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+  const autoScrolledRef = React.useRef(false);
 
   // Horloge partagée (repère « maintenant » + estompage des tranches passées).
   const nowMs = useNow(30_000);
@@ -100,6 +105,26 @@ export function PlanningGrid({
     () => reunionHourMinute(new Date(nowMs).toISOString())?.hour ?? -1,
     [nowMs],
   );
+
+  // Auto-défilement horizontal sur l'heure courante à l'ouverture (une fois) :
+  // le régulateur arrive directement sur « maintenant » plutôt qu'au début de la
+  // journée. Ne s'exécute que si la grille déborde et que l'heure est visible.
+  React.useEffect(() => {
+    if (autoScrolledRef.current || nowHour < 0) return;
+    const scroller = scrollRef.current;
+    const container = containerRef.current;
+    const first = slots[0];
+    const last = slots[slots.length - 1];
+    if (!scroller || !container || first === undefined || last === undefined) return;
+    if (nowHour < first || nowHour > last) return;
+    const th = container.querySelector<HTMLElement>(`th[data-hour="${nowHour}"]`);
+    if (!th || scroller.scrollWidth <= scroller.clientWidth) return;
+    scroller.scrollLeft = Math.max(
+      0,
+      th.offsetLeft - scroller.clientWidth / 2 + th.offsetWidth / 2,
+    );
+    autoScrolledRef.current = true;
+  }, [nowHour, slots]);
 
   // Ligne survolée pendant un glisser (retour visuel de la zone de dépose).
   const [dragOverRow, setDragOverRow] = React.useState<string | null>(null);
@@ -177,7 +202,7 @@ export function PlanningGrid({
   }, [drivers, rides]);
 
   return (
-    <div className="border-border overflow-x-auto rounded-lg border">
+    <div ref={scrollRef} className="border-border overflow-x-auto rounded-lg border">
       <div ref={containerRef} className="relative min-w-full">
         <table className="w-full min-w-[720px] border-collapse text-sm">
           <caption className="sr-only">
@@ -315,6 +340,7 @@ export function PlanningGrid({
                                     onSelect={onSelect}
                                     onReassign={onReassignRide}
                                     onDragStateChange={setDraggingRideId}
+                                    meta={meta[ride.id]}
                                   />
                                 ))}
                               </div>
