@@ -39,10 +39,16 @@ Prérequis :
 ```bash
 pnpm install
 pnpm db:start          # démarre Supabase en local (Docker)
-pnpm db:reset          # applique les migrations + seed
+pnpm db:reset          # migrations + seed base ET démo (voir note ci-dessous)
 pnpm db:test           # exécute les tests pgTAP (RLS)
 pnpm dev               # lance les apps en parallèle
 ```
+
+`pnpm db:reset` charge désormais **automatiquement** `seed.sql` (base) **puis**
+`seed.demo.sql` (démo riche : patients, ~42 courses du jour géocodées, tournées)
+grâce à la section `[db.seed]` de `supabase/config.toml`. Plus de manip manuelle
+pour peupler la démo : après un reset, le planning, la carte et le dashboard du
+jour courant sont peuplés.
 
 ## Comptes de démo (seed)
 

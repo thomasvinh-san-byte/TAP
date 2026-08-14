@@ -19,6 +19,18 @@ pool_mode = "transaction"
 default_pool_size = 20
 max_client_conn = 100
 
+# `supabase db reset` (pnpm db:reset) applique les migrations PUIS ces seeds,
+# dans l'ordre. `seed.sql` = base minimale (1 organisation + 5 comptes + quelques
+# courses) ; `seed.demo.sql` = démo riche (patients, ~42 courses J0 géocodées,
+# tournées…) et DÉPEND des UUID fixes créés par `seed.sql` → il doit venir APRÈS.
+# Sans cette section, la CLI ne chargeait que `seed.sql` par défaut : la base
+# restait quasi vide après reset (planning / carte / dashboard vides). Le flux
+# `/setup` (`scripts/build-setup-sql.sh`) concatène déjà les deux dans le même
+# ordre — les deux chemins chargent donc le même contenu.
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql", "./seed.demo.sql"]
+
 [realtime]
 enabled = true
 
