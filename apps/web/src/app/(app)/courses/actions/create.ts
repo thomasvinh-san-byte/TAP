@@ -211,8 +211,15 @@ export async function deleteRideDraft(id: string): Promise<{ success: boolean; e
   const ctx = await getAuthContext();
   if (!ctx) return { success: false, error: 'Session expirée.' };
 
-  const { error } = await ctx.supabase.from('ride_draft').delete().eq('id', id);
+  // `.select('id')` renvoie les lignes RÉELLEMENT supprimées : un DELETE qui ne
+  // matche rien (RLS d'un autre user/org, ou id absent) n'est PAS une erreur
+  // PostgREST (`error` reste null) → sans ce contrôle, l'action se croyait réussie
+  // alors que rien n'était supprimé (DEC-041 : vérifier le nombre de lignes).
+  const { data, error } = await ctx.supabase.from('ride_draft').delete().eq('id', id).select('id');
   if (error) return { success: false, error: 'Suppression brouillon impossible.' };
+  if (!data || data.length === 0) {
+    return { success: false, error: 'Brouillon introuvable ou non autorisé.' };
+  }
   return { success: true };
 }
 

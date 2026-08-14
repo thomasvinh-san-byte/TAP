@@ -1,6 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { listDraftsAction, deleteRideDraft } from '../../courses/actions';
@@ -43,6 +45,8 @@ function formatRelative(updatedAt: string): string {
 export function DraftsIndicator(): JSX.Element {
   const queryClient = useQueryClient();
   const { dispatch } = useRideOrchestrator();
+  // Brouillon en cours de suppression (garde anti-double-clic + libellé pending).
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const { data, isPending } = useQuery({
     queryKey: ['ride-drafts'],
     queryFn: () => listDraftsAction(),
@@ -58,9 +62,19 @@ export function DraftsIndicator(): JSX.Element {
   };
 
   const handleDelete = async (draftId: string) => {
-    const res = await deleteRideDraft(draftId);
-    if (res.success) {
-      await queryClient.invalidateQueries({ queryKey: ['ride-drafts'] });
+    if (deletingId) return; // garde anti-double-clic
+    setDeletingId(draftId);
+    try {
+      const res = await deleteRideDraft(draftId);
+      if (res.success) {
+        await queryClient.invalidateQueries({ queryKey: ['ride-drafts'] });
+      } else {
+        // Ne plus « faire semblant » : un DELETE 0-ligne (RLS / brouillon d'un
+        // autre compte) est un échec explicite, pas un succès silencieux.
+        toast.error(res.error ?? 'Suppression impossible : brouillon introuvable ou non autorisé.');
+      }
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -108,10 +122,11 @@ export function DraftsIndicator(): JSX.Element {
                   size="sm"
                   aria-label="Supprimer ce brouillon"
                   onClick={() => void handleDelete(d.id)}
+                  disabled={deletingId === d.id}
                   className="text-muted-foreground hover:text-destructive gap-4"
                 >
                   <Trash2 className="h-12 w-12" aria-hidden />
-                  Supprimer
+                  {deletingId === d.id ? 'Suppression…' : 'Supprimer'}
                 </Button>
               </div>
             </div>
