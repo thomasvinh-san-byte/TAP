@@ -35,6 +35,12 @@ interface Props {
   ride: CockpitRide;
   onSelect: (rideId: string) => void;
   onReassign: (rideId: string) => void;
+  /**
+   * Signale le début/fin d'un glisser (id de la course, ou `null` à la fin) — la
+   * grille s'en sert pour évaluer la dépose EN AMONT (retour visuel
+   * constraint-aware). Optionnel : le glisser de base fonctionne sans.
+   */
+  onDragStateChange?: (rideId: string | null) => void;
 }
 
 /**
@@ -45,7 +51,12 @@ interface Props {
  * inchangé) ; glisser → réaffectation (lot B, inchangé) avec repli clavier
  * (bouton « Réaffecter »). Survol : légère élévation.
  */
-export function PlanningRideBlock({ ride, onSelect, onReassign }: Props): JSX.Element {
+export function PlanningRideBlock({
+  ride,
+  onSelect,
+  onReassign,
+  onDragStateChange,
+}: Props): JSX.Element {
   const draggable = isModifiableStatus(ride.status);
   const from = shortPlace(ride.pickup_address);
   const to = shortPlace(ride.dropoff_address);
@@ -60,7 +71,9 @@ export function PlanningRideBlock({ ride, onSelect, onReassign }: Props): JSX.El
           e.dataTransfer.setData(DRAG_MIME, ride.id);
           e.dataTransfer.setData('text/plain', ride.id);
           e.dataTransfer.effectAllowed = 'move';
+          onDragStateChange?.(ride.id);
         }}
+        onDragEnd={() => onDragStateChange?.(null)}
         onClick={() => onSelect(ride.id)}
         className={cn(
           'focus-visible:ring-ring flex min-h-[44px] w-full flex-col justify-center gap-2 rounded-md border border-l-4 px-8 py-4 text-left',
