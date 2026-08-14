@@ -1,16 +1,21 @@
 'use client';
 
 import * as React from 'react';
-import { ArrowLeftRight } from 'lucide-react';
-import { isModifiableStatus } from '@tap/shared';
 import { cn } from '@/lib/utils';
 import type { CockpitRide } from '../../cockpit/_lib/types';
-import { formatReunionTime } from '../../cockpit/_lib/unassigned-h1';
-import { computeHourRange, hourSlots, hourLabel, reunionHour } from '../_lib/planning-layout';
-import { statusBlockClass, statusLabel } from '../_lib/planning-status';
+import { useNow } from '../../cockpit/_lib/use-now';
+import {
+  computeHourRange,
+  hourSlots,
+  hourLabel,
+  reunionHour,
+  reunionHourMinute,
+} from '../_lib/planning-layout';
 import type { PlanningDriverOption } from '../_lib/planning-queries';
 import type { TourneeIndicator } from '../_lib/tournee-indicators';
 import { TourneeIndicators } from './tournee-indicators.client';
+import { PlanningRideBlock, DRAG_MIME } from './planning-ride-block.client';
+import { PlanningNowLine } from './planning-now-line.client';
 
 interface Props {
   rides: CockpitRide[];
@@ -25,26 +30,23 @@ interface Props {
 }
 
 const UNASSIGNED = '__unassigned__';
-const DRAG_MIME = 'application/x-tap-ride';
 
-function patientShort(ride: CockpitRide): string {
-  const p = ride.patient;
-  if (!p) return 'Patient';
-  const nom = p.nom?.trim();
-  const prenom = p.prenom?.trim();
-  if (nom && prenom) return `${nom} ${prenom[0]}.`;
-  return nom || prenom || 'Patient';
+interface Row {
+  id: string;
+  label: string;
+  count: number;
 }
 
 /**
- * Grille planning (Module 5.12 lots A + B + C). Tableau sémantique (accessible :
- * en-têtes de colonnes = heures, en-têtes de lignes = chauffeurs) : lignes =
- * chauffeurs (+ « Non affectées » en tête, prioritaire pour la régulation),
- * colonnes = tranches horaires. Chaque course tombe dans la tranche de son heure
- * prévue (fuseau Réunion). Statut = couleur + texte. Lot B : glisser-déposer
- * d'une course entre lignes (réaffectation) + action « Réaffecter » clavier. Lot
- * C : indicateurs de tournée sous chaque chauffeur. Défilement horizontal sur
- * petit écran (outil desktop régulateur).
+ * Grille planning — vrai Gantt de régulation (Module 5.12 lots A + B + C,
+ * raffinement visuel). Tableau sémantique (accessible : en-têtes de colonnes =
+ * heures, en-têtes de lignes = chauffeurs). Lignes = chauffeurs (+ « Non
+ * affectées » en tête, prioritaire), colonnes = tranches horaires (fuseau
+ * Réunion). Repère vertical « maintenant » live, grille de fond (colonnes
+ * horaires + séparateurs de lignes + zébrage discret), tranches passées
+ * estompées, blocs-courses enrichis, lignes vides travaillées (discrètes, pas un
+ * trou blanc). Données/calculs et glisser-déposer (lot B) inchangés — habillage
+ * seulement.
  */
 export function PlanningGrid({
   rides,
@@ -56,6 +58,14 @@ export function PlanningGrid({
 }: Props): JSX.Element {
   const range = React.useMemo(() => computeHourRange(rides.map((r) => r.scheduled_at)), [rides]);
   const slots = React.useMemo(() => hourSlots(range), [range]);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  // Horloge partagée (repère « maintenant » + estompage des tranches passées).
+  const nowMs = useNow(30_000);
+  const nowHour = React.useMemo(
+    () => reunionHourMinute(new Date(nowMs).toISOString())?.hour ?? -1,
+    [nowMs],
+  );
 
   // Ligne survolée pendant un glisser (retour visuel de la zone de dépose).
   const [dragOverRow, setDragOverRow] = React.useState<string | null>(null);
@@ -86,159 +96,162 @@ export function PlanningGrid({
 
   // Lignes : « Non affectées » d'abord, puis chauffeurs du référentiel, puis tout
   // chauffeur présent dans les courses mais absent du référentiel (défensif).
-  const rows = React.useMemo(() => {
+  const rows = React.useMemo<Row[]>(() => {
     const knownIds = new Set(drivers.map((d) => d.id));
     const extra = new Map<string, string>();
+    const countByRow = new Map<string, number>();
     for (const r of rides) {
+      const rowKey = r.driver_id ?? UNASSIGNED;
+      countByRow.set(rowKey, (countByRow.get(rowKey) ?? 0) + 1);
       if (r.driver_id && !knownIds.has(r.driver_id)) {
         extra.set(r.driver_id, r.driver?.nom_affichage?.trim() || 'Chauffeur');
       }
     }
-    const unassignedCount = rides.filter((r) => !r.driver_id).length;
+    const unassignedCount = countByRow.get(UNASSIGNED) ?? 0;
     return [
       {
         id: UNASSIGNED,
         label: `Non affectées${unassignedCount > 0 ? ` (${unassignedCount})` : ''}`,
+        count: unassignedCount,
       },
-      ...drivers,
-      ...[...extra.entries()].map(([id, label]) => ({ id, label })),
+      ...drivers.map((d) => ({ id: d.id, label: d.label, count: countByRow.get(d.id) ?? 0 })),
+      ...[...extra.entries()].map(([id, label]) => ({ id, label, count: countByRow.get(id) ?? 0 })),
     ];
   }, [drivers, rides]);
 
   return (
     <div className="border-border overflow-x-auto rounded-lg border">
-      <table className="w-full min-w-[720px] border-collapse text-sm">
-        <caption className="sr-only">
-          Planning des tournées : lignes = chauffeurs, colonnes = tranches horaires. Cliquer une
-          course pour en voir le détail.
-        </caption>
-        <thead>
-          <tr className="border-border bg-muted/40 border-b">
-            <th
-              scope="col"
-              className="text-muted-foreground bg-muted/40 sticky left-0 z-10 px-12 py-8 text-left text-xs font-semibold uppercase tracking-wide"
-            >
-              Chauffeur
-            </th>
-            {slots.map((h) => (
+      <div ref={containerRef} className="relative min-w-full">
+        <table className="w-full min-w-[720px] border-collapse text-sm">
+          <caption className="sr-only">
+            Planning des tournées : lignes = chauffeurs, colonnes = tranches horaires. Repère
+            vertical « maintenant » à l&apos;heure courante. Cliquer une course pour en voir le
+            détail.
+          </caption>
+          <thead>
+            <tr className="border-border bg-muted/40 border-b">
               <th
-                key={h}
                 scope="col"
-                className="text-muted-foreground min-w-[96px] px-8 py-8 text-left text-xs font-semibold tabular-nums"
+                className="text-muted-foreground bg-muted/40 sticky left-0 z-10 px-12 py-8 text-left text-xs font-semibold uppercase tracking-wide"
               >
-                {hourLabel(h)}
+                Chauffeur
               </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => {
-            const isUnassigned = row.id === UNASSIGNED;
-            const isOver = dragOverRow === row.id;
-            return (
-              <tr
-                key={row.id}
-                className={cn(
-                  'border-border border-b transition-colors',
-                  isUnassigned && 'bg-warning/5',
-                  isOver &&
-                    'bg-primary/10 outline-primary outline-dashed outline-2 -outline-offset-2',
-                )}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  e.dataTransfer.dropEffect = 'move';
-                  if (dragOverRow !== row.id) setDragOverRow(row.id);
-                }}
-                onDragLeave={(e) => {
-                  // Ne réinitialise que si l'on quitte réellement la ligne.
-                  if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
-                    setDragOverRow((cur) => (cur === row.id ? null : cur));
-                  }
-                }}
-                onDrop={handleDrop(row.id)}
-              >
+              {slots.map((h) => (
                 <th
-                  scope="row"
+                  key={h}
+                  scope="col"
+                  data-hour={h}
                   className={cn(
-                    'bg-background sticky left-0 z-10 max-w-[180px] px-12 py-8 text-left align-top text-sm font-medium',
-                    isUnassigned && 'text-warning',
-                    isOver && 'bg-primary/10',
+                    'border-border/50 text-muted-foreground min-w-[92px] border-l px-8 py-6 text-left text-xs font-semibold tabular-nums',
+                    // Tranche passée estompée : concentre l'attention sur le présent/à venir.
+                    nowHour >= 0 && h < nowHour && 'text-muted-foreground/50',
                   )}
                 >
-                  <span className="block truncate" title={row.label}>
-                    {row.label}
-                  </span>
-                  {!isUnassigned ? <TourneeIndicators indicator={indicators.get(row.id)} /> : null}
+                  {hourLabel(h)}
                 </th>
-                {slots.map((h) => {
-                  const cell = byCell.get(`${row.id}|${h}`) ?? [];
-                  return (
-                    <td key={h} className="min-w-[96px] px-4 py-4 align-top">
-                      <div className="flex flex-col gap-4">
-                        {cell.map((ride) => {
-                          const draggable = isModifiableStatus(ride.status);
-                          return (
-                            <div key={ride.id} className="group relative">
-                              <button
-                                type="button"
-                                draggable={draggable}
-                                onDragStart={(e) => {
-                                  e.dataTransfer.setData(DRAG_MIME, ride.id);
-                                  e.dataTransfer.setData('text/plain', ride.id);
-                                  e.dataTransfer.effectAllowed = 'move';
-                                }}
-                                onClick={() => onSelect(ride.id)}
-                                className={cn(
-                                  'focus-visible:ring-ring w-full rounded-md border-l-4 px-8 py-4 text-left transition-shadow',
-                                  'hover:shadow-elev-sm focus-visible:outline-none focus-visible:ring-2',
-                                  draggable && 'cursor-grab active:cursor-grabbing',
-                                  statusBlockClass(ride.status),
-                                )}
-                                title={
-                                  draggable
-                                    ? 'Cliquer pour le détail · glisser pour réaffecter'
-                                    : undefined
-                                }
-                                aria-label={`${formatReunionTime(
-                                  ride.scheduled_at,
-                                )} · ${patientShort(ride)} · ${statusLabel(ride.status)}`}
-                              >
-                                <span className="flex items-baseline gap-4 pr-16">
-                                  <span className="text-xs font-semibold tabular-nums">
-                                    {formatReunionTime(ride.scheduled_at)}
-                                  </span>
-                                  <span className="truncate text-xs">{patientShort(ride)}</span>
-                                </span>
-                                <span className="text-muted-foreground block truncate text-[11px] leading-tight">
-                                  {statusLabel(ride.status)}
-                                </span>
-                              </button>
-                              {draggable ? (
-                                <button
-                                  type="button"
-                                  onClick={() => onReassignRide(ride.id)}
-                                  className={cn(
-                                    'text-muted-foreground hover:text-foreground hover:bg-background focus-visible:ring-ring absolute right-2 top-2 rounded p-2',
-                                    'opacity-0 transition-opacity focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 group-hover:opacity-100',
-                                  )}
-                                  aria-label={`Réaffecter la course de ${patientShort(ride)}`}
-                                  title="Réaffecter"
-                                >
-                                  <ArrowLeftRight className="h-12 w-12" aria-hidden />
-                                </button>
-                              ) : null}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </td>
-                  );
-                })}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {(() => {
+              let driverIndex = -1;
+              return rows.map((row) => {
+                const isUnassigned = row.id === UNASSIGNED;
+                const isOver = dragOverRow === row.id;
+                const isEmpty = row.count === 0;
+                if (!isUnassigned) driverIndex += 1;
+                // Zébrage discret des lignes chauffeurs (une sur deux) — repère de
+                // lecture « quel chauffeur » sans surcharge.
+                const zebra = !isUnassigned && driverIndex % 2 === 1;
+
+                return (
+                  <tr
+                    key={row.id}
+                    className={cn(
+                      'border-border border-b transition-colors',
+                      zebra && 'bg-muted/20',
+                      // « Non affectées » : mise en valeur quand elle contient des
+                      // courses (priorité de régulation), discrète quand vide.
+                      isUnassigned && (isEmpty ? 'bg-muted/10' : 'bg-warning/10'),
+                      isOver &&
+                        'bg-primary/10 outline-primary outline-dashed outline-2 -outline-offset-2',
+                    )}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = 'move';
+                      if (dragOverRow !== row.id) setDragOverRow(row.id);
+                    }}
+                    onDragLeave={(e) => {
+                      if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+                        setDragOverRow((cur) => (cur === row.id ? null : cur));
+                      }
+                    }}
+                    onDrop={handleDrop(row.id)}
+                  >
+                    <th
+                      scope="row"
+                      className={cn(
+                        'bg-background sticky left-0 z-10 max-w-[180px] px-12 text-left align-top text-sm font-medium',
+                        // Ligne vide → compacte (moins d'espace mort vertical).
+                        isEmpty && !isUnassigned ? 'py-4' : 'py-8',
+                        isUnassigned && !isEmpty && 'text-warning',
+                        isOver && 'bg-primary/10',
+                      )}
+                    >
+                      <span className="block truncate" title={row.label}>
+                        {row.label}
+                      </span>
+                      {!isUnassigned ? (
+                        <TourneeIndicators indicator={indicators.get(row.id)} />
+                      ) : null}
+                    </th>
+
+                    {isEmpty && !isUnassigned ? (
+                      // Ligne chauffeur sans course : discrète et lisible « aucune
+                      // course » — pas un grand vide blanc. Reste zone de dépose (lot B).
+                      <td
+                        colSpan={slots.length}
+                        className="text-muted-foreground/60 px-8 py-4 text-left text-xs italic"
+                      >
+                        Aucune course
+                      </td>
+                    ) : (
+                      slots.map((h) => {
+                        const cell = byCell.get(`${row.id}|${h}`) ?? [];
+                        const isPast = nowHour >= 0 && h < nowHour;
+                        return (
+                          <td
+                            key={h}
+                            className={cn(
+                              'border-border/50 min-w-[92px] border-l px-4 py-4 align-top',
+                              // Fond estompé des tranches passées (sous les blocs).
+                              isPast && 'bg-muted/15',
+                            )}
+                          >
+                            {cell.length > 0 ? (
+                              <div className="flex flex-col gap-4">
+                                {cell.map((ride) => (
+                                  <PlanningRideBlock
+                                    key={ride.id}
+                                    ride={ride}
+                                    onSelect={onSelect}
+                                    onReassign={onReassignRide}
+                                  />
+                                ))}
+                              </div>
+                            ) : null}
+                          </td>
+                        );
+                      })
+                    )}
+                  </tr>
+                );
+              });
+            })()}
+          </tbody>
+        </table>
+        <PlanningNowLine containerRef={containerRef} slots={slots} nowMs={nowMs} />
+      </div>
     </div>
   );
 }

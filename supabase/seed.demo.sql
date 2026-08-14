@@ -601,6 +601,87 @@ begin
     cancel_motif = null,
     notes_regulateur = null;
 
+  -- Tournées J0 AFFECTÉES (démonstration planning/Gantt) — pour que la grille
+  -- planning ne montre pas que des lignes chauffeurs vides : deux chauffeurs ont
+  -- une tournée du matin réelle (plusieurs courses enchaînées), avec variété de
+  -- statuts (terminee estompée + assignee à venir). Heures UTC petites → matin
+  -- réunionnais (UTC+4) ; réparties pour donner du relief à la ligne « maintenant »
+  -- et au zébrage. `terminee` renseigne started_at < ended_at (contrainte
+  -- rides_ended_after_started). Idempotent (IDs déterministes + reset runtime).
+  insert into public.rides (
+    id, organization_id, patient_id, driver_id, vehicle_id,
+    pickup_address, dropoff_address,
+    scheduled_at, status, transport_mode, urgency,
+    started_at, ended_at, tarif_amount_eur, tarif_source,
+    cancel_motif, created_at, created_by, updated_by
+  ) values
+    -- Vergoz — tournée du matin (Dacia) : 1 terminée + 2 à venir.
+    ('44444444-0000-0000-0000-0000000000a0', org_id,
+     patient_ids[1], vergoz_id, vehicle_dacia,
+     '9 Rue Juliette Dodu, 97400 Saint-Denis', 'CHU Félix Guyon, 97400 Saint-Denis',
+     date_trunc('day', now()) + interval '3 hours 30 minutes',
+     'terminee', 'taxi_conventionne', 'programmee',
+     date_trunc('day', now()) + interval '3 hours 35 minutes',
+     date_trunc('day', now()) + interval '4 hours 15 minutes',
+     24.00, 'manuel', null,
+     now() - interval '1 day', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-0000000000a1', org_id,
+     patient_ids[2], vergoz_id, vehicle_dacia,
+     '14 Rue Pasteur, 97400 Saint-Denis', 'Clinique Sainte-Clotilde, 97490 Sainte-Clotilde',
+     date_trunc('day', now()) + interval '4 hours 45 minutes',
+     'assignee', 'taxi_conventionne', 'programmee',
+     null, null, null, 'manuel', null,
+     now() - interval '1 day', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-0000000000a2', org_id,
+     patient_ids[3], vergoz_id, vehicle_dacia,
+     '27 Rue Maréchal Leclerc, 97400 Saint-Denis', 'Centre de dialyse Nord, 97400 Saint-Denis',
+     date_trunc('day', now()) + interval '6 hours 30 minutes',
+     'assignee', 'taxi_conventionne', 'programmee',
+     null, null, null, 'manuel', null,
+     now() - interval '1 day', regulateur_id, regulateur_id),
+
+    -- Boyer — tournée du matin (Master, TPMR) : 1 terminée + 1 à venir.
+    ('44444444-0000-0000-0000-0000000000a3', org_id,
+     patient_ids[4], boyer_id, vehicle_master,
+     'EHPAD Les Alizés, 97430 Le Tampon', 'CHU Sud Saint-Pierre, 97448 Saint-Pierre',
+     date_trunc('day', now()) + interval '3 hours 15 minutes',
+     'terminee', 'tpmr', 'programmee',
+     date_trunc('day', now()) + interval '3 hours 20 minutes',
+     date_trunc('day', now()) + interval '4 hours 5 minutes',
+     40.00, 'manuel', null,
+     now() - interval '1 day', regulateur_id, regulateur_id),
+
+    ('44444444-0000-0000-0000-0000000000a4', org_id,
+     patient_ids[5], boyer_id, vehicle_master,
+     '2 Rue des Bougainvilliers, 97410 Saint-Pierre', 'Dialyse Sud Le Tampon, 97430 Le Tampon',
+     date_trunc('day', now()) + interval '5 hours 15 minutes',
+     'assignee', 'tpmr', 'programmee',
+     null, null, null, 'manuel', null,
+     now() - interval '1 day', regulateur_id, regulateur_id)
+  -- Idempotence : reset runtime exhaustif (identique aux blocs J0 ci-dessus).
+  on conflict (id) do update set
+    scheduled_at = excluded.scheduled_at,
+    created_at = excluded.created_at,
+    pickup_address = excluded.pickup_address,
+    dropoff_address = excluded.dropoff_address,
+    transport_mode = excluded.transport_mode,
+    urgency = excluded.urgency,
+    driver_id = excluded.driver_id,
+    vehicle_id = excluded.vehicle_id,
+    status = excluded.status,
+    started_at = excluded.started_at,
+    ended_at = excluded.ended_at,
+    tarif_amount_eur = excluded.tarif_amount_eur,
+    tarif_source = excluded.tarif_source,
+    payment_status = 'non_concerne',
+    payment_method = null,
+    payment_received_at = null,
+    archive = false,
+    cancel_motif = null,
+    notes_regulateur = null;
+
   -- 3 courses J+1 — préparation journée suivante (mix assignee / validee)
   insert into public.rides (
     id, organization_id, patient_id, driver_id, vehicle_id,

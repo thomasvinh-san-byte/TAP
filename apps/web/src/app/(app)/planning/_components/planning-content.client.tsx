@@ -18,6 +18,7 @@ import { detectReassignConflict } from '../_lib/planning-conflicts';
 import { computeTourneeIndicators } from '../_lib/tournee-indicators';
 import { PlanningDayPicker } from './planning-day-picker.client';
 import { PlanningGrid } from './planning-grid.client';
+import { PlanningEmptyDay, PlanningNoMatch } from './planning-empty-state.client';
 import { PlanningReassignDialog, type ReassignTarget } from './planning-reassign-dialog.client';
 import {
   PlanningFilters,
@@ -241,14 +242,20 @@ export function PlanningContent({ date, initialRides, meta, drivers }: Props): J
         </ul>
       ) : null}
 
-      <PlanningGrid
-        rides={filtered}
-        drivers={drivers}
-        onSelect={(id) => setOpenRideId(id)}
-        onDropRide={requestReassign}
-        onReassignRide={openReassignDialog}
-        indicators={indicators}
-      />
+      {dayRides.length === 0 ? (
+        <PlanningEmptyDay />
+      ) : filtered.length === 0 ? (
+        <PlanningNoMatch />
+      ) : (
+        <PlanningGrid
+          rides={filtered}
+          drivers={drivers}
+          onSelect={(id) => setOpenRideId(id)}
+          onDropRide={requestReassign}
+          onReassignRide={openReassignDialog}
+          indicators={indicators}
+        />
+      )}
 
       {/* Le bouton d'affectation du drawer ouvre la boîte de réaffectation
           (chemin accessible clavier, alternative au glisser-déposer). */}
