@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { Sparkles, CloudLightning, ArrowUpRight } from 'lucide-react';
+import { reunionDayKey } from '@tap/shared';
 import { Button } from '@/components/ui/button';
 import { SegmentedControl } from '@/components/ui/segmented-control';
 import { cn } from '@/lib/utils';
@@ -339,7 +340,9 @@ export function CockpitContent({
                 className="min-h-[44px]"
                 data-testid="optimize-day-btn"
               >
-                <Link href={`/cockpit/optimisation?date=${new Date().toISOString().slice(0, 10)}`}>
+                <Link
+                  href={`/cockpit/optimisation?date=${reunionDayKey(new Date().toISOString())}`}
+                >
                   <Sparkles className="mr-8 h-16 w-16" aria-hidden />
                   Optimiser la journée
                 </Link>
