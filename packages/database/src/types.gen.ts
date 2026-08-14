@@ -583,78 +583,6 @@ export type Database = {
           },
         ]
       }
-      planning_validations: {
-        Row: {
-          created_at: string
-          id: string
-          notified_drivers: number
-          notified_patients: number
-          organization_id: string
-          planning_date: string
-          validated_at: string
-          validated_by: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          notified_drivers?: number
-          notified_patients?: number
-          organization_id: string
-          planning_date: string
-          validated_at?: string
-          validated_by: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          notified_drivers?: number
-          notified_patients?: number
-          organization_id?: string
-          planning_date?: string
-          validated_at?: string
-          validated_by?: string
-        }
-        Relationships: []
-      }
-      planning_validation_rides: {
-        Row: {
-          created_at: string
-          driver_id: string | null
-          id: string
-          organization_id: string
-          patient_id: string | null
-          ride_id: string
-          scheduled_at: string
-          status: string
-          validation_id: string
-          vehicle_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          driver_id?: string | null
-          id?: string
-          organization_id: string
-          patient_id?: string | null
-          ride_id: string
-          scheduled_at: string
-          status: string
-          validation_id: string
-          vehicle_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          driver_id?: string | null
-          id?: string
-          organization_id?: string
-          patient_id?: string | null
-          ride_id?: string
-          scheduled_at?: string
-          status?: string
-          validation_id?: string
-          vehicle_id?: string | null
-        }
-        Relationships: []
-      }
       driver_invitations: {
         Row: {
           accepted_at: string | null
@@ -3062,14 +2990,6 @@ export type Database = {
       rgpd_anonymize_patient: {
         Args: { p_patient_id: string; p_request_id: string; p_salt: string }
         Returns: undefined
-      }
-      validate_planning_day: {
-        Args: { p_planning_date: string }
-        Returns: {
-          validation_id: string
-          already_validated: boolean
-          snapshot_count: number
-        }[]
       }
       search_patients: {
         Args: { q: string }
