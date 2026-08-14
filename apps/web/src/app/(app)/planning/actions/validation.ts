@@ -97,7 +97,11 @@ export async function validatePlanningAction(
     ctx.organizationId,
   );
 
-  // Compteurs de traçabilité (best-effort).
+  // Compteurs de traçabilité (best-effort). `notified_drivers` = nombre de
+  // chauffeurs ADRESSÉS (push best-effort, no-op sans VAPID) — PAS un accusé de
+  // réception. L'UI le libelle « envoyé à N chauffeurs », jamais « notifiés »,
+  // pour ne pas surpromettre une réception non garantie. `notified_patients`, lui,
+  // vient de `notifyValidatedPlanningPatients` = envois SMS RÉELS (correct).
   await ctx.supabase
     .from('planning_validations')
     .update({ notified_drivers: driverIds.length, notified_patients: patientsNotified })
