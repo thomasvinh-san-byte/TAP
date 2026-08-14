@@ -183,7 +183,7 @@ export function RidesMapPanel({ rides, onOpenRide }: Props): JSX.Element {
 
       {/* Carte à hauteur fluide : occupe l'espace restant du panneau (ou de l'écran
           en grand format). Bouton d'agrandissement dans le coin de la carte. */}
-      <div className="relative min-h-[280px] w-full flex-1">
+      <div className="relative min-h-[220px] w-full flex-[2]">
         <Map
           center={REUNION_CENTER}
           zoom={9}
@@ -268,68 +268,82 @@ export function RidesMapPanel({ rides, onOpenRide }: Props): JSX.Element {
         </ul>
       )}
 
-      {/* Note d'honnêteté : les courses sans adresse géolocalisée ne sont pas sur la
-          carte (aucune coordonnée inventée). Elles restent visibles dans « Ma journée ». */}
-      {ungeocodedCount > 0 && (
-        <p className="text-muted-foreground text-xs">
-          {ungeocodedCount} course{ungeocodedCount > 1 ? 's' : ''} sans adresse géolocalisée
-          {ungeocodedCount > 1 ? ' ne sont pas affichées' : " n'est pas affichée"} sur la carte.
-        </p>
-      )}
+      {/* Zone résultats à défilement interne (note + liste / état vide) : bornée et
+          `overflow-auto` pour ne jamais être tronquée par la hauteur de la tuile —
+          le texte s'affiche en entier et défile plutôt que d'être coupé. */}
+      <div className="min-h-0 flex-1 space-y-8 overflow-auto">
+        {/* Note d'honnêteté : les courses sans adresse géolocalisée ne sont pas sur la
+            carte (aucune coordonnée inventée). Elles restent visibles dans « Ma journée ». */}
+        {ungeocodedCount > 0 && (
+          <p className="text-muted-foreground text-xs">
+            {ungeocodedCount} course{ungeocodedCount > 1 ? 's' : ''} sans adresse géolocalisée
+            {ungeocodedCount > 1 ? ' ne sont pas affichées' : " n'est pas affichée"} sur la carte.
+          </p>
+        )}
 
-      {/* Liste textuelle — équivalent accessible de la carte (clavier + lecteur
-          d'écran). Chaque ligne recentre la carte sur la prise en charge et ouvre le
-          détail de la course. Pastille = rappel de la couleur de tournée (jamais le
-          seul repère : patient et heure restent primaires, la sélection ajoute
-          anneau + fond). */}
-      {geocodedRides.length === 0 ? (
-        <p className="text-muted-foreground text-base">
-          Aucune course géolocalisée aujourd&apos;hui. Les courses apparaissent ici dès qu&apos;une
-          adresse de prise en charge et de dépose est géolocalisée.
-        </p>
-      ) : (
-        <ul className="space-y-4" aria-label="Liste des courses géolocalisées">
-          {geocodedRides.map((r) => {
-            const who = patientLabel(r);
-            const time = formatReunionTime(r.scheduled_at);
-            const tourneeKey = tourneeKeyOf(r);
-            const done = isRideDone(r);
-            const color = tourneeKey && !done ? tourneeColor(tourneeKey) : null;
-            const tournee = tourneeLabelOf(r);
-            const isSelected = selectedRideId === r.id;
-            return (
-              <li key={r.id}>
-                <button
-                  type="button"
-                  onClick={() => selectRide(r)}
-                  aria-pressed={isSelected}
-                  className={cn(
-                    'flex w-full items-center justify-between gap-8 rounded-md px-8 py-4 text-left text-sm transition',
-                    'hover:bg-muted focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2',
-                    isSelected && 'bg-muted ring-ring ring-2',
-                  )}
-                >
-                  <span className="flex min-w-0 items-center gap-8">
-                    <span
-                      className={cn(
-                        'h-8 w-8 shrink-0 rounded-full',
-                        color ? color.dot : 'bg-muted-foreground/50',
-                      )}
-                      title={color ? `Tournée ${color.label}` : 'Non affectée'}
-                      aria-hidden
-                    />
-                    <span className="text-foreground truncate font-medium">{who}</span>
-                    <span className="text-muted-foreground truncate text-xs">{tournee}</span>
-                  </span>
-                  <span className="text-muted-foreground shrink-0 text-xs tabular-nums">
-                    {time}
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+        {/* Deux états vides DISTINCTS (ne pas parler de géocodage quand la cause est
+            l'absence de course) :
+            - aucune course du jour → question de données/date, pas de géocodage ;
+            - des courses existent mais aucune n'est géocodée → message géocodage juste.
+            Sinon : liste textuelle — équivalent accessible de la carte (clavier +
+            lecteur d'écran). Chaque ligne recentre la carte et ouvre le détail. */}
+        {geocodedRides.length === 0 ? (
+          visibleRides.length === 0 ? (
+            <p className="text-muted-foreground text-base">
+              {rides.length === 0
+                ? 'Aucune course planifiée ce jour. Vérifiez la date sélectionnée si vous en attendiez.'
+                : 'Aucune course à afficher : les courses terminées sont masquées.'}
+            </p>
+          ) : (
+            <p className="text-muted-foreground text-base">
+              Aucune course géolocalisée pour l&apos;instant. Les courses apparaissent ici dès
+              qu&apos;une adresse de prise en charge et de dépose est géolocalisée.
+            </p>
+          )
+        ) : (
+          <ul className="space-y-4" aria-label="Liste des courses géolocalisées">
+            {geocodedRides.map((r) => {
+              const who = patientLabel(r);
+              const time = formatReunionTime(r.scheduled_at);
+              const tourneeKey = tourneeKeyOf(r);
+              const done = isRideDone(r);
+              const color = tourneeKey && !done ? tourneeColor(tourneeKey) : null;
+              const tournee = tourneeLabelOf(r);
+              const isSelected = selectedRideId === r.id;
+              return (
+                <li key={r.id}>
+                  <button
+                    type="button"
+                    onClick={() => selectRide(r)}
+                    aria-pressed={isSelected}
+                    className={cn(
+                      'flex w-full items-center justify-between gap-8 rounded-md px-8 py-4 text-left text-sm transition',
+                      'hover:bg-muted focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2',
+                      isSelected && 'bg-muted ring-ring ring-2',
+                    )}
+                  >
+                    <span className="flex min-w-0 items-center gap-8">
+                      <span
+                        className={cn(
+                          'h-8 w-8 shrink-0 rounded-full',
+                          color ? color.dot : 'bg-muted-foreground/50',
+                        )}
+                        title={color ? `Tournée ${color.label}` : 'Non affectée'}
+                        aria-hidden
+                      />
+                      <span className="text-foreground truncate font-medium">{who}</span>
+                      <span className="text-muted-foreground truncate text-xs">{tournee}</span>
+                    </span>
+                    <span className="text-muted-foreground shrink-0 text-xs tabular-nums">
+                      {time}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
     </section>
   );
 }
