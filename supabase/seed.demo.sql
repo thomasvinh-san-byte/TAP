@@ -238,7 +238,13 @@ begin
     return;
   end if;
 
-  -- 5 courses historiques (J-3, J-2, J-1) — statuts terminee / annulee_regulateur
+  -- Démo OPÉRATIONNELLE recalée sur PRÉSENT + FUTUR (planning / carte / Gantt
+  -- vivants aujourd'hui) — anciennement 5 courses J-1/J-2/J-3 `terminee`. Statuts
+  -- cohérents avec des créneaux présents/futurs : `assignee` (JAMAIS `terminee`/
+  -- `en_cours` sur du futur — pas de « terminée dans le futur ») ; une annulée du
+  -- jour reste cohérente. Géocodées (UPDATE plus bas) pour apparaître sur la carte.
+  -- L'historique ANALYTIQUE (SEED-02, 165 courses sur ~88 j) et les facturables
+  -- CGSS du mois précédent ne sont PAS touchés (dashboard/KPIs + caisse intacts).
   insert into public.rides (
     id, organization_id, patient_id, driver_id, vehicle_id,
     pickup_address, dropoff_address,
@@ -246,59 +252,56 @@ begin
     started_at, ended_at, tarif_amount_eur, tarif_source,
     cancel_motif, created_at, created_by, updated_by
   ) values
+    -- J0 — Vergoz, matinée (Réunion ~11 h)
     ('44444444-0000-0000-0000-000000000001', org_id,
      patient_ids[1], vergoz_id, vehicle_dacia,
      '12 Rue de Paris, 97400 Saint-Denis',
      'CHU Félix Guyon, 97400 Saint-Denis',
-     date_trunc('day', now() - interval '3 days') + interval '8 hours 30 minutes',
-     'terminee', 'taxi_conventionne', 'programmee',
-     date_trunc('day', now() - interval '3 days') + interval '8 hours 35 minutes',
-     date_trunc('day', now() - interval '3 days') + interval '9 hours 45 minutes',
-     25.50, 'manuel', null,
-     now() - interval '3 days', regulateur_id, regulateur_id),
+     date_trunc('day', now()) + interval '7 hours',
+     'assignee', 'taxi_conventionne', 'programmee',
+     null, null, null, 'manuel',
+     null, now(), regulateur_id, regulateur_id),
 
+    -- J0 — Maillot, début d'après-midi (Réunion ~13 h 30)
     ('44444444-0000-0000-0000-000000000002', org_id,
      patient_ids[2], maillot_id, vehicle_dacia,
      '45 Avenue de la République, 97410 Saint-Pierre',
      'Centre de dialyse Sud, 97410 Saint-Pierre',
-     date_trunc('day', now() - interval '2 days') + interval '7 hours',
-     'terminee', 'taxi_conventionne', 'programmee',
-     date_trunc('day', now() - interval '2 days') + interval '7 hours 5 minutes',
-     date_trunc('day', now() - interval '2 days') + interval '7 hours 25 minutes',
-     18.00, 'manuel', null,
-     now() - interval '2 days', regulateur_id, regulateur_id),
+     date_trunc('day', now()) + interval '9 hours 30 minutes',
+     'assignee', 'taxi_conventionne', 'programmee',
+     null, null, null, 'manuel',
+     null, now(), regulateur_id, regulateur_id),
 
+    -- J+1 — Boyer (prévisionnel lendemain)
     ('44444444-0000-0000-0000-000000000003', org_id,
      patient_ids[3], boyer_id, vehicle_master,
      'Foyer médicalisé Les Avirons, 97425 Les Avirons',
      'CHU Sud Saint-Pierre, 97448 Saint-Pierre',
-     date_trunc('day', now() - interval '2 days') + interval '14 hours',
-     'terminee', 'tpmr', 'programmee',
-     date_trunc('day', now() - interval '2 days') + interval '14 hours 5 minutes',
-     date_trunc('day', now() - interval '2 days') + interval '15 hours 30 minutes',
-     42.00, 'manuel', null,
-     now() - interval '2 days', regulateur_id, regulateur_id),
+     date_trunc('day', now() + interval '1 day') + interval '8 hours',
+     'assignee', 'tpmr', 'programmee',
+     null, null, null, 'manuel',
+     null, now(), regulateur_id, regulateur_id),
 
+    -- J0 — annulée DU JOUR (cohérente : annulée aujourd'hui, pas dans le passé)
     ('44444444-0000-0000-0000-000000000004', org_id,
      patient_ids[4], vergoz_id, vehicle_dacia,
      '8 Chemin des Frangipaniers, 97419 La Possession',
      'Cabinet kiné Sainte-Marie, 97438 Sainte-Marie',
-     date_trunc('day', now() - interval '1 day') + interval '10 hours',
+     date_trunc('day', now()) + interval '12 hours',
      'annulee_regulateur', 'taxi_conventionne', 'programmee',
      null, null, null, 'manuel',
-     'Patient annulé la veille (rendez-vous reporté). Course remise à J+2.',
-     now() - interval '1 day', regulateur_id, regulateur_id),
+     'Patient a annulé ce matin (rendez-vous reporté).',
+     now(), regulateur_id, regulateur_id),
 
+    -- J+2 — Maillot (prévisionnel)
     ('44444444-0000-0000-0000-000000000005', org_id,
      patient_ids[5], maillot_id, vehicle_dacia,
      '23 Rue Maréchal Leclerc, 97400 Saint-Denis',
      'Clinique Saint-Vincent, 97400 Saint-Denis',
-     date_trunc('day', now() - interval '1 day') + interval '16 hours 30 minutes',
-     'terminee', 'taxi_conventionne', 'programmee',
-     date_trunc('day', now() - interval '1 day') + interval '16 hours 35 minutes',
-     date_trunc('day', now() - interval '1 day') + interval '17 hours 50 minutes',
-     32.00, 'manuel', null,
-     now() - interval '1 day', regulateur_id, regulateur_id)
+     date_trunc('day', now() + interval '2 days') + interval '10 hours',
+     'assignee', 'taxi_conventionne', 'programmee',
+     null, null, null, 'manuel',
+     null, now(), regulateur_id, regulateur_id)
   -- DEC-039 : seed glissant — DO UPDATE limité aux rides démo 44444444-%
   -- pour permettre le ré-application CD avec dates relatives ré-évaluées
   -- (now() recalculé à chaque seed run). WARNING : écrase modifications
@@ -2093,6 +2096,23 @@ update public.rides
 update public.rides
   set pickup_lat = -21.3393, pickup_lng = 55.4781, dropoff_lat = -21.2788, dropoff_lng = 55.5158
   where id = '44444444-0000-0000-0000-0000000000a4'; -- Boyer : Saint-Pierre → Dialyse Sud Le Tampon
+
+-- Courses opérationnelles recalées (0001-0003, 0005 — présent/futur, `assignee`)
+-- géocodées pour apparaître sur la carte du cockpit. Coordonnées 974 en dur,
+-- UPDATE idempotent par id. La 0004 (annulée) reste sans coordonnées (planning
+-- seul — une course annulée n'a pas à figurer sur la carte des trajets).
+update public.rides
+  set pickup_lat = -20.8795, pickup_lng = 55.4520, dropoff_lat = -20.8853, dropoff_lng = 55.4504
+  where id = '44444444-0000-0000-0000-000000000001'; -- Saint-Denis → CHU Félix Guyon
+update public.rides
+  set pickup_lat = -21.3393, pickup_lng = 55.4781, dropoff_lat = -21.3196, dropoff_lng = 55.4788
+  where id = '44444444-0000-0000-0000-000000000002'; -- Saint-Pierre → Centre dialyse Sud
+update public.rides
+  set pickup_lat = -21.2402, pickup_lng = 55.3348, dropoff_lat = -21.3196, dropoff_lng = 55.4788
+  where id = '44444444-0000-0000-0000-000000000003'; -- Les Avirons → CHU Sud Saint-Pierre
+update public.rides
+  set pickup_lat = -20.8796, pickup_lng = 55.4521, dropoff_lat = -20.8828, dropoff_lng = 55.4585
+  where id = '44444444-0000-0000-0000-000000000005'; -- Saint-Denis → Clinique Saint-Vincent
 
 -- ============================================================================
 -- SEED-CHECK — auto-vérification de fiabilité (démo société 1)
