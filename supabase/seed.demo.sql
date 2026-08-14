@@ -2073,6 +2073,27 @@ update public.rides
   set pickup_lat = -20.9390, pickup_lng = 55.2935, dropoff_lat = -20.9385, dropoff_lng = 55.2938
   where id = '44444444-0000-0000-0000-000000000323'; -- org3 : Le Port → Clinique Jeanne d'Arc
 
+-- Tournées J0 AFFECTÉES (a0..a4) : géocodage pour qu'elles apparaissent SUR LA
+-- CARTE du cockpit, colorées par tournée (Vergoz, Boyer), à côté des courses non
+-- affectées (neutres) déjà géocodées. Ainsi la carte du jour montre le mélange
+-- affectées / non affectées attendu, jamais vide sur une base fraîche.
+-- Coordonnées 974 EN DUR, idempotent (UPDATE par id déterministe).
+update public.rides
+  set pickup_lat = -20.8809, pickup_lng = 55.4562, dropoff_lat = -20.8853, dropoff_lng = 55.4504
+  where id = '44444444-0000-0000-0000-0000000000a0'; -- Vergoz : Saint-Denis → CHU Félix Guyon
+update public.rides
+  set pickup_lat = -20.8796, pickup_lng = 55.4521, dropoff_lat = -20.9083, dropoff_lng = 55.4808
+  where id = '44444444-0000-0000-0000-0000000000a1'; -- Vergoz : Saint-Denis → Clinique Sainte-Clotilde
+update public.rides
+  set pickup_lat = -20.8831, pickup_lng = 55.4489, dropoff_lat = -20.8901, dropoff_lng = 55.4461
+  where id = '44444444-0000-0000-0000-0000000000a2'; -- Vergoz : Saint-Denis → Centre de dialyse Nord
+update public.rides
+  set pickup_lat = -21.2788, pickup_lng = 55.5158, dropoff_lat = -21.3196, dropoff_lng = 55.4788
+  where id = '44444444-0000-0000-0000-0000000000a3'; -- Boyer : Le Tampon → CHU Sud Saint-Pierre
+update public.rides
+  set pickup_lat = -21.3393, pickup_lng = 55.4781, dropoff_lat = -21.2788, dropoff_lng = 55.5158
+  where id = '44444444-0000-0000-0000-0000000000a4'; -- Boyer : Saint-Pierre → Dialyse Sud Le Tampon
+
 -- ============================================================================
 -- SEED-CHECK — auto-vérification de fiabilité (démo société 1)
 -- ----------------------------------------------------------------------------
