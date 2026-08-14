@@ -100,6 +100,12 @@ export function PlanningContent({ date, initialRides, meta, drivers }: Props): J
     [dayRides],
   );
 
+  // Nom de chauffeur par id — pour un toast de résultat nommé et lisible.
+  const driverNameById = React.useMemo(
+    () => new Map(drivers.map((d) => [d.id, d.label])),
+    [drivers],
+  );
+
   // Exécute la réaffectation UNITAIRE. Cible nulle = désaffectation. Best-effort
   // SMS/push portés par les Server Actions ; Realtime reconcilie la grille.
   const executeReassign = React.useCallback(
@@ -112,12 +118,26 @@ export function PlanningContent({ date, initialRides, meta, drivers }: Props): J
           toast.error(res.error);
           return;
         }
-        toast.success(targetDriverId ? 'Course réaffectée.' : 'Course désaffectée.');
+        if (targetDriverId) {
+          // SMS/push best-effort : les Server Actions ne remontent pas le statut
+          // d'envoi → on n'AFFIRME pas « SMS envoyé » (l'envoi est conditionné au
+          // consentement patient). Formulation honnête.
+          toast.success(
+            `Course réaffectée à ${driverNameById.get(targetDriverId) ?? 'chauffeur'}`,
+            {
+              description: 'Patient prévenu par SMS si un numéro consenti est enregistré.',
+            },
+          );
+        } else {
+          toast.success('Course désaffectée', {
+            description: 'Course remise dans « Non affectées ».',
+          });
+        }
         setReassignTarget(null);
         router.refresh();
       });
     },
-    [router],
+    [router, driverNameById],
   );
 
   // Point d'entrée commun (dépose OU boîte). Une dépose en conflit ouvre la
@@ -253,6 +273,7 @@ export function PlanningContent({ date, initialRides, meta, drivers }: Props): J
           onSelect={(id) => setOpenRideId(id)}
           onDropRide={requestReassign}
           onReassignRide={openReassignDialog}
+          conflictFor={conflictFor}
           indicators={indicators}
         />
       )}

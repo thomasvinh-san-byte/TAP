@@ -1,9 +1,11 @@
 'use client';
 
 import * as React from 'react';
+import { Check, AlertTriangle, CornerUpLeft, Minus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { CockpitRide } from '../../cockpit/_lib/types';
 import { useNow } from '../../cockpit/_lib/use-now';
+import { formatReunionTime } from '../../cockpit/_lib/unassigned-h1';
 import {
   computeHourRange,
   hourSlots,
@@ -11,6 +13,8 @@ import {
   reunionHour,
   reunionHourMinute,
 } from '../_lib/planning-layout';
+import type { ReassignConflict } from '../_lib/planning-conflicts';
+import { evaluateDrop, type DropVerdict } from '../_lib/planning-drop';
 import type { PlanningDriverOption } from '../_lib/planning-queries';
 import type { TourneeIndicator } from '../_lib/tournee-indicators';
 import { TourneeIndicators } from './tournee-indicators.client';
@@ -25,9 +29,38 @@ interface Props {
   onDropRide: (rideId: string, targetDriverId: string | null) => void;
   /** Ouvre la réaffectation clavier (alternative au glisser-déposer). Lot B. */
   onReassignRide: (rideId: string) => void;
+  /**
+   * Conflit horaire PROBABLE d'une réaffectation (réutilise
+   * `detectReassignConflict` côté orchestrateur) — sert au retour visuel AVANT
+   * la dépose (ligne cible saine vs en conflit). `null` = pas de conflit.
+   */
+  conflictFor: (rideId: string, targetDriverId: string | null) => ReassignConflict | null;
   /** Indicateurs de tournée par chauffeur (`driver_id` → indicateur). Lot C. */
   indicators: Map<string, TourneeIndicator>;
 }
+
+/** Habillage de la ligne cible survolée selon le verdict de dépose (couleur +
+ *  le chip texte porte le sens — jamais la couleur seule). */
+const VERDICT_ROW_CLASS: Record<DropVerdict, string> = {
+  compatible: 'bg-success/10 outline-success outline-dashed outline-2 -outline-offset-2',
+  unassign: 'bg-success/10 outline-success outline-dashed outline-2 -outline-offset-2',
+  conflict: 'bg-warning/10 outline-warning outline-dashed outline-2 -outline-offset-2',
+  noop: 'bg-muted/40 outline-muted-foreground/40 outline-dashed outline-2 -outline-offset-2',
+};
+
+const VERDICT_CHIP_CLASS: Record<DropVerdict, string> = {
+  compatible: 'bg-success/15 text-success',
+  unassign: 'bg-success/15 text-success',
+  conflict: 'bg-warning/15 text-warning',
+  noop: 'bg-muted text-muted-foreground',
+};
+
+const VERDICT_ICON: Record<DropVerdict, typeof Check> = {
+  compatible: Check,
+  unassign: CornerUpLeft,
+  conflict: AlertTriangle,
+  noop: Minus,
+};
 
 const UNASSIGNED = '__unassigned__';
 
@@ -54,6 +87,7 @@ export function PlanningGrid({
   onSelect,
   onDropRide,
   onReassignRide,
+  conflictFor,
   indicators,
 }: Props): JSX.Element {
   const range = React.useMemo(() => computeHourRange(rides.map((r) => r.scheduled_at)), [rides]);
@@ -69,13 +103,36 @@ export function PlanningGrid({
 
   // Ligne survolée pendant un glisser (retour visuel de la zone de dépose).
   const [dragOverRow, setDragOverRow] = React.useState<string | null>(null);
+  // Course en cours de glisser (id) — pour évaluer la dépose EN AMONT. Le
+  // `dataTransfer` n'est pas lisible pendant `dragover` (sécurité navigateur) :
+  // on suit donc l'id via l'état, alimenté par le bloc (onDragStateChange).
+  const [draggingRideId, setDraggingRideId] = React.useState<string | null>(null);
+
+  const draggingRide = React.useMemo(
+    () => (draggingRideId ? (rides.find((r) => r.id === draggingRideId) ?? null) : null),
+    [draggingRideId, rides],
+  );
 
   const handleDrop = (rowId: string) => (e: React.DragEvent) => {
     e.preventDefault();
     setDragOverRow(null);
+    setDraggingRideId(null);
     const rideId = e.dataTransfer.getData(DRAG_MIME) || e.dataTransfer.getData('text/plain');
     if (!rideId) return;
     onDropRide(rideId, rowId === UNASSIGNED ? null : rowId);
+  };
+
+  /** Verdict de dépose de la course glissée sur `rowId` (null si pas de glisser). */
+  const dropVerdictFor = (rowId: string) => {
+    if (!draggingRide) return null;
+    const targetDriverId = rowId === UNASSIGNED ? null : rowId;
+    const conflict = targetDriverId ? conflictFor(draggingRide.id, targetDriverId) : null;
+    const evaluation = evaluateDrop(draggingRide.driver_id ?? null, targetDriverId, conflict);
+    const nearest =
+      evaluation.verdict === 'conflict' && conflict
+        ? formatReunionTime(conflict.nearestScheduledAt)
+        : null;
+    return { ...evaluation, nearest };
   };
 
   // Regroupe les courses par (clé de ligne, heure). Clé de ligne = chauffeur ou
@@ -163,6 +220,10 @@ export function PlanningGrid({
                 // Zébrage discret des lignes chauffeurs (une sur deux) — repère de
                 // lecture « quel chauffeur » sans surcharge.
                 const zebra = !isUnassigned && driverIndex % 2 === 1;
+                // Retour visuel constraint-aware : verdict de dépose sur la ligne
+                // survolée (sain vs conflit probable), AVANT de lâcher.
+                const verdict = isOver ? dropVerdictFor(row.id) : null;
+                const VerdictIcon = verdict ? VERDICT_ICON[verdict.verdict] : null;
 
                 return (
                   <tr
@@ -173,7 +234,10 @@ export function PlanningGrid({
                       // « Non affectées » : mise en valeur quand elle contient des
                       // courses (priorité de régulation), discrète quand vide.
                       isUnassigned && (isEmpty ? 'bg-muted/10' : 'bg-warning/10'),
+                      verdict && VERDICT_ROW_CLASS[verdict.verdict],
+                      // Repli si l'id de glisser n'est pas suivi (glisser externe).
                       isOver &&
+                        !verdict &&
                         'bg-primary/10 outline-primary outline-dashed outline-2 -outline-offset-2',
                     )}
                     onDragOver={(e) => {
@@ -203,6 +267,20 @@ export function PlanningGrid({
                       </span>
                       {!isUnassigned ? (
                         <TourneeIndicators indicator={indicators.get(row.id)} />
+                      ) : null}
+                      {verdict && VerdictIcon ? (
+                        <span
+                          role="status"
+                          className={cn(
+                            'mt-4 inline-flex items-center gap-4 rounded-full px-8 py-2 text-[11px] font-medium',
+                            VERDICT_CHIP_CLASS[verdict.verdict],
+                          )}
+                        >
+                          <VerdictIcon className="h-12 w-12 shrink-0" aria-hidden />
+                          {verdict.nearest
+                            ? `${verdict.label} · vers ${verdict.nearest}`
+                            : verdict.label}
+                        </span>
                       ) : null}
                     </th>
 
@@ -236,6 +314,7 @@ export function PlanningGrid({
                                     ride={ride}
                                     onSelect={onSelect}
                                     onReassign={onReassignRide}
+                                    onDragStateChange={setDraggingRideId}
                                   />
                                 ))}
                               </div>
