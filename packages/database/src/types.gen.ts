@@ -583,78 +583,6 @@ export type Database = {
           },
         ]
       }
-      planning_validations: {
-        Row: {
-          created_at: string
-          id: string
-          notified_drivers: number
-          notified_patients: number
-          organization_id: string
-          planning_date: string
-          validated_at: string
-          validated_by: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          notified_drivers?: number
-          notified_patients?: number
-          organization_id: string
-          planning_date: string
-          validated_at?: string
-          validated_by: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          notified_drivers?: number
-          notified_patients?: number
-          organization_id?: string
-          planning_date?: string
-          validated_at?: string
-          validated_by?: string
-        }
-        Relationships: []
-      }
-      planning_validation_rides: {
-        Row: {
-          created_at: string
-          driver_id: string | null
-          id: string
-          organization_id: string
-          patient_id: string | null
-          ride_id: string
-          scheduled_at: string
-          status: string
-          validation_id: string
-          vehicle_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          driver_id?: string | null
-          id?: string
-          organization_id: string
-          patient_id?: string | null
-          ride_id: string
-          scheduled_at: string
-          status: string
-          validation_id: string
-          vehicle_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          driver_id?: string | null
-          id?: string
-          organization_id?: string
-          patient_id?: string | null
-          ride_id?: string
-          scheduled_at?: string
-          status?: string
-          validation_id?: string
-          vehicle_id?: string | null
-        }
-        Relationships: []
-      }
       driver_invitations: {
         Row: {
           accepted_at: string | null
@@ -3063,14 +2991,6 @@ export type Database = {
         Args: { p_patient_id: string; p_request_id: string; p_salt: string }
         Returns: undefined
       }
-      validate_planning_day: {
-        Args: { p_planning_date: string }
-        Returns: {
-          validation_id: string
-          already_validated: boolean
-          snapshot_count: number
-        }[]
-      }
       search_patients: {
         Args: { q: string }
         Returns: {
@@ -3172,12 +3092,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3201,11 +3121,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3226,11 +3146,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3251,11 +3171,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -3268,11 +3188,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
